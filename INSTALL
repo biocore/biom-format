@@ -1,0 +1,6 @@
+INSTALL
+=======
+
+The installation method is currently under development. For the time being, the only objects that are available are Python-based and can be used simply by adding the python-code/ directory to your PYTHONPATH.
+
+At present, the Python modules have light dependencies on PyCogent 1.5.1, QIIME 1.4.0 and NumPy >= 1.5. The PyCogent and QIIME dependencies will be dropped prior to the 1.0 release of BIOM. 
