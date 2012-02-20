@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
 from numpy import array, where, zeros
-from cogent.util.misc import unzip
-from cogent.util.unit_test import TestCase, main
+from biom.unit_test import TestCase, main
 from biom.table import TableException, Table, \
     DenseTable, SparseTable, DenseOTUTable, SparseOTUTable,\
     UnknownID, prefer_self, index_list, list_list_to_sparsedict,\
     dict_to_nparray, list_dict_to_nparray, list_dict_to_sparsedict, \
     table_factory, to_sparsedict, list_nparray_to_sparsedict, \
-    list_list_to_nparray, SparseDict, nparray_to_sparsedict, dict_to_sparsedict
+    list_list_to_nparray, SparseDict, nparray_to_sparsedict, \
+    dict_to_sparsedict, flatten, unzip, natsort
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2007-2012, BIOM Format"
@@ -137,6 +137,70 @@ class SparseDictTests(TestCase):
 class SupportTests(TestCase):
     def setUp(self):
         pass
+
+    def test_natsort(self):
+        """natsort should perform numeric comparisons on strings
+
+        test pulled from QIIME (http://qiime.org)
+        """
+        # string with alpha and numerics sort correctly
+        s = 'sample1 sample2 sample11 sample12'.split()
+        self.assertEqual(natsort(s), 
+          'sample1 sample2 sample11 sample12'.split())
+        s.reverse()
+        self.assertEqual(natsort(s), 
+          'sample1 sample2 sample11 sample12'.split())
+        self.assertEqual(natsort(list('cba321')),list('123abc'))
+
+        # strings with alpha only sort correctly
+        self.assertEqual(natsort(list('cdba')),list('abcd'))
+
+        # string of ints sort correctly
+        self.assertEqual(natsort(['11','2','1','0']),
+                               ['0','1','2','11'])
+
+        # strings of floats sort correctly
+        self.assertEqual(natsort(['1.11','1.12','1.00','0.009']),
+                               ['0.009','1.00','1.11','1.12'])
+
+        # string of ints sort correctly
+        self.assertEqual(natsort([('11','A'),('2','B'),('1','C'),('0','D')]),
+                            [('0','D'),('1','C'),('2','B'),('11','A')])
+
+
+    def test_unzip(self):
+        """unzip(items) should be the inverse of zip(*items)
+        
+        method pulled from PyCogent (http://pycogent.sourceforge.net)
+        """
+        chars = [list('abcde'), list('ghijk')]
+        numbers = [[1,2,3,4,5], [0,0,0,0,0]]
+        strings = [["abcde", "fghij", "klmno"], ['xxxxx'] * 3]
+        empty = [[]]
+
+        lists = [chars, numbers, strings]
+        zipped = [zip(*i) for i in lists]
+        unzipped = [unzip(i) for i in zipped]
+
+        for u, l in zip(unzipped, lists):
+            self.assertEqual(u, l)
+
+    def test_flatten_no_change(self):
+        """flatten should not change non-nested sequences (except to list)
+
+        test pulled from PyCogent (http://pycogent.sourceforge.net)
+        """
+        self.assertEqual(flatten('abcdef'), list('abcdef')) #test identities
+        self.assertEqual(flatten([]), []) #test empty sequence
+        self.assertEqual(flatten(''), []) #test empty string
+
+    def test_flatten(self):
+        """flatten should remove one level of nesting from nested sequences
+
+        test pulled from PyCogent (http://pycogent.sourceforge.net)
+        """
+        self.assertEqual(flatten(['aa', 'bb', 'cc']), list('aabbcc'))
+        self.assertEqual(flatten([1,[2,3], [[4, [5]]]]), [1, 2, 3, [4,[5]]])
 
     def test_TableException(self):
         """Make sure a TableException can be raised"""
@@ -1190,8 +1254,8 @@ class DenseTableTests(TestCase):
 
     def test_getBiomFormatObject(self):
         """Should throw an exception because there is no table type."""
-        self.assertRaises(TableException, self.dt1.getBiomFormatObject)
-        self.assertRaises(TableException, self.dt_rich.getBiomFormatObject)
+        self.assertRaises(TableException, self.dt1.getBiomFormatObject, 'asd')
+        self.assertRaises(TableException, self.dt_rich.getBiomFormatObject, 'asd')
 
     def test_binSamplesByMetadata(self):
         """Yield tables binned by sample metadata"""
@@ -1755,8 +1819,8 @@ class SparseTableTests(TestCase):
 
     def test_getBiomFormatObject(self):
         """Should throw an exception because there is no table type."""
-        self.assertRaises(TableException, self.st1.getBiomFormatObject)
-        self.assertRaises(TableException, self.st_rich.getBiomFormatObject)
+        self.assertRaises(TableException, self.st1.getBiomFormatObject, 'asd')
+        self.assertRaises(TableException, self.st_rich.getBiomFormatObject, 'asd')
     
     def test_binSamplesByMetadata(self):
         """Yield tables binned by sample metadata"""
@@ -2046,118 +2110,154 @@ class DenseOTUTableTests(TestCase):
         self.invalid_element_type_table = DenseOTUTable(
                 array([[{}],[{}]]),['a'],['1','2'])
 
+    def test_getBiomFormatObject_no_generated_by(self):
+        """Should raise without a generated_by string"""
+        self.assertRaises(TableException, self.dot_min.getBiomFormatObject, None)
+        self.assertRaises(TableException, self.dot_min.getBiomFormatObject, 10)
+
     def test_getBiomFormatObject_minimal(self):
         """Should return a dictionary of the minimal table in Biom format."""
         exp = {'rows': [{'id': '1', 'metadata': None},
-            {'id': '2', 'metadata': None}],
-            'format': 'Biological Observation Matrix %s' % __version__,
-            'data': [[5, 6], [7, 8]],
-            'columns': [{'id': 'a', 'metadata': None},
-                {'id': 'b', 'metadata': None}],
-            'matrix_type': 'dense', 'shape': [2, 2],
-            'format_url': __url__,
-            'type': 'OTU table', 'id': None, 'matrix_element_type': 'int'}
-        obs = self.dot_min.getBiomFormatObject()
+                        {'id': '2', 'metadata': None}],
+               'format': 'Biological Observation Matrix %s' % __version__,
+               'generated_by':'foo',
+               'data': [[5, 6], [7, 8]],
+               'columns': [{'id': 'a', 'metadata': None},
+                           {'id': 'b', 'metadata': None}],
+               'matrix_type': 'dense', 
+               'shape': [2, 2],
+               'format_url': __url__,
+               'type': 'OTU table', 
+               'id': None, 
+               'matrix_element_type': 'int'}
+        obs = self.dot_min.getBiomFormatObject("foo")
         # Remove keys that we don't want to test because they might change
         # frequently (and the date is impossible to test). By using 'del', this
         # also tests that the key exists.
         del obs['date']
-        del obs['generated_by']
         self.assertEqual(obs, exp)
 
     def test_getBiomFormatObject_rich(self):
         """Should return a dictionary of the rich table in Biom format."""
-        exp = {'rows': [{'id': '1',
-            'metadata': {'taxonomy': ['k__a', 'p__b']}},
-            {'id': '2', 'metadata': {'taxonomy': ['k__a', 'p__c']}}],
-            'format': 'Biological Observation Matrix %s' % __version__,
-            'data': [[5, 6], [7, 8]], 'columns': [{'id': 'a', 'metadata':
-                {'barcode': 'aatt'}}, {'id': 'b', 'metadata':
-                    {'barcode': 'ttgg'}}],
-                'matrix_type': 'dense', 'shape': [2, 2],
+        exp = {'rows': [{'id': '1', 'metadata': 
+                                    {'taxonomy': ['k__a', 'p__b']}},
+                        {'id': '2', 'metadata': 
+                                    {'taxonomy': ['k__a', 'p__c']}}],
+               'format': 'Biological Observation Matrix %s' % __version__,
+               'data': [[5, 6], [7, 8]], 
+               'generated_by':'foo',
+               'columns': [{'id': 'a', 'metadata':
+                                       {'barcode': 'aatt'}}, 
+                           {'id': 'b', 'metadata':
+                                       {'barcode': 'ttgg'}}],
+                'matrix_type': 'dense', 
+                'shape': [2, 2],
                 'format_url': __url__,
-                'type': 'OTU table', 'id': None, 'matrix_element_type': 'int'}
-        obs = self.dot_rich.getBiomFormatObject()
+                'type': 'OTU table', 
+                'id': None, 
+                'matrix_element_type': 'int'}
+        obs = self.dot_rich.getBiomFormatObject('foo')
         del obs['date']
-        del obs['generated_by']
         self.assertEqual(obs, exp)
 
     def test_getBiomFormatObject_empty_data(self):
         """Should return a dictionary of the empty table in Biom format."""
-        exp = {'rows': [], 'format': 'Biological Observation Matrix %s' % __version__,
-                'data': [], 'columns': [],
-                'matrix_type': 'dense', 'shape': [0, 0],
-                'format_url': __url__, 'type': 'OTU table',
-                        'id': None, 'matrix_element_type': 'int'}
-        obs = self.empty_table.getBiomFormatObject()
+        exp = {'rows': [], 
+               'format': 
+               'Biological Observation Matrix %s' % __version__,
+               'data': [], 
+               'columns': [],
+               'generated_by':'foo',
+               'matrix_type': 'dense', 
+               'shape': [0, 0],
+               'format_url': __url__, 
+               'type': 'OTU table',
+               'id': None, 
+               'matrix_element_type': 'int'}
+        obs = self.empty_table.getBiomFormatObject('foo')
         del obs['date']
-        del obs['generated_by']
         self.assertEqual(obs, exp)
 
     def test_getBiomFormatObject_partial_metadata(self):
         """Should return a dictionary of the partial metadata table."""
         exp1 = {'rows': [{'id': '1', 'metadata': None},
-            {'id': '2', 'metadata': None}], 'format':
-            'Biological Observation Matrix %s' % __version__, 'data': [[0, 2], [9, 10]],
-            'columns': [{'id': 'a', 'metadata': {'barcode': 'aatt'}},
-                {'id': 'b', 'metadata': {'barcode': 'ttgg'}}], 'matrix_type':
-            'dense', 'shape': [2, 2], 'format_url':__url__, 'type': 'OTU table', 
-                'id':'TestTable1', 'matrix_element_type': 'int'}
-        obs1 = self.partial_table1.getBiomFormatObject()
+                         {'id': '2', 'metadata': None}], 
+                'format':'Biological Observation Matrix %s' % __version__, 
+                'data': [[0, 2], [9, 10]],
+                'columns': [{'id': 'a', 'metadata': {'barcode': 'aatt'}},
+                            {'id': 'b', 'metadata': {'barcode': 'ttgg'}}], 
+                'matrix_type':'dense', 'shape': [2, 2], 
+                'format_url':__url__, 
+                'generated_by':'foo',
+                'type': 'OTU table', 
+                'id':'TestTable1', 
+                'matrix_element_type': 'int'}
+        obs1 = self.partial_table1.getBiomFormatObject('foo')
         del obs1['date']
-        del obs1['generated_by']
         self.assertEqual(obs1, exp1)
 
-        exp2 = {'rows': [{'id': '1', 'metadata':
-            {'taxonomy': ['k__a', 'p__b']}}, {'id': '2', 'metadata':
-                {'taxonomy': ['k__a', 'p__c']}}], 'format':
-            'Biological Observation Matrix %s' % __version__, 'data': [[0, 2], [9, 10]],
-            'columns': [{'id': 'a', 'metadata': None},
-                {'id': 'b', 'metadata': None}], 'matrix_type': 'dense',
-            'shape': [2, 2], 'format_url':__url__, 'type': 'OTU table',
-                    'id': 'TestTable2', 'matrix_element_type': 'int'}
-        obs2 = self.partial_table2.getBiomFormatObject()
+        exp2 = {'rows': [{'id':'1', 'metadata':{'taxonomy':['k__a', 'p__b']}},
+                         {'id':'2', 'metadata':{'taxonomy':['k__a', 'p__c']}}],
+                'format':'Biological Observation Matrix %s' % __version__, 
+                'data': [[0, 2], [9, 10]],
+                'columns': [{'id': 'a', 'metadata': None},
+                            {'id': 'b', 'metadata': None}], 
+                'matrix_type': 'dense',
+                'shape': [2, 2], 
+                'format_url':__url__, 
+                'generated_by':'foo',
+                'type': 'OTU table',
+                'id': 'TestTable2', 
+                'matrix_element_type': 'int'}
+        obs2 = self.partial_table2.getBiomFormatObject('foo')
         del obs2['date']
-        del obs2['generated_by']
         self.assertEqual(obs2, exp2)
 
     def test_getBiomFormatObject_float(self):
         """Should return a dictionary of the table with float values."""
         exp = {'rows': [{'id': '1', 'metadata': None},
-            {'id': '2', 'metadata': None}], 'format':
-            'Biological Observation Matrix %s' % __version__, 'data':
-            [[0.0, 2.5, 3.3999999999999999], [9.3000000000000007, 10.23,
-                2.2000000000000002]], 'columns':
-            [{'id': 'a', 'metadata': None}, {'id': 'b', 'metadata': None},
-                {'id': 'c', 'metadata': None}], 'matrix_type': 'dense',
-            'shape': [2, 3], 'format_url':__url__,
-            'type': 'OTU table', 'id': None,
-                    'matrix_element_type': 'float'}
-        obs = self.float_table.getBiomFormatObject()
+                        {'id': '2', 'metadata': None}], 
+               'format':'Biological Observation Matrix %s' % __version__, 
+               'data':[[0.0, 2.5, 3.3999999999999999], 
+                       [9.3000000000000007, 10.23, 2.2000000000000002]], 
+               'columns':[{'id': 'a', 'metadata': None}, 
+                          {'id': 'b', 'metadata': None},
+                          {'id': 'c', 'metadata': None}], 
+               'matrix_type': 'dense',
+               'shape': [2, 3], 
+               'generated_by':'foo',
+               'format_url':__url__,
+               'type': 'OTU table', 
+               'id': None,
+               'matrix_element_type': 'float'}
+        obs = self.float_table.getBiomFormatObject('foo')
         del obs['date']
-        del obs['generated_by']
         self.assertFloatEqual(obs, exp)
 
     def test_getBiomFormatObject_str(self):
         """Should return a dictionary of the table with string values."""
         exp = {'rows': [{'id': 'Obs1', 'metadata': None},
-            {'id': 'Obs2', 'metadata': None}],
-            'format': 'Biological Observation Matrix %s' % __version__, 'data':
-            [['val1', 'val2'], ['val3', 'val4']], 'columns':
-            [{'id': 'Samp1', 'metadata': None},
-                {'id': 'Samp2', 'metadata': None}], 'matrix_type':
-            'dense', 'shape': [2, 2], 'format_url':__url__, 
-            'type': 'OTU table', 'id': None,
-                    'matrix_element_type': 'str'}
-        obs = self.str_table.getBiomFormatObject()
+                        {'id': 'Obs2', 'metadata': None}],
+               'format': 'Biological Observation Matrix %s' % __version__, 
+               'data':[['val1', 'val2'], 
+                       ['val3', 'val4']], 
+               'columns':[{'id': 'Samp1', 'metadata': None},
+                          {'id': 'Samp2', 'metadata': None}], 
+               'matrix_type':'dense', 
+               'shape': [2, 2], 
+               'format_url':__url__, 
+               'type': 'OTU table', 
+               'id': None,
+               'generated_by':'foo',
+               'matrix_element_type': 'str'}
+        obs = self.str_table.getBiomFormatObject('foo')
         del obs['date']
-        del obs['generated_by']
         self.assertEqual(obs, exp)
 
     def test_getBiomFormatObject_invalid_element_type(self):
         """Should throw an exception if the element type isn't valid."""
         self.assertRaises(TableException,
-                self.invalid_element_type_table.getBiomFormatObject)
+                self.invalid_element_type_table.getBiomFormatObject, 'asd')
 
 class SparseOTUTableTests(TestCase):
     def setUp(self):
@@ -2170,56 +2270,71 @@ class SparseOTUTableTests(TestCase):
         self.float_table = SparseOTUTable(to_sparsedict({(0,1):2.5,(0,2):3.4,(1,0):9.3,
             (1,1):10.23,(1,2):2.2}),['a','b','c'],['1','2'])
 
+    def test_getBiomFormatObject_no_generated_by(self):
+        """Should raise without a generated_by string"""
+        self.assertRaises(TableException, self.sot_min.getBiomFormatObject,None)
+        self.assertRaises(TableException, self.sot_min.getBiomFormatObject, 10)
+
     def test_getBiomFormatObject_minimal(self):
         """Should return a dictionary of the minimal table in Biom format."""
         exp = {'rows': [{'id': '1', 'metadata': None},
-            {'id': '2', 'metadata': None}],
-            'format': 'Biological Observation Matrix %s' % __version__,
-            'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
-            'columns': [{'id': 'a', 'metadata': None},
-                {'id': 'b', 'metadata': None}],
-            'matrix_type': 'sparse', 'shape': [2, 2],
-            'format_url': __url__, 'type': 'OTU table', 'id': None, 
-            'matrix_element_type': 'int'}
-        obs = self.sot_min.getBiomFormatObject()
+                        {'id': '2', 'metadata': None}],
+               'format': 'Biological Observation Matrix %s' % __version__,
+               'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
+               'columns': [{'id': 'a', 'metadata': None},
+                           {'id': 'b', 'metadata': None}],
+                'matrix_type': 'sparse', 
+                'shape': [2, 2],
+                'format_url': __url__, 
+                'type': 'OTU table', 
+                'id': None,
+                'generated_by':'foo',
+                'matrix_element_type': 'int'}
+        obs = self.sot_min.getBiomFormatObject('foo')
         del obs['date']
-        del obs['generated_by']
         self.assertFloatEqual(obs, exp)
 
     def test_getBiomFormatObject_rich(self):
         """Should return a dictionary of the rich table in Biom format."""
-        exp = {'rows': [{'id': '1',
-            'metadata': {'taxonomy': ['k__a', 'p__b']}},
-            {'id': '2', 'metadata': {'taxonomy': ['k__a', 'p__c']}}],
-            'format': 'Biological Observation Matrix %s' % __version__,
-            'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
-            'columns': [{'id': 'a', 'metadata':
-                {'barcode': 'aatt'}}, {'id': 'b', 'metadata':
-                    {'barcode': 'ttgg'}}],
-                'matrix_type': 'sparse', 'shape': [2, 2],
+        exp = {'rows': [{'id':'1','metadata':{'taxonomy':['k__a', 'p__b']}},
+                        {'id':'2','metadata':{'taxonomy':['k__a', 'p__c']}}],
+               'format': 'Biological Observation Matrix %s' % __version__,
+               'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
+               'columns': [{'id': 'a', 'metadata':{'barcode': 'aatt'}}, 
+                           {'id': 'b', 'metadata':{'barcode': 'ttgg'}}],
+                'matrix_type': 'sparse', 
+                'shape': [2, 2],
                 'format_url': __url__,
-                'type': 'OTU table', 'id': None,
+                'type': 'OTU table', 
+                'id': None,
+                'generated_by':'foo',
                 'matrix_element_type': 'int'}
-        obs = self.sot_rich.getBiomFormatObject()
+        obs = self.sot_rich.getBiomFormatObject('foo')
         del obs['date']
-        del obs['generated_by']
         self.assertFloatEqual(obs, exp)
 
     def test_getBiomFormatObject_float(self):
         """Should return a dictionary of the table with float values."""
         exp = {'rows': [{'id': '1', 'metadata': None},
-            {'id': '2', 'metadata': None}], 'format':
-            'Biological Observation Matrix %s' % __version__, 'data':
-            [[0, 1, 2.5], [0, 2, 3.3999999999999999],
-                [1, 0, 9.3000000000000007], [1, 1, 10.23],
-                [1, 2, 2.2000000000000002]], 'columns':
-            [{'id': 'a', 'metadata': None}, {'id': 'b', 'metadata': None},
-                {'id': 'c', 'metadata': None}], 'matrix_type': 'sparse',
-            'shape': [2, 3], 'format_url':__url__, 'type': 'OTU table', 
-                'id': None, 'matrix_element_type': 'float'}
-        obs = self.float_table.getBiomFormatObject()
+                        {'id': '2', 'metadata': None}], 
+               'format':'Biological Observation Matrix %s' % __version__, 
+               'data':[[0, 1, 2.5], 
+                       [0, 2, 3.3999999999999999],
+                       [1, 0, 9.3000000000000007], 
+                       [1, 1, 10.23],
+                       [1, 2, 2.2000000000000002]], 
+               'columns':[{'id': 'a', 'metadata': None}, 
+                          {'id': 'b', 'metadata': None},
+                          {'id': 'c', 'metadata': None}], 
+               'matrix_type': 'sparse',
+               'shape': [2, 3], 
+               'format_url':__url__, 
+               'type': 'OTU table', 
+               'generated_by':'foo',
+               'id': None, 
+               'matrix_element_type': 'float'}
+        obs = self.float_table.getBiomFormatObject('foo')
         del obs['date']
-        del obs['generated_by']
         self.assertFloatEqual(obs, exp)
 
 if __name__ == '__main__':

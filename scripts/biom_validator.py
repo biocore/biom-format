@@ -150,7 +150,9 @@ def valid_generated_by(table):
     """Validate the generated_by field"""
     if not table['generated_by']:
         raise ValueError, "'generated_by' is not populated"
-    
+    if not isinstance(table['generated_by'], unicode):
+        raise ValueError, "'generated_by' is not a string"
+
 def valid_nullable_id(table):
     """Validate the table id"""
     # this is nullable and don't actually care what is in here

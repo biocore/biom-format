@@ -2,6 +2,7 @@
 
 """Core BIOM objects for dense and sparse tables"""
 
+import re
 from datetime import datetime
 from json import dumps
 from types import NoneType
@@ -9,12 +10,9 @@ from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, array, newaxis, zeros
-from cogent.util.misc import unzip, flatten
-from qiime.util import get_qiime_library_version
-from qiime.sort import natsort
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2012, BIOM Format"
+__copyright__ = "Copyright 2012, BIOM-Format Project"
 __credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso", 
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"
@@ -32,6 +30,78 @@ def get_biom_format_version_string():
 def get_biom_format_url_string():
     """Returns the current Biom file format description URL."""
     return __url__
+
+def unzip(items):
+    """Performs the reverse of zip, i.e. produces separate lists from tuples.
+
+    items should be list of k-element tuples. Will raise exception if any tuples
+    contain more items than the first one.
+
+    Conceptually equivalent to transposing the matrix of tuples.
+
+    Returns list of lists in which the ith list contains the ith element of each
+    tuple.
+
+    Note: zip expects *items rather than items, such that unzip(zip(*items))
+    returns something that compares equal to items.
+
+    Always returns lists: does not check original data type, but will accept
+    any sequence.
+
+    Method pulled from PyCogent (http://pycogent.sourceforge.net)
+    """
+    if items:
+        return map(list, zip(*items))
+    else:
+        return []
+
+def flatten(items):
+    """Removes one level of nesting from items.
+
+    items can be any sequence, but flatten always returns a list.
+
+    Method pulled from PyCogent (http://pycogent.sourceforge.net) 
+    """
+    result = [] 
+    for i in items:
+        try: 
+            result.extend(i)
+        except:
+            result.append(i)
+    return result
+
+def _natsort_key(item):
+    """Provides normalized version of item for sorting with digits.
+
+    Method pulled from QIIME (http://qiime.org), based on:
+    http://lists.canonical.org/pipermail/kragen-hacks/2005-October/000419.html
+    """
+    item = str(item)
+    try:
+        chunks = re.split('(\d+(?:\.\d+)?)', item)
+    except TypeError:
+        # if item is a tuple or list (i.e., indexable, but not a string)
+        # work with the first element
+        chunks = re.split('(\d+(?:\.\d+)?)', item[0])
+    for ii in range(len(chunks)):
+        if chunks[ii] and chunks[ii][0] in '0123456789':
+            if '.' in chunks[ii]: numtype = float
+            else: numtype = int 
+            # wrap in tuple with '0' to explicitly specify numbers come first
+            chunks[ii] = (0, numtype(chunks[ii]))
+        else:
+            chunks[ii] = (1, chunks[ii])
+    return (chunks, item)
+
+def natsort(seq):
+    """Sort a sequence of text strings in a reasonable order.
+
+    Method pulled from QIIME (http://qiime.org), based on:
+    http://lists.canonical.org/pipermail/kragen-hacks/2005-October/000419.html
+    """
+    alist = list(seq)
+    alist.sort(key=_natsort_key)
+    return alist
 
 class TableException(Exception):
     pass
@@ -1020,11 +1090,13 @@ class Table(object):
         return self.__class__(self._conv_to_self_type(vals), sample_ids[:], 
                 obs_ids[:], sample_md, obs_md)
 
-    def getBiomFormatObject(self):
+    def getBiomFormatObject(self, generated_by):
         """Returns a dictionary representing the table in Biom format.
 
         This dictionary can then be easily converted into a JSON string for
         serialization.
+
+        generated_by - a string describing the software used to build the table
 
         TODO: This method may be very inefficient in terms of memory usage, so
         it needs to be tested with several large tables to determine if
@@ -1034,14 +1106,16 @@ class Table(object):
         if self._biom_type is None:
             raise TableException, "Unknown biom type"
 
+        if generated_by is None or not isinstance(generated_by, str):
+            raise TableException, "Must specify a generated_by string"
+
         # Fill in top-level metadata.
         biom_format_obj = {}
         biom_format_obj["id"] = self.TableId
         biom_format_obj["format"] = get_biom_format_version_string()
         biom_format_obj["format_url"] =\
                 get_biom_format_url_string()
-        biom_format_obj["generated_by"] = "QIIME %s" %\
-                get_qiime_library_version()
+        biom_format_obj["generated_by"] = generated_by
         biom_format_obj["date"] = "%s" % datetime.now().isoformat()
 
         # Determine if we have any data in the matrix, and what the shape of
@@ -1326,7 +1400,7 @@ def list_dict_to_sparsedict(data, dtype=float):
 
 def dict_to_nparray(data, dtype=float):
     """Takes a dict {(row,col):val} and creates a numpy matrix"""
-    rows, cols = unzip(data.keys())
+    rows, cols = zip(*data) # unzip
     mat = zeros((max(rows) + 1, max(cols) + 1), dtype=dtype)
 
     for (row,col),val in data.items():
