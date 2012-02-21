@@ -1106,7 +1106,8 @@ class Table(object):
         if self._biom_type is None:
             raise TableException, "Unknown biom type"
 
-        if generated_by is None or not isinstance(generated_by, str):
+        if (not isinstance(generated_by, str) and
+            not isinstance(generated_by, unicode)):
             raise TableException, "Must specify a generated_by string"
 
         # Fill in top-level metadata.
