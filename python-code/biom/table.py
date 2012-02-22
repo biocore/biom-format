@@ -1188,9 +1188,9 @@ class Table(object):
                     {"id" : "%s" % samp[1], "metadata" : samp[2]})
         return biom_format_obj
 
-    def getBiomFormatJsonString(self):
+    def getBiomFormatJsonString(self,generated_by):
         """Returns a JSON string representing the table in Biom format."""
-        return dumps(self.getBiomFormatObject())
+        return dumps(self.getBiomFormatObject(generated_by))
 
     def getBiomFormatPrettyPrint(self):
         """Returns a 'pretty print' format of a biom file
