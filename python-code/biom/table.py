@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 """Core BIOM objects for dense and sparse tables"""
+from __future__ import division
 
 import re
 from datetime import datetime
@@ -870,7 +871,7 @@ class Table(object):
         """
         new_samp_v = []
         for samp_v, samp_id, samp_md in self.iterSamples():
-            new_samp_v.append(self._conv_to_self_type(f(samp_v)))
+            new_samp_v.append(self._conv_to_self_type(f(samp_v, samp_id, samp_md)))
 
         return self.__class__(self._conv_to_self_type(new_samp_v, transpose=True), 
                 self.SampleIds[:], self.ObservationIds[:], self.SampleMetadata,
@@ -883,7 +884,7 @@ class Table(object):
         """
         new_obs_v = []
         for obs_v, obs_id, obs_md in self.iterObservations():
-            new_obs_v.append(self._conv_to_self_type(f(obs_v)))
+            new_obs_v.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
 
         return self.__class__(self._conv_to_self_type(new_obs_v),
                 self.SampleIds[:],self.ObservationIds[:],self.SampleMetadata,
@@ -891,12 +892,21 @@ class Table(object):
 
     def normObservationBySample(self):
         """Return new table with relative abundance in each sample"""
-        f = lambda x: x / float(x.sum())
+        def f(samp_v, samp_id, samp_md):
+            return samp_v / float(samp_v.sum())
         return self.transformSamples(f)
 
     def normSampleByObservation(self):
-        """Return new table with relative abundance in each observation"""
-        f = lambda x: x / float(x.sum())
+        """Return new table with relative abundance in each observation"""        
+        def f(obs_v,obs_id,obs_md):
+            return obs_v / float(obs_v.sum())
+        #f = lambda x: x / float(x.sum())
+        return self.transformObservations(f)
+    
+    def normObservationByMetadata(self,obs_metadata_id):
+        """Return new table with counts divided by specified metadata value"""        
+        def f(obs_v,obs_id,obs_md):
+            return obs_v / obs_md[obs_metadata_id]
         return self.transformObservations(f)
 
     def nonzero(self):

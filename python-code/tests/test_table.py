@@ -1225,7 +1225,8 @@ class DenseTableTests(TestCase):
 
     def test_transformObservations(self):
         """Transform observations by arbitrary function"""
-        transform_f = lambda x: where(x >= 7, 1, 0)
+        def transform_f(v, id, md):
+            return where(v >= 7, 1, 0)
         exp = DenseTable(array([[0,0],[1,1]]), ['a','b'], ['1','2'])
         obs = self.dt1.transformObservations(transform_f)
 
@@ -1233,7 +1234,8 @@ class DenseTableTests(TestCase):
     
     def test_transformSamples(self):
         """Transform samples by arbitrary function"""
-        transform_f = lambda x: where(x >= 6, 1, 0)
+        def transform_f(v,id,md):
+            return where(v >= 6, 1, 0)
         exp = DenseTable(array([[0,1],[1,1]]), ['a','b'], ['1','2'])
         obs = self.dt1.transformSamples(transform_f)
         self.assertEqual(obs, exp)
@@ -1250,6 +1252,13 @@ class DenseTableTests(TestCase):
         dt = DenseTable(array([[0,2],[2,6]]), ['a','b'],['1','2'])
         exp = DenseTable(array([[0.0,1.0],[0.25,.75]]), ['a','b'], ['1','2'])
         obs = dt.normSampleByObservation()
+        self.assertEqual(obs, exp)
+
+    def test_normObservationByMetadata(self):
+        """normalize observations by sample"""
+        dt = DenseTable(array([[6,0],[6,1]]), ['a','b'],['1','2'],[{},{}],[{'CopyNumber':3},{'CopyNumber':2}])
+        exp = DenseTable(array([[2.,0.],[3.,0.5]]), ['a','b'], ['1','2'],[{},{}],[{'CopyNumber':3},{'CopyNumber':2}])
+        obs = dt.normObservationByMetadata('CopyNumber')
         self.assertEqual(obs, exp)
 
     def test_getBiomFormatObject(self):
@@ -1785,7 +1794,8 @@ class SparseTableTests(TestCase):
 
     def test_transformObservations(self):
         """Transform observations by arbitrary function"""
-        transform_f = lambda x: where(x >= 7, 1, 0)
+        def transform_f(v, id, md):
+            return where(v >= 7, 1, 0)
         sp_sd = to_sparsedict({(0,0):0,(0,1):0,(1,0):1,(1,1):1})
         exp = SparseTable(sp_sd, ['a','b'], ['1','2'])
         obs = self.st1.transformObservations(transform_f)
@@ -1793,7 +1803,8 @@ class SparseTableTests(TestCase):
     
     def test_transformSamples(self):
         """Transform samples by arbitrary function"""
-        transform_f = lambda x: where(x >= 6, 1, 0)
+        def transform_f(v, id, md):
+            return where(v >= 6, 1, 0)
         sp_sd = to_sparsedict({(0,0):0,(0,1):1,(1,0):1,(1,1):1})
         exp = SparseTable(sp_sd, ['a','b'], ['1','2'])
         obs = self.st1.transformSamples(transform_f)
@@ -1806,6 +1817,15 @@ class SparseTableTests(TestCase):
         st = SparseTable(data, ['a','b'],['1','2'])
         exp = SparseTable(data_exp, ['a','b'], ['1','2'])
         obs = st.normObservationBySample()
+        self.assertEqual(obs, exp)
+    
+    def test_normObservationByMetadata(self):
+        """normalize observations by sample"""
+        data = to_sparsedict({(0,0):6,(0,1):0,(1,0):6,(1,1):1})
+        data_exp = to_sparsedict({(0,0):2.,(0,1):0.0,(1,0):3.0,(1,1):0.5})
+        st = SparseTable(data, ['a','b'],['1','2'],[{},{}],[{'CopyNumber':3},{'CopyNumber':2}])
+        exp = SparseTable(data_exp, ['a','b'], ['1','2'],[{},{}],[{'CopyNumber':3},{'CopyNumber':2}])
+        obs = st.normObservationByMetadata('CopyNumber')
         self.assertEqual(obs, exp)
         
     def test_normSampleByObservation(self):
