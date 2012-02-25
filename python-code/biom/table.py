@@ -228,10 +228,11 @@ class SparseDict(dict):
             raise IndexError, "The specified col is out of bounds"
 
         new_col = SparseDict(in_self_rows, 1)
-
+        #new_col = SparseDict(1, in_self_rows)
         d = {}
         for r,c in self._index_cols[col]:
             d[(r,0)] = super(SparseDict, self).__getitem__((r,c))
+            #d[(0,r)] = super(SparseDict, self).__getitem__((r,c))
         new_col.update(d)
         return new_col
 
@@ -292,6 +293,12 @@ def to_sparsedict(values, transpose=False, dtype=float):
     # the empty list
     elif isinstance(values, list) and len(values) == 0:
         mat = SparseDict(0,0)
+        return mat
+    # list of np vectors
+    elif isinstance(values, list) and isinstance(values[0], ndarray):
+        mat = list_nparray_to_sparsedict(values, dtype)
+        if transpose:
+            mat = mat.T
         return mat
     # list of dicts, each representing a row in row order
     elif isinstance(values, list) and isinstance(values[0], dict):
@@ -697,7 +704,7 @@ class Table(object):
 
         for id_ in sample_order:
             cur_idx = self._sample_index[id_]
-            vals.append(self[:,cur_idx])
+            vals.append(self._conv_to_np(self[:,cur_idx]))
             
             if self.SampleMetadata is not None:
                 samp_md.append(self.SampleMetadata[cur_idx])
@@ -705,7 +712,7 @@ class Table(object):
         if not samp_md:
             samp_md = None
 
-        return self.__class__(self._conv_to_self_type(vals), 
+        return self.__class__(self._conv_to_self_type(vals,transpose=True), 
                 sample_order[:], self.ObservationIds[:], samp_md, 
                 self.ObservationMetadata, self.TableId)
 
@@ -862,18 +869,93 @@ class Table(object):
                     self.SampleIds[:], obs_ids[:], self.SampleMetadata,
                     obs_md, self.TableId)
 
-    # it might be desirable in the future to rewrite the transform methods
-    # to a general purpose map() and then specify an axis within map
+    def collapseSamplesByMetadata(self, metadata_f, reduce_f=add, norm=True, 
+            min_group_size=2):
+        """Collapse a table by sample metadata
+        
+        Bin samples by metadata then collapse each bin into a single sample.
+        Metadata for the collapsed samples are retained and can be referred to
+        by the SampleId from each sample within the bin.
+        """
+        collapsed_data = []
+        collapsed_sample_ids = []
+        collapsed_sample_md = []
+
+        for bin, table in self.binSamplesByMetadata(metadata_f):
+            if len(table.SampleIds) < min_group_size:
+                continue
+
+            redux_data = table.reduce(reduce_f, 'observation')
+            if norm:
+                redux_data /= len(table.SampleIds)
+
+            collapsed_data.append(self._conv_to_self_type(redux_data))
+            collapsed_sample_ids.append(bin)
+            
+            # retain metadata but store by original sample id
+            tmp_md = {}
+            for id_, md in zip(table.SampleIds, table.SampleMetadata):
+                tmp_md[id_] = md
+            collapsed_sample_md.append(tmp_md)
+
+        data = self._conv_to_self_type(collapsed_data, transpose=True)
+
+        # if the table is empty
+        if 0 in data.shape:
+            raise TableException, "Collapsed table is empty!"
+
+        return self.__class__(data, collapsed_sample_ids, self.ObservationIds[:],
+                collapsed_sample_md, self.ObservationMetadata, self.TableId)
+
+    def collapseObservationsByMetadata(self, metadata_f, reduce_f=add, 
+            norm=True, min_group_size=2):
+        """Collapse a table by observation metadata
+        
+        Bin observations by metadata then collapse each bin into a single 
+        observation. Metadata for the collapsed observations are retained and 
+        can be referred to by the ObservationId from each observation within 
+        the bin.
+        """
+        collapsed_data = []
+        collapsed_obs_ids = []
+        collapsed_obs_md = []
+
+        for bin, table in self.binObservationsByMetadata(metadata_f):
+            if len(table.ObservationIds) < min_group_size:
+                continue
+
+            redux_data = table.reduce(reduce_f, 'sample')
+            if norm:
+                redux_data /= len(table.ObservationIds)
+
+            collapsed_data.append(self._conv_to_self_type(redux_data))
+            collapsed_obs_ids.append(bin)
+   
+            # retain metadata but store by original sample id
+            tmp_md = {}
+            for id_, md in zip(table.ObservationIds, table.ObservationMetadata):
+                tmp_md[id_] = md
+            collapsed_obs_md.append(tmp_md)
+
+        data = self._conv_to_self_type(collapsed_data)
+
+        # if the table is empty
+        if 0 in data.shape:
+            raise TableException, "Collapsed table is empty!"
+
+        return self.__class__(data, self.SampleIds[:], collapsed_obs_ids,
+                self.SampleMetadata, collapsed_obs_md, self.TableId)
+
     def transformSamples(self, f):
         """Apply a function to each sample
         
         f is passed a numpy vector and must return a vector
         """
-        new_samp_v = []
-        for samp_v, samp_id, samp_md in self.iterSamples():
-            new_samp_v.append(self._conv_to_self_type(f(samp_v, samp_id, samp_md)))
+        new_m = []
+        for s_v, s_id, s_md in self.iterSamples():
+            new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
 
-        return self.__class__(self._conv_to_self_type(new_samp_v, transpose=True), 
+        return self.__class__(self._conv_to_self_type(new_m, transpose=True), 
                 self.SampleIds[:], self.ObservationIds[:], self.SampleMetadata,
                 self.ObservationMetadata, self.TableId)
 
@@ -897,14 +979,14 @@ class Table(object):
         return self.transformSamples(f)
 
     def normSampleByObservation(self):
-        """Return new table with relative abundance in each observation"""        
+        """Return new table with relative abundance in each observation"""  
         def f(obs_v,obs_id,obs_md):
             return obs_v / float(obs_v.sum())
         #f = lambda x: x / float(x.sum())
         return self.transformObservations(f)
     
     def normObservationByMetadata(self,obs_metadata_id):
-        """Return new table with counts divided by specified metadata value"""        
+        """Return new table with counts divided by specified metadata value"""
         def f(obs_v,obs_id,obs_md):
             return obs_v / obs_md[obs_metadata_id]
         return self.transformObservations(f)
