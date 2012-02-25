@@ -1223,6 +1223,66 @@ class DenseTableTests(TestCase):
         self.assertRaises(TableException, self.dt_rich.filterObservations, \
                           lambda x,y,z: False)
 
+    def test_collapseObservationsByMetadata(self):
+        """Collapse observatiosn by arbitrary metadata"""
+        dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
+                        ['1','2','3'], [{'barcode':'aatt'},
+                                        {'barcode':'ttgg'},
+                                        {'barcode':'aatt'}],
+                        [{'taxonomy':['k__a','p__b']},
+                         {'taxonomy':['k__a','p__c']},
+                         {'taxonomy':['k__a','p__c']}])
+        exp_phy = DenseTable(array([[5,6,7],[19,21,23]]),['a','b','c'],
+                        ['p__b','p__c'], [{'barcode':'aatt'},
+                                          {'barcode':'ttgg'},
+                                          {'barcode':'aatt'}],
+                        [{'1':{'taxonomy':['k__a','p__b']}},
+                         {'2':{'taxonomy':['k__a','p__c']},
+                          '3':{'taxonomy':['k__a','p__c']}}])
+        bin_f = lambda x: x['taxonomy'][1]
+        obs_phy = dt_rich.collapseObservationsByMetadata(bin_f,norm=False,
+                min_group_size=1).sortByObservationId()
+        self.assertEqual(obs_phy, exp_phy)
+
+        exp_king = DenseTable(array([[24,27,30]]),['a','b','c'],['k__a'],
+                             [{'barcode':'aatt'},
+                              {'barcode':'ttgg'},
+                              {'barcode':'aatt'}],
+                             [{'1':{'taxonomy':['k__a','p__b']},
+                               '2':{'taxonomy':['k__a','p__c']},
+                               '3':{'taxonomy':['k__a','p__c']}}])
+        bin_f = lambda x: x['taxonomy'][0]
+        obs_king = dt_rich.collapseObservationsByMetadata(bin_f, \
+                norm=False)
+        self.assertEqual(obs_king, exp_king)
+
+        self.assertRaises(TableException, dt_rich.collapseObservationsByMetadata,
+                bin_f, min_group_size=10)
+
+    def test_collapseSamplesByMetadata(self):
+        """Collapse samples by arbitrary metadata"""
+        dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
+                        ['1','2','3'], [{'barcode':'aatt'},
+                                        {'barcode':'ttgg'},
+                                        {'barcode':'aatt'}],
+                        [{'taxonomy':['k__a','p__b']},
+                         {'taxonomy':['k__a','p__c']},
+                         {'taxonomy':['k__a','p__c']}])
+        exp_bc = DenseTable(array([[12,6],[18,9],[24,12]]),['aatt','ttgg'],
+                        ['1','2','3'], [{'a':{'barcode':'aatt'},
+                                        'c':{'barcode':'aatt'}},
+                                       {'b':{'barcode':'ttgg'}}],
+                                        [{'taxonomy':['k__a','p__b']},
+                                         {'taxonomy':['k__a','p__c']},
+                                         {'taxonomy':['k__a','p__c']}])
+        bin_f = lambda x: x['barcode']
+        obs_bc = dt_rich.collapseSamplesByMetadata(bin_f,norm=False,
+                min_group_size=1).sortBySampleId()
+        self.assertEqual(obs_bc, exp_bc)
+
+        self.assertRaises(TableException, dt_rich.collapseSamplesByMetadata,
+                bin_f, min_group_size=10)
+
     def test_transformObservations(self):
         """Transform observations by arbitrary function"""
         def transform_f(v, id, md):
@@ -1398,9 +1458,11 @@ class SparseTableTests(TestCase):
  
     def test_sortSampleOrder(self):
         """sort by observations arbitrary order"""
-        vals = {(0,0):6,(0,1):5,(1,0):8,(1,1):7}
+        vals = {(0,0):6,(0,1):5,
+                (1,0):8,(1,1):7}
         exp = SparseTable(to_sparsedict(vals),
                                ['b','a'],['1','2'])
+        
         obs = self.st1.sortSampleOrder(['b','a'])
         self.assertEqual(obs,exp)
  
