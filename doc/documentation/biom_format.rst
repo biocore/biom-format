@@ -1,20 +1,10 @@
 .. _biom_format:
 
 ===========================================
-Biological Observation Matrix (biom) format
+The biom file format
 ===========================================
-
-The biom file format (canonically pronounced `biome`) is designed to be a general-use format for representing counts of observations in one or more biological samples. 
-
-With respect to QIIME, the primary use of this format is to represent OTU tables: the observations in this case are OTUs and the matrix contains counts corresponding to the number of times each OTU is observed in each sample. With respect to metagenome data, this format would be used to represent metagenome tables: the observations in this case might correspond to SEED subsystems, and the matrix would contain counts corresponding to the number of times each subsystem is observed in each metagenome. Similarly, with respect to genome data, this format may be used to represent a set of genomes: the observations in this case again might correspond to SEED subsystems, and the counts would correspond to the number of times each subsystem is observed in each genome.
-
-
-Description of biom file format
-===============================
     
-The ``biom`` format is based on `JSON <http://www.json.org>`_ to provide the overall structure for the
-format. JSON is a widely supported format with native parsers available within
-many programming languages. 
+The ``biom`` format is based on `JSON <http://www.json.org>`_ to provide the overall structure for the format. JSON is a widely supported format with native parsers available within many programming languages. 
 
 Required top-level fields::
 
@@ -90,7 +80,7 @@ Minimal sparse OTU table
         "format": "Biological Observation Matrix v0.9",
         "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
         "type": "OTU table",
-        "generated_by": "QIIME revision XYZ",
+        "generated_by": "QIIME revision 1.4.0-dev",
         "date": "2011-12-19T19:00:00",
         "rows":[
                 {"id":"GG_OTU_1", "metadata":null},
@@ -138,7 +128,7 @@ Minimal dense OTU table
         "format": "Biological Observation Matrix v0.9",
         "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
         "type": "OTU table",
-        "generated_by": "QIIME revision XYZ",
+        "generated_by": "QIIME revision 1.4.0-dev",
         "date": "2011-12-19T19:00:00",
         "rows":[
                 {"id":"GG_OTU_1", "metadata":null},
@@ -175,7 +165,7 @@ Rich sparse OTU table
      "format": "Biological Observation Matrix v0.9",
      "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
      "type": "OTU table",
-     "generated_by": "QIIME revision XYZ",
+     "generated_by": "QIIME revision 1.4.0-dev",
      "date": "2011-12-19T19:00:00",
      "rows":[
         {"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
@@ -248,7 +238,7 @@ Rich dense OTU table
      "format": "Biological Observation Matrix v0.9",
      "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
      "type": "OTU table",
-     "generated_by": "QIIME revision XYZ",
+     "generated_by": "QIIME revision 1.4.0-dev",
      "date": "2011-12-19T19:00:00",  
      "rows":[
         {"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
@@ -305,23 +295,22 @@ Rich dense OTU table
 Converting between file formats
 ===============================
 
-The ``convert_biom.py`` script in QIIME can be used to convert between biom and classic OTU table formats. This is useful for several reasons:
- - converting classic OTU tables to biom format for use with newer versions of QIIME
+The ``convert_biom.py`` script in the biom-format project can be used to convert between biom and tab-delimited table formats. This is useful for several reasons:
  - converting biom format to classic OTU tables for easy viewing in programs such as Excel
  - converting between sparse and dense biom formats
 
 Usage examples
 --------------
 
-Convert a classic OTU table to sparse biom format::
+Convert a tab-delimited table to sparse biom format::
 
 	convert_biom.py -i otu_table.txt -o otu_table.biom
 
-Convert a classic OTU table to dense biom format::
+Convert a tab-delimited table to dense biom format::
 
 	convert_biom.py -i otu_table.txt -o otu_table.biom -t dense
 
-Convert biom format to classic OTU table format::
+Convert biom format to tab-delimited table format::
 
 	convert_biom.py -i otu_table.biom -o otu_table.txt -b
 
@@ -338,20 +327,19 @@ Convert sparse biom format to dense biom format::
 Should I generate sparse or dense biom files?
 =============================================
 
-In general, we recommend using the sparse format for your biom files. These will be a lot smaller than the dense format biom files when your data is sparse (i.e., most observations have zero counts in most samples). This is common for OTU tables and metagenomes, and you'll want to investigate whether it's true for your data. If you currently format your data in tab-separated tables where observations are rows and samples are columns, you can format that file to be convertible to biom format with the ``convert_biom.py`` script in QIIME. Here you can create dense and sparse formats, and see which file size is smaller. See the section on :ref:`converting`.
+In general, we recommend using the sparse format for your biom files. These will be a lot smaller than the dense format biom files when your data is sparse (i.e., more than 85% of your counts are zero). This is common for OTU tables and metagenome tables, and you'll want to investigate whether it's true for your data. If you currently format your data in tab-separated tables where observations are rows and samples are columns, you can format that file to be convertible to biom format with the ``convert_biom.py``. Here you can create dense and sparse formats, and see which file size is smaller. See the section on :ref:`converting`. 
 
-Motivation for changing the OTU Table Format
-=============================================
+Motivation for the BIOM format: reasons for the switch in QIIME
+===============================================================
 
-As of QIIME 1.4.0-dev, OTU tables are represented in the newly developed biom format: a JSON-derived format rather than the previous tab-separated format. This change was made for several reasons: first, to facilitate efficient handling and storing of very large OTU tables; second, to support encapsulation of core study data (OTU table data and sample/OTU metadata) in a single file; and third, to facilitate the use of these tables between tools that support this format (e.g., passing of data between QIIME and MG-RAST).
+The BIOM format was motivation by several goals. First, to facilitate efficient handling and storage of large, sparse biological contingency tables; second, to support encapsulation of core study data (contingency table data and sample/observation metadata) in a single file; and third, to facilitate the use of these tables between tools that support this format (e.g., passing of data between QIIME, MG-RAST, and VAMPS).
 
-
-Efficient handling and storage of very large OTU tables
+Efficient handling and storage of very large tables
 -------------------------------------------------------
 
-Presently we're hitting limitations with OTU table objects when working with thousands of samples and hundreds of thousands of OTUs. In the near future we expect that we'll be dealing with hundreds of thousands of samples in single analyses.
+In QIIME, we began hitting limitations with OTU table objects when working with thousands of samples and hundreds of thousands of OTUs. In the near future we expect that we'll be dealing with hundreds of thousands of samples in single analyses.
 
-The OTU table format up to QIIME 1.3.0 involved a dense matrix: if an OTU was not observed in a given sample, that would be indicated with a zero. We now primarily represent OTU tables in a sparse format: if an OTU is not observed in a sample, there is no count for that OTU. The two ways of representing this data are exemplified here. 
+The OTU table format up to QIIME 1.4.0 involved a dense matrix: if an OTU was not observed in a given sample, that would be indicated with a zero. We now primarily represent OTU tables in a sparse format: if an OTU is not observed in a sample, there is no count for that OTU. The two ways of representing this data are exemplified here. 
 
 A dense representation of an OTU table:: 
 
@@ -369,7 +357,7 @@ A sparse representation of an OTU table::
     PC.356 OTU2 7
     PC.356 OTU3 3
 
-OTU table data tends to be sparse (i.e., a lot of counts are zeros) in which case the latter format is more convenient to work with as it has a smaller memory footprint. Both of these representations are now supported in QIIME via the dense and sparse formats through the use of BIOM (for either dense or sparse) or the classic dense OTU table type. .
+OTU table data tends to be sparse (e.g., greater than 90% of counts are zero, and frequently as many as 99% of counts are zero) in which case the latter format is more convenient to work with as it has a smaller memory footprint. Both of these representations are supported in the biom-format project via dense and sparse Table types. Generally if less than 85% of your counts are zero, a dense representation will be more efficient.
 
 Encapsulation of core study data (OTU table data and sample/OTU metadata) in a single file
 ------------------------------------------------------------------------------------------
@@ -379,4 +367,4 @@ The JSON-format OTU table allow for storage of arbitrary amounts of sample and O
 Facilitating the use of tables between tools that support this format
 ---------------------------------------------------------------------
 
-Different tools, such as QIIME and MG-RAST, work with similar data structures that represent different types of data. An example of this is a `metagenome` table that could be generated by MG-RAST (where for example, columns are metagenomes and rows are functional categories). Exporting this data from MG-RAST in a suitable format will allow for the application of many of the QIIME tools to this data (such as generation of alpha rarefaction plots or beta diversity ordination plots). This new format is far more general than previous formats, so will support adoption by groups working with different data types and is already being integrated to support transfer of data between QIIME and MG-RAST.
+Different tools, such as `QIIME <http://www.qiime.org>`_, `MG-RAST <http://metagenomics.anl.gov>`_, and `VAMPS <http://vamps.mbl.edu/>`_ work with similar data structures that represent different types of data. An example of this is a `metagenome` table that could be generated by MG-RAST (where for example, columns are metagenomes and rows are functional categories). Exporting this data from MG-RAST in a suitable format will allow for the application of many of the QIIME tools to this data (such as generation of alpha rarefaction plots or beta diversity ordination plots). This new format is far more general than previous formats, so will support adoption by groups working with different data types and is already being integrated to support transfer of data between `QIIME <http://www.qiime.org>`_, `MG-RAST <http://metagenomics.anl.gov>`_, and `VAMPS <http://vamps.mbl.edu/>`_.

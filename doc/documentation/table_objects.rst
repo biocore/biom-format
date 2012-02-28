@@ -1,17 +1,10 @@
 .. _table_objects:
 
 ===========================================
-QIIME Table Objects
+biom-format table objects
 ===========================================
 
-As of 1.4.0-dev, QIIME began providing rich ``Table`` objects to facilitate analyses. The objects encapsulate matrix data (such as OTU counts) and abstract the interaction away from the programmer. This provides the immediate benefit of the programmer not having to worry about what the underlying data object is, and in turn allows for different data representations to be supported. Currently, QIIME supports a ``dense`` object built off of ``numpy.array`` (`NumPy <http://http://numpy.scipy.org/>`_) and a ``sparse`` object built off of ``pysparse.spmatrix.ll_mat`` (`PySparse <http://pysparse.sourceforge.net/>`_). 
-
-Motivation for the objects
-==========================
-
-Prior to QIIME 1.4.0-dev, all OTU tables used a dense representation in memory. OTU tables tend to be highly "sparse", or contain a significant number of entries with zero counts. These zero counts consume a dramatic amount of memory as the tables grow in size. Because of this, the QIIME team began investigating sparse matrix representations that only store the nonzero values. 
-
-We decided early on to couple the support of the sparse data representation with rich objects that express the complex OTU table datatype. The refactoring comes with two specific benefits: a common API (application programming interface) that allows the developers easier access to common OTU table functionality and an abstraction from the underlying matrix data.
+The biom-format project provides rich ``Table`` objects to support use of the BIOM file format. The objects encapsulate matrix data (such as OTU counts) and abstract the interaction away from the programmer. This provides the immediate benefit of the programmer not having to worry about what the underlying data object is, and in turn allows for different data representations to be supported. Currently, biom-format supports a ``dense`` object built off of ``numpy.array`` (`NumPy <http://http://numpy.scipy.org/>`_) and a ``sparse`` object built off of Python dictionaries. 
 
 Description of available ``Table`` objects
 ==========================================
@@ -362,8 +355,4 @@ Determines merge order for id lists A and B
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Obtain some notion of sanity on object construction with inputs
-
-Mini How-To
-===========
-
 
