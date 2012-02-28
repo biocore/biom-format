@@ -9,10 +9,11 @@ The `BIOM format <http://www.biom-format.org>`_ is designed for general use in b
 
 There are two components to the BIOM project: first is `definition of the BIOM format <./documentation/biom_format.html>`_, and second is `development of support objects <./documentation/table_objects.html>`_ in multiple programming languages to support the use of BIOM in diverse bioinformatics applications. A 1.0 release of the biom-format project will coincide with publication of a manuscript describing the project.
 
-Contents:
+Contents
+========
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
 
    ./documentation/index.rst
 
