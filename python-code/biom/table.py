@@ -1393,10 +1393,70 @@ class AbundanceTable(object):
     _biom_type = "Abundance table"
     pass
 
+class PathwayTable(object):
+    _biom_type = "Pathway table"
+    pass
+
+class FunctionTable(object):
+    _biom_type = "Function table"
+    pass
+
+class OrthologTable(object):
+    _biom_type = "Ortholog table"
+    pass
+
+class GeneTable(object):
+    _biom_type = "Gene table"
+    pass
+
+class MetaboliteTable(object):
+    _biom_type = "Metabolite table"
+    pass
+
+class TaxonTable(object):
+    _biom_type = "Taxon table"
+    pass
+
 class DenseOTUTable(OTUTable, DenseTable):
     pass
 
 class SparseOTUTable(OTUTable, SparseTable):
+    pass
+
+class DensePathwayTable(PathwayTable, DenseTable):
+    pass
+
+class SparsePathwayTable(PathwayTable, SparseTable):
+    pass
+
+class DenseFunctionTable(FunctionTable, DenseTable):
+    pass
+
+class SparseFunctionTable(FunctionTable, SparseTable):
+    pass
+
+class DenseOrthologTable(OrthologTable, DenseTable):
+    pass
+
+class SparseOrthologTable(OrthologTable, SparseTable):
+    pass
+
+class DenseGeneTable(GeneTable, DenseTable):
+    pass
+
+class SparseGeneTable(GeneTable, SparseTable):
+    pass
+
+class DenseMetaboliteTable(MetaboliteTable, DenseTable):
+    pass
+
+class SparseMetaboliteTable(MetaboliteTable, SparseTable):
+    pass
+
+class DenseTaxonTable(TaxonTable, DenseTable):
+    pass
+
+class SparseTaxonTable(TaxonTable, SparseTable):
     pass
 
 class DenseAbundanceTable(AbundanceTable, DenseTable):

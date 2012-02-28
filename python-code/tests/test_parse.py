@@ -17,7 +17,8 @@ from biom.unit_test import TestCase,main
 from biom.parse import parse_biom_table_str, \
         parse_biom_table, parse_biom_otu_table, \
         parse_classic_table_to_rich_table, convert_biom_to_table, \
-        convert_table_to_biom, parse_classic_table, generatedby
+        convert_table_to_biom, parse_classic_table, generatedby, \
+        parse_mapping
 from biom.table import SparseOTUTable, DenseOTUTable
 
 class ParseTests(TestCase):
@@ -42,6 +43,23 @@ class ParseTests(TestCase):
         exp = "BIOM-Format %s" % __version__
         obs = generatedby()
         self.assertEqual(obs,exp)
+
+    def test_parse_mapping(self):
+        """parse_mapping_file functions as expected"""
+        s1 = ['#sample\ta\tb', '#comment line to skip',\
+              'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
+        exp = ([['x','y','z'],['i','j','k']],\
+               ['sample','a','b'],\
+               ['comment line to skip','more skip'])
+        exp = {'x':{'a':'y','b':'z'},'i':{'a':'j','b':'k'}}
+        obs = parse_mapping(s1)
+        self.assertEqual(obs, exp)
+    
+        #check that we strip double quotes by default
+        s2 = ['#sample\ta\tb', '#comment line to skip',\
+              '"x "\t" y "\t z ', ' ', '"#more skip"', 'i\t"j"\tk']
+        obs = parse_mapping(s2)
+        self.assertEqual(obs, exp)
 
     def test_parse_classic_table_to_rich_table(self):
         tab1_fh = StringIO(self.otu_table1)
