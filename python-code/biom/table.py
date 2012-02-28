@@ -11,6 +11,7 @@ from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, array, newaxis, zeros
+from biom.exception import TableException, UnknownID
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
@@ -103,12 +104,6 @@ def natsort(seq):
     alist = list(seq)
     alist.sort(key=_natsort_key)
     return alist
-
-class TableException(Exception):
-    pass
-
-class UnknownID(TableException):
-    pass
 
 class SparseDict(dict):
     """Support for sparse dicts

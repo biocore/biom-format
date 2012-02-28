@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 
 from __future__ import division
-from biom.table import DenseOTUTable, SparseOTUTable, table_factory, \
-        to_sparsedict
+from biom.exception import BiomParseException
+from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
+        DensePathwayTable, SparseFunctionTable, DenseFunctionTable, \
+        SparseOrthologTable, DenseOrthologTable, SparseGeneTable, \
+        DenseGeneTable, SparseMetaboliteTable, DenseMetaboliteTable,\
+        SparseTaxonTable, DenseTaxonTable, table_factory, to_sparsedict,\
+        nparray_to_sparsedict
 import json
 from numpy import zeros, asarray
 from string import strip
@@ -32,24 +37,169 @@ def parse_biom_table(json_fh,constructor=None):
     """
     return parse_biom_table_str(''.join(json_fh),constructor=constructor)
 
+def pick_constructor(mat_type, table_type, constructor, valid_constructors):
+    """Make sure constructor is sane, attempt to pick one if not specified
+
+    Excepts valid_constructors to be a list in the order of 
+    [SparseTable, DenseTable] in which the objects present must subclass the
+    objects respectively (eg [SparseOTUTable, DenseOTUTable])
+
+    We do not require the matrix type to be the same as the constructor if the 
+    passed in constructor is not None. The motivation is that there are use
+    cases for taking a table stored as dense but loaded as sparse.
+
+    Will raise BiomParseError if input_mat_type appears wrong or if the 
+    specified constructor appears to be incorrect
+    """
+    if constructor is None:
+        if mat_type.lower() == 'sparse':
+            constructor = valid_constructors[0]
+        elif mat_type.lower() == 'dense':
+            constructor = valid_constructors[1]
+        else:
+            raise BiomParseException, "Unknown matrix_type"
+    if constructor._biom_type.lower() != table_type.lower():
+        raise BiomParseException, "constructor must be a biom otu Table"
+
+    return constructor
+
 def parse_biom_otu_table(json_table, constructor=None):
     """Parse a biom otu table type
 
     Constructor must have a _biom_type of "otu table"
     """
-    if constructor is None:
-        if json_table['matrix_type'].lower() == 'sparse':
-            constructor = SparseOTUTable
-        elif json_table['matrix_type'].lower() == 'dense':
-            constructor = DenseOTUTable
-        else:
-            raise ValueError, "Unknown matrix_type"
-    else:
-        if constructor._biom_type.lower() != 'otu table':
-            raise ValueError, "constructor must subclass OTUTable"
+    mat_type = json_table['matrix_type']
+    table_type = 'otu table'
+    constructors = [SparseOTUTable, DenseOTUTable]
+    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
 
     sample_ids = [col['id'] for col in json_table['columns']]
-    # null metadata -> None object in metadata list 
+    sample_metadata = [col['metadata'] for col in json_table['columns']]
+    obs_ids = [row['id'] for row in json_table['rows']]
+    obs_metadata = [row['metadata'] for row in json_table['rows']]
+
+    table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
+                              sample_metadata, obs_metadata, 
+                              constructor=constructor)
+
+    return table_obj
+
+def parse_biom_pathway_table(json_table, constructor=None):
+    """Parse a biom pathway table
+    
+    Constructor must have a _biom_type of "pathway table"
+    """
+    mat_type = json_table['matrix_type']
+    table_type = 'pathway table'
+    constructors = [SparsePathwayTable, DensePathwayTable]
+    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
+
+    sample_ids = [col['id'] for col in json_table['columns']]
+    sample_metadata = [col['metadata'] for col in json_table['columns']]
+    obs_ids = [row['id'] for row in json_table['rows']]
+    obs_metadata = [row['metadata'] for row in json_table['rows']]
+
+    table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
+                              sample_metadata, obs_metadata, 
+                              constructor=constructor)
+
+    return table_obj
+
+def parse_biom_function_table(json_table, constructor=None):
+    """Parse a biom function table
+    
+    Constructor must have a _biom_type of "function table"
+    """
+    mat_type = json_table['matrix_type']
+    table_type = 'function table'
+    constructors = [SparseFunctionTable, DenseFunctionTable]
+    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
+
+    sample_ids = [col['id'] for col in json_table['columns']]
+    sample_metadata = [col['metadata'] for col in json_table['columns']]
+    obs_ids = [row['id'] for row in json_table['rows']]
+    obs_metadata = [row['metadata'] for row in json_table['rows']]
+
+    table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
+                              sample_metadata, obs_metadata, 
+                              constructor=constructor)
+
+    return table_obj
+
+def parse_biom_ortholog_table(json_table, constructor=None):
+    """Parse a biom ortholog table
+
+    Constructor must have a _biom_type of "ortholog table"
+    """
+    mat_type = json_table['matrix_type']
+    table_type = 'ortholog table'
+    constructors = [SparseOrthologTable, DenseOrthologTable]
+    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
+
+    sample_ids = [col['id'] for col in json_table['columns']]
+    sample_metadata = [col['metadata'] for col in json_table['columns']]
+    obs_ids = [row['id'] for row in json_table['rows']]
+    obs_metadata = [row['metadata'] for row in json_table['rows']]
+
+    table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
+                              sample_metadata, obs_metadata, 
+                              constructor=constructor)
+
+    return table_obj
+
+def parse_biom_gene_table(json_table, constructor=None):
+    """Parse a biom gene table
+    
+    Constructor must have a _biom_type of "gene table"
+    """
+    mat_type = json_table['matrix_type']
+    table_type = 'gene table'
+    constructors = [SparseGeneTable, DenseGeneTable]
+    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
+
+    sample_ids = [col['id'] for col in json_table['columns']]
+    sample_metadata = [col['metadata'] for col in json_table['columns']]
+    obs_ids = [row['id'] for row in json_table['rows']]
+    obs_metadata = [row['metadata'] for row in json_table['rows']]
+
+    table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
+                              sample_metadata, obs_metadata, 
+                              constructor=constructor)
+
+    return table_obj
+
+def parse_biom_metabolite_table(json_table, constructor=None):
+    """Parse a biom metabolite table
+
+    Constructor must have a _biom_type of "metabolite table"
+    """
+    mat_type = json_table['matrix_type']
+    table_type = 'metabolite table'
+    constructors = [SparseMetaboliteTable, DenseMetaboliteTable]
+    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
+
+    sample_ids = [col['id'] for col in json_table['columns']]
+    sample_metadata = [col['metadata'] for col in json_table['columns']]
+    obs_ids = [row['id'] for row in json_table['rows']]
+    obs_metadata = [row['metadata'] for row in json_table['rows']]
+
+    table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
+                              sample_metadata, obs_metadata, 
+                              constructor=constructor)
+
+    return table_obj
+
+def parse_biom_taxon_table(json_table, constructor=None):
+    """Parse a biom taxon table
+
+    Constructor must have a _biom_type of "taxon table"
+    """
+    mat_type = json_table['matrix_type']
+    table_type = 'taxon table'
+    constructors = [SparseTaxonTable, DenseTaxonTable]
+    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
+
+    sample_ids = [col['id'] for col in json_table['columns']]
     sample_metadata = [col['metadata'] for col in json_table['columns']]
     obs_ids = [row['id'] for row in json_table['rows']]
     obs_metadata = [row['metadata'] for row in json_table['rows']]
@@ -61,7 +211,13 @@ def parse_biom_otu_table(json_table, constructor=None):
     return table_obj
 
 # map table types -> parsing methods
-BIOM_TYPES = {'otu table':parse_biom_otu_table}
+BIOM_TYPES = {'otu table':parse_biom_otu_table,
+              'pathway table':parse_biom_pathway_table,
+              'function table':parse_biom_function_table,
+              'ortholog table':parse_biom_ortholog_table,
+              'gene table':parse_biom_gene_table,
+              'metabolite table':parse_biom_metabolite_table,
+              'taxon table':parse_biom_taxon_table}
 def parse_biom_table_str(json_str,constructor=None):
     """Parses a JSON string of the Biom table into a rich table object.
    
@@ -96,10 +252,10 @@ def parse_biom_table_str(json_str,constructor=None):
                 json_table['data'] = [list(row) for row in conv_data]
 
             else:
-                raise ValueError, "Unknown matrix_type"
+                raise BiomParseException, "Unknown matrix_type"
 
     if f is None:
-        raise ValueError, 'Unknown table type'
+        raise BiomParseException, 'Unknown table type'
 
     return f(json_table, constructor)
 
@@ -150,7 +306,7 @@ def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None, \
         try:
             lines = lines.readlines()
         except AttributeError:
-            raise ValueError, "Input needs to support readlines or be indexable"
+            raise BiomParseException, "Input needs to support readlines or be indexable"
 
     # find header, the first line that is not empty and does not start with a #
     for idx,l in enumerate(lines):
@@ -242,7 +398,7 @@ def parse_mapping(lines, strip_quotes=True, suppress_stripping=False):
         try:
             lines = open(lines,'U')
         except IOError:
-            raise QiimeParseError,\
+            raise BiomParseException,\
              ("A string was passed that doesn't refer "
               "to an accessible filepath.")
     
@@ -285,14 +441,15 @@ def parse_mapping(lines, strip_quotes=True, suppress_stripping=False):
             if len(tmp_line)<len(header):
                 tmp_line.extend(['']*(len(header)-len(tmp_line)))
             mapping_data.append(tmp_line)
+
     if not header:
-        raise ValueError, "No header line was found in mapping file."
+        raise BiomParseException, "No header line was found in mapping file."
     if not mapping_data:
-        raise ValueError, "No data found in mapping file."
+        raise BiomParseException, "No data found in mapping file."
 
     first_col = [i[0] for i in mapping_data]
     if len(first_col) != len(set(first_col)):
-        raise ValueError, "First column values are not unique! Cannot be ids."
+        raise BiomParseException, "First column values are not unique! Cannot be ids."
 
     mapping = {}
     for vals in mapping_data:

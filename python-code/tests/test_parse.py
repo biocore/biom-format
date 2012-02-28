@@ -18,8 +18,12 @@ from biom.parse import parse_biom_table_str, \
         parse_biom_table, parse_biom_otu_table, \
         parse_classic_table_to_rich_table, convert_biom_to_table, \
         convert_table_to_biom, parse_classic_table, generatedby, \
-        parse_mapping
+        parse_mapping, pick_constructor, parse_biom_pathway_table,\
+        parse_biom_function_table, parse_biom_ortholog_table, \
+        parse_biom_gene_table, parse_biom_metabolite_table, \
+        parse_biom_taxon_table
 from biom.table import SparseOTUTable, DenseOTUTable
+from biom.exception import BiomParseException
 
 class ParseTests(TestCase):
     """Tests of parse functions"""
@@ -37,6 +41,35 @@ class ParseTests(TestCase):
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
         self.biom_otu_table1_w_tax = biom_otu_table1_w_tax.split('\n')
         self.biom_otu_table1_no_tax = biom_otu_table1_no_tax.split('\n')
+
+    def test_pick_constructor(self):
+        """Pick a sane constructor"""
+        exp = SparseOTUTable
+        mat_type = 'SpARsE'
+        table_type = 'oTU taBLe'
+        obs = pick_constructor(mat_type,table_type,None,\
+                    [SparseOTUTable, DenseOTUTable])
+        self.assertEqual(obs,exp)
+
+        mat_type = 'dense'
+        exp = DenseOTUTable
+        obs = pick_constructor(mat_type,table_type,None,\
+                    [SparseOTUTable, DenseOTUTable])
+        self.assertEqual(obs,exp)
+
+        obs = pick_constructor(mat_type,table_type,DenseOTUTable,\
+                    [SparseOTUTable, DenseOTUTable])
+        self.assertEqual(obs,exp)
+
+        table_type = 'something'
+        self.assertRaises(BiomParseException, pick_constructor, mat_type,
+                          table_type, DenseOTUTable, 
+                          [SparseOTUTable, DenseOTUTable])
+
+        table_type = 'otu table'
+        mat_type = 'foo'
+        self.assertRaises(BiomParseException, pick_constructor, mat_type,
+                          table_type, None, [SparseOTUTable, DenseOTUTable])
 
     def test_generatedby(self):
         """get a generatedby string"""
