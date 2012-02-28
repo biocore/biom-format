@@ -16,6 +16,13 @@ Contents:
 
    ./documentation/index.rst
 
+BIOM version
+============
+
+The latest official version of the biom-format project and file format is |release|. 
+
+The biom-format project and file format version are always the same. Official versions contain three integers in the following format: ``major-version.incremental-version.minor-version``. When ``-dev`` is appended to the end of a version string that indicates a development (or between-release version). For example, ``1.0.0-dev`` would refer to the development version following the 1.0.0 official release. 
+
 Citing the BIOM project
 =======================
 
