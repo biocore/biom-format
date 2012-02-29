@@ -19,7 +19,7 @@ __credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso",
                "Sue Huse"]
 __url__ = "http://biom-format.org"
 __license__ = "GPL"
-__version__ = "0.9.1"
+__version__ = "0.9.1-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Release"
@@ -224,7 +224,7 @@ except ImportError:
     cogent_cl_parsing = False
 
 FORMAT_URL = "http://biom-format.org"
-FORMAT_STRING = "Biological Observation Matrix 0.9.1"
+FORMAT_STRING = "Biological Observation Matrix 0.9.1-dev"
 BIOM_TYPES = set(['otu table', 'pathway table', 'function table', 
                   'ortholog table', 'gene table', 'metabolite table', 
                   'taxon table'])
