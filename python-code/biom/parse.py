@@ -102,7 +102,8 @@ def parse_biom_pathway_table(json_table, constructor=None):
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
-                              constructor=constructor)
+                              constructor=constructor,
+                              shape=json_table['shape'])
 
     return table_obj
 
@@ -123,7 +124,8 @@ def parse_biom_function_table(json_table, constructor=None):
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
-                              constructor=constructor)
+                              constructor=constructor,
+                              shape=json_table['shape'])
 
     return table_obj
 
@@ -144,7 +146,8 @@ def parse_biom_ortholog_table(json_table, constructor=None):
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
-                              constructor=constructor)
+                              constructor=constructor,
+                              shape=json_table['shape'])
 
     return table_obj
 
@@ -165,7 +168,8 @@ def parse_biom_gene_table(json_table, constructor=None):
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
-                              constructor=constructor)
+                              constructor=constructor,
+                              shape=json_table['shape'])
 
     return table_obj
 
@@ -186,7 +190,8 @@ def parse_biom_metabolite_table(json_table, constructor=None):
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
-                              constructor=constructor)
+                              constructor=constructor,
+                              shape=json_table['shape'])
 
     return table_obj
 
@@ -207,7 +212,8 @@ def parse_biom_taxon_table(json_table, constructor=None):
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
-                              constructor=constructor)
+                              constructor=constructor,
+                              shape=json_table['shape'])
 
     return table_obj
 

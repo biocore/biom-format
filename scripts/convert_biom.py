@@ -16,9 +16,9 @@ from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
         DensePathwayTable, SparseFunctionTable, DenseFunctionTable, \
         SparseOrthologTable, DenseOrthologTable, SparseGeneTable, \
         DenseGeneTable, SparseMetaboliteTable, DenseMetaboliteTable,\
-        SparseTaxonTable, DenseTaxonTable
+        SparseTaxonTable, DenseTaxonTable, table_factory
 from biom.parse import parse_biom_table, parse_mapping, convert_biom_to_table, \
-        convert_table_to_biom
+        convert_table_to_biom, generatedby
 
 BIOM_TYPES = {'otu table':[SparseOTUTable, DenseOTUTable], 
               'pathway table':[SparsePathwayTable, DensePathwayTable], 
@@ -28,7 +28,7 @@ BIOM_TYPES = {'otu table':[SparseOTUTable, DenseOTUTable],
               'metabolite table':[SparseMetaboliteTable, DenseMetaboliteTable],
               'taxon table':[SparseTaxonTable, DenseTaxonTable]}
 
-usage = "usage: %prog -i table.biom -i table.txt -b"
+usage = "usage: %prog -i table.biom -o table.txt"
 parser = OptionParser(usage=usage, version=__version__)
 parser.set_defaults(verbose=True)
 
@@ -95,13 +95,13 @@ def main():
     input_f = open(opts.input_fp,'U')
     output_f = open(opts.output_fp,'w')
     
-    dense = opts.biom_type == 'dense'
+    #dense = opts.biom_type == 'dense'
     count_map_f = int
     sample_mapping_fp = opts.sample_mapping_fp
     obs_mapping_fp = opts.observation_mapping_fp
     
     if sample_mapping_fp != None:
-        sample_mapping = parse_mapping(open(mapping_fp,'U'))
+        sample_mapping = parse_mapping(open(sample_mapping_fp,'U'))
     else:
         sample_mapping = None
     
@@ -118,16 +118,29 @@ def main():
             raise ValueError, "Input does not look like a .biom file. Did you accidentally specify -b?"
     elif sparse_biom_to_dense_biom:
         try:
-            table = parse_biom_table(input_f,dense_object=True)
+            table = parse_biom_table(input_f)
         except ValueError:
             raise ValueError, "Input does not look like a .biom file. Did you accidentally specify -b?"        
-        output_f.write(table.getBiomFormatJsonString())
+
+        conv_constructor = BIOM_TYPES[table._biom_type.lower()][1]
+        conv_table = table_factory(table._data, table.SampleIds, 
+                        table.ObservationIds, table.SampleMetadata, 
+                        table.ObservationMetadata, table.TableId, 
+                        constructor=conv_constructor)
+        output_f.write(conv_table.getBiomFormatJsonString(generatedby()))
     elif dense_biom_to_sparse_biom:
         try:
-            table = parse_biom_table(input_f,dense_object=False)
+            table = parse_biom_table(input_f)
         except ValueError:
             raise ValueError, "Input does not look like a .biom file. Did you accidentally specify -b?"
-        output_f.write(table.getBiomFormatJsonString())
+
+        conv_constructor = BIOM_TYPES[table._biom_type.lower()][0]
+        conv_table = table_factory(table._data, table.SampleIds, 
+                        table.ObservationIds, table.SampleMetadata, 
+                        table.ObservationMetadata, table.TableId, 
+                        constructor=conv_constructor)
+
+        output_f.write(table.getBiomFormatJsonString(generatedby()))
     else:
         if opts.biom_table_type is None:
             parser.error('Must specify the BIOM table type: %s' % \
@@ -139,9 +152,9 @@ def main():
             parser.error('Must specify the BIOM matrix type, ' + \
                     'either "dense" or "sparse"')
 
-        idx = 0 if opts.biom_type is 'sparse' else 1
+        idx = 0 if opts.biom_type == 'sparse' else 1
         constructor = BIOM_TYPES[opts.biom_table_type][idx]
-
+        
         try:
             output_f.write(convert_table_to_biom(input_f,sample_mapping, 
                                 obs_mapping, constructor))

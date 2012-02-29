@@ -55,7 +55,7 @@ this might become restricted based on table type. Each object must provide,
 at the minimum::
     
     id                  : <string> an arbitrary UNIQUE identifier
-    metadata            : <list of objects or null> A object containing key, value metadata pairs
+    metadata            : <an object or null> A object containing key, value metadata pairs
   
 The columns value is an ORDERED list of objects where each object corresponds to a single
 column in the matrix. Each object can currently store arbitrary keys, although
@@ -63,7 +63,7 @@ this might become restricted based on table type. Each object must provide,
 at the minimum::
     
     id                  : <string> an arbitrary UNIQUE identifier
-    metadata            : <list of objects or null> A object containing key, value metadata pairs
+    metadata            : <an object or null> A object containing key, value metadata pairs
 
 Example biom files
 ==================
@@ -304,11 +304,11 @@ Usage examples
 
 Convert a tab-delimited table to sparse biom format::
 
-	convert_biom.py -i otu_table.txt -o otu_table.biom
+	convert_biom.py -i otu_table.txt -o otu_table.biom --biom_table_type="otu table"
 
 Convert a tab-delimited table to dense biom format::
 
-	convert_biom.py -i otu_table.txt -o otu_table.biom -t dense
+	convert_biom.py -i otu_table.txt -o otu_table.biom --biom_table_type="otu table" --biom_type=dense
 
 Convert biom format to tab-delimited table format::
 
