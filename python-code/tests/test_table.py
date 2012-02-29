@@ -11,15 +11,15 @@ from biom.table import TableException, Table, \
     dict_to_sparsedict, flatten, unzip, natsort
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2007-2012, BIOM Format"
+__copyright__ = "Copyright 2012, BIOM Format"
 __credits__ = ["Daniel McDonald", "Jai Rideout", "Justin Kuczynski",
                "Greg Caporaso", "Jose Clemente"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "0.9dev"
+__version__ = "0.9.1"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Development"
+__status__ = "Release"
 
 class SparseDictTests(TestCase):
     def setUp(self):

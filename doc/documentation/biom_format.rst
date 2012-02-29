@@ -77,8 +77,8 @@ Minimal sparse OTU table
 
     {
         "id":null,
-        "format": "Biological Observation Matrix v0.9",
-        "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+        "format": "Biological Observation Matrix 0.9.1",
+        "format_url": "http://biom-format.org",
         "type": "OTU table",
         "generated_by": "QIIME revision 1.4.0-dev",
         "date": "2011-12-19T19:00:00",
@@ -125,8 +125,8 @@ Minimal dense OTU table
 
     {
         "id":null,
-        "format": "Biological Observation Matrix v0.9",
-        "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+        "format": "Biological Observation Matrix 0.9.1",
+        "format_url": "http://biom-format.org",
         "type": "OTU table",
         "generated_by": "QIIME revision 1.4.0-dev",
         "date": "2011-12-19T19:00:00",
@@ -162,8 +162,8 @@ Rich sparse OTU table
 
     {
      "id":null,
-     "format": "Biological Observation Matrix v0.9",
-     "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+     "format": "Biological Observation Matrix 0.9.1",
+     "format_url": "http://biom-format.org",
      "type": "OTU table",
      "generated_by": "QIIME revision 1.4.0-dev",
      "date": "2011-12-19T19:00:00",
@@ -235,8 +235,8 @@ Rich dense OTU table
 
     {
      "id":null,
-     "format": "Biological Observation Matrix v0.9",
-     "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+     "format": "Biological Observation Matrix 0.9.1",
+     "format_url": "http://biom-format.org",
      "type": "OTU table",
      "generated_by": "QIIME revision 1.4.0-dev",
      "date": "2011-12-19T19:00:00",  

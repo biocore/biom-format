@@ -19,10 +19,10 @@ __credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso",
                "Sue Huse"]
 __url__ = "http://biom-format.org"
 __license__ = "GPL"
-__version__ = "0.9"
+__version__ = "0.9.1"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Development"
+__status__ = "Release"
 
 def is_int(x):
     """Return True if x is int"""
@@ -223,8 +223,8 @@ except ImportError:
     from sys import argv
     cogent_cl_parsing = False
 
-FORMAT_URL = "http://www.qiime.org/svn_documentation/documentation/biom_format.html"
-FORMAT_STRING = "Biological Observation Matrix v0.9"
+FORMAT_URL = "http://biom-format.org"
+FORMAT_STRING = "Biological Observation Matrix 0.9.1"
 BIOM_TYPES = set(['otu table', 'pathway table', 'function table', 
                   'ortholog table', 'gene table', 'metabolite table', 
                   'taxon table'])

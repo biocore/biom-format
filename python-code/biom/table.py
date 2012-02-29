@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 """Core BIOM objects for dense and sparse tables"""
+
 from __future__ import division
 
 import re
@@ -19,10 +20,10 @@ __credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "0.9dev"
+__version__ = "0.9.1"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Prototype"
+__status__ = "Release"
 
 # should these be centralized?
 def get_biom_format_version_string():

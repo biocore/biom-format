@@ -2,15 +2,6 @@
 # File created on 20 Dec 2011
 from __future__ import division
 
-__author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2011, The QIIME project"
-__credits__ = ["Greg Caporaso", "Daniel McDonald"]
-__license__ = "GPL"
-__version__ = "1.4.0-dev"
-__maintainer__ = "Greg Caporaso"
-__email__ = "gregcaporaso@gmail.com"
-__status__ = "Development"
-
 from optparse import make_option, OptionParser, OptionGroup
 from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
         DensePathwayTable, SparseFunctionTable, DenseFunctionTable, \
@@ -19,6 +10,16 @@ from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
         SparseTaxonTable, DenseTaxonTable, table_factory
 from biom.parse import parse_biom_table, parse_mapping, convert_biom_to_table, \
         convert_table_to_biom, generatedby
+
+__author__ = "Greg Caporaso"
+__copyright__ = "Copyright 2012, The BIOM-Format project"
+__credits__ = ["Greg Caporaso", "Daniel McDonald"]
+__license__ = "GPL"
+__url__ = "http://biom-format.org"
+__version__ = "0.9.1"
+__maintainer__ = "Greg Caporaso"
+__email__ = "gregcaporaso@gmail.com"
+__status__ = "Release"
 
 BIOM_TYPES = {'otu table':[SparseOTUTable, DenseOTUTable], 
               'pathway table':[SparsePathwayTable, DensePathwayTable], 

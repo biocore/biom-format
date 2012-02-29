@@ -4,6 +4,17 @@ import numpy
 from numpy import testing, array, zeros, asarray
 from unittest import main, TestCase as TestCaseOriginal
 
+__author__ = "Daniel McDonald"
+__copyright__ = "Copyright 2012, BIOM-Format Project"
+__credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
+                    "Zongzhi Liu", "Micah Hamady", "Daniel McDonald"]
+__license__ = "GPL"
+__url__ = "http://biom-format.org"
+__version__ = "0.9.1"
+__maintainer__ = "Daniel McDonald"
+__email__ = "daniel.mcdonald@colorado.edu"
+__status__ = "Release"
+
 class TestCase(TestCaseOriginal):
     """Add in some support for numpy vectors
 

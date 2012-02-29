@@ -7,13 +7,14 @@ from sys import exc_info
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Rob Knight", "Sandra Smit", "Gavin Huttley", "Daniel McDonald"]
+__credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
+                            "Zongzhi Liu", "Micah Hamady", "Daniel McDonald"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "0.9dev"
+__version__ = "0.9.1"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Development"
+__status__ = "Release"
 
 class TestCaseTests(TestCase):
     """Tests for extension of the built-in unittest framework.

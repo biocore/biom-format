@@ -17,10 +17,10 @@ __copyright__ = "Copyright 2012, BIOM-Format Project"
 __credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "0.9dev"
+__version__ = "0.9.1"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Development"
+__status__ = "Release"
 
 MATRIX_ELEMENT_TYPE = {'int':int,'float':float,'unicode':unicode,
                       u'int':int,u'float':float,u'unicode':unicode}

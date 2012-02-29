@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 
-__all__ = ['table','parse','unittest']
-__author__ = "Greg Caporaso, Daniel McDonald"
+__author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Daniel McDonald", "Greg Caporaso"]
+__credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso", 
+                       "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "0.9dev"
+__version__ = "0.9.1"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Development"
+__status__ = "Release"
+
+__all__ = ['table','parse','unittest','exception']

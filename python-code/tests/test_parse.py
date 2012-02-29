@@ -1,15 +1,5 @@
 #!/usr/bin/env python
 
-__author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Justin Kuczynski","Daniel McDonald"] #remember to add yourself
-__license__ = "GPL"
-__url__ = "http://biom-format.org"
-__version__ = "0.9dev"
-__maintainer__ = "Justin Kuczynski"
-__email__ = "justinak@gmail.com"
-__status__ = "Development"
-
 from numpy import array, nan
 from StringIO import StringIO
 import json
@@ -24,6 +14,16 @@ from biom.parse import parse_biom_table_str, \
         parse_biom_taxon_table
 from biom.table import SparseOTUTable, DenseOTUTable
 from biom.exception import BiomParseException
+
+__author__ = "Justin Kuczynski"
+__copyright__ = "Copyright 2012, BIOM-Format Project"
+__credits__ = ["Justin Kuczynski","Daniel McDonald"] #remember to add yourself
+__license__ = "GPL"
+__url__ = "http://biom-format.org"
+__version__ = "0.9.1"
+__maintainer__ = "Justin Kuczynski"
+__email__ = "justinak@gmail.com"
+__status__ = "Release"
 
 class ParseTests(TestCase):
     """Tests of parse functions"""
