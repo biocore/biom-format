@@ -1467,21 +1467,26 @@ def list_list_to_nparray(data, dtype=float):
     """
     return asarray(data, dtype=float)
 
-def list_list_to_sparsedict(data, dtype=float):
+def list_list_to_sparsedict(data, dtype=float, shape=None):
     """Convert a list of lists into a sparsedict
 
     [[row, col, value], ...]
     """
     d = dict([((r,c),dtype(v)) for r,c,v in data if v != 0])
-    n_rows = 0
-    n_cols = 0
-    for (r,c) in d:
-        if r >= n_rows:
-            n_rows = r + 1 # deal with 0-based indexes
-        if c >= n_cols:
-            n_cols = c + 1
 
-    mat = SparseDict(n_rows, n_cols)
+    if shape is None:
+        n_rows = 0
+        n_cols = 0
+        for (r,c) in d:
+            if r >= n_rows:
+                n_rows = r + 1 # deal with 0-based indexes
+            if c >= n_cols:
+                n_cols = c + 1
+    
+        mat = SparseDict(n_rows, n_cols)
+    else:
+        mat = SparseDict(*shape)
+
     mat.update(d)
     return mat
 
@@ -1598,6 +1603,11 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     else:
         dtype = float
 
+    if 'shape' in kwargs:
+        shape = kwargs['shape']
+    else:
+        shape = None
+
     if constructor._biom_matrix_type is 'sparse':
         # if we have a numpy array
         if isinstance(data, ndarray):
@@ -1620,8 +1630,7 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
 
         # if we have a list of lists (like inputs from json biom)
         elif isinstance(data, list) and isinstance(data[0], list):
-            data = list_list_to_sparsedict(data, dtype)
-
+            data = list_list_to_sparsedict(data, dtype, shape=shape)
         else:
             raise TableException, "Cannot handle data!"
     
