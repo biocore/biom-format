@@ -91,7 +91,7 @@ def valid_dense_data(table):
     """All elements must be of dtype and correspond to shape"""
     dtype = ELEMENT_TYPES[table['matrix_element_type']]
     n_rows, n_cols = table['shape']
-    
+   
     for row in table['data']:
         if len(row) != n_cols:
             raise ValueError, "Incorrect number of cols: %s" % repr(row)
@@ -229,7 +229,7 @@ BIOM_TYPES = set(['otu table', 'pathway table', 'function table',
                   'ortholog table', 'gene table', 'metabolite table', 
                   'taxon table'])
 MATRIX_TYPES = set(['sparse', 'dense'])
-ELEMENT_TYPES = {'int':int,'str':str,'float':float}
+ELEMENT_TYPES = {'int':int,'str':str,'float':float, 'unicode':unicode}
 
 if cogent_cl_parsing:
     script_info = {}

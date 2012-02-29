@@ -22,8 +22,8 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Development"
 
-MATRIX_ELEMENT_TYPE = {'int':int,'float':float,'str':str,
-                       u'int':int,u'float':float,u'str':str}
+MATRIX_ELEMENT_TYPE = {'int':int,'float':float,'unicode':unicode,
+                      u'int':int,u'float':float,u'unicode':unicode}
 
 def parse_biom_table(json_fh,constructor=None):
     """parses a biom format otu table into a rich otu table object
@@ -77,11 +77,13 @@ def parse_biom_otu_table(json_table, constructor=None):
     sample_metadata = [col['metadata'] for col in json_table['columns']]
     obs_ids = [row['id'] for row in json_table['rows']]
     obs_metadata = [row['metadata'] for row in json_table['rows']]
+    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
                               constructor=constructor, 
-                              shape=json_table['shape'])
+                              shape=json_table['shape'], 
+                              dtype=dtype)
 
     return table_obj
 
@@ -99,11 +101,13 @@ def parse_biom_pathway_table(json_table, constructor=None):
     sample_metadata = [col['metadata'] for col in json_table['columns']]
     obs_ids = [row['id'] for row in json_table['rows']]
     obs_metadata = [row['metadata'] for row in json_table['rows']]
+    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
                               constructor=constructor,
-                              shape=json_table['shape'])
+                              shape=json_table['shape'],
+                              dtype=dtype)
 
     return table_obj
 
@@ -121,11 +125,13 @@ def parse_biom_function_table(json_table, constructor=None):
     sample_metadata = [col['metadata'] for col in json_table['columns']]
     obs_ids = [row['id'] for row in json_table['rows']]
     obs_metadata = [row['metadata'] for row in json_table['rows']]
+    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
                               constructor=constructor,
-                              shape=json_table['shape'])
+                              shape=json_table['shape'],
+                              dtype=dtype)
 
     return table_obj
 
@@ -143,11 +149,13 @@ def parse_biom_ortholog_table(json_table, constructor=None):
     sample_metadata = [col['metadata'] for col in json_table['columns']]
     obs_ids = [row['id'] for row in json_table['rows']]
     obs_metadata = [row['metadata'] for row in json_table['rows']]
+    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
                               constructor=constructor,
-                              shape=json_table['shape'])
+                              shape=json_table['shape'],
+                              dtype=dtype)
 
     return table_obj
 
@@ -160,16 +168,19 @@ def parse_biom_gene_table(json_table, constructor=None):
     table_type = 'gene table'
     constructors = [SparseGeneTable, DenseGeneTable]
     constructor = pick_constructor(mat_type,table_type,constructor,constructors)
+    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     sample_ids = [col['id'] for col in json_table['columns']]
     sample_metadata = [col['metadata'] for col in json_table['columns']]
     obs_ids = [row['id'] for row in json_table['rows']]
     obs_metadata = [row['metadata'] for row in json_table['rows']]
+    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
                               constructor=constructor,
-                              shape=json_table['shape'])
+                              shape=json_table['shape'],
+                              dtype=dtype)
 
     return table_obj
 
@@ -187,11 +198,13 @@ def parse_biom_metabolite_table(json_table, constructor=None):
     sample_metadata = [col['metadata'] for col in json_table['columns']]
     obs_ids = [row['id'] for row in json_table['rows']]
     obs_metadata = [row['metadata'] for row in json_table['rows']]
+    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
                               constructor=constructor,
-                              shape=json_table['shape'])
+                              shape=json_table['shape'],
+                              dtype=dtype)
 
     return table_obj
 
@@ -209,11 +222,13 @@ def parse_biom_taxon_table(json_table, constructor=None):
     sample_metadata = [col['metadata'] for col in json_table['columns']]
     obs_ids = [row['id'] for row in json_table['rows']]
     obs_metadata = [row['metadata'] for row in json_table['rows']]
+    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                               sample_metadata, obs_metadata, 
                               constructor=constructor,
-                              shape=json_table['shape'])
+                              shape=json_table['shape'],
+                              dtype=dtype)
 
     return table_obj
 

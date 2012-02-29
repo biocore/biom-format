@@ -2187,8 +2187,8 @@ class DenseOTUTableTests(TestCase):
         self.float_table = DenseOTUTable(
                 array([[0.0,2.5,3.4],[9.3,10.23,2.2]]),['a','b','c'],['1','2'])
         self.str_table = DenseOTUTable(
-                array([['val1','val2'],['val3','val4']]),['Samp1','Samp2'],
-                ['Obs1','Obs2'])
+                array([[u'val1',u'val2'],[u'val3',u'val4']]),[u'Samp1',u'Samp2'],
+                [u'Obs1',u'Obs2'])
         self.invalid_element_type_table = DenseOTUTable(
                 array([[{}],[{}]]),['a'],['1','2'])
 
@@ -2331,7 +2331,7 @@ class DenseOTUTableTests(TestCase):
                'type': 'OTU table', 
                'id': None,
                'generated_by':'foo',
-               'matrix_element_type': 'str'}
+               'matrix_element_type': 'unicode'}
         obs = self.str_table.getBiomFormatObject('foo')
         del obs['date']
         self.assertEqual(obs, exp)

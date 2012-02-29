@@ -294,7 +294,7 @@ def index_list(l):
     return dict([(id_,idx) for idx,id_ in enumerate(l)])
 
 class Table(object):
-    """ """
+    """Abstract base class for a what a Table is"""
     _biom_type = None
     _biom_matrix_type = None
 
@@ -445,7 +445,7 @@ class Table(object):
             raise TableException, "Unknown axis %s" % axis
     
     def addObservationMetadata(self, md):
-        """Take a dict of metadata and add it
+        """Take a dict of metadata and add it to an observation.
 
         {observation_id:{dict_of_metadata}}
         """
@@ -456,7 +456,7 @@ class Table(object):
             self.ObservationMetadata = [md[id_] for id_ in self.ObservationIds]
     
     def addSampleMetadata(self, md):
-        """Take a dict of metadata and add it
+        """Take a dict of metadata and add it to a sample.
     
         {sample_id:{dict_of_metadata}}
         """
@@ -1201,8 +1201,8 @@ class Table(object):
             dtype, matrix_element_type = int, "int"
         elif isinstance(test_element, float):
             dtype, matrix_element_type = float, "float"
-        elif isinstance(test_element, str):
-            dtype, matrix_element_type = str, "str"
+        elif isinstance(test_element, unicode):
+            dtype, matrix_element_type = unicode, "unicode"
         else:
             raise TableException("Unsupported matrix data type.")
 
@@ -1297,8 +1297,6 @@ class SparseTable(Table):
         """Defined by subclass"""
         return self.iterSamples()
 
-    ### this method is type conversion heavy... but only fix if a burden when
-    ### in use
     def _iter_samp(self):
         """Return sample vectors of data matrix vectors"""  
         rows, cols = self._data.shape
@@ -1357,83 +1355,94 @@ class DenseTable(Table):
             yield c
 
 class OTUTable(object):
+    """OTU table abstract class"""
     _biom_type = "OTU table"
     pass
 
-class AbundanceTable(object):
-    _biom_type = "Abundance table"
-    pass
-
 class PathwayTable(object):
+    """Pathway table abstract class"""
     _biom_type = "Pathway table"
     pass
 
 class FunctionTable(object):
+    """Function table abstract class"""
     _biom_type = "Function table"
     pass
 
 class OrthologTable(object):
+    """Ortholog table abstract class"""
     _biom_type = "Ortholog table"
     pass
 
 class GeneTable(object):
+    """Gene table abstract class"""
     _biom_type = "Gene table"
     pass
 
 class MetaboliteTable(object):
+    """Metabolite table abstract class"""
     _biom_type = "Metabolite table"
     pass
 
 class TaxonTable(object):
+    """Taxon table abstract class"""
     _biom_type = "Taxon table"
     pass
 
 class DenseOTUTable(OTUTable, DenseTable):
+    """Instantiatable dense OTU table"""
     pass
 
 class SparseOTUTable(OTUTable, SparseTable):
+    """Instantiatable sparse OTU table"""
     pass
 
 class DensePathwayTable(PathwayTable, DenseTable):
+    """Instantiatable dense pathway table"""
     pass
 
 class SparsePathwayTable(PathwayTable, SparseTable):
+    """Instantiatable sparse pathway table"""
     pass
 
 class DenseFunctionTable(FunctionTable, DenseTable):
+    """Instantiatable dense function table"""
     pass
 
 class SparseFunctionTable(FunctionTable, SparseTable):
+    """Instantiatable sparse function table"""
     pass
 
 class DenseOrthologTable(OrthologTable, DenseTable):
+    """Instantiatable dense ortholog table"""
     pass
 
 class SparseOrthologTable(OrthologTable, SparseTable):
+    """Instantiatable sparse ortholog table"""
     pass
 
 class DenseGeneTable(GeneTable, DenseTable):
+    """Instantiatable dense gene table"""
     pass
 
 class SparseGeneTable(GeneTable, SparseTable):
+    """Instantiatable sparse gene table"""
     pass
 
 class DenseMetaboliteTable(MetaboliteTable, DenseTable):
+    """Instantiatable dense metabolite table"""
     pass
 
 class SparseMetaboliteTable(MetaboliteTable, SparseTable):
+    """Instantiatable sparse metabolite table"""
     pass
 
 class DenseTaxonTable(TaxonTable, DenseTable):
+    """Instantiatable dense taxon table"""
     pass
 
 class SparseTaxonTable(TaxonTable, SparseTable):
-    pass
-
-class DenseAbundanceTable(AbundanceTable, DenseTable):
-    pass
-
-class SparseAbundanceTable(AbundanceTable, SparseTable):
+    """Instantiatable sparse taxon table"""
     pass
 
 def list_list_to_nparray(data, dtype=float):
@@ -1441,7 +1450,7 @@ def list_list_to_nparray(data, dtype=float):
 
     [[value, value, ..., value], ...]
     """
-    return asarray(data, dtype=float)
+    return asarray(data, dtype=dtype)
 
 def list_list_to_sparsedict(data, dtype=float, shape=None):
     """Convert a list of lists into a sparsedict
@@ -1569,10 +1578,13 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     Attempts to make 'data' sane with respect to the constructor type through
     various means of juggling. Data can be: 
     
-        numpy.array       
-        list of numpy.array vectors 
-        sparse dict representation 
-        list of sparse dict representation vectors
+        - numpy.array       
+        - list of numpy.array vectors 
+        - SparseDict representation
+        - dict representation
+        - list of SparseDict representation vectors
+        - list of lists of sparse values [[row, col, value], ...]
+        - list of lists of dense values [[value, value, ...], ...]
     """
     if 'dtype' in kwargs:
         dtype = kwargs['dtype']

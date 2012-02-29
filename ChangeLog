@@ -2,14 +2,25 @@
 ChangeLog
 *********
 
-BIOM-Format 0.9 - 1.0
+BIOM-Format 0.9 - 0.9.1
 =====================
+
+* format now accepts unicode but does not accept str due to JSON parsing from
+Python
+* specification for metadata is now either null or an object
+* PySparse has been gutted, sparse matrix support is now through
+Table.SparseDict
 
 New Features
 ------------
 
+* more table types!
+
 Changes
 -------
+
+* Table.getBioFormatJsonString() and similar methods now require a generatedby
+string
 
 Bug Fixes
 ---------
