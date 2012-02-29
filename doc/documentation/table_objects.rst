@@ -4,6 +4,9 @@
 biom-format ``Table`` objects
 ===========================================
 
+.. automodule:: biom.table
+   :members:
+
 The biom-format project provides rich ``Table`` objects to support use of the BIOM file format. The objects encapsulate matrix data (such as OTU counts) and abstract the interaction away from the programmer. This provides the immediate benefit of the programmer not having to worry about what the underlying data object is, and in turn allows for different data representations to be supported. Currently, biom-format supports a ``dense`` object built off of ``numpy.array`` (`NumPy <http://http://numpy.scipy.org/>`_) and a ``sparse`` object built off of Python dictionaries. 
 
 Description of available ``Table`` objects
