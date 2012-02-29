@@ -34,7 +34,7 @@ Required top-level fields::
                           Acceptable values:
                            "int" : integer
                            "float" : floating point
-                           "str" : string
+                           "unicode" : unicode string
     shape               : <list of ints>, the number of rows and number of columns in data
     data                : <list of lists>, counts of observations by sample
                            if matrix_type is "sparse", [[row, column, value],
