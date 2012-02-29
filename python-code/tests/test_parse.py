@@ -150,6 +150,119 @@ class ParseTests(TestCase):
             for j, sample_id in enumerate(sparse_rich.SampleIds):
                 if obs_id == '1' and sample_id == 'Key':
                     self.assertEqual(True,True) # should test some abundance data
+    def test_parse_biom_gene_table(self):
+        """test for the biom gene table parser"""
+        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
+        tab1_fh['type'] = 'gene table'
+        tab = parse_biom_gene_table(tab1_fh)
+        exp_data = array([[0,0,1,0,0,0], 
+                    [5,1,0,2,3,1],
+                    [0,0,1,4,2,0],
+                    [2,1,1,0,0,1],
+                    [0,1,1,0,0,0]])
+
+        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',])
+        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual(tab.SampleMetadata,None)
+        self.assertEqual(tab.ObservationMetadata,None)
+        self.assertEqual(tab._data, exp_data)
+
+    def test_parse_biom_function_table(self):
+        """test for the biom function table parser"""
+        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
+        tab1_fh['type'] = 'function table'
+        tab = parse_biom_function_table(tab1_fh)
+        exp_data = array([[0,0,1,0,0,0], 
+                    [5,1,0,2,3,1],
+                    [0,0,1,4,2,0],
+                    [2,1,1,0,0,1],
+                    [0,1,1,0,0,0]])
+
+        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',])
+        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual(tab.SampleMetadata,None)
+        self.assertEqual(tab.ObservationMetadata,None)
+        self.assertEqual(tab._data, exp_data)
+
+    def test_parse_biom_metabolite_table(self):
+        """test for the biom metabolite table parser"""
+        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
+        tab1_fh['type'] = 'metabolite table'
+        tab = parse_biom_metabolite_table(tab1_fh)
+        exp_data = array([[0,0,1,0,0,0], 
+                    [5,1,0,2,3,1],
+                    [0,0,1,4,2,0],
+                    [2,1,1,0,0,1],
+                    [0,1,1,0,0,0]])
+
+        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',])
+        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual(tab.SampleMetadata,None)
+        self.assertEqual(tab.ObservationMetadata,None)
+        self.assertEqual(tab._data, exp_data)
+
+    def test_parse_biom_pathway_table(self):
+        """test for the biom pathway table parser"""
+        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
+        tab1_fh['type'] = 'pathway table'
+        tab = parse_biom_pathway_table(tab1_fh)
+        exp_data = array([[0,0,1,0,0,0], 
+                    [5,1,0,2,3,1],
+                    [0,0,1,4,2,0],
+                    [2,1,1,0,0,1],
+                    [0,1,1,0,0,0]])
+
+        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',])
+        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual(tab.SampleMetadata,None)
+        self.assertEqual(tab.ObservationMetadata,None)
+        self.assertEqual(tab._data, exp_data)
+
+    def test_parse_biom_taxon_table(self):
+        """test for the biom taxon table parser"""
+        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
+        tab1_fh['type'] = 'taxon table'
+        tab = parse_biom_function_table(tab1_fh)
+        exp_data = array([[0,0,1,0,0,0], 
+                    [5,1,0,2,3,1],
+                    [0,0,1,4,2,0],
+                    [2,1,1,0,0,1],
+                    [0,1,1,0,0,0]])
+
+        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',])
+        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual(tab.SampleMetadata,None)
+        self.assertEqual(tab.ObservationMetadata,None)
+        self.assertEqual(tab._data, exp_data)
+
+    def test_parse_biom_ortholog_table(self):
+        """test for the biom ortholog table parser"""
+        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
+        tab1_fh['type'] = 'ortholog table'
+        tab = parse_biom_ortholog_table(tab1_fh)
+        exp_data = array([[0,0,1,0,0,0], 
+                    [5,1,0,2,3,1],
+                    [0,0,1,4,2,0],
+                    [2,1,1,0,0,1],
+                    [0,1,1,0,0,0]])
+
+        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',])
+        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual(tab.SampleMetadata,None)
+        self.assertEqual(tab.ObservationMetadata,None)
+        self.assertEqual(tab._data, exp_data)
 
     def test_parse_biom_otu_table(self):
         """test the biom otu table parser"""

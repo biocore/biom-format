@@ -58,8 +58,9 @@ def pick_constructor(mat_type, table_type, constructor, valid_constructors):
             constructor = valid_constructors[1]
         else:
             raise BiomParseException, "Unknown matrix_type"
+
     if constructor._biom_type.lower() != table_type.lower():
-        raise BiomParseException, "constructor must be a biom otu Table"
+        raise BiomParseException, "constructor must be a biom %s" % table_type
 
     return constructor
 
@@ -68,8 +69,8 @@ def parse_biom_otu_table(json_table, constructor=None):
 
     Constructor must have a _biom_type of "otu table"
     """
-    mat_type = json_table['matrix_type']
     table_type = 'otu table'
+    mat_type = json_table['matrix_type']
     constructors = [SparseOTUTable, DenseOTUTable]
     constructor = pick_constructor(mat_type,table_type,constructor,constructors)
 
