@@ -2,10 +2,8 @@
 
 """Validate a Biological Observation Matrix (biom) formatted file
 
-For more details, go to:
-http://www.qiime.org/svn_documentation/documentation/biom_format.html
+For more details, go to: http://biom-format.org
 """
-
 
 import json
 from httplib import HTTP 
