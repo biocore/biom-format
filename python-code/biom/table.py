@@ -116,11 +116,17 @@ class SparseDict(dict):
     across rows or columns
     """
 
-    def __init__(self, rows, cols, dtype=float):
+    def __init__(self, rows, cols, dtype=float, enable_indices=True):
         self.shape = (rows, cols) 
         self.dtype = dtype # casting is minimal, trust the programmer...
-        self._index_rows = [set() for i in range(rows)]
-        self._index_cols = [set() for i in range(cols)]
+
+        if enable_indices:
+            self._index_rows = [set() for i in range(rows)]
+            self._index_cols = [set() for i in range(cols)]
+        else:
+            self._index_rows = None
+            self._index_rows = None
+        self._indices_enabled = enable_indices
 
     def __setitem__(self,args,value):
         """Wrap setitem, complain if out of bounds"""
@@ -186,29 +192,13 @@ class SparseDict(dict):
             self._index_rows[row].add(args)
             self._index_cols[col].add(args)
 
-    #def _update_internal_indices_bulk_nonzero(self, row_update, col_update):
-    #    """Update internal indices in bulk, assumes all is sane
-    #    
-    #    row_update : a dict of lists where the nested list contains all row
-    #        col pairs that are on the same row
-    #        {row_x:[(row_x, col), ...]}
-    #    
-    #    col_update : a list of lists where the nested list contains all row
-    #        col pairs that are on the same col
-    #        {col_x:[(row, col_x), ...]} 
-    #    """
-    #    for row, updates in row_update.items():
-    #        self._index_rows[row].update(updates)
-    #    for col, updates in col_update.items():
-    #        self._index_cols[col].update(updates)
-
     def getRow(self, row):
         """Returns a row: {((row,col):value}"""
         in_self_rows, in_self_cols = self.shape
         if row >= in_self_rows or row < 0:
             raise IndexError, "The specified row is out of bounds"
     
-        new_row = SparseDict(1, in_self_cols)
+        new_row = SparseDict(1, in_self_cols, enable_indices=False)
         
         d = {}
         for r,c in self._index_rows[row]:
@@ -222,31 +212,27 @@ class SparseDict(dict):
         if col >= in_self_cols or col < 0:
             raise IndexError, "The specified col is out of bounds"
 
-        new_col = SparseDict(in_self_rows, 1)
-        #new_col = SparseDict(1, in_self_rows)
+        new_col = SparseDict(in_self_rows, 1, enable_indices=False)
         d = {}
         for r,c in self._index_cols[col]:
             d[(r,0)] = super(SparseDict, self).__getitem__((r,c))
-            #d[(0,r)] = super(SparseDict, self).__getitem__((r,c))
         new_col.update(d)
         return new_col
 
     def transpose(self):
         """Transpose self"""
-        new_self = self.__class__(*self.shape[::-1])
+        new_self = self.__class__(*self.shape[::-1], \
+                enable_indices=self._indices_enabled)
         new_self.update(dict([((c,r),v) for (r,c),v in self.iteritems()]))
         return new_self
     T = property(transpose)
 
     def update(self, update_dict):
         """Update self"""
-        # update does not appear to call self.__setitem__. This is good.
         in_self_rows, in_self_cols = self.shape
     
         # handle zero values different and dont pass them to update
         scrubbed = {}
-        #row_updates = {}
-        #col_updates = {}
         for (row,col),value in update_dict.items():
             if row >= in_self_rows or row < 0:
                 raise KeyError, "The specified row is out of bounds"
@@ -256,19 +242,9 @@ class SparseDict(dict):
                 self.__setitem__((row,col), 0)
             else:
                 scrubbed[(row,col)] = value
-               
-                # requirements for bulk_nonzero update. might be a smarter way
-                # to do it...
-                #if row not in row_updates:
-                #    row_updates[row] = []
-                #if col not in col_updates:
-                #    col_updates[col] = []
-                #row_updates[row].append((row,col))
-                #col_updates[col].append((row,col))
-
-            self._update_internal_indices((row,col), value)
-        # possible alternative update method. still not as fast
-        #self._update_internal_indices_bulk_nonzero(row_updates,col_updates)
+            
+            if self._indices_enabled:
+                self._update_internal_indices((row,col), value)
 
         super(SparseDict, self).update(scrubbed)
 
