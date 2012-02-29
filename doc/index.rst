@@ -27,13 +27,13 @@ The biom-format project and file format version are always the same. Official ve
 Installing the BIOM project
 ===========================
 
-To install the BIOM project, you can download the release version (LINK!), or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version. 
+To install the BIOM project, you can download the release version (LINK), or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version. 
 
 To pull the development version from our svn repository, first ``cd`` to the directory where you'd like to install the code. We'll call this ``$HOME/code``:: 
 
 	cd $HOME/code
 
-To install the release version, download from THIS LINK, and then run ``tar -xvzf`` on the resulting file to unzip it. To install the development version, run the following command::
+To install the release version, download from LINK, and then run ``tar -xvzf`` on the resulting file to unzip it. To install the development version, run the following command::
 
 	svn checkout svn://svn.code.sf.net/p/biom-format/code/trunk biom-format
 	
