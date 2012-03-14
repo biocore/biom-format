@@ -502,6 +502,10 @@ def convert_biom_to_table(biom_f, header_key=None, header_value=None, \
         md_format=None):
     """Convert a biom table to a contigency table"""
     table = parse_biom_table(biom_f)
+
+    if md_format is None:
+        md_format = lambda x: '; '.join(x)
+
     if table.ObservationMetadata is None:
         return table.delimitedSelf()
     

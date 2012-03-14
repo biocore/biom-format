@@ -129,6 +129,13 @@ class SparseDict(dict):
             self._index_rows = None
         self._indices_enabled = enable_indices
 
+    def copy(self):
+        """Return a copy of self"""
+        new_self = self.__class__(self.shape[0], self.shape[1], self.dtype, \
+                                  self._indices_enabled)
+        new_self.update(self)
+        return new_self
+
     def __setitem__(self,args,value):
         """Wrap setitem, complain if out of bounds"""
         row,col = args

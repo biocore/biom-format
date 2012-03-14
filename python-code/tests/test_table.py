@@ -26,6 +26,19 @@ class SparseDictTests(TestCase):
         self.obj = SparseDict(6,3)
         self.obj.update({(1,2):3,(5,2):6})
 
+    def test_copy(self):
+        """copy thy self"""
+        obs = self.obj.copy()
+        self.assertEqual(obs, self.obj)
+        self.assertNotEqual(id(obs), id(self.obj))
+        obs[1,2] = 10
+        self.assertNotEqual(obs, self.obj)
+        obs[1,2] = 3
+        obs[0,0] = 5
+        self.assertNotEqual(obs, self.obj)
+        self.assertNotEqual(id(self.obj._index_rows), id(obs._index_rows))
+        self.assertNotEqual(id(self.obj._index_cols), id(obs._index_cols))
+
     def test_setitem(self):
         self.obj[(2,2)] = 10
         exp = sorted([((1,2),3),((5,2),6),((2,2),10)])
