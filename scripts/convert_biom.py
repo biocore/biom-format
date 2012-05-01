@@ -30,7 +30,10 @@ BIOM_TYPES = {'otu table':[SparseOTUTable, DenseOTUTable],
               'taxon table':[SparseTaxonTable, DenseTaxonTable]}
 
 usage = "usage: %prog -i otu_table.txt -o otu_table.biom --biom_table_type \"otu table\""
-parser = OptionParser(usage=usage, version=__version__)
+desc = "Script to convert biom formatted files. Detailed usage examples can be found\
+here: http://biom-format.org/documentation/biom_format.html#converting-between-file-formats"
+
+parser = OptionParser(usage=usage, description=desc, version=__version__)
 parser.set_defaults(verbose=True)
 
 req_group = OptionGroup(parser, 'Required Options')
