@@ -29,7 +29,7 @@ BIOM_TYPES = {'otu table':[SparseOTUTable, DenseOTUTable],
               'metabolite table':[SparseMetaboliteTable, DenseMetaboliteTable],
               'taxon table':[SparseTaxonTable, DenseTaxonTable]}
 
-usage = "usage: %prog -i table.biom -o table.txt"
+usage = "usage: %prog -i otu_table.txt -o otu_table.biom --biom_table_type \"otu table\""
 parser = OptionParser(usage=usage, version=__version__)
 parser.set_defaults(verbose=True)
 
@@ -66,7 +66,10 @@ opt_options = [make_option('-t','--biom_type',type='choice',
                             'to biom file, if provided) [default: %default]'),
                make_option('--header_key',type="string",default=None, \
                     help='Pull this key from observation metadata within a '+ \
-                    'biom file when writing a classic table.'),
+                    'biom file when writing a classic table [default: no observation metadata will be written]'),
+               make_option('--output_metadata_id',type="string",default=None, \
+                    help='Name for the observation metadata column when writing a '+ \
+                    'biom file as a classic table [default: same name as in biom-formatted table]'),
                make_option('--biom_table_type',type="string",default=None,
                     help='The biom table type to get converted into')]
 opt_group.add_options(opt_options)
@@ -110,11 +113,15 @@ def main():
         obs_mapping = parse_mapping(open(obs_mapping_fp, 'U'))
     else:
         obs_mapping = None
-
+    
+    # if the user does not specify a name for the output metadata column, set it to the
+    # same as the header key
+    header_key = opts.header_key
+    output_metadata_id = opts.output_metadata_id or header_key
     if biom_to_classic_table:
         try:
-            output_f.write(convert_biom_to_table(input_f, opts.header_key, 
-                                                    opts.header_key))
+            output_f.write(convert_biom_to_table(\
+                           input_f, header_key, output_metadata_id))
         except ValueError:
             raise ValueError, "Input does not look like a .biom file. Did you accidentally specify -b?"
     elif sparse_biom_to_dense_biom:
