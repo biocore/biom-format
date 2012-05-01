@@ -11,7 +11,7 @@ from biom.parse import parse_biom_table_str, \
         parse_mapping, pick_constructor, parse_biom_pathway_table,\
         parse_biom_function_table, parse_biom_ortholog_table, \
         parse_biom_gene_table, parse_biom_metabolite_table, \
-        parse_biom_taxon_table
+        parse_biom_taxon_table, OBS_META_TYPES
 from biom.table import SparseOTUTable, DenseOTUTable
 from biom.exception import BiomParseException
 
@@ -97,8 +97,10 @@ class ParseTests(TestCase):
     def test_parse_classic_table_to_rich_table(self):
         tab1_fh = StringIO(self.otu_table1)
         md_parse = lambda x: x.split('; ')
+        #sparse_rich = parse_classic_table_to_rich_table(tab1_fh, None, None,\
+        #        DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
         sparse_rich = parse_classic_table_to_rich_table(tab1_fh, None, None,\
-                DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
+                OBS_META_TYPES['naive'], DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
         self.assertEqual(sorted(sparse_rich.SampleIds),sorted(['Fing','Key','NA']))
         self.assertEqual(sorted(sparse_rich.ObservationIds),map(str,[0,1,3,4,7]))
         for i, obs_id in enumerate(sparse_rich.ObservationIds):
@@ -126,7 +128,8 @@ class ParseTests(TestCase):
     def test_parse_classic_table_to_rich_table_dense(self):
         tab1_fh = StringIO(self.otu_table1)
         md_parse = lambda x: x.split('; ')
-        sparse_rich = parse_classic_table_to_rich_table(tab1_fh.readlines(),None,None, DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
+        #sparse_rich = parse_classic_table_to_rich_table(tab1_fh.readlines(),None,None, DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
+        sparse_rich = parse_classic_table_to_rich_table(tab1_fh.readlines(),None,None, OBS_META_TYPES['naive'], DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
         self.assertEqual(sorted(sparse_rich.SampleIds),sorted(['Fing','Key','NA']))
         self.assertEqual(sorted(sparse_rich.ObservationIds),map(str,[0,1,3,4,7]))
         for i, obs_id in enumerate(sparse_rich.ObservationIds):
@@ -150,6 +153,7 @@ class ParseTests(TestCase):
             for j, sample_id in enumerate(sparse_rich.SampleIds):
                 if obs_id == '1' and sample_id == 'Key':
                     self.assertEqual(True,True) # should test some abundance data
+
     def test_parse_biom_gene_table(self):
         """test for the biom gene table parser"""
         tab1_fh = json.load(StringIO(self.biom_minimal_dense))
@@ -377,7 +381,8 @@ class ParseTests(TestCase):
         # to a classic otu table (i.e., roundtrip the file)
         roundtripped_classic_otu_table1_w_tax =\
           convert_biom_to_table(
-            convert_table_to_biom(self.classic_otu_table1_w_tax, None, None, DenseOTUTable),
+            convert_table_to_biom(self.classic_otu_table1_w_tax, None, None,
+                                  OBS_META_TYPES['naive'], DenseOTUTable),
             'Consensus Lineage','Consensus Lineage', lambda x: x)
 
         # parse the roundtripped file
@@ -398,7 +403,8 @@ class ParseTests(TestCase):
         # to a classic otu table (i.e., roundtrip the file)
         roundtripped_classic_otu_table1_no_tax =\
           convert_biom_to_table(
-            convert_table_to_biom(self.classic_otu_table1_no_tax, None, None, DenseOTUTable))
+            convert_table_to_biom(self.classic_otu_table1_no_tax, None, None, 
+                                  OBS_META_TYPES['naive'], DenseOTUTable))
         # parse the roundtripped file
         parsed_roundtripped_classic_otu_table1_no_tax = \
          parse_classic_table(roundtripped_classic_otu_table1_no_tax.split('\n'))

@@ -13,7 +13,7 @@ from biom.parse import parse_biom_table, parse_mapping, convert_biom_to_table, \
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2012, The BIOM-Format project"
-__credits__ = ["Greg Caporaso", "Daniel McDonald"]
+__credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Carlos Clemente Litran"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
 __version__ = "0.9.1-dev"
@@ -28,6 +28,10 @@ BIOM_TYPES = {'otu table':[SparseOTUTable, DenseOTUTable],
               'gene table':[SparseGeneTable, DenseGeneTable],
               'metabolite table':[SparseMetaboliteTable, DenseMetaboliteTable],
               'taxon table':[SparseTaxonTable, DenseTaxonTable]}
+
+OBS_META_TYPES = {'taxonomy': lambda x: [e.strip() for e in x.split(';')],
+                  'naive': lambda x: x
+                  }
 
 usage = "usage: %prog -i otu_table.txt -o otu_table.biom --biom_table_type \"otu table\""
 desc = "Script to convert biom formatted files. Detailed usage examples can be found\
@@ -73,6 +77,10 @@ opt_options = [make_option('-t','--biom_type',type='choice',
                make_option('--output_metadata_id',type="string",default=None, \
                     help='Name for the observation metadata column when writing a '+ \
                     'biom file as a classic table [default: same name as in biom-formatted table]'),
+               make_option('--process_obs_metadata',type="choice",
+                           choices=OBS_META_TYPES.keys(), default='naive', 
+                    help='Process metadata associated with observations ('+ \
+                    ','.join(OBS_META_TYPES.keys()) + ') when converting from a classic table [default: %default]'),
                make_option('--biom_table_type',type="string",default=None,
                     help='The biom table type to get converted into')]
 opt_group.add_options(opt_options)
@@ -91,6 +99,7 @@ def main():
     biom_to_classic_table = opts.biom_to_classic_table
     sparse_biom_to_dense_biom = opts.sparse_biom_to_dense_biom
     dense_biom_to_sparse_biom = opts.dense_biom_to_sparse_biom
+    process_obs_metadata = opts.process_obs_metadata
     
     if sum([biom_to_classic_table,
             sparse_biom_to_dense_biom,
@@ -169,7 +178,7 @@ def main():
         
         try:
             output_f.write(convert_table_to_biom(input_f,sample_mapping, 
-                                obs_mapping, constructor))
+                                obs_mapping, OBS_META_TYPES[process_obs_metadata], constructor))
         except ValueError:
             raise ValueError, "Input does not look like a classic table. Do you need to pass -b?"
     input_f.close()
