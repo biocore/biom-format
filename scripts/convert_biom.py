@@ -150,10 +150,11 @@ def main():
 
         output_f.write(table.getBiomFormatJsonString(generatedby()))
     else:
-        if opts.biom_table_type is None:
+        biom_table_type = opts.biom_table_type.lower()
+        if biom_table_type is None:
             parser.error('Must specify the BIOM table type: %s' % \
                     ', '.join(BIOM_TYPES.keys()))
-        if opts.biom_table_type not in BIOM_TYPES:
+        if biom_table_type not in BIOM_TYPES:
             parser.error('Unknown BIOM table type, must be one of: %s' % \
                     ', '.join(BIOM_TYPES.keys()))
         if opts.biom_type is None or opts.biom_type not in ['dense', 'sparse']:
@@ -161,7 +162,7 @@ def main():
                     'either "dense" or "sparse"')
 
         idx = 0 if opts.biom_type == 'sparse' else 1
-        constructor = BIOM_TYPES[opts.biom_table_type][idx]
+        constructor = BIOM_TYPES[biom_table_type][idx]
         
         try:
             output_f.write(convert_table_to_biom(input_f,sample_mapping, 
