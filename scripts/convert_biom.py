@@ -162,10 +162,11 @@ def main():
 
         output_f.write(table.getBiomFormatJsonString(generatedby()))
     else:
-        biom_table_type = opts.biom_table_type.lower()
-        if biom_table_type is None:
+        if opts.biom_table_type is None:
             parser.error('Must specify the BIOM table type: %s' % \
                     ', '.join(BIOM_TYPES.keys()))
+        else:
+            biom_table_type = opts.biom_table_type.lower()
         if biom_table_type not in BIOM_TYPES:
             parser.error('Unknown BIOM table type, must be one of: %s' % \
                     ', '.join(BIOM_TYPES.keys()))
