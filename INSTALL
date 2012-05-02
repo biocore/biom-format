@@ -1,7 +1,21 @@
 INSTALL
 =======
 
-The installation method is currently under development. For the time being, the only objects that are available are Python-based and can be used simply by adding the python-code/ directory to your PYTHONPATH.
-
 More details can be found at http://biom-format.org
 
+To build, simply run:
+
+$ python setup.py build
+
+To install into your home directory:
+
+$ python setup.py install --prefix=$HOME
+
+To install system-wide:
+
+$ python setup.py install
+
+Assuming the biom module was installed into a directory that is already visible
+from your PYTHONPATH, you can build the documentation locally with:
+
+$ python setup.py build_sphinx
