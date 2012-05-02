@@ -50,6 +50,6 @@ If you are converting a QIIME 1.4.0 or earlier OTU table to BIOM format, there a
 
 	sed 's/Consensus Lineage/ConsensusLineage/' < otu_table.txt | sed 's/ConsensusLineage/taxonomy/' > otu_table.taxonomy.txt
 
-Then, you'll want to perform the conversion including a step to convert the ``taxonomy`` string from the classic OTU table to a list, as it's represented in QIIME 1.4.0-dev and later::
+Then, you'll want to perform the conversion including a step to convert the taxonomy `string` from the classic OTU table to a taxonomy `list`, as it's represented in QIIME 1.4.0-dev and later::
 
 	convert_biom.py -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --biom_table_type="otu table" --process_obs_metadata taxonomy
