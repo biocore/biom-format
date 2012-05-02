@@ -48,8 +48,8 @@ Converting QIIME 1.4.0 and earlier OTU tables to BIOM format
 ````````````````````````````````````````````````````````````
 If you are converting a QIIME 1.4.0 or earlier OTU table to BIOM format, there are a few steps to go through. First, for convenience, you might want to rename the ``ConsensusLineage`` column ``taxonomy``. You can do this with the following command::
 
-	sed ...
+	sed 's/Consensus Lineage/ConsensusLineage/' < otu_table.txt | sed 's/ConsensusLineage/taxonomy/' > otu_table.taxonomy.txt
 
 Then, you'll want to perform the conversion including a step to convert the ``taxonomy`` string from the classic OTU table to a list, as it's represented in QIIME 1.4.0-dev and later::
 
-	convert_biom.py -i otu_table.txt -o otu_table.from_txt.biom --biom_table_type="otu table" --process_obs_metadata taxonomy
+	convert_biom.py -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --biom_table_type="otu table" --process_obs_metadata taxonomy
