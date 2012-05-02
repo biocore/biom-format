@@ -5,39 +5,51 @@ Converting between file formats
 ===============================
 
 The ``convert_biom.py`` script in the biom-format project can be used to convert between biom and tab-delimited table formats. This is useful for several reasons:
- - converting biom format to classic OTU tables for easy viewing in programs such as Excel
+ - converting biom format tables to tab-delimited tables for easy viewing in programs such as Excel
  - converting between sparse and dense biom formats
 
-Usage examples
---------------
+ .. note:: The tab-delimited tables are commonly referred to as the `classic format` tables, while BIOM formatted tables are referred to as `biom tables`.
 
-Convert a tab-delimited table to sparse biom format::
+General usage examples
+----------------------
 
-	convert_biom.py -i otu_table.txt -o otu_table.biom --biom_table_type="otu table"
+Convert a tab-delimited table to sparse biom format. Note that you *must* specify the type of table here::
+
+	convert_biom.py -i table.txt -o table.from_txt.biom --biom_table_type="otu table"
 
 Convert a tab-delimited table to dense biom format::
 
-	convert_biom.py -i otu_table.txt -o otu_table.biom --biom_table_type="otu table" --biom_type=dense
+	convert_biom.py -i table.txt -o table.dense.biom --biom_table_type="otu table" --biom_type=dense
 
 Convert biom format to tab-delimited table format::
 
-	convert_biom.py -i otu_table.biom -o otu_table.txt -b
+	convert_biom.py -i table.biom -o table.from_biom.txt -b
 
 Convert dense biom format to sparse biom format::
 
-	convert_biom.py -i otu_table.dense.biom -o otu_table.sparse.biom --dense_biom_to_sparse_biom
+	convert_biom.py -i table.dense.biom -o table.sparse.biom --dense_biom_to_sparse_biom
 
 Convert sparse biom format to dense biom format::
 
-	convert_biom.py -i otu_table.sparse.biom -o otu_table.dense.biom --sparse_biom_to_dense_biom
+	convert_biom.py -i table.sparse.biom -o table.dense.biom --sparse_biom_to_dense_biom
 
-Convert biom format to classic format, including the ``taxonomy`` observation metadata as the last column of the classic format table::
+Convert biom format to classic format, including the ``taxonomy`` observation metadata as the last column of the classic format table. Because the BIOM format can support an arbitrary number of observation (or sample) metadata entries, and the classic format can support only a single observation metadata entry, you must specify which of the observation metadata entries you want to include in the output table::
 
-	convert_biom.py -i otu_table.biom -o otu_table.txt -b --header_key taxonomy
+	convert_biom.py -i table.biom -o table.from_biom_w_taxonomy.txt -b --header_key taxonomy
 
-Convert biom format to classic format, including the ``taxonomy`` observation metadata as the last column of the classic format table, but renaming that column as ``ConsensusLineage``::
+Convert biom format to classic format, including the ``taxonomy`` observation metadata as the last column of the classic format table, but renaming that column as ``ConsensusLineage``. This is useful when using legacy tools that require a specific name for the observation metadata column.::
 
-	convert_biom.py -i otu_table.biom -o otu_table.txt -b --header_key taxonomy --output_metadata_id "ConsensusLineage"
+	convert_biom.py -i table.biom -o table.from_biom_w_consensuslineage.txt -b --header_key taxonomy --output_metadata_id "ConsensusLineage"
 
-.. _sparse-or-dense:
+Special case usage examples
+---------------------------
 
+Converting QIIME 1.4.0 and earlier OTU tables to BIOM format
+````````````````````````````````````````````````````````````
+If you are converting a QIIME 1.4.0 or earlier OTU table to BIOM format, there are a few steps to go through. First, for convenience, you might want to rename the ``ConsensusLineage`` column ``taxonomy``. You can do this with the following command::
+
+	sed ...
+
+Then, you'll want to perform the conversion including a step to convert the ``taxonomy`` string from the classic OTU table to a list, as it's represented in QIIME 1.4.0-dev and later::
+
+	convert_biom.py -i otu_table.txt -o otu_table.from_txt.biom --biom_table_type="otu table" --process_obs_metadata taxonomy
