@@ -33,9 +33,8 @@ OBS_META_TYPES = {'taxonomy': lambda x: [e.strip() for e in x.split(';')],
                   'naive': lambda x: x
                   }
 
-usage = "usage: %prog -i otu_table.txt -o otu_table.biom --biom_table_type \"otu table\""
-desc = "Script to convert biom formatted files. Detailed usage examples can be found\
-here: http://biom-format.org/documentation/biom_format.html#converting-between-file-formats"
+usage = "usage: Detailed usage examples can be found here: http://biom-format.org/documentation/biom_conversion.html"
+desc = "Script to convert biom formatted files."
 
 parser = OptionParser(usage=usage, description=desc, version=__version__)
 parser.set_defaults(verbose=True)
