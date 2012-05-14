@@ -11,4 +11,4 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Release"
 
-__all__ = ['table','parse','unittest','exception']
+__all__ = ['table','parse','sparsedict','util','unittest','exception']

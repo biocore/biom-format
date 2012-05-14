@@ -2,7 +2,8 @@
 
 import numpy
 from numpy import testing, array, zeros, asarray
-from unittest import main, TestCase as TestCaseOriginal
+from unittest import main, TestSuite, findTestCases, \
+    TestCase as TestCaseOriginal
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"

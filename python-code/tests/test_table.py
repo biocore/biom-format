@@ -4,11 +4,10 @@ from numpy import array, where, zeros
 from biom.unit_test import TestCase, main
 from biom.table import TableException, Table, \
     DenseTable, SparseTable, DenseOTUTable, SparseOTUTable,\
-    UnknownID, prefer_self, index_list, list_list_to_sparsedict,\
-    dict_to_nparray, list_dict_to_nparray, list_dict_to_sparsedict, \
-    table_factory, to_sparsedict, list_nparray_to_sparsedict, \
-    list_list_to_nparray, SparseDict, nparray_to_sparsedict, \
-    dict_to_sparsedict, flatten, unzip, natsort
+    UnknownID, prefer_self, index_list, dict_to_nparray, \
+    list_dict_to_nparray, table_factory, list_list_to_nparray, flatten, unzip, \
+    natsort, to_sparse, nparray_to_sparseobj, list_nparray_to_sparseobj, \
+    SparseObj
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM Format"
@@ -21,199 +20,112 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __status__ = "Release"
 
-class SparseDictTests(TestCase):
-    def setUp(self):
-        self.obj = SparseDict(6,3)
-        self.obj.update({(1,2):3,(5,2):6})
-
-    def test_copy(self):
-        """copy thy self"""
-        obs = self.obj.copy()
-        self.assertEqual(obs, self.obj)
-        self.assertNotEqual(id(obs), id(self.obj))
-        obs[1,2] = 10
-        self.assertNotEqual(obs, self.obj)
-        obs[1,2] = 3
-        obs[0,0] = 5
-        self.assertNotEqual(obs, self.obj)
-        self.assertNotEqual(id(self.obj._index_rows), id(obs._index_rows))
-        self.assertNotEqual(id(self.obj._index_cols), id(obs._index_cols))
-
-    def test_setitem(self):
-        self.obj[(2,2)] = 10
-        exp = sorted([((1,2),3),((5,2),6),((2,2),10)])
-        self.assertEqual(sorted(self.obj.items()), exp)
-        self.assertRaises(KeyError, self.obj.__setitem__, (100,50), 10)
-       
-        self.assertEqual(self.obj._index_rows, [set(),set([(1,2)]),
-                                                set([(2,2)]), set(), set(),
-                                                set([(5,2)])])
-        self.assertEqual(self.obj._index_cols, [set(),set(),
-                                                set([(1,2),(2,2),(5,2)])])
-
-
-    def test_getitem_simple(self):
-        """Tests simple getitem"""
-        self.assertEqual(self.obj[(1,2)], 3)
-        self.assertEqual(self.obj[1,2], 3)
-        self.assertEqual(self.obj[1,1], 0)
-        self.assertRaises(IndexError, self.obj.__getitem__, (3,3))
-        self.assertRaises(IndexError, self.obj.__getitem__, (-1,2))
-        self.assertRaises(IndexError, self.obj.__getitem__, 1)
-
-    def test_getitem_slice(self):
-        """Tests for slices on getitem"""
-        exp = SparseDict(1,3)
-        exp[0,2] = 3
-        self.assertEqual(exp, self.obj[1,:])
-
-        exp = SparseDict(6,1)
-        exp[1,0] = 3
-        exp[5,0] = 6
-        self.assertEqual(exp, self.obj[:,2])
-
-        self.assertRaises(IndexError, self.obj.__getitem__, (10,slice(None)))
-        self.assertRaises(AttributeError, self.obj.__getitem__, (3, slice(1,2,3)))
-
-    def test_update_internal_indices(self):
-        """Update internal indices"""
-        sd = SparseDict(2,3)
-        self.assertEqual(sd._index_rows, [set(),set()])
-        self.assertEqual(sd._index_cols, [set(),set(),set()])
-
-        sd[(1,2)] = 5
-        self.assertEqual(sd._index_rows, [set(),set([(1,2)])])
-        self.assertEqual(sd._index_cols, [set(),set(),set([(1,2)])])
-
-        sd[(1,2)] = 0
-        self.assertEqual(sd._index_rows, [set(),set()])
-        self.assertEqual(sd._index_cols, [set(),set(),set()])
-
-        sd[(1,1)] = 0
-        self.assertEqual(sd._index_rows, [set(),set()])
-        self.assertEqual(sd._index_cols, [set(),set(),set()])
-
-    def test_getRow(self):
-        """Get a row"""
-        exp = SparseDict(1,3)
-        exp.update({(0,2):3})
-        obs = self.obj.getRow(1)
-        self.assertEqual(obs, exp)
-
-        exp = SparseDict(1,3)
-        obs = self.obj.getRow(4)
-        self.assertEqual(obs,exp)
-
-        self.assertRaises(IndexError, self.obj.getRow, -1)
-
-    def test_getCol(self):
-        """Get a col"""
-        exp = SparseDict(6,1)
-        exp.update({(1,0):3,(5,0):6})
-        obs = self.obj.getCol(2)
-        self.assertEqual(obs,exp)
-
-        exp = SparseDict(6,1)
-        obs = self.obj.getCol(1)
-        self.assertEqual(obs,exp)
-
-        self.assertRaises(IndexError, self.obj.getCol, -1)
-
-    def test_update(self):
-        """updates should work and update indexes"""
-        items = self.obj.items()
-        indexes = (self.obj._index_rows, self.obj._index_cols)
-        self.obj.update({(1,2):3,(5,2):6})
-        self.assertEqual(items, self.obj.items())
-        self.assertEqual(indexes, (self.obj._index_rows, self.obj._index_cols))
-
-        self.obj.update({(1,2):0,(5,2):6})
-        self.assertEqual(self.obj.items(), {(5,2):6}.items())
-        self.assertEqual(self.obj._index_rows, [set(),set(),set(),set(),\
-                                                set(), set([(5,2)])])
-        self.assertEqual(self.obj._index_cols, [set(),set(),set([(5,2)])])
-
-        self.obj.update({(1,2):1,(2,2):0,(1,1):10})
-        self.assertEqual(self.obj.items(), {(1,2):1,(1,1):10,(5,2):6}.items())
-        self.assertEqual(self.obj._index_rows, [set(),set([(1,2),(1,1)]),\
-                                                set(),set(),\
-                                                set(), set([(5,2)])])
-        self.assertEqual(self.obj._index_cols, [set(),set([(1,1)]),set([(1,2),(5,2)])])
-
-    def test_T(self):
-        """test transpose"""
-        exp = SparseDict(3,6)
-        exp.update({(2,1):3,(2,5):6})
-        obs = self.obj.T
-        self.assertEqual(obs, exp)
-
 class SupportTests(TestCase):
     def setUp(self):
         pass
 
-    def test_natsort(self):
-        """natsort should perform numeric comparisons on strings
+    def test_table_factory_sparseobj_nparray(self):
+        """beat the table_factory sparsely to death"""
+        # nparray test
+        samp_ids = ['1','2','3','4']
+        obs_ids = ['a','b','c']
+        nparray = array([[1,2,3,4],[-1,6,7,8],[9,10,11,12]])
+        data = nparray_to_sparseobj(array([[1,2,3,4],[-1,6,7,8],[9,10,11,12]]))
+        exp = SparseTable(data, samp_ids, obs_ids)
+        obs = table_factory(nparray, samp_ids, obs_ids, constructor=SparseTable)
+        self.assertEqual(obs,exp)
 
-        test pulled from QIIME (http://qiime.org)
-        """
-        # string with alpha and numerics sort correctly
-        s = 'sample1 sample2 sample11 sample12'.split()
-        self.assertEqual(natsort(s), 
-          'sample1 sample2 sample11 sample12'.split())
-        s.reverse()
-        self.assertEqual(natsort(s), 
-          'sample1 sample2 sample11 sample12'.split())
-        self.assertEqual(natsort(list('cba321')),list('123abc'))
+    def test_table_factory_sparse_list_nparray(self):
+        """beat the table_factory sparsely to death"""
+        # list of nparray test
+        samp_ids = ['1','2','3','4']
+        obs_ids = ['a','b','c']
+        list_np = [array([1,2,3,4]), array([5,6,7,8]), array([9,10,11,12])]
+        data = list_nparray_to_sparseobj(list_np)
+        exp = SparseTable(data, samp_ids, obs_ids)
+        obs = table_factory(list_np, samp_ids, obs_ids, constructor=SparseTable)
+        self.assertEqual(obs,exp)
 
-        # strings with alpha only sort correctly
-        self.assertEqual(natsort(list('cdba')),list('abcd'))
+    def test_table_factory_sparse_dict(self):
+        """beat the table_factory sparsely to death"""
+        # dict test
+        samp_ids = range(24)
+        obs_ids = range(101)
+        dict_input = {(0,0):1,(0,10):5,(100,23):-3}
+        d_input = zeros((101,24),dtype=float)
+        d_input[0,0] = 1
+        d_input[0,10] = 5
+        d_input[100,23] = -3
+        data = nparray_to_sparseobj(d_input)
+        exp = SparseTable(data, samp_ids, obs_ids)
+        obs = table_factory(dict_input,samp_ids,obs_ids,constructor=SparseTable)
+        self.assertEqual(obs, exp)
 
-        # string of ints sort correctly
-        self.assertEqual(natsort(['11','2','1','0']),
-                               ['0','1','2','11'])
+    def test_table_factory_sparse_list_dict(self):
+        """beat the table_factory sparsely to death"""
+        # list of dict test
+        samp_ids = range(11)
+        obs_ids = range(3)
+        ld_input = zeros((3,11),dtype=float)
+        ld_input[0,5] = 10
+        ld_input[0,10] = 2
+        ld_input[1,1] = 15
+        ld_input[2,3] = 7
+        data = nparray_to_sparseobj(ld_input)
+        exp = SparseTable(data, samp_ids, obs_ids)
+        list_dict = [{(0,5):10,(10,10):2}, {(0,1):15}, {(0,3):7}]
+        obs = table_factory(list_dict, samp_ids,obs_ids,constructor=SparseTable)
+        self.assertEqual(obs, exp)
 
-        # strings of floats sort correctly
-        self.assertEqual(natsort(['1.11','1.12','1.00','0.009']),
-                               ['0.009','1.00','1.11','1.12'])
+    def test_table_factory_sparse_list_dict(self):
+        """beat the table_factory sparsely to death"""
+        # list of dict test
+        a1 = {}
+        a2 = {}
+        a1[(0,1)] = 1
+        a2[(0,2)] = 5
+        list_dict = [a1,a2]
+        exp_table = zeros((2,3),dtype=float)
+        exp_table[0,1] = 1
+        exp_table[1,2] = 5
+        data = nparray_to_sparseobj(exp_table)
+        samp_ids = range(3)
+        obs_ids = range(2)
+        exp = SparseTable(data, samp_ids, obs_ids)
+        obs = table_factory(list_dict,samp_ids,obs_ids,
+                             constructor=SparseTable)
+        self.assertEqual(obs, exp)
 
-        # string of ints sort correctly
-        self.assertEqual(natsort([('11','A'),('2','B'),('1','C'),('0','D')]),
-                            [('0','D'),('1','C'),('2','B'),('11','A')])
+    def test_table_factory_sparse_dict(self):
+        """beat the table_factory sparsely to death"""
+        samp_ids = range(3)
+        obs_ids = range(2)
+        exp_data = zeros((2,3),dtype=float)
+        exp_data[0,1] = 5
+        exp_data[1,2] = 10
+        data = nparray_to_sparseobj(exp_data)
+        exp = SparseTable(data, samp_ids, obs_ids, constructor=SparseTable)
+        dict_input = {}
+        dict_input[(0,1)] = 5
+        dict_input[(1,2)] = 10
+        #print dict_input
+        #print samp_ids
+        #print obs_ids
+        obs = table_factory(dict_input, samp_ids, obs_ids)
+        self.assertEqual(obs, exp)
 
-
-    def test_unzip(self):
-        """unzip(items) should be the inverse of zip(*items)
-        
-        method pulled from PyCogent (http://pycogent.sourceforge.net)
-        """
-        chars = [list('abcde'), list('ghijk')]
-        numbers = [[1,2,3,4,5], [0,0,0,0,0]]
-        strings = [["abcde", "fghij", "klmno"], ['xxxxx'] * 3]
-        empty = [[]]
-
-        lists = [chars, numbers, strings]
-        zipped = [zip(*i) for i in lists]
-        unzipped = [unzip(i) for i in zipped]
-
-        for u, l in zip(unzipped, lists):
-            self.assertEqual(u, l)
-
-    def test_flatten_no_change(self):
-        """flatten should not change non-nested sequences (except to list)
-
-        test pulled from PyCogent (http://pycogent.sourceforge.net)
-        """
-        self.assertEqual(flatten('abcdef'), list('abcdef')) #test identities
-        self.assertEqual(flatten([]), []) #test empty sequence
-        self.assertEqual(flatten(''), []) #test empty string
-
-    def test_flatten(self):
-        """flatten should remove one level of nesting from nested sequences
-
-        test pulled from PyCogent (http://pycogent.sourceforge.net)
-        """
-        self.assertEqual(flatten(['aa', 'bb', 'cc']), list('aabbcc'))
-        self.assertEqual(flatten([1,[2,3], [[4, [5]]]]), [1, 2, 3, [4,[5]]])
+    def test_table_factory_sparse_list_list(self):
+        """beat the table_factory sparsely to death"""
+        # list list test
+        samp_ids = range(3)
+        obs_ids = range(2)
+        exp_data = SparseObj(2,3)
+        exp_data[0,1] = 5
+        exp_data[1,2] = 10
+        exp = SparseTable(exp_data, samp_ids, obs_ids)
+        input = [[0,1,5],[1,2,10]]
+        obs = table_factory(input, samp_ids, obs_ids, constructor=SparseTable)
+        self.assertEqual(obs, exp)
 
     def test_TableException(self):
         """Make sure a TableException can be raised"""
@@ -221,56 +133,11 @@ class SupportTests(TestCase):
             raise TableException
         self.assertRaises(TableException, f)
 
-
-    def test_transpose_dict(self):
-        """Transpose a dict"""
-        input = SparseDict(11,4)
-        input.update({(0,0):1.0,(10,0):5.0,(2,3):6})
-        exp = SparseDict(4,11)
-        exp.update({(0,0):1.0,(0,10):5.0,(3,2):6})
-        obs = input.T
-        self.assertEqual(obs,exp)
-
-    def test_list_list_to_sparsedict(self):
-        """convert [[row,col,value], ...] to dict"""
-        input = [[0,0,1],[10,0,5.0],[2,3,6]]
-        exp = {(0,0):1.0,(10,0):5.0,(2,3):6}
-        obs = list_list_to_sparsedict(input)
-        self.assertEqual(obs, exp)
-
     def test_list_list_to_nparray(self):
         """Convert [[value, value, ... value], ...] to nparray"""
         input = [[1,2,3,4,5],[6,7,8,9,0],[7,6,5,4,3]]
         exp = array([[1,2,3,4,5],[6,7,8,9,0],[7,6,5,4,3]], dtype=float)
         obs = list_list_to_nparray(input)
-        self.assertEqual(obs,exp)
-
-    def test_nparray_to_sparsedict(self):
-        """Convert nparray to dict"""
-        input = array([[1,2,3,4],[-1,6,7,8],[9,10,11,12]])
-        exp = SparseDict(3,4)
-        exp.update({(0,0):1,(0,1):2,(0,2):3,(0,3):4,
-                          (1,0):-1,(1,1):6,(1,2):7,(1,3):8,
-                          (2,0):9,(2,1):10,(2,2):11,(2,3):12})
-        obs = nparray_to_sparsedict(input)
-        self.assertEqual(obs, exp)
-
-    def test_list_dict_to_sparsedict(self):
-        """Take a list of dicts and condense down to a single dict"""
-        input = [{(0,5):10,(10,10):2}, {(0,1):15}, {(0,3):7}]
-        exp = SparseDict(3,11)
-        exp.update({(0,5):10,(0,10):2,(1,1):15,(2,3):7})
-        obs = list_dict_to_sparsedict(input)
-        self.assertEqual(obs,exp)
-
-    def test_dict_to_sparsedict(self):
-        """Take a dict and convert to SparseDict"""
-        input = {(0,10):5,(4,5):2,(3,3):6}
-        exp = SparseDict(5,11)
-        exp[(0,10)] = 5
-        exp[(4,5)] = 2
-        exp[(3,3)] = 6
-        obs = dict_to_sparsedict(input)
         self.assertEqual(obs,exp)
 
     def test_dict_to_nparray(self):
@@ -357,108 +224,6 @@ class SupportTests(TestCase):
         obs = table_factory(input, samp_ids, obs_ids, constructor=DenseTable)
         self.assertEqual(obs, exp)
 
-    def test_table_factory_sparsedict_nparray(self):
-        """beat the table_factory sparsely to death"""
-        # nparray test
-        samp_ids = ['1','2','3','4']
-        obs_ids = ['a','b','c']
-        nparray = array([[1,2,3,4],[-1,6,7,8],[9,10,11,12]])
-        data = nparray_to_sparsedict(array([[1,2,3,4],[-1,6,7,8],[9,10,11,12]]))
-        exp = SparseTable(data, samp_ids, obs_ids)
-        obs = table_factory(nparray, samp_ids, obs_ids, constructor=SparseTable)
-        self.assertEqual(obs,exp)
-
-    def test_table_factory_sparse_list_nparray(self):
-        """beat the table_factory sparsely to death"""
-        # list of nparray test
-        samp_ids = ['1','2','3','4']
-        obs_ids = ['a','b','c']
-        list_np = [array([1,2,3,4]), array([5,6,7,8]), array([9,10,11,12])]
-        data = list_nparray_to_sparsedict(list_np)
-        exp = SparseTable(data, samp_ids, obs_ids)
-        obs = table_factory(list_np, samp_ids, obs_ids, constructor=SparseTable)
-        self.assertEqual(obs,exp)
-
-    def test_table_factory_sparse_dict(self):
-        """beat the table_factory sparsely to death"""
-        # dict test
-        samp_ids = range(24)
-        obs_ids = range(101)
-        dict_input = {(0,0):1,(0,10):5,(100,23):-3}
-        d_input = zeros((101,24),dtype=float)
-        d_input[0,0] = 1
-        d_input[0,10] = 5
-        d_input[100,23] = -3
-        data = nparray_to_sparsedict(d_input)
-        exp = SparseTable(data, samp_ids, obs_ids)
-        obs = table_factory(dict_input,samp_ids,obs_ids,constructor=SparseTable)
-        self.assertEqual(obs, exp)
-
-    def test_table_factory_sparse_list_dict(self):
-        """beat the table_factory sparsely to death"""
-        # list of dict test
-        samp_ids = range(11)
-        obs_ids = range(3)
-        ld_input = zeros((3,11),dtype=float)
-        ld_input[0,5] = 10
-        ld_input[0,10] = 2
-        ld_input[1,1] = 15
-        ld_input[2,3] = 7
-        data = nparray_to_sparsedict(ld_input)
-        exp = SparseTable(data, samp_ids, obs_ids)
-        list_dict = [{(0,5):10,(10,10):2}, {(0,1):15}, {(0,3):7}]
-        obs = table_factory(list_dict, samp_ids,obs_ids,constructor=SparseTable)
-        self.assertEqual(obs, exp)
-
-    def test_table_factory_sparse_list_dict(self):
-        """beat the table_factory sparsely to death"""
-        # list of dict test
-        a1 = {}
-        a2 = {}
-        a1[(0,1)] = 1
-        a2[(0,2)] = 5
-        list_dict = [a1,a2]
-        exp_table = zeros((2,3),dtype=float)
-        exp_table[0,1] = 1
-        exp_table[1,2] = 5
-        data = nparray_to_sparsedict(exp_table)
-        samp_ids = range(3)
-        obs_ids = range(2)
-        exp = SparseTable(data, samp_ids, obs_ids)
-        obs = table_factory(list_dict,samp_ids,obs_ids,
-                             constructor=SparseTable)
-        self.assertEqual(obs, exp)
-
-    def test_table_factory_sparse_dict(self):
-        """beat the table_factory sparsely to death"""
-        samp_ids = range(3)
-        obs_ids = range(2)
-        exp_data = zeros((2,3),dtype=float)
-        exp_data[0,1] = 5
-        exp_data[1,2] = 10
-        data = nparray_to_sparsedict(exp_data)
-        exp = SparseTable(data, samp_ids, obs_ids, constructor=SparseTable)
-        dict_input = {}
-        dict_input[(0,1)] = 5
-        dict_input[(1,2)] = 10
-        #print dict_input
-        #print samp_ids
-        #print obs_ids
-        obs = table_factory(dict_input, samp_ids, obs_ids)
-        self.assertEqual(obs, exp)
-
-    def test_table_factory_sparse_list_list(self):
-        """beat the table_factory sparsely to death"""
-        # list list test
-        samp_ids = range(3)
-        obs_ids = range(2)
-        exp_data = SparseDict(2,3)
-        exp_data[0,1] = 5
-        exp_data[1,2] = 10
-        exp = SparseTable(exp_data, samp_ids, obs_ids)
-        input = [[0,1,5],[1,2,10]]
-        obs = table_factory(input, samp_ids, obs_ids, constructor=SparseTable)
-        self.assertEqual(obs, exp)
 
     def test_prefer_self(self):
         """prefer x"""
@@ -480,68 +245,6 @@ class SupportTests(TestCase):
         obs = index_list(['b','c','a'])
         self.assertEqual(obs,exp)
 
-    def test_to_sparsedict(self):
-        """Convert to expected SparseDict types"""
-        vals = {(0,0):5,(0,1):6,(1,0):7,(1,1):8}
-        obs = to_sparsedict(vals)
-        exp = SparseDict(2,2)
-        exp[(0,0)] = 5
-        exp[(0,1)] = 6
-        exp[(1,0)] = 7
-        exp[(1,1)] = 8
-        self.assertEqual(obs,exp)
-
-        input = {(0,1):5,(10,8):-1.23}
-
-        exp = SparseDict(11,9)
-        exp[(0,1)] = 5
-        exp[(10,8)] = -1.23
-        obs = to_sparsedict(input)
-        self.assertEqual(obs.items(), exp.items())
-
-        # test transpose
-        exp = SparseDict(9,11)
-        exp[(1,0)] = 5
-        exp[(8,10)] = -1.23
-        obs = to_sparsedict(input, transpose=True)
-        self.assertEqual(obs.items(), exp.items())
-
-        # passing a list of dicts, transpose
-        exp = SparseDict(3,2)
-        exp[(0,0)] = 5.0
-        exp[(1,0)] = 6.0
-        exp[(2,0)] = 7.0
-        exp[(0,1)] = 8.0
-        exp[(1,1)] = 9.0
-        exp[(2,1)] = 10.0
-        obs = to_sparsedict([{(0,0):5,(0,1):6,(0,2):7},
-                                           {(1,0):8,(1,1):9,(1,2):10}],
-                                           transpose=True)
-        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
-
-        # passing a list of sparsedicts
-        exp = SparseDict(2,3)
-        exp[(0,0)] = 5
-        exp[(0,1)] = 6
-        exp[(0,2)] = 7
-        exp[(1,0)] = 8
-        exp[(1,1)] = 9
-        exp[(1,2)] = 10
-        row1 = SparseDict(1,3)
-        row1[(0,0)] = 5
-        row1[(0,1)] = 6
-        row1[(0,2)] = 7
-        row2 = SparseDict(1,3)
-        row2[(0,0)] = 8
-        row2[(0,1)] = 9
-        row2[(0,2)] = 10
-        obs = to_sparsedict([row1, row2])
-        self.assertEqual(obs.items(), exp.items()) 
-
-        # test empty set
-        exp = SparseDict(0,0)
-        obs = to_sparsedict([])
-        self.assertEqual(obs.items(), exp.items())
 
 class TableTests(TestCase):
     def setUp(self):
@@ -1435,16 +1138,16 @@ class DenseTableTests(TestCase):
 class SparseTableTests(TestCase):
     def setUp(self):
         self.vals = {(0,0):5,(0,1):6,(1,0):7,(1,1):8}
-        self.st1 = SparseTable(to_sparsedict(self.vals),
+        self.st1 = SparseTable(to_sparse(self.vals),
                                ['a','b'],['1','2'])
-        self.st2 = SparseTable(to_sparsedict(self.vals),
+        self.st2 = SparseTable(to_sparse(self.vals),
                                ['a','b'],['1','2'])
-        self.vals3 = to_sparsedict({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
-        self.vals4 = to_sparsedict({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
+        self.vals3 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
+        self.vals4 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
         self.st3 = SparseTable(self.vals3, ['b','c'],['2','3'])
         self.st4 = SparseTable(self.vals4, ['c','d'],['3','4'])
         self._to_dict_f = lambda x: x.items()
-        self.st_rich = SparseTable(to_sparsedict(self.vals), 
+        self.st_rich = SparseTable(to_sparse(self.vals), 
                 ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
@@ -1464,7 +1167,7 @@ class SparseTableTests(TestCase):
     def test_sortObservationOrder(self):
         """sort by observations arbitrary order"""
         vals = {(0,0):7,(0,1):8,(1,0):5,(1,1):6}
-        exp = SparseTable(to_sparsedict(vals),
+        exp = SparseTable(to_sparse(vals),
                                ['a','b'],['2','1'])
         obs = self.st1.sortObservationOrder(['2','1'])
         self.assertEqual(obs,exp)
@@ -1473,7 +1176,7 @@ class SparseTableTests(TestCase):
         """sort by observations arbitrary order"""
         vals = {(0,0):6,(0,1):5,
                 (1,0):8,(1,1):7}
-        exp = SparseTable(to_sparsedict(vals),
+        exp = SparseTable(to_sparse(vals),
                                ['b','a'],['1','2'])
         
         obs = self.st1.sortSampleOrder(['b','a'])
@@ -1482,9 +1185,9 @@ class SparseTableTests(TestCase):
     def test_sortBySampleId(self):
         """sort by samples by a function"""
         sort_f = sorted
-        data_in = nparray_to_sparsedict(array([[1,2,3,8],[4,5,6,9],[7,8,9,11]]))
+        data_in = nparray_to_sparseobj(array([[1,2,3,8],[4,5,6,9],[7,8,9,11]]))
         t = SparseTable(data_in, ['c','a','b','d'],[2,1,3])
-        exp_data = nparray_to_sparsedict(array([[2,3,1,8],[5,6,4,9],[8,9,7,11]]))
+        exp_data = nparray_to_sparseobj(array([[2,3,1,8],[5,6,4,9],[8,9,7,11]]))
         exp = SparseTable(exp_data,['a','b','c','d'], [2,1,3])
         obs = t.sortBySampleId(sort_f=sort_f)
         self.assertEqual(obs,exp)
@@ -1492,9 +1195,9 @@ class SparseTableTests(TestCase):
     def test_sortByObservationId(self):
         """sort by observation ids by a function"""
         sort_f = sorted
-        data_in = nparray_to_sparsedict(array([[1,2,3,8],[4,5,6,9],[7,8,9,11]]), float)
+        data_in = nparray_to_sparseobj(array([[1,2,3,8],[4,5,6,9],[7,8,9,11]]), float)
         t = SparseTable(data_in, ['c','a','b','d'],[2,1,3])
-        exp_data = nparray_to_sparsedict(array([[4,5,6,9],[1,2,3,8],[7,8,9,11]]), float)
+        exp_data = nparray_to_sparseobj(array([[4,5,6,9],[1,2,3,8],[7,8,9,11]]), float)
         exp = SparseTable(exp_data,['c','a','b','d'],[1,2,3])
         obs = t.sortByObservationId(sort_f=sort_f)
         self.assertEqual(obs,exp)
@@ -1506,7 +1209,7 @@ class SparseTableTests(TestCase):
         self.assertFalse(self.st1 == self.st2)
 
         self.st1.ObservationIds = self.st2.ObservationIds
-        self.st1._data = nparray_to_sparsedict(array([[1,2],[10,20]]))
+        self.st1._data = nparray_to_sparseobj(array([[1,2],[10,20]]))
         self.assertFalse(self.st1 == self.st2)
 
     def test_data_equality(self):
@@ -1520,7 +1223,7 @@ class SparseTableTests(TestCase):
         data = {(0,0):5,(0,1):6,(0,2):0,(0,3):3,
                 (1,0):0,(1,1):7,(1,2):0,(1,3):8,
                 (2,0):1,(2,1):-1,(2,2):0,(2,3):0}
-        st = SparseTable(to_sparsedict(data), ['a','b','c','d'],['1','2','3'])
+        st = SparseTable(to_sparse(data), ['a','b','c','d'],['1','2','3'])
         exp = [('1','a'),('1','b'),('1','d'),('2','b'),('2','d'),('3','a'),
                ('3','b')]
         obs = list(st.nonzero())
@@ -1532,20 +1235,20 @@ class SparseTableTests(TestCase):
         i = 'intersection'
 
         # test 1
-        data = to_sparsedict({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
+        data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
         exp = SparseTable(data, ['a','b'],['1','2'])
         obs = self.st1.merge(self.st1, Sample=u, Observation=u)
         self.assertEqual(obs, exp)
         
         # test 2
-        data = to_sparsedict({(0,0):5,(0,1):6,(0,2):0,(1,0):7,(1,1):9,(1,2):2,
+        data = to_sparse({(0,0):5,(0,1):6,(0,2):0,(1,0):7,(1,1):9,(1,2):2,
                           (2,0):0,(2,1):3,(2,2):4})
         exp = SparseTable(data, ['a','b','c'], ['1','2','3'])
         obs = self.st1.merge(self.st3, Sample=u, Observation=u)
         self.assertEqual(obs, exp)
         
         # test 3
-        data = to_sparsedict({(0,0):5,(0,1):6,(0,2):0,(0,3):0,
+        data = to_sparse({(0,0):5,(0,1):6,(0,2):0,(0,3):0,
                           (1,0):7,(1,1):8,(1,2):0,(1,3):0,
                           (2,0):0,(2,1):0,(2,2):1,(2,3):2,
                           (3,0):0,(3,1):0,(3,2):3,(3,3):4})
@@ -1554,13 +1257,13 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
 
         # test 4
-        data = to_sparsedict({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
+        data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
         exp = SparseTable(data, ['a','b'], ['1','2'])
         obs = self.st1.merge(self.st1, Sample=i, Observation=i)
         self.assertEqual(obs, exp)
         
         # test 5
-        exp = SparseTable(to_sparsedict({(0,0):9}), ['b'], ['2'])
+        exp = SparseTable(to_sparse({(0,0):9}), ['b'], ['2'])
         obs = self.st1.merge(self.st3, Sample=i, Observation=i)
         self.assertEqual(obs, exp)
         
@@ -1568,13 +1271,13 @@ class SparseTableTests(TestCase):
         self.assertRaises(TableException, self.st1.merge, self.st4, i, i)
 
         # test 7
-        data = to_sparsedict({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
+        data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
         exp = SparseTable(data, ['a','b'],['1','2'])
         obs = self.st1.merge(self.st1, Sample=i, Observation=u)
         self.assertEqual(obs, exp)
 
         # test 8
-        data = to_sparsedict({(0,0):6,(1,0):9,(2,0):3})
+        data = to_sparse({(0,0):6,(1,0):9,(2,0):3})
         exp = SparseTable(data, ['b'],['1','2','3'])
         obs = self.st1.merge(self.st3, Sample=i, Observation=u)
         self.assertEqual(obs, exp)
@@ -1583,13 +1286,13 @@ class SparseTableTests(TestCase):
         self.assertRaises(TableException, self.st1.merge, self.st4, i, u)
 
         # test 10
-        data = to_sparsedict({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
+        data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
         exp = SparseTable(data, ['a','b'],['1','2'])
         obs = self.st1.merge(self.st1, Sample=u, Observation=i)
         self.assertEqual(obs, exp)
 
         # test 11
-        data = to_sparsedict({(0,0):7,(0,1):9,(0,2):2})
+        data = to_sparse({(0,0):7,(0,1):9,(0,2):2})
         exp = SparseTable(data, ['a','b','c'],['2'])
         obs = self.st1.merge(self.st3, Sample=u, Observation=i)
         self.assertEqual(obs, exp)
@@ -1638,21 +1341,21 @@ class SparseTableTests(TestCase):
 
     def test_conv_to_np(self):
         """Should convert a self styled vector to numpy type"""
-        input_row = SparseDict(1,3)
+        input_row = SparseObj(1,3)
         input_row[(0,0)] = 10
         exp = array([10.0, 0, 0])
         obs = self.st1._conv_to_np(input_row)
         self.assertEqual(obs, exp)
 
-        input_col = SparseDict(3,1)
+        input_col = SparseObj(3,1)
         input_col[(0,0)] = 12
         exp = array([12.0, 0, 0])
         obs = self.st1._conv_to_np(input_col)
         self.assertEqual(obs, exp)
 
     def test_conv_to_self_type(self):
-        """Should convert other to SparseDict type"""
-        exp = SparseDict(2,2)
+        """Should convert other to SparseObj type"""
+        exp = SparseObj(2,2)
         exp[(0,0)] = 5
         exp[(0,1)] = 6
         exp[(1,0)] = 7
@@ -1660,7 +1363,7 @@ class SparseTableTests(TestCase):
         obs = self.st1._conv_to_self_type(self.vals)
         self.assertEqual(obs.items(), exp.items())
 
-        exp = SparseDict(2,2)
+        exp = SparseObj(2,2)
         exp[(0,0)] = 5
         exp[(0,1)] = 7
         exp[(1,0)] = 6
@@ -1679,7 +1382,7 @@ class SparseTableTests(TestCase):
         #self.assertEqual(obs.items(), exp.items())
 
         # passing a single vector
-        exp = SparseDict(1,3)
+        exp = SparseObj(1,3)
         exp[(0,0)] = 2
         exp[(0,1)] = 0
         exp[(0,2)] = 3
@@ -1687,7 +1390,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs.items(), exp.items())
 
         # passing a list of dicts
-        exp = SparseDict(2,3)
+        exp = SparseObj(2,3)
         exp[(0,0)] = 5
         exp[(0,1)] = 6
         exp[(0,2)] = 7
@@ -1706,8 +1409,8 @@ class SparseTableTests(TestCase):
 
     def test_iter_obs(self):
         """Iterate over observations of sparse matrix"""
-        r1 = SparseDict(1,2)
-        r2 = SparseDict(1,2)
+        r1 = SparseObj(1,2)
+        r2 = SparseObj(1,2)
         r1[(0,0)] = 5
         r1[(0,1)] = 6
         r2[(0,0)] = 7
@@ -1720,8 +1423,8 @@ class SparseTableTests(TestCase):
 
     def test_iter_samp(self):
         """Iterate over samples of sparse matrix"""
-        c1 = SparseDict(1,2)
-        c2 = SparseDict(1,2)
+        c1 = SparseObj(1,2)
+        c2 = SparseObj(1,2)
         c1[(0,0)] = 5
         c1[(0,1)] = 7
         c2[(0,0)] = 6
@@ -1801,15 +1504,15 @@ class SparseTableTests(TestCase):
         f_id = lambda v,id_,md: id_ == 'a'
         f_md = lambda v,id_,md: md['barcode'] == 'ttgg'
 
-        val_sd = to_sparsedict({(0,0):5,(1,0):7})
+        val_sd = to_sparse({(0,0):5,(1,0):7})
         exp_value = SparseTable(val_sd, ['a'], ['1','2'], 
                 [{'barcode':'aatt'}], [{'taxonomy':['k__a','p__b']},
                                        {'taxonomy':['k__a','p__c']}])
-        id_sd = to_sparsedict({(0,0):5,(1,0):7})
+        id_sd = to_sparse({(0,0):5,(1,0):7})
         exp_id = SparseTable(id_sd, ['a'], ['1','2'], 
                 [{'barcode':'aatt'}], [{'taxonomy':['k__a','p__b']},
                                        {'taxonomy':['k__a','p__c']}])
-        md_sd = to_sparsedict({(0,0):6,(1,0):8})
+        md_sd = to_sparse({(0,0):6,(1,0):8})
         exp_md = SparseTable(md_sd, ['b'], ['1','2'], 
                 [{'barcode':'ttgg'}], [{'taxonomy':['k__a','p__b']},
                                        {'taxonomy':['k__a','p__c']}])
@@ -1822,7 +1525,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs_id, exp_id)
         self.assertEqual(obs_md, exp_md)
 
-        inv_sd = to_sparsedict({(0,0):6,(1,0):8})
+        inv_sd = to_sparse({(0,0):6,(1,0):8})
         exp_inv = SparseTable(inv_sd, ['b'], ['1','2'], 
                 [{'barcode':'ttgg'}], [{'taxonomy':['k__a','p__b']},
                                        {'taxonomy':['k__a','p__c']}])
@@ -1837,15 +1540,15 @@ class SparseTableTests(TestCase):
         f_id = lambda v,id_,md: id_ == '1'
         f_md = lambda v,id_,md: md['taxonomy'][1] == 'p__c'
 
-        val_sd = to_sparsedict({(0,0):5,(0,1):6})
+        val_sd = to_sparse({(0,0):5,(0,1):6})
         exp_value = SparseTable(val_sd, ['a','b'], ['1'], 
                 [{'barcode':'aatt'},{'barcode':'ttgg'}], 
                 [{'taxonomy':['k__a','p__b']}])
-        id_sd = to_sparsedict({(0,0):5,(0,1):6})
+        id_sd = to_sparse({(0,0):5,(0,1):6})
         exp_id = SparseTable(id_sd, ['a','b'], ['1'], 
                 [{'barcode':'aatt'},{'barcode':'ttgg'}], 
                 [{'taxonomy':['k__a','p__b']}])
-        md_sd = to_sparsedict({(0,0):7,(0,1):8})
+        md_sd = to_sparse({(0,0):7,(0,1):8})
         exp_md = SparseTable(md_sd, ['a','b'], ['2'], 
                 [{'barcode':'aatt'},{'barcode':'ttgg'}], 
                 [{'taxonomy':['k__a','p__c']}])
@@ -1858,7 +1561,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs_id, exp_id)
         self.assertEqual(obs_md, exp_md)
 
-        inv_sd = to_sparsedict({(0,0):7,(0,1):8})
+        inv_sd = to_sparse({(0,0):7,(0,1):8})
         exp_inv = SparseTable(inv_sd, ['a','b'], ['2'], 
                 [{'barcode':'aatt'},{'barcode':'ttgg'}], 
                 [{'taxonomy':['k__a','p__c']}])
@@ -1871,7 +1574,7 @@ class SparseTableTests(TestCase):
         """Transform observations by arbitrary function"""
         def transform_f(v, id, md):
             return where(v >= 7, 1, 0)
-        sp_sd = to_sparsedict({(0,0):0,(0,1):0,(1,0):1,(1,1):1})
+        sp_sd = to_sparse({(0,0):0,(0,1):0,(1,0):1,(1,1):1})
         exp = SparseTable(sp_sd, ['a','b'], ['1','2'])
         obs = self.st1.transformObservations(transform_f)
         self.assertEqual(obs, exp)
@@ -1880,15 +1583,15 @@ class SparseTableTests(TestCase):
         """Transform samples by arbitrary function"""
         def transform_f(v, id, md):
             return where(v >= 6, 1, 0)
-        sp_sd = to_sparsedict({(0,0):0,(0,1):1,(1,0):1,(1,1):1})
+        sp_sd = to_sparse({(0,0):0,(0,1):1,(1,0):1,(1,1):1})
         exp = SparseTable(sp_sd, ['a','b'], ['1','2'])
         obs = self.st1.transformSamples(transform_f)
         self.assertEqual(obs, exp)
 
     def test_normObservationBySample(self):
         """normalize observations by sample"""
-        data = to_sparsedict({(0,0):2,(0,1):0,(1,0):6,(1,1):1})
-        data_exp = to_sparsedict({(0,0):0.25,(0,1):0.0,(1,0):0.75,(1,1):1.0})
+        data = to_sparse({(0,0):2,(0,1):0,(1,0):6,(1,1):1})
+        data_exp = to_sparse({(0,0):0.25,(0,1):0.0,(1,0):0.75,(1,1):1.0})
         st = SparseTable(data, ['a','b'],['1','2'])
         exp = SparseTable(data_exp, ['a','b'], ['1','2'])
         obs = st.normObservationBySample()
@@ -1896,8 +1599,8 @@ class SparseTableTests(TestCase):
     
     def test_normObservationByMetadata(self):
         """normalize observations by sample"""
-        data = to_sparsedict({(0,0):6,(0,1):0,(1,0):6,(1,1):1})
-        data_exp = to_sparsedict({(0,0):2.,(0,1):0.0,(1,0):3.0,(1,1):0.5})
+        data = to_sparse({(0,0):6,(0,1):0,(1,0):6,(1,1):1})
+        data_exp = to_sparse({(0,0):2.,(0,1):0.0,(1,0):3.0,(1,1):0.5})
         st = SparseTable(data, ['a','b'],['1','2'],[{},{}],[{'CopyNumber':3},{'CopyNumber':2}])
         exp = SparseTable(data_exp, ['a','b'], ['1','2'],[{},{}],[{'CopyNumber':3},{'CopyNumber':2}])
         obs = st.normObservationByMetadata('CopyNumber')
@@ -1905,8 +1608,8 @@ class SparseTableTests(TestCase):
         
     def test_normSampleByObservation(self):
         """normalize sample by observation"""
-        data = to_sparsedict({(0,0):0,(0,1):2,(1,0):2,(1,1):6})
-        data_exp = to_sparsedict({(0,0):0.0,(0,1):1.0,(1,0):0.25,(1,1):0.75})
+        data = to_sparse({(0,0):0,(0,1):2,(1,0):2,(1,1):6})
+        data_exp = to_sparse({(0,0):0.0,(0,1):1.0,(1,0):0.25,(1,1):0.75})
         st = SparseTable(data, ['a','b'],['1','2'])
         exp = SparseTable(data_exp, ['a','b'], ['1','2'])
         obs = st.normSampleByObservation()
@@ -1928,11 +1631,11 @@ class SparseTableTests(TestCase):
                 (3,0):12,(3,1):13,(3,2):14,(3,3):15}
         obs_md = [{},{},{},{}]
         samp_md = [{'age':2,'foo':10},{'age':4},{'age':2,'bar':5},{}]
-        t = SparseTable(to_sparsedict(data), samp_ids, obs_ids, samp_md, obs_md)
+        t = SparseTable(to_sparse(data), samp_ids, obs_ids, samp_md, obs_md)
         obs_bins, obs_tables = unzip(t.binSamplesByMetadata(f))
 
         exp_bins = (2, 4, None)
-        exp1_data = to_sparsedict({(0,0):1,(0,1):3,(1,0):5,(1,1):7,(2,0):8,
+        exp1_data = to_sparse({(0,0):1,(0,1):3,(1,0):5,(1,1):7,(2,0):8,
                                (2,1):10,(3,0):12,(3,1):14})
         exp1_obs_ids = ['a','b','c','d']
         exp1_samp_ids = ['1','3']
@@ -1940,14 +1643,14 @@ class SparseTableTests(TestCase):
         exp1_samp_md = [{'age':2,'foo':10},{'age':2,'bar':5}]
         exp1 = SparseTable(exp1_data, exp1_samp_ids, exp1_obs_ids, exp1_samp_md, 
                           exp1_obs_md)
-        exp2_data = to_sparsedict({(0,0):2,(1,0):6,(2,0):9,(3,0):13})
+        exp2_data = to_sparse({(0,0):2,(1,0):6,(2,0):9,(3,0):13})
         exp2_obs_ids = ['a','b','c','d']
         exp2_samp_ids = ['2']
         exp2_obs_md = [{},{},{},{}]
         exp2_samp_md = [{'age':4}]
         exp2 = SparseTable(exp2_data, exp2_samp_ids, exp2_obs_ids, exp2_samp_md, 
                           exp2_obs_md)
-        exp3_data = to_sparsedict({(0,0):4,(1,0):8,(2,0):11,(3,0):15})
+        exp3_data = to_sparse({(0,0):4,(1,0):8,(2,0):11,(3,0):15})
         exp3_obs_ids = ['a','b','c','d']
         exp3_samp_ids = ['4']
         exp3_obs_md = [{},{},{},{}]
@@ -1978,7 +1681,7 @@ class SparseTableTests(TestCase):
 
         obs_ids = ['a','b','c']
         samp_ids = [1,2,3]
-        data = to_sparsedict({(0,0):1,(0,1):2,(0,2):3,
+        data = to_sparse({(0,0):1,(0,1):2,(0,2):3,
                           (1,0):4,(1,1):5,(1,2):6,
                           (2,0):7,(2,1):8,(2,2):9})
         obs_md = [{"taxonomy":['k__a','p__b','c__c']},
@@ -1988,7 +1691,7 @@ class SparseTableTests(TestCase):
 
         exp_king_obs_ids = ['a','b','c']
         exp_king_samp_ids = [1,2,3]
-        exp_king_data = to_sparsedict({(0,0):1,(0,1):2,(0,2):3,
+        exp_king_data = to_sparse({(0,0):1,(0,1):2,(0,2):3,
                                    (1,0):4,(1,1):5,(1,2):6,
                                    (2,0):7,(2,1):8,(2,2):9})
         exp_king_obs_md = [{"taxonomy":['k__a','p__b','c__c']},
@@ -2004,7 +1707,7 @@ class SparseTableTests(TestCase):
         exp_phy1_obs_ids = ['a','b']
         exp_phy1_samp_ids = [1,2,3]
         exp_phy1_data = array([[1,2,3],[4,5,6]])
-        exp_phy1_data = to_sparsedict({(0,0):1,(0,1):2,(0,2):3,
+        exp_phy1_data = to_sparse({(0,0):1,(0,1):2,(0,2):3,
                                    (1,0):4,(1,1):5,(1,2):6})
         exp_phy1_obs_md = [{"taxonomy":['k__a','p__b','c__c']},
                            {"taxonomy":['k__a','p__b','c__d']}]
@@ -2013,7 +1716,7 @@ class SparseTableTests(TestCase):
                               ObservationMetadata=exp_phy1_obs_md)
         exp_phy2_obs_ids = ['c']
         exp_phy2_samp_ids = [1,2,3]
-        exp_phy2_data = to_sparsedict({(0,0):7,(0,1):8,(0,2):9})
+        exp_phy2_data = to_sparse({(0,0):7,(0,1):8,(0,2):9})
         exp_phy2_obs_md = [{"taxonomy":['k__a','p__c','c__e']}]
         exp_phy2 = SparseTable(exp_phy2_data, exp_phy2_samp_ids,exp_phy2_obs_ids,
                                ObservationMetadata=exp_phy2_obs_md)
@@ -2032,14 +1735,14 @@ class DenseSparseInteractionTests(TestCase):
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
         self.vals = {(0,0):5,(0,1):6,(1,0):7,(1,1):8}
-        self.st1 = SparseTable(to_sparsedict(self.vals),
+        self.st1 = SparseTable(to_sparse(self.vals),
                                ['a','b'],['1','2'])
-        self.vals3 = to_sparsedict({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
-        self.vals4 = to_sparsedict({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
+        self.vals3 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
+        self.vals4 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
         self.st3 = SparseTable(self.vals3, ['b','c'],['2','3'])
         self.st4 = SparseTable(self.vals4, ['c','d'],['3','4'])
         self._to_dict_f = lambda x: x.items()
-        self.st_rich = SparseTable(to_sparsedict(self.vals), 
+        self.st_rich = SparseTable(to_sparse(self.vals), 
                 ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
@@ -2117,20 +1820,20 @@ class DenseSparseInteractionTests(TestCase):
         
         ### Testing where sparse is self
         # test 1
-        data = to_sparsedict({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
+        data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
         exp = SparseTable(data, ['a','b'],['1','2'])
         obs = self.st1.merge(self.dt1, Sample=u, Observation=u)
         self.assertEqual(obs, exp)
         
         # test 2
-        data = to_sparsedict({(0,0):5,(0,1):6,(0,2):0,(1,0):7,(1,1):9,(1,2):2,
+        data = to_sparse({(0,0):5,(0,1):6,(0,2):0,(1,0):7,(1,1):9,(1,2):2,
                           (2,0):0,(2,1):3,(2,2):4})
         exp = SparseTable(data, ['a','b','c'], ['1','2','3'])
         obs = self.st1.merge(self.dt3, Sample=u, Observation=u)
         self.assertEqual(obs, exp)
         
         # test 3
-        data = to_sparsedict({(0,0):5,(0,1):6,(0,2):0,(0,3):0,
+        data = to_sparse({(0,0):5,(0,1):6,(0,2):0,(0,3):0,
                           (1,0):7,(1,1):8,(1,2):0,(1,3):0,
                           (2,0):0,(2,1):0,(2,2):1,(2,3):2,
                           (3,0):0,(3,1):0,(3,2):3,(3,3):4})
@@ -2139,13 +1842,13 @@ class DenseSparseInteractionTests(TestCase):
         self.assertEqual(obs, exp)
 
         # test 4
-        data = to_sparsedict({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
+        data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
         exp = SparseTable(data, ['a','b'], ['1','2'])
         obs = self.st1.merge(self.dt1, Sample=i, Observation=i)
         self.assertEqual(obs, exp)
         
         # test 5
-        exp = SparseTable(to_sparsedict({(0,0):9}), ['b'], ['2'])
+        exp = SparseTable(to_sparse({(0,0):9}), ['b'], ['2'])
         obs = self.st1.merge(self.dt3, Sample=i, Observation=i)
         self.assertEqual(obs, exp)
         
@@ -2153,13 +1856,13 @@ class DenseSparseInteractionTests(TestCase):
         self.assertRaises(TableException, self.st1.merge, self.dt4, i, i)
 
         # test 7
-        data = to_sparsedict({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
+        data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
         exp = SparseTable(data, ['a','b'],['1','2'])
         obs = self.st1.merge(self.dt1, Sample=i, Observation=u)
         self.assertEqual(obs, exp)
 
         # test 8
-        data = to_sparsedict({(0,0):6,(1,0):9,(2,0):3})
+        data = to_sparse({(0,0):6,(1,0):9,(2,0):3})
         exp = SparseTable(data, ['b'],['1','2','3'])
         obs = self.st1.merge(self.dt3, Sample=i, Observation=u)
         self.assertEqual(obs, exp)
@@ -2168,13 +1871,13 @@ class DenseSparseInteractionTests(TestCase):
         self.assertRaises(TableException, self.st1.merge, self.dt4, i, u)
 
         # test 10
-        data = to_sparsedict({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
+        data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
         exp = SparseTable(data, ['a','b'],['1','2'])
         obs = self.st1.merge(self.dt1, Sample=u, Observation=i)
         self.assertEqual(obs, exp)
 
         # test 11
-        data = to_sparsedict({(0,0):7,(0,1):9,(0,2):2})
+        data = to_sparse({(0,0):7,(0,1):9,(0,2):2})
         exp = SparseTable(data, ['a','b','c'],['2'])
         obs = self.st1.merge(self.dt3, Sample=u, Observation=i)
         self.assertEqual(obs, exp)
@@ -2357,12 +2060,12 @@ class DenseOTUTableTests(TestCase):
 class SparseOTUTableTests(TestCase):
     def setUp(self):
         self.vals = {(0,0):5,(1,0):7,(1,1):8}
-        self.sot_min = SparseOTUTable(to_sparsedict(self.vals), ['a','b'],['1','2'])
-        self.sot_rich = SparseOTUTable(to_sparsedict(self.vals), 
+        self.sot_min = SparseOTUTable(to_sparse(self.vals), ['a','b'],['1','2'])
+        self.sot_rich = SparseOTUTable(to_sparse(self.vals), 
                 ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
-        self.float_table = SparseOTUTable(to_sparsedict({(0,1):2.5,(0,2):3.4,(1,0):9.3,
+        self.float_table = SparseOTUTable(to_sparse({(0,1):2.5,(0,2):3.4,(1,0):9.3,
             (1,1):10.23,(1,2):2.2}),['a','b','c'],['1','2'])
 
     def test_getBiomFormatObject_no_generated_by(self):

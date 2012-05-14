@@ -4,7 +4,6 @@
 
 from __future__ import division
 
-import re
 from datetime import datetime
 from json import dumps
 from types import NoneType
@@ -13,294 +12,39 @@ from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, array, newaxis, zeros
 from biom.exception import TableException, UnknownID
-
-__author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso", 
-               "Jose Clemente", "Justin Kuczynski"]
-__license__ = "GPL"
-__url__ = "http://biom-format.org"
-__version__ = "0.9.3-dev"
-__maintainer__ = "Daniel McDonald"
-__email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Release"
-
-# should these be centralized?
-def get_biom_format_version_string():
-    """Returns the current Biom file format version."""
-    return "Biological Observation Matrix %s" % __version__
- 
-def get_biom_format_url_string():
-    """Returns the current Biom file format description URL."""
-    return __url__
-
-def unzip(items):
-    """Performs the reverse of zip, i.e. produces separate lists from tuples.
-
-    items should be list of k-element tuples. Will raise exception if any tuples
-    contain more items than the first one.
-
-    Conceptually equivalent to transposing the matrix of tuples.
-
-    Returns list of lists in which the ith list contains the ith element of each
-    tuple.
-
-    Note: zip expects *items rather than items, such that unzip(zip(*items))
-    returns something that compares equal to items.
-
-    Always returns lists: does not check original data type, but will accept
-    any sequence.
-
-    Method pulled from PyCogent (http://pycogent.sourceforge.net)
-    """
-    if items:
-        return map(list, zip(*items))
-    else:
-        return []
-
-def flatten(items):
-    """Removes one level of nesting from items.
-
-    items can be any sequence, but flatten always returns a list.
-
-    Method pulled from PyCogent (http://pycogent.sourceforge.net) 
-    """
-    result = [] 
-    for i in items:
-        try: 
-            result.extend(i)
-        except:
-            result.append(i)
-    return result
-
-def _natsort_key(item):
-    """Provides normalized version of item for sorting with digits.
-
-    Method pulled from QIIME (http://qiime.org), based on:
-    http://lists.canonical.org/pipermail/kragen-hacks/2005-October/000419.html
-    """
-    item = str(item)
-    try:
-        chunks = re.split('(\d+(?:\.\d+)?)', item)
-    except TypeError:
-        # if item is a tuple or list (i.e., indexable, but not a string)
-        # work with the first element
-        chunks = re.split('(\d+(?:\.\d+)?)', item[0])
-    for ii in range(len(chunks)):
-        if chunks[ii] and chunks[ii][0] in '0123456789':
-            if '.' in chunks[ii]: numtype = float
-            else: numtype = int 
-            # wrap in tuple with '0' to explicitly specify numbers come first
-            chunks[ii] = (0, numtype(chunks[ii]))
-        else:
-            chunks[ii] = (1, chunks[ii])
-    return (chunks, item)
-
-def natsort(seq):
-    """Sort a sequence of text strings in a reasonable order.
-
-    Method pulled from QIIME (http://qiime.org), based on:
-    http://lists.canonical.org/pipermail/kragen-hacks/2005-October/000419.html
-    """
-    alist = list(seq)
-    alist.sort(key=_natsort_key)
-    return alist
-
-class SparseDict(dict):
-    """Support for sparse dicts
-
-    Must specify rows and columns in advance
-
-    Object cannot "grow" in shape
-
-    There is additional overhead on inserts in order to support rapid lookups
-    across rows or columns
-    """
-
-    def __init__(self, rows, cols, dtype=float, enable_indices=True):
-        self.shape = (rows, cols) 
-        self.dtype = dtype # casting is minimal, trust the programmer...
-
-        if enable_indices:
-            self._index_rows = [set() for i in range(rows)]
-            self._index_cols = [set() for i in range(cols)]
-        else:
-            self._index_rows = None
-            self._index_rows = None
-        self._indices_enabled = enable_indices
-
-    def copy(self):
-        """Return a copy of self"""
-        new_self = self.__class__(self.shape[0], self.shape[1], self.dtype, \
-                                  self._indices_enabled)
-        new_self.update(self)
-        return new_self
-
-    def __setitem__(self,args,value):
-        """Wrap setitem, complain if out of bounds"""
-        row,col = args
-        in_self_rows, in_self_cols = self.shape
-
-        if row >= in_self_rows or row < 0:
-            raise KeyError, "The specified row is out of bounds"
-        if col >= in_self_cols or col < 0:
-            raise KeyError, "The specified col is out of bounds"
-
-        if value == 0:
-            if args in self:
-                self._update_internal_indices(args, value)
-                del self[args]
-            else:
-                return
-        else:
-            self._update_internal_indices(args, value)
-            super(SparseDict, self).__setitem__(args, value)
-
-    def __getitem__(self,args):
-        """Wrap getitem to handle slices"""
-        try:
-            row,col = args
-        except TypeError:
-            raise IndexError, "Must specify (row, col)"
-
-        if isinstance(row, slice): 
-            if row.start is None and row.stop is None:
-                return self.getCol(col)
-            else:
-                raise AttributeError, "Can only handle full : slices per axis"
-        elif isinstance(col, slice):
-            if col.start is None and col.stop is None:
-                return self.getRow(row)
-            else:
-                raise AttributeError, "Can only handle full : slices per axis"
-        else:
-            # boundary check
-            self_rows, self_cols = self.shape
-            if row >= self_rows or row < 0:
-                raise IndexError, "Row index out of range"
-            if col >= self_cols or col < 0:
-                raise IndexError, "Col index out of range"
-
-            # return dtype(0) if args don't exist
-            if args not in self:
-                return self.dtype(0)
-            
-            return super(SparseDict, self).__getitem__(args)
-
-    def _update_internal_indices(self, args, value):
-        """Update internal row,col indices"""
-        row,col = args
-        if value == 0:
-            if args in self:
-                self._index_rows[row].remove(args)
-                self._index_cols[col].remove(args)
-            else:
-                return # short circuit, no point in setting 0
-        else:
-            self._index_rows[row].add(args)
-            self._index_cols[col].add(args)
-
-    def getRow(self, row):
-        """Returns a row: {((row,col):value}"""
-        in_self_rows, in_self_cols = self.shape
-        if row >= in_self_rows or row < 0:
-            raise IndexError, "The specified row is out of bounds"
+from biom.util import get_biom_format_version_string, \
+    get_biom_format_url_string, unzip, flatten, _natsort_key, natsort, \
+    prefer_self, index_list
     
-        new_row = SparseDict(1, in_self_cols, enable_indices=False)
+# try to use the cxx sparsemat if it is available
+try:
+    from biom.cxxsparsemat import CXXSparseMat, to_cxxsparsemat, \
+        dict_to_cxxsparsemat, list_dict_to_cxxsparsemat, \
+        list_nparray_to_cxxsparsemat, nparray_to_cxxsparsemat, \
+        list_list_to_cxxsparsemat
         
-        d = {}
-        for r,c in self._index_rows[row]:
-            d[(0,c)] = super(SparseDict, self).__getitem__((r,c))
-        new_row.update(d)
-        return new_row
-
-    def getCol(self, col):
-        """Return a col: {((row,col):value}"""
-        in_self_rows, in_self_cols = self.shape
-        if col >= in_self_cols or col < 0:
-            raise IndexError, "The specified col is out of bounds"
-
-        new_col = SparseDict(in_self_rows, 1, enable_indices=False)
-        d = {}
-        for r,c in self._index_cols[col]:
-            d[(r,0)] = super(SparseDict, self).__getitem__((r,c))
-        new_col.update(d)
-        return new_col
-
-    def transpose(self):
-        """Transpose self"""
-        new_self = self.__class__(*self.shape[::-1], \
-                enable_indices=self._indices_enabled)
-        new_self.update(dict([((c,r),v) for (r,c),v in self.iteritems()]))
-        return new_self
-    T = property(transpose)
-
-    def update(self, update_dict):
-        """Update self"""
-        in_self_rows, in_self_cols = self.shape
+    SparseObj = CXXSparseMat
+    to_sparse = to_cxxsparsemat
+    dict_to_sparseobj = dict_to_cxxsparsemat
+    list_dict_to_sparseobj = list_dict_to_cxxsparsemat
+    list_nparray_to_sparseobj = list_nparray_to_cxxsparsemat
+    nparray_to_sparseobj = nparray_to_cxxsparsemat
+    list_list_to_sparseobj = list_list_to_cxxsparsemat
     
-        # handle zero values different and dont pass them to update
-        scrubbed = {}
-        for (row,col),value in update_dict.items():
-            if row >= in_self_rows or row < 0:
-                raise KeyError, "The specified row is out of bounds"
-            if col >= in_self_cols or col < 0:
-                raise KeyError, "The specified col is out of bounds"
-            if value == 0:
-                self.__setitem__((row,col), 0)
-            else:
-                scrubbed[(row,col)] = value
-            
-            if self._indices_enabled:
-                self._update_internal_indices((row,col), value)
-
-        super(SparseDict, self).update(scrubbed)
-
-def to_sparsedict(values, transpose=False, dtype=float):
-    """Tries to returns a populated SparseDict object
+except ImportError:
+    from biom.sparsedict import SparseDict, to_sparsedict, \
+        dict_to_sparsedict, list_dict_to_sparsedict, \
+        list_nparray_to_sparsedict, nparray_to_sparsedict, \
+        list_list_to_sparsedict
+        
+    SparseObj = SparseDict
+    to_sparse = to_sparsedict
+    dict_to_sparseobj = dict_to_sparsedict
+    list_dict_to_sparseobj = list_dict_to_sparsedict
+    list_nparray_to_sparseobj = list_nparray_to_sparsedict
+    nparray_to_sparseobj = nparray_to_sparsedict
+    list_list_to_sparseobj = list_list_to_sparsedict
     
-    NOTE: assumes the max value observed in row and col defines the size of the
-    matrix
-    """
-    # if it is a vector
-    if isinstance(values, ndarray) and len(values.shape) == 1:
-        if transpose:
-            mat = nparray_to_sparsedict(values[:,newaxis], dtype)
-        else:
-            mat = nparray_to_sparsedict(values, dtype)
-        return mat
-    # the empty list
-    elif isinstance(values, list) and len(values) == 0:
-        mat = SparseDict(0,0)
-        return mat
-    # list of np vectors
-    elif isinstance(values, list) and isinstance(values[0], ndarray):
-        mat = list_nparray_to_sparsedict(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    # list of dicts, each representing a row in row order
-    elif isinstance(values, list) and isinstance(values[0], dict):
-        mat = list_dict_to_sparsedict(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    elif isinstance(values, dict):
-        mat = dict_to_sparsedict(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    else:
-        raise TableException, "Unknown input type"
-
-def prefer_self(x,y):
-    """Merge metadata method, return X if X else Y"""
-    return x if x is not None else y
-
-def index_list(l):
-    """Takes a list and returns {l[idx]:idx}"""
-    return dict([(id_,idx) for idx,id_ in enumerate(l)])
-
 class Table(object):
     """Abstract base class for a what a Table is"""
     _biom_type = None
@@ -1267,7 +1011,7 @@ class SparseTable(Table):
         super(SparseTable, self).__init__(*args, **kwargs)
    
     def _data_equality(self, other):
-        """Two SparseDict matrices are equal if the items are equal"""
+        """Two SparseObj matrices are equal if the items are equal"""
         if isinstance(self, other.__class__):
             return sorted(self._data.items()) == sorted(other._data.items())
         
@@ -1299,7 +1043,7 @@ class SparseTable(Table):
 
     def _conv_to_self_type(self, vals, transpose=False):
         """For converting vectors to a compatible self type"""
-        return to_sparsedict(vals, transpose, self._dtype)
+        return to_sparse(vals, transpose, self._dtype)
 
     def __iter__(self):
         """Defined by subclass"""
@@ -1460,90 +1204,6 @@ def list_list_to_nparray(data, dtype=float):
     """
     return asarray(data, dtype=dtype)
 
-def list_list_to_sparsedict(data, dtype=float, shape=None):
-    """Convert a list of lists into a sparsedict
-
-    [[row, col, value], ...]
-    """
-    d = dict([((r,c),dtype(v)) for r,c,v in data if v != 0])
-
-    if shape is None:
-        n_rows = 0
-        n_cols = 0
-        for (r,c) in d:
-            if r >= n_rows:
-                n_rows = r + 1 # deal with 0-based indexes
-            if c >= n_cols:
-                n_cols = c + 1
-    
-        mat = SparseDict(n_rows, n_cols)
-    else:
-        mat = SparseDict(*shape)
-
-    mat.update(d)
-    return mat
-
-def nparray_to_sparsedict(data, dtype=float):
-    """Convert a numpy array to a dict"""
-    if len(data.shape) == 1:
-        mat = SparseDict(1, data.shape[0])
-        
-        for idx,v in enumerate(data):
-            if v != 0:
-                mat[(0,idx)] = dtype(v)
-    else:
-        mat = SparseDict(*data.shape)
-        for row_idx, row in enumerate(data):
-            for col_idx, value in enumerate(row):
-                if value != 0:
-                    mat[(row_idx, col_idx)] = dtype(value)
-    return mat
-    
-def list_nparray_to_sparsedict(data, dtype=float):
-    """Takes a list of numpy arrays and creates a dict"""
-    mat = SparseDict(len(data), len(data[0]))
-    for row_idx, row in enumerate(data):
-        if len(row.shape) != 1:
-            raise TableException, "Cannot convert non-1d vectors!"
-        if len(row) != mat.shape[1]:
-            raise TableException, "Row vector isn't the correct length!"
-
-        for col_idx, val in enumerate(row):
-            mat[row_idx, col_idx] = dtype(val)
-    return mat
-
-def list_dict_to_sparsedict(data, dtype=float):
-    """Takes a list of dict {(0,col):val} and creates a full dict"""
-    if isinstance(data[0], SparseDict):
-        if data[0].shape[0] > data[0].shape[1]:
-            is_col = True
-            n_cols = len(data)
-            n_rows = data[0].shape[0]
-        else:
-            is_col = False
-            n_rows = len(data)
-            n_cols = data[0].shape[1]
-    else:
-        all_keys = flatten([d.keys() for d in data])
-        n_rows = max(all_keys, key=itemgetter(0))[0] + 1
-        n_cols = max(all_keys, key=itemgetter(1))[1] + 1
-        if n_rows > n_cols:
-            is_col = True
-            n_cols = len(data)
-        else:
-            is_col = False
-            n_rows = len(data)
-    
-    mat = SparseDict(n_rows, n_cols)
-    for row_idx,row in enumerate(data):
-        for (foo,col_idx),val in row.items():
-            if is_col:
-                mat[foo,row_idx] = dtype(val)
-            else:
-                mat[row_idx,col_idx] = dtype(val)
-
-    return mat
-
 def dict_to_nparray(data, dtype=float):
     """Takes a dict {(row,col):val} and creates a numpy matrix"""
     rows, cols = zip(*data) # unzip
@@ -1552,14 +1212,6 @@ def dict_to_nparray(data, dtype=float):
     for (row,col),val in data.items():
         mat[row,col] = val
 
-    return mat
-
-def dict_to_sparsedict(data, dtype=float):
-    """takes a dict {(row,col):val} and creates a SparseDict"""
-    n_rows = max(data.keys(), key=itemgetter(0))[0] + 1
-    n_cols = max(data.keys(), key=itemgetter(1))[1] + 1
-    mat = SparseDict(n_rows, n_cols)
-    mat.update(data)
     return mat
 
 def list_dict_to_nparray(data, dtype=float):
@@ -1588,9 +1240,9 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     
         - numpy.array       
         - list of numpy.array vectors 
-        - SparseDict representation
+        - SparseObj representation
         - dict representation
-        - list of SparseDict representation vectors
+        - list of SparseObj representation vectors
         - list of lists of sparse values [[row, col, value], ...]
         - list of lists of dense values [[value, value, ...], ...]
     """
@@ -1607,26 +1259,26 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     if constructor._biom_matrix_type is 'sparse':
         # if we have a numpy array
         if isinstance(data, ndarray):
-            data = nparray_to_sparsedict(data, dtype)
+            data = nparray_to_sparseobj(data, dtype)
 
         # if we have a list of numpy vectors
         elif isinstance(data, list) and isinstance(data[0], ndarray):
-            data = list_nparray_to_sparsedict(data, dtype)
+            data = list_nparray_to_sparseobj(data, dtype)
 
         # if we have a dict representation
-        elif isinstance(data, dict) and not isinstance(data, SparseDict):
-            data = dict_to_sparsedict(data, dtype)
+        elif isinstance(data, dict) and not isinstance(data, SparseObj):
+            data = dict_to_sparseobj(data, dtype)
 
-        elif isinstance(data, SparseDict):
+        elif isinstance(data, SparseObj):
             pass
 
         # if we have a list of dicts
         elif isinstance(data, list) and isinstance(data[0], dict):
-            data = list_dict_to_sparsedict(data, dtype)
+            data = list_dict_to_sparseobj(data, dtype)
 
         # if we have a list of lists (like inputs from json biom)
         elif isinstance(data, list) and isinstance(data[0], list):
-            data = list_list_to_sparsedict(data, dtype, shape=shape)
+            data = list_list_to_sparseobj(data, dtype, shape=shape)
         else:
             raise TableException, "Cannot handle data!"
     

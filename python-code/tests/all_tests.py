@@ -4,8 +4,7 @@
 # run suite by executing this file
 # addapted from PyCogent alltests.py
 #
-import doctest, cogent.util.unit_test as unittest, sys, os
-from cogent.util.misc import app_path
+import doctest, biom.unit_test as unittest, sys, os
 
 __author__ = "Jose Carlos Clemente Litran"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
@@ -35,6 +34,8 @@ def suite():
     modules_to_test = [
         'test_parse',
         'test_table',
+        'test_sparsedict',
+        'test_util',
         'test_unit_test',
         ]
 
