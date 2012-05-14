@@ -30,7 +30,6 @@ try:
     list_nparray_to_sparseobj = list_nparray_to_cxxsparsemat
     nparray_to_sparseobj = nparray_to_cxxsparsemat
     list_list_to_sparseobj = list_list_to_cxxsparsemat
-    
 except ImportError:
     from biom.sparsedict import SparseDict, to_sparsedict, \
         dict_to_sparsedict, list_dict_to_sparsedict, \
