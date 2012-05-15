@@ -315,19 +315,63 @@ class PySparseMatIntTests(TestCase):
         self.assertRaises(OverflowError, self.obj.insert, 1, -10, 3)
 
     def test_contains(self):
-        self.fail()
-
-    def test_len(self):
-        self.fail()
-    
+        """Make sure we can check if things are present"""
+        x = PySparseMatInt()
+        self.assertEqual(x.contains(1,2), 0)
+        x.insert(1,2,20)
+        self.assertEqual(x.contains(1,2), 1)
+        x.insert(1,2,10)
+        self.assertEqual(x.contains(1,2), 1)
+        x.erase(1,2)
+        self.assertEqual(x.contains(1,2), 0)
+        x.insert(1,2,0.0)
+        self.assertEqual(x.contains(1,2), 0)
+        
+    def test_length(self):
+        """make sure we can test length"""
+        x = PySparseMatInt()
+        self.assertEqual(x.length(), 0)
+        x.insert(1,2,10)
+        self.assertEqual(x.length(), 1)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        self.assertEqual(x.length(), 2)
+        x.erase(2,3)
+        self.assertEqual(x.length(), 1)
+        
     def test_erase(self):
-        self.fail()
+        """make sure we can erase"""
+        x = PySparseMatInt()
+        x.insert(1,2,10)
+        self.assertEqual(x.get(1,2), 10)
+        x.erase(1,2)
+        self.assertEqual(x.get(1,2), 0)
+        self.assertEqual(x.contains(1,2), 0)
     
     def test_keys(self):
-        self.fail()
-        
+        """make sure we can get keys"""
+        x = PySparseMatInt()
+        self.assertEqual(x.keys(), [])
+        x.insert(1,2,10)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        self.assertEqual(sorted(x.keys()), [(1,2),(2,3)])
+        x.erase(2,3)
+        self.assertEqual(x.keys(), [(1,2)])
+            
     def test_items(self):
-        self.fail()
+        """make sure we can get items"""
+        x = PySparseMatInt()
+        self.assertEqual(x.items(), [])
+        x.insert(1,2,10)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        self.assertEqual(sorted(x.items()), [((1,2),10),((2,3),4)])
+        x.erase(2,3)
+        self.assertEqual(x.items(), [((1,2),10)])
         
 class PySparseMatFloatTests(TestCase):
     def setUp(self):
@@ -353,19 +397,63 @@ class PySparseMatFloatTests(TestCase):
         self.assertRaises(OverflowError, self.obj.insert, 1, -10, 3.0)
 
     def test_contains(self):
-        self.fail()
-
-    def test_len(self):
-        self.fail()
-
+        """Make sure we can check if things are present"""
+        x = PySparseMatFloat()
+        self.assertEqual(x.contains(1,2), 0)
+        x.insert(1,2,20)
+        self.assertEqual(x.contains(1,2), 1)
+        x.insert(1,2,10)
+        self.assertEqual(x.contains(1,2), 1)
+        x.erase(1,2)
+        self.assertEqual(x.contains(1,2), 0)
+        x.insert(1,2,0.0)
+        self.assertEqual(x.contains(1,2), 0)
+        
+    def test_length(self):
+        """make sure we can test length"""
+        x = PySparseMatFloat()
+        self.assertEqual(x.length(), 0)
+        x.insert(1,2,10)
+        self.assertEqual(x.length(), 1)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        self.assertEqual(x.length(), 2)
+        x.erase(2,3)
+        self.assertEqual(x.length(), 1)
+        
     def test_erase(self):
-        self.fail()
+        """make sure we can erase"""
+        x = PySparseMatFloat()
+        x.insert(1,2,10)
+        self.assertEqual(x.get(1,2), 10.0)
+        x.erase(1,2)
+        self.assertEqual(x.get(1,2), 0.0)
+        self.assertEqual(x.contains(1,2), 0)
     
     def test_keys(self):
-        self.fail()
-        
+        """make sure we can get keys"""
+        x = PySparseMatFloat()
+        self.assertEqual(x.keys(), [])
+        x.insert(1,2,10)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        self.assertEqual(sorted(x.keys()), [(1,2),(2,3)])
+        x.erase(2,3)
+        self.assertEqual(x.keys(), [(1,2)])
+            
     def test_items(self):
-        self.fail()
+        """make sure we can get items"""
+        x = PySparseMatFloat()
+        self.assertEqual(x.items(), [])
+        x.insert(1,2,10)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        x.insert(2,3,4)
+        self.assertEqual(sorted(x.items()), [((1,2),10.0),((2,3),4.0)])
+        x.erase(2,3)
+        self.assertEqual(x.items(), [((1,2),10.0)])
         
 if __name__ == '__main__':
     main()
