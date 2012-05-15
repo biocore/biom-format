@@ -1,9 +1,11 @@
+# to int or to uint...
 cdef extern from "sparsemat_lib.h" namespace "sparsemat":
     cdef cppclass SparseMatFloat:
         SparseMatFloat()
         void insert(int, int, float)
         float get(int, int)
-
+        void erase(int, int)
+        
     cdef cppclass SparseMatInt:
         SparseMatInt()
         void insert(int, int, int)
@@ -26,6 +28,9 @@ cdef class PySparseMatFloat:
     def get(self, row, col):
         return self.thisptr.get(<unsigned int>row, <unsigned int>col)
 
+    def erase(self, row, col):
+        self.thisptr.erase(<unsigned int>row, <unsigned int>col)
+        
 cdef class PySparseMatInt:
     cdef SparseMatInt *thisptr
     def __cinit__(self):
