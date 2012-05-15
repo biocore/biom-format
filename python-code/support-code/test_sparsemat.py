@@ -6,8 +6,8 @@ from biom.unit_test import TestCase, main
 from biom.table import flatten
 from sparsemat import SparseMat, to_sparsemat, \
     list_nparray_to_sparsemat, list_list_to_sparsemat, \
-    list_dict_to_sparsemat, nparray_to_sparsemat, \
-    dict_to_sparsemat
+    list_sparsemat_to_sparsemat, nparray_to_sparsemat, \
+    dict_to_sparsemat, list_dict_to_sparsemat
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
@@ -195,7 +195,8 @@ class SupportTests(TestCase):
     def test_list_list_to_sparsemat(self):
         """convert [[row,col,value], ...] to sparsemat"""
         input = [[0,0,1],[10,0,5.0],[2,3,6]]
-        exp = {(0,0):1.0,(10,0):5.0,(2,3):6}
+        exp = SparseMat(11,4)
+        exp.update({(0,0):1.0,(10,0):5.0,(2,3):6})
         obs = list_list_to_sparsemat(input)
         self.assertEqual(obs, exp)
 

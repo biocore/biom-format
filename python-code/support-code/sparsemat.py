@@ -207,17 +207,7 @@ class SparseMat():
         """Update self"""
         in_self_rows, in_self_cols = self.shape
     
-        # handle zero values different and dont pass them to update
         for (row,col),value in update_dict.items():
-            #if row >= in_self_rows or row < 0:
-            #    raise KeyError, "The specified row is out of bounds"
-            #if col >= in_self_cols or col < 0:
-            #    raise KeyError, "The specified col is out of bounds"
-            #if value == 0:
-            #    self.__setitem__((row,col), 0)
-            #else:
-            
-            # the above is all covered in __setitem__
             self[row,col] = value
             
             if self._indices_enabled:
@@ -249,6 +239,12 @@ def to_sparsemat(values, transpose=False, dtype=float):
     # list of dicts, each representing a row in row order
     elif isinstance(values, list) and isinstance(values[0], dict):
         mat = list_dict_to_sparsemat(values, dtype)
+        if transpose:
+            mat = mat.T
+        return mat
+    # list of sparsemat, each representing a row in row order
+    elif isinstance(values, list) and isinstance(values[0], SparseMat):
+        mat = list_sparsemat_to_sparsemat(values,dtype)
         if transpose:
             mat = mat.T
         return mat
@@ -312,6 +308,38 @@ def list_nparray_to_sparsemat(data, dtype=float):
             mat[row_idx, col_idx] = dtype(val)
     return mat
 
+def list_sparsemat_to_sparsemat(data, dtype=float):
+    """Takes a list of SparseMats and creates a SparseMat"""
+    if isinstance(data[0], SparseMat):
+        if data[0].shape[0] > data[0].shape[1]:
+            is_col = True
+            n_cols = len(data)
+            n_rows = data[0].shape[0]
+        else:
+            is_col = False
+            n_rows = len(data)
+            n_cols = data[0].shape[1]
+    else:
+        all_keys = flatten([d.keys() for d in data])
+        n_rows = max(all_keys, key=itemgetter(0))[0] + 1
+        n_cols = max(all_keys, key=itemgetter(1))[1] + 1
+        if n_rows > n_cols:
+            is_col = True
+            n_cols = len(data)
+        else:
+            is_col = False
+            n_rows = len(data)
+
+    mat = SparseMat(n_rows, n_cols)
+    for row_idx,row in enumerate(data):
+        for (foo,col_idx),val in row.items():
+            if is_col:
+                mat[foo,row_idx] = dtype(val)
+            else:
+                mat[row_idx,col_idx] = dtype(val)
+
+    return mat
+    
 def list_dict_to_sparsemat(data, dtype=float):
     """Takes a list of dict {(0,col):val} and creates a SparseMat"""
     if isinstance(data[0], SparseMat):
