@@ -319,6 +319,15 @@ class PySparseMatIntTests(TestCase):
 
     def test_len(self):
         self.fail()
+    
+    def test_erase(self):
+        self.fail()
+    
+    def test_keys(self):
+        self.fail()
+        
+    def test_items(self):
+        self.fail()
         
 class PySparseMatFloatTests(TestCase):
     def setUp(self):
@@ -349,43 +358,14 @@ class PySparseMatFloatTests(TestCase):
     def test_len(self):
         self.fail()
 
-class SparseMatFloatTests(TestCase):
-    def test_getRow(self):
-        """get a row"""
-        exp = SparseMat(1,3)
-        exp.update({(0,2):3})
-        obs = self.obj.getRow(1)
-        self.assertEqual(obs, exp)
-        self.assertTrue(obs == exp)
-        exp = SparseMat(1,3)
-        obs = self.obj.getRow(4)
-        self.assertEqual(obs,exp)
-
-        self.assertRaises(IndexError, self.obj.getRow, -1)
+    def test_erase(self):
+        self.fail()
+    
+    def test_keys(self):
+        self.fail()
         
-    def test_getCol(self):
+    def test_items(self):
         self.fail()
-
-    def test_eq(self):
-        """equality..."""
-        obj2 = PySparseMatFloat()
-        self.assertEqual(sorted(self.obj.items()), sorted(obj2.items()))
-        self.obj.insert(10,20,30.0)
-        self.assertNotEqual(sorted(self.obj.items()), sorted(obj2.items()))
-
-class SparseMatIntTests(TestCase):
-    def test_getRow(self):
-        self.fail()
-
-    def test_getCol(self):
-        self.fail()
-
-    def test_eq(self):
-        """equality..."""
-        obj2 = PySparseMatInt()
-        self.assertEqual(sorted(self.obj.items()), sorted(obj2.items()))
-        self.obj.insert(10,20,30)
-        self.assertNotEqual(sorted(self.obj.items()), sorted(obj2.items()))
-     
+        
 if __name__ == '__main__':
     main()
