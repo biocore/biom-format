@@ -77,7 +77,6 @@ cdef class PySparseMatFloat:
         
         return results
     
-    
 cdef class PySparseMatInt:
     cdef SparseMatInt *thisptr
     def __cinit__(self):
@@ -108,5 +107,15 @@ cdef class PySparseMatInt:
         results = []
         for i in range(self.length()):
             results.append((foo.rows[i], foo.cols[i]))
+        
+        return results
+
+    def items(self):
+        cdef items_int foo
+        foo = self.thisptr.items()
+        
+        results = []
+        for i in range(self.length()):
+            results.append(((foo.rows[i], foo.cols[i]), foo.values[i]))
         
         return results

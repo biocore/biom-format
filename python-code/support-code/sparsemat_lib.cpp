@@ -138,3 +138,22 @@ items_int SparseMatInt::keys() {
 
     return all_keys;
 }
+
+items_int SparseMatInt::items() {
+    items_int all_keys;
+    uint32_t n_keys = length();
+    uint32_t count = 0;
+    
+    all_keys.rows = new uint32_t[n_keys];
+    all_keys.cols = new uint32_t[n_keys];
+    all_keys.values = new int32_t[n_keys];
+    
+    for(std::tr1::unordered_map<uint64_t,int32_t>::iterator i = hash.begin(); i != hash.end(); i++) {
+        all_keys.rows[count] = DECODE_KEY_ROW(i->first);
+        all_keys.cols[count] = DECODE_KEY_COL(i->first);
+        all_keys.values[count] = i->second;
+        count += 1;
+    }
+
+    return all_keys;
+}
