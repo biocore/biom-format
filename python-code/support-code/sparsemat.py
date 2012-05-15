@@ -149,6 +149,9 @@ class SparseMat():
 
     def _update_internal_indices(self, args, value):
         """Update internal row,col indices"""
+        if not self._indices_enabled:
+            return
+            
         row,col = args
         if value == 0:
             if args in self:
