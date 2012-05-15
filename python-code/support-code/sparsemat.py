@@ -3,6 +3,7 @@
 from numpy import array, ndarray
 from operator import itemgetter
 from biom.util import flatten
+from biom.exception import TableException
 import _sparsemat
 
 __author__ = "Daniel McDonald"
@@ -41,25 +42,18 @@ class SparseMat():
         if enable_indices:
             self._index_rows = [set() for i in range(rows)]
             self._index_cols = [set() for i in range(cols)]
-            self._keys = set([])
         else:
             self._index_rows = None
             self._index_rows = None
-            self._keys = None
         self._indices_enabled = enable_indices
-
-    def keys(self):
-        """Return keys as a list"""
-        if self._indices_enabled:
-            return list(self._keys)
-        else:
-            raise AttributeError, "_indices_enabled is not set!"
 
     def items(self):
         """Generater returning ((r,c),v)"""
-        for k in self.keys():
-            yield self._data.get(k)
-    iteritems = items
+        return self._data.items()
+    
+    def iteritems(self):
+        for x in self._data.items():
+            yield x
 
     def __contains__(self, args):
         """Return True if args are in self, false otherwise"""
@@ -79,18 +73,18 @@ class SparseMat():
         """Return a copy of self"""
         new_self = self.__class__(self.shape[0], self.shape[1], self.dtype, \
                                   self._indices_enabled)
-        new_self.update(self)
-        raise NotImplementedError, "update() is expecting a dict, not a SparseMat"
+        for k,v in self._data.items():
+            new_self[k] = v
         return new_self
 
     def __eq__(self, other):
         """Returns true if both SparseMats are the same"""
-        print self._keys
-        print other._keys
-        self_keys = set(self._keys)
-        other_keys = set(other._keys)
-        print self_keys
-        print other_keys
+        self_keys = set(self._data.keys())
+        other_keys = set(other._data.keys())
+        
+        if len(self_keys) == 0 and len(other_keys) == 0:
+            return True
+            
         if self_keys != other_keys:
             return False
         
@@ -99,7 +93,11 @@ class SparseMat():
                 return False
         
         return True
-        
+    
+    def __ne__(self, other):
+        """Return true if both SparseMats are not equal"""
+        return not (self == other)
+           
     def __setitem__(self,args,value):
         """Wrap setitem, complain if out of bounds"""
         row,col = args
@@ -154,13 +152,11 @@ class SparseMat():
             if args in self:
                 self._index_rows[row].remove(args)
                 self._index_cols[col].remove(args)
-                self._keys.remove(args)
             else:
                 return # short circuit, no point in setting 0
         else:
             self._index_rows[row].add(args)
             self._index_cols[col].add(args)
-            self._keys.add(args)
 
     def getRow(self, row):
         """Returns a row in SparseMat form"""
@@ -175,7 +171,7 @@ class SparseMat():
             v = self._data.get(r,c) # hit directly, trust thyself...
             if v == 0:
                 continue
-            new_row._data.insert(r, c, v)
+            new_row._data.insert(0, c, v)
         
         return new_row
 
@@ -192,7 +188,7 @@ class SparseMat():
             v = self._data.get(r,c) # hit directly, trust thyself
             if v == 0:
                 continue
-            new_col._data.insert(r, c, v)
+            new_col._data.insert(r, 0, v)
         
         return new_col
 
@@ -200,12 +196,8 @@ class SparseMat():
         """Transpose self"""
         new_self = self.__class__(*self.shape[::-1], \
                 enable_indices=self._indices_enabled, dtype=self.dtype)
-        
-        raise NotImplementedError, "C++ object should provide a bulk export method"
-        
-        ### however... we could iterate over the indices, but are fucked if they're disabled
-        
-        new_self.update(dict([((c,r),v) for (r,c),v in self.iteritems()]))
+        for (r,c),v in self._data.items():
+            new_self[c,r] = v
         return new_self
     T = property(transpose)
 
@@ -320,7 +312,6 @@ def list_nparray_to_sparsemat(data, dtype=float):
 
 def list_dict_to_sparsemat(data, dtype=float):
     """Takes a list of dict {(0,col):val} and creates a SparseMat"""
-    raise NotImplementedError, "SparseMat needs a notion of len"
     if isinstance(data[0], SparseMat):
         if data[0].shape[0] > data[0].shape[1]:
             is_col = True
