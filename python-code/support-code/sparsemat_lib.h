@@ -15,6 +15,7 @@ namespace sparsemat {
             double get(uint32_t row, uint32_t col);
             void erase(uint32_t row, uint32_t col);
             int contains(uint32_t row, uint32_t col);
+            uint32_t length();
     };
 
     class SparseMatInt {
@@ -27,5 +28,6 @@ namespace sparsemat {
             int32_t get(uint32_t row, uint32_t col);
             void erase(uint32_t row, uint32_t col);
             int contains(uint32_t row, uint32_t col);
+            uint32_t length();
     };
 }

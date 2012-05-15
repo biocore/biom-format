@@ -39,6 +39,10 @@ int SparseMatFloat::contains(uint32_t row, uint32_t col) {
         return 1;
 }
 
+uint32_t SparseMatFloat::length() {
+    return hash.size();
+}
+
 // SparseMatInt
 SparseMatInt::SparseMatInt() {}
 
@@ -76,4 +80,8 @@ int SparseMatInt::contains(uint32_t row, uint32_t col) {
         return 0;
     else
         return 1;
+}
+
+uint32_t SparseMatInt::length() {
+    return hash.size();
 }
