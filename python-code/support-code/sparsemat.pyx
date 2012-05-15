@@ -5,6 +5,7 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
         void insert(int, int, float)
         float get(int, int)
         void erase(int, int)
+        int contains(int, int)
         
     cdef cppclass SparseMatInt:
         SparseMatInt()
@@ -31,6 +32,9 @@ cdef class PySparseMatFloat:
 
     def erase(self, row, col):
         self.thisptr.erase(<unsigned int>row, <unsigned int>col)
+        
+    def contains(self, row, col):
+        return self.thisptr.contains(<unsigned int>row, <unsigned int>col)
         
 cdef class PySparseMatInt:
     cdef SparseMatInt *thisptr

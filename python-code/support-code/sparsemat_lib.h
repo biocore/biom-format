@@ -12,7 +12,7 @@ namespace sparsemat {
             void insert(uint32_t row, uint32_t col, double value);
             double get(uint32_t row, uint32_t col);
             void erase(uint32_t row, uint32_t col);
-            //bool exists(uint32_t row, uint32_t col);
+            int contains(uint32_t row, uint32_t col);
     };
 
     class SparseMatInt {
@@ -24,6 +24,6 @@ namespace sparsemat {
             void insert(uint32_t row, uint32_t col, int value);
             int get(uint32_t row, uint32_t col);
             void erase(uint32_t row, uint32_t col);
-            //bool exists(uint32_t row, uint32_t col);
+            //int contains(uint32_t row, uint32_t col);
     };
 }
