@@ -1,6 +1,8 @@
 #include <tr1/unordered_map>
 
 #define MAKE_KEY(row,col) (uint64_t(row) << 32 | col)
+#define DECODE_KEY_ROW(key) uint32_t(key >> 32)
+#define DECODE_KEY_COL(key) uint32_t(key & 0x00000000ffffffff)
 
 namespace sparsemat {
     class SparseMatFloat {
