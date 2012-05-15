@@ -7,6 +7,9 @@ using namespace sparsemat;
 SparseMatFloat::SparseMatFloat() {}
 
 void SparseMatFloat::insert(uint32_t row, uint32_t col, double value) {
+    if(value == 0.0)
+        return;
+        
     current_key = MAKE_KEY(row,col);
 #ifdef _SPARSEMAT_LIB_DEBUG
     std::cout << "Row: " << row << "\tCol: " << col << std::endl;
@@ -16,6 +19,10 @@ void SparseMatFloat::insert(uint32_t row, uint32_t col, double value) {
 }
 
 double SparseMatFloat::get(uint32_t row, uint32_t col) {
+    // have to short circuit, the [] on return adds the item. WTF
+    if(!contains(row,col))
+        return 0.0;
+        
     current_key = MAKE_KEY(row, col);
 #ifdef _SPARSEMAT_LIB_DEBUG
     std::cout << "Row: " << row << "\tCol: " << col << std::endl;
@@ -83,6 +90,9 @@ items_float SparseMatFloat::items() {
 SparseMatInt::SparseMatInt() {}
 
 void SparseMatInt::insert(uint32_t row, uint32_t col, int32_t value) {
+    if(value == 0)
+        return;
+        
     current_key = MAKE_KEY(row,col);
 #ifdef _SPARSEMAT_LIB_DEBUG
     std::cout << "max_size = " << hash.max_size() << std::endl;
@@ -95,6 +105,10 @@ void SparseMatInt::insert(uint32_t row, uint32_t col, int32_t value) {
 }
 
 int32_t SparseMatInt::get(uint32_t row, uint32_t col) {
+    // have to short circuit, the [] on return adds the item. WTF
+    if(!contains(row,col))
+        return 0;
+
     current_key = MAKE_KEY(row, col);
 #ifdef _SPARSEMAT_LIB_DEBUG
     std::cout << "Row: " << row << "\tCol: " << col << std::endl;

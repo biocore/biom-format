@@ -63,11 +63,10 @@ class SparseMat():
         else:
             return False
     
-    def erase(self, args):
-        """Deletes the item at args"""
-        row, col = args
-        self._data.erase(row, col)
+    def erase(self, row, col):
+        """Deletes the item at row,col"""
         self._update_internal_indices((row,col), 0)
+        self._data.erase(row, col)
              
     def copy(self):
         """Return a copy of self"""
@@ -79,6 +78,9 @@ class SparseMat():
 
     def __eq__(self, other):
         """Returns true if both SparseMats are the same"""
+        if self.shape != other.shape:
+            return False
+            
         self_keys = set(self._data.keys())
         other_keys = set(other._data.keys())
         
@@ -110,8 +112,8 @@ class SparseMat():
 
         if value == 0:
             if args in self:
-                self._update_internal_indices(args, value)
-                self.erase(args)
+                #self._update_internal_indices(args, value)
+                self.erase(row, col)
             else:
                 return
         else:

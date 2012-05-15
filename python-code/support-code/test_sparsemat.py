@@ -74,13 +74,49 @@ class SparseMatTests(TestCase):
         self.assertRaises(AttributeError, self.obj.__getitem__, (3, slice(1,2,3)))
 
     def test_contains(self):
-        self.fail("verify the .contains() works")
-
+        """Make sure we can check things exist"""
+        sm1 = SparseMat(3,4)
+        for r in range(3):
+            for c in range(4):
+                assert (r,c) not in sm1
+        sm1[1,2] = 0
+        assert (1,2) not in sm1
+        sm1[1,2] = 10
+        assert (1,2) in sm1
+        sm1.erase(1,2)
+        assert (1,2) not in sm1
+                
     def test_erase(self):
-        self.fail("verify the .erase() works")
+        """Make sure we can get rid of elements"""
+        sm1 = SparseMat(4,6)
+        self.assertEqual(sm1[2,3], 0.0)
+        sm1.erase(2,3)
+        self.assertEqual(sm1[2,3], 0.0)
+        sm1[2,3] = 10
+        self.assertEqual(sm1[2,3], 10.0)
+        self.assertEqual(sm1._index_rows, [set([]), set([]), set([(2,3)]), set([])])
+        self.assertEqual(sm1._index_cols, [set([]), set([]), set([]), set([(2,3)]), set([]), set([])])
+        sm1.erase(2,3)
+        self.assertEqual(sm1._index_rows, [set([]), set([]), set([]), set([])])
+        self.assertEqual(sm1._index_cols, [set([]), set([]), set([]), set([]), set([]), set([])])
+        self.assertEqual(sm1[2,3], 0.0)
+        self.assertEqual(sm1._index_rows, [set([]), set([]), set([]), set([])])
+        self.assertEqual(sm1._index_cols, [set([]), set([]), set([]), set([]), set([]), set([])])
         
     def test_eq(self):
-        self.fail("verify the eq foo")
+        """Tests for equality"""
+        sm1 = SparseMat(4,6)
+        sm2 = SparseMat(4,6)
+        sm3 = SparseMat(6,4)
+        
+        self.assertEqual(sm1, sm2)
+        self.assertNotEqual(sm1,sm3)
+        
+        sm1[0,1] = 10
+        sm2[0,1] = 5
+        self.assertNotEqual(sm1, sm2)
+        sm2[0,1] = 10
+        self.assertEqual(sm1, sm2)
         
     def test_update_internal_indices(self):
         """Update internal indices"""
@@ -339,6 +375,7 @@ class SparseMatFloatTests(TestCase):
 class SparseMatIntTests(TestCase):
     def test_getRow(self):
         self.fail()
+
     def test_getCol(self):
         self.fail()
 
