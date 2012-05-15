@@ -10,6 +10,7 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
         SparseMatInt()
         void insert(int, int, int)
         int get(int, int)
+        void erase(int, int)
 
 # should really use inheritence here but things were getting odd with *thisptr
 # ...and i dont care right now
@@ -44,3 +45,6 @@ cdef class PySparseMatInt:
    
     def get(self, row, col):
         return self.thisptr.get(<unsigned int>row, <unsigned int>col)
+
+    def erase(self, row, col):
+        self.thisptr.erase(<unsigned int>row, <unsigned int>col)

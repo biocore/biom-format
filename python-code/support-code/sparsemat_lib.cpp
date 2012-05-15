@@ -62,3 +62,7 @@ int SparseMatInt::get(uint32_t row, uint32_t col) {
     return hash[current_key];
 }
 
+void SparseMatInt::erase(uint32_t row, uint32_t col) {
+    current_key = MAKE_KEY(row, col);
+    hash.erase(current_key);
+}
