@@ -45,5 +45,6 @@ namespace sparsemat {
             void erase(uint32_t row, uint32_t col);
             int contains(uint32_t row, uint32_t col);
             uint32_t length();
+            items_int keys();
     };
 }

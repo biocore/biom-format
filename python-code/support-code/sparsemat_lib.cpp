@@ -102,3 +102,20 @@ int SparseMatInt::contains(uint32_t row, uint32_t col) {
 uint32_t SparseMatInt::length() {
     return hash.size();
 }
+
+items_int SparseMatInt::keys() {
+    items_int all_keys;
+    uint32_t n_keys = length();
+    uint32_t count = 0;
+    
+    all_keys.rows = new uint32_t[n_keys];
+    all_keys.cols = new uint32_t[n_keys];
+    
+    for(std::tr1::unordered_map<uint64_t,int32_t>::iterator i = hash.begin(); i != hash.end(); i++) {
+        all_keys.rows[count] = DECODE_KEY_ROW(i->first);
+        all_keys.cols[count] = DECODE_KEY_COL(i->first);
+        count += 1;
+    }
+
+    return all_keys;
+}

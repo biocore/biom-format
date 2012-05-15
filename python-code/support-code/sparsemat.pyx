@@ -27,6 +27,7 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
         void erase(int, int)
         int contains(int, int)
         int length()
+        items_int keys()
         
 # should really use inheritence here but things were getting odd with *thisptr
 # ...and i dont care right now
@@ -87,3 +88,12 @@ cdef class PySparseMatInt:
     def length(self):
         return self.thisptr.length()
         
+    def keys(self):
+        cdef items_int foo
+        foo = self.thisptr.keys()
+        
+        results = []
+        for i in range(self.length()):
+            results.append((foo.rows[i], foo.cols[i]))
+        
+        return results
