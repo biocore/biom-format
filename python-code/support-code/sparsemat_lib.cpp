@@ -9,8 +9,6 @@ SparseMatFloat::SparseMatFloat() {}
 void SparseMatFloat::insert(uint32_t row, uint32_t col, double value) {
     current_key = MAKE_KEY(row,col);
 #ifdef _SPARSEMAT_LIB_DEBUG
-    std::cout << "row << 30: " << (row << 30) << " row << 31: " << (row << 31);
-    std::cout << " row << 32: " << (row << 32) << std::endl; 
     std::cout << "Row: " << row << "\tCol: " << col << std::endl;
     std::cout << "Current key: " << current_key << "\tvalue: " << value << std::endl;
 #endif
@@ -44,7 +42,7 @@ int SparseMatFloat::contains(uint32_t row, uint32_t col) {
 // SparseMatInt
 SparseMatInt::SparseMatInt() {}
 
-void SparseMatInt::insert(uint32_t row, uint32_t col, int value) {
+void SparseMatInt::insert(uint32_t row, uint32_t col, int32_t value) {
     current_key = MAKE_KEY(row,col);
 #ifdef _SPARSEMAT_LIB_DEBUG
     std::cout << "Row: " << row << "\tCol: " << col << std::endl;
@@ -53,7 +51,7 @@ void SparseMatInt::insert(uint32_t row, uint32_t col, int value) {
     hash[current_key] = value;
 }
 
-int SparseMatInt::get(uint32_t row, uint32_t col) {
+int32_t SparseMatInt::get(uint32_t row, uint32_t col) {
     current_key = MAKE_KEY(row, col);
 #ifdef _SPARSEMAT_LIB_DEBUG
     std::cout << "Row: " << row << "\tCol: " << col << std::endl;
@@ -69,7 +67,7 @@ void SparseMatInt::erase(uint32_t row, uint32_t col) {
 
 int SparseMatInt::contains(uint32_t row, uint32_t col) {
     current_key = MAKE_KEY(row, col);
-    std::tr1::unordered_map<uint64_t,int>::const_iterator got = hash.find(current_key);
+    std::tr1::unordered_map<uint64_t,int32_t>::const_iterator got = hash.find(current_key);
     
     if(got == hash.end())
         return 0;
