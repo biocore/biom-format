@@ -50,7 +50,6 @@ class SparseMatTests(TestCase):
         self.assertEqual(self.obj._index_cols, [set(),set(),
                                                 set([(1,2),(2,2),(5,2)])])
 
-
     def test_getitem_simple(self):
         """Tests simple getitem"""
         self.assertEqual(self.obj[(1,2)], 3)
@@ -74,6 +73,12 @@ class SparseMatTests(TestCase):
         self.assertRaises(IndexError, self.obj.__getitem__, (10,slice(None)))
         self.assertRaises(AttributeError, self.obj.__getitem__, (3, slice(1,2,3)))
 
+    def test_contains(self):
+        self.fail("verify the .contains() works")
+
+    def test_erase(self):
+        self.fail("verify the .erase() works")
+        
     def test_update_internal_indices(self):
         """Update internal indices"""
         sd = SparseMat(2,3)

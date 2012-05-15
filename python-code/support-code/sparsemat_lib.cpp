@@ -45,6 +45,9 @@ SparseMatInt::SparseMatInt() {}
 void SparseMatInt::insert(uint32_t row, uint32_t col, int32_t value) {
     current_key = MAKE_KEY(row,col);
 #ifdef _SPARSEMAT_LIB_DEBUG
+    std::cout << "max_size = " << hash.max_size() << std::endl;
+    std::cout << "max_bucket_count = " << hash.max_bucket_count() << std::endl;
+    std::cout << "max_load_factor = " << hash.max_load_factor() << std::endl;
     std::cout << "Row: " << row << "\tCol: " << col << std::endl;
     std::cout << "Current key: " << current_key << "\tvalue: " << value << std::endl;
 #endif

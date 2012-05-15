@@ -50,7 +50,20 @@ class SparseMat():
         """Generater returning ((r,c),v)"""
         raise NotImplementedError
     iteritems = items
-            
+
+    def __contains__(self, args):
+        """Return True if args are in self, false otherwise"""
+        row, col = args
+        if self._data.contains(row, col):
+            return True
+        else:
+            return False
+    
+    def erase(self, args):
+        """Deletes the item at args"""
+        row, col = args
+        self._data.erase(row, col)
+             
     def copy(self):
         """Return a copy of self"""
         new_self = self.__class__(self.shape[0], self.shape[1], self.dtype, \
@@ -70,12 +83,10 @@ class SparseMat():
             raise KeyError, "The specified col is out of bounds"
 
         if value == 0:
-            raise NotImplementedError, "C++ object needs to expose an exists method"
             if args in self:
                 self._update_internal_indices(args, value)
                 
-                raise NotImplementedError, "C++ object needs to handle popping/deleting values"
-                del self[args]
+                self.erase(args)
             else:
                 return
         else:
