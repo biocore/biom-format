@@ -79,6 +79,9 @@ class SparseMatTests(TestCase):
     def test_erase(self):
         self.fail("verify the .erase() works")
         
+    def test_eq(self):
+        self.fail("verify the eq foo")
+        
     def test_update_internal_indices(self):
         """Update internal indices"""
         sd = SparseMat(2,3)

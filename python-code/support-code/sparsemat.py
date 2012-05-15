@@ -72,6 +72,21 @@ class SparseMat():
         raise NotImplementedError, "update() is expecting a dict, not a SparseMat"
         return new_self
 
+    def __eq__(self, other):
+        """Returns true if both SparseMats are the same"""
+        raise NotImplementedError, "eq depends on lowlevel .keys() method"
+        self_keys = set(self._data.keys())
+        other_keys = set(other._data.keys())
+
+        if self_keys != other_keys:
+            return False
+        
+        for k in self_keys:
+            if self[k] != other[k]:
+                return False
+        
+        return True
+        
     def __setitem__(self,args,value):
         """Wrap setitem, complain if out of bounds"""
         row,col = args
