@@ -41,14 +41,24 @@ class SparseMat():
         if enable_indices:
             self._index_rows = [set() for i in range(rows)]
             self._index_cols = [set() for i in range(cols)]
+            self._keys = set([])
         else:
             self._index_rows = None
             self._index_rows = None
+            self._keys = None
         self._indices_enabled = enable_indices
+
+    def keys(self):
+        """Return keys as a list"""
+        if self._indices_enabled:
+            return list(self._keys)
+        else:
+            raise AttributeError, "_indices_enabled is not set!"
 
     def items(self):
         """Generater returning ((r,c),v)"""
-        raise NotImplementedError
+        for k in self.keys():
+            yield self._data.get(k)
     iteritems = items
 
     def __contains__(self, args):
@@ -63,6 +73,7 @@ class SparseMat():
         """Deletes the item at args"""
         row, col = args
         self._data.erase(row, col)
+        self._update_internal_indices((row,col), 0)
              
     def copy(self):
         """Return a copy of self"""
@@ -74,10 +85,12 @@ class SparseMat():
 
     def __eq__(self, other):
         """Returns true if both SparseMats are the same"""
-        raise NotImplementedError, "eq depends on lowlevel .keys() method"
-        self_keys = set(self._data.keys())
-        other_keys = set(other._data.keys())
-
+        print self._keys
+        print other._keys
+        self_keys = set(self._keys)
+        other_keys = set(other._keys)
+        print self_keys
+        print other_keys
         if self_keys != other_keys:
             return False
         
@@ -100,7 +113,6 @@ class SparseMat():
         if value == 0:
             if args in self:
                 self._update_internal_indices(args, value)
-                
                 self.erase(args)
             else:
                 return
@@ -142,11 +154,13 @@ class SparseMat():
             if args in self:
                 self._index_rows[row].remove(args)
                 self._index_cols[col].remove(args)
+                self._keys.remove(args)
             else:
                 return # short circuit, no point in setting 0
         else:
             self._index_rows[row].add(args)
             self._index_cols[col].add(args)
+            self._keys.add(args)
 
     def getRow(self, row):
         """Returns a row in SparseMat form"""

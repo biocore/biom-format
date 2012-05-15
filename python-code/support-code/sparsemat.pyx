@@ -1,5 +1,16 @@
 # to int or to uint...
 cdef extern from "sparsemat_lib.h" namespace "sparsemat":
+    struct items_int:
+        int *rows
+        int *cols
+        int *values
+    
+    struct items_float:
+        int *rows
+        int *cols
+        float *values
+        
+cdef extern from "sparsemat_lib.h" namespace "sparsemat":
     cdef cppclass SparseMatFloat:
         SparseMatFloat()
         void insert(int, int, float)
@@ -7,6 +18,7 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
         void erase(int, int)
         int contains(int, int)
         int length()
+        items_float keys()
         
     cdef cppclass SparseMatInt:
         SparseMatInt()
@@ -42,6 +54,16 @@ cdef class PySparseMatFloat:
     def length(self):
         return self.thisptr.length()
         
+    def keys(self):
+        cdef items_float foo
+        foo = self.thisptr.keys()
+        
+        results = []
+        for i in range(self.length()):
+            results.append((foo.rows[i], foo.cols[i]))
+        
+        return results
+    
 cdef class PySparseMatInt:
     cdef SparseMatInt *thisptr
     def __cinit__(self):

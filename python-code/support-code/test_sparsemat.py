@@ -296,7 +296,8 @@ class SparseMatIntTests(TestCase):
         
 class SparseMatFloatTests(TestCase):
     def setUp(self):
-        self.obj = PySparseMatFloat()
+        self.obj = SparseMat(6,3)
+        self.obj.update({(1,2):3,(5,2):6})
 
     def test_get(self):
         """make sure we can get shibby"""
@@ -318,7 +319,18 @@ class SparseMatFloatTests(TestCase):
         self.assertRaises(OverflowError, self.obj.insert, 1, -10, 3.0)
 
     def test_getRow(self):
-        self.fail()
+        """get a row"""
+        exp = SparseMat(1,3)
+        exp.update({(0,2):3})
+        obs = self.obj.getRow(1)
+        self.assertEqual(obs, exp)
+        self.assertTrue(obs == exp)
+        exp = SparseMat(1,3)
+        obs = self.obj.getRow(4)
+        self.assertEqual(obs,exp)
+
+        self.assertRaises(IndexError, self.obj.getRow, -1)
+        
     def test_getCol(self):
         self.fail()
 
