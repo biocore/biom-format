@@ -19,6 +19,7 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
         int contains(int, int)
         int length()
         items_float keys()
+        items_float items()
         
     cdef cppclass SparseMatInt:
         SparseMatInt()
@@ -28,6 +29,7 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
         int contains(int, int)
         int length()
         items_int keys()
+        items_int items()
         
 # should really use inheritence here but things were getting odd with *thisptr
 # ...and i dont care right now
@@ -64,6 +66,17 @@ cdef class PySparseMatFloat:
             results.append((foo.rows[i], foo.cols[i]))
         
         return results
+    
+    def items(self):
+        cdef items_float foo
+        foo = self.thisptr.items()
+        
+        results = []
+        for i in range(self.length()):
+            results.append(((foo.rows[i], foo.cols[i]), foo.values[i]))
+        
+        return results
+    
     
 cdef class PySparseMatInt:
     cdef SparseMatInt *thisptr

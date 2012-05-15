@@ -32,6 +32,7 @@ namespace sparsemat {
             int contains(uint32_t row, uint32_t col);
             uint32_t length();
             items_float keys();
+            items_float items();
     };
 
     class SparseMatInt {
@@ -46,5 +47,6 @@ namespace sparsemat {
             int contains(uint32_t row, uint32_t col);
             uint32_t length();
             items_int keys();
+            items_int items();
     };
 }
