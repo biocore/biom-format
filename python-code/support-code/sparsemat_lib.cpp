@@ -66,3 +66,13 @@ void SparseMatInt::erase(uint32_t row, uint32_t col) {
     current_key = MAKE_KEY(row, col);
     hash.erase(current_key);
 }
+
+int SparseMatInt::contains(uint32_t row, uint32_t col) {
+    current_key = MAKE_KEY(row, col);
+    std::tr1::unordered_map<uint64_t,int>::const_iterator got = hash.find(current_key);
+    
+    if(got == hash.end())
+        return 0;
+    else
+        return 1;
+}
