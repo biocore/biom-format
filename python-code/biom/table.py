@@ -18,18 +18,18 @@ from biom.util import get_biom_format_version_string, \
     
 # try to use the cxx sparsemat if it is available
 try:
-    from biom.cxxsparsemat import CXXSparseMat, to_cxxsparsemat, \
-        dict_to_cxxsparsemat, list_dict_to_cxxsparsemat, \
-        list_nparray_to_cxxsparsemat, nparray_to_cxxsparsemat, \
-        list_list_to_cxxsparsemat
+    from biom.sparsemat import SparseMat, to_sparsemat, \
+        dict_to_sparsemat, list_dict_to_sparsemat, \
+        list_nparray_to_sparsemat, nparray_to_sparsemat, \
+        list_list_to_sparsemat
         
-    SparseObj = CXXSparseMat
-    to_sparse = to_cxxsparsemat
-    dict_to_sparseobj = dict_to_cxxsparsemat
-    list_dict_to_sparseobj = list_dict_to_cxxsparsemat
-    list_nparray_to_sparseobj = list_nparray_to_cxxsparsemat
-    nparray_to_sparseobj = nparray_to_cxxsparsemat
-    list_list_to_sparseobj = list_list_to_cxxsparsemat
+    SparseObj = SparseMat
+    to_sparse = to_sparsemat
+    dict_to_sparseobj = dict_to_sparsemat
+    list_dict_to_sparseobj = list_dict_to_sparsemat
+    list_nparray_to_sparseobj = list_nparray_to_sparsemat
+    nparray_to_sparseobj = nparray_to_sparsemat
+    list_list_to_sparseobj = list_list_to_sparsemat
 except ImportError:
     from biom.sparsedict import SparseDict, to_sparsedict, \
         dict_to_sparsedict, list_dict_to_sparsedict, \
@@ -44,6 +44,8 @@ except ImportError:
     nparray_to_sparseobj = nparray_to_sparsedict
     list_list_to_sparseobj = list_list_to_sparsedict
     
+print SparseObj
+
 class Table(object):
     """Abstract base class for a what a Table is"""
     _biom_type = None

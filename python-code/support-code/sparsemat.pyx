@@ -8,13 +8,13 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
     struct items_float:
         int *rows
         int *cols
-        float *values
+        double *values
         
 cdef extern from "sparsemat_lib.h" namespace "sparsemat":
     cdef cppclass SparseMatFloat:
         SparseMatFloat()
         void insert(int, int, float)
-        float get(int, int)
+        double get(int, int)
         void erase(int, int)
         int contains(int, int)
         int length()
@@ -46,6 +46,14 @@ cdef class PySparseMatFloat:
         self.thisptr.insert(<unsigned int>row, <unsigned int>col, value)
    
     def get(self, row, col):
+        cdef float foo
+        cdef double bar
+        foo = self.thisptr.get(<unsigned int>row, <unsigned int>col)
+        bar = self.thisptr.get(<unsigned int>row, <unsigned int>col)
+
+        print "foo: ", foo
+        print "bar: ", bar
+        
         return self.thisptr.get(<unsigned int>row, <unsigned int>col)
 
     def erase(self, row, col):
