@@ -13,7 +13,7 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
 cdef extern from "sparsemat_lib.h" namespace "sparsemat":
     cdef cppclass SparseMatFloat:
         SparseMatFloat()
-        void insert(int, int, float)
+        void insert(int, int, double)
         double get(int, int)
         void erase(int, int)
         int contains(int, int)
