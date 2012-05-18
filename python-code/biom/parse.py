@@ -6,8 +6,8 @@ from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
         DensePathwayTable, SparseFunctionTable, DenseFunctionTable, \
         SparseOrthologTable, DenseOrthologTable, SparseGeneTable, \
         DenseGeneTable, SparseMetaboliteTable, DenseMetaboliteTable,\
-        SparseTaxonTable, DenseTaxonTable, table_factory, to_sparsedict,\
-        nparray_to_sparsedict
+        SparseTaxonTable, DenseTaxonTable, table_factory, to_sparse,\
+        nparray_to_sparseobj
 import json
 from numpy import zeros, asarray
 from string import strip

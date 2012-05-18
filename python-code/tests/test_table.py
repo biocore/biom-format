@@ -2060,8 +2060,8 @@ class DenseOTUTableTests(TestCase):
 class SparseOTUTableTests(TestCase):
     def setUp(self):
         self.vals = {(0,0):5,(1,0):7,(1,1):8}
-        self.sot_min = SparseOTUTable(to_sparse(self.vals), ['a','b'],['1','2'])
-        self.sot_rich = SparseOTUTable(to_sparse(self.vals), 
+        self.sot_min = SparseOTUTable(to_sparse(self.vals,dtype=int), ['a','b'],['1','2'])
+        self.sot_rich = SparseOTUTable(to_sparse(self.vals,dtype=int), 
                 ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])

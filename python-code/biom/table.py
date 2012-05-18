@@ -44,8 +44,6 @@ except ImportError:
     nparray_to_sparseobj = nparray_to_sparsedict
     list_list_to_sparseobj = list_list_to_sparsedict
     
-print SparseObj
-
 class Table(object):
     """Abstract base class for a what a Table is"""
     _biom_type = None
