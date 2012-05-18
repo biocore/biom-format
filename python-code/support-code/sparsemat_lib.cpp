@@ -1,7 +1,7 @@
 #include <iostream>
 #include "sparsemat_lib.h"
 #include <stdio.h>
-
+#include <vector>
 using namespace sparsemat;
 
 // SparseMatFloat
@@ -16,6 +16,7 @@ void SparseMatFloat::insert(uint32_t row, uint32_t col, double value) {
     printf("val: %0.10f\n", value);
     std::cout << "Row: " << row << "\tCol: " << col << "\tval: " << value << std::endl;
     std::cout << "Current key: " << current_key << "\tvalue: " << value << std::endl;
+    std::cout << "sizeof(hash): " << sizeof(hash) << std::endl;
 #endif
     hash[current_key] = value;
 }
@@ -30,6 +31,7 @@ double SparseMatFloat::get(uint32_t row, uint32_t col) {
     printf("val: %0.10f\n", hash[current_key]);
     std::cout << "Row: " << row << "\tCol: " << col << "\tval: "<< hash[current_key] << std::endl;
     std::cout << "Current key: " << current_key << std::endl;
+    std::cout << "sizeof(hash): " << sizeof(hash) << std::endl;
 #endif
     return hash[current_key];
 }

@@ -1,5 +1,3 @@
-# to int or to uint...
-
 cdef extern from "sparsemat_lib.h" namespace "sparsemat":
     cdef struct items_int:
         # support struct for returning all rows/cols/values from a integer mat
@@ -35,7 +33,7 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
         int length()
         items_int keys()
         items_int items()
-        
+
 # inheritence was not working as expected, so it was scrapped.
 cdef class PySparseMatFloat:
     # provide a python interface into the c++ object
