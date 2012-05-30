@@ -37,7 +37,7 @@ To install the release version, download from `biom-format-1.0.0 <https://github
 	tar -xvzf biom-format-1.0.0.tgz
 	cd $HOME/code/biom-format-1.0.0
 
-To install the development version, pull it from github, and change to the resulting directory::
+Alternatively, to install the development version, pull it from github, and change to the resulting directory::
 
 	git clone git://github.com/biom-format/biom-format.git
 	cd $HOME/code/biom-format
@@ -48,11 +48,11 @@ To install (either the development or release version), follow these steps::
 
 If you do not have sudo access on your system (or don't want to install the ``biom-format`` project in the default location) you'll need to install the library code and scripts in specified directories, and then tell your system where to look for those files. You can do this as follows::
 
-	cd $HOME/code/biom-format
 	echo "export PATH=$HOME/bin/:$PATH" >> $HOME/.bashrc
 	echo "export PYTHONPATH=$HOME/lib/:$PYTHONPATH" >> $HOME/.bashrc
 	mkdir -p $HOME/bin $HOME/lib/
-	python setup.py install --install-scripts=$HOME/temp/bin/ --install-purelib=$HOME/temp/lib/ --install-lib=$HOME/temp/lib/
+	source $HOME/.bashrc
+	python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib/ --install-lib=$HOME/lib/
 
 You should then have access to the biom-format project. You can test this by running the following command::
 	
