@@ -29,9 +29,10 @@ BIOM_TYPES = {'otu table':[SparseOTUTable, DenseOTUTable],
               'metabolite table':[SparseMetaboliteTable, DenseMetaboliteTable],
               'taxon table':[SparseTaxonTable, DenseTaxonTable]}
 
-OBS_META_TYPES = {'taxonomy': lambda x: [e.strip() for e in x.split(';')],
+OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
                   'naive': lambda x: x
                   }
+OBS_META_TYPES['taxonomy'] = OBS_META_TYPES['sc_separated']
 
 usage = "usage: Detailed usage examples can be found here: http://biom-format.org/documentation/biom_conversion.html"
 desc = "Script to convert biom formatted files."
