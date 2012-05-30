@@ -282,9 +282,11 @@ def parse_biom_table_str(json_str,constructor=None):
 
     return f(json_table, constructor)
 
-OBS_META_TYPES = {'taxonomy': lambda x: [e.strip() for e in x.split(';')],
+OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
                   'naive': lambda x: x
                   }
+OBS_META_TYPES['taxonomy'] = OBS_META_TYPES['sc_separated']
+
 def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping, process_func,
         constructor, **kwargs):
     """Parses an table (tab delimited) (observation x sample)

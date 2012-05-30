@@ -7,7 +7,7 @@ The `BIOM file format <http://www.biom-format.org>`_ (canonically pronounced `bi
 
 The `BIOM format <http://www.biom-format.org>`_ is designed for general use in broad areas of comparative -omics. For example, in marker-gene surveys, the primary use of this format is to represent OTU tables: the observations in this case are OTUs and the matrix contains counts corresponding to the number of times each OTU is observed in each sample. With respect to metagenome data, this format would be used to represent metagenome tables: the observations in this case might correspond to SEED subsystems, and the matrix would contain counts corresponding to the number of times each subsystem is observed in each metagenome. Similarly, with respect to genome data, this format may be used to represent a set of genomes: the observations in this case again might correspond to SEED subsystems, and the counts would correspond to the number of times each subsystem is observed in each genome.
 
-There are two components to the BIOM project: first is `definition of the BIOM format <./documentation/biom_format.html>`_, and second is `development of support objects <./documentation/table_objects.html>`_ in multiple programming languages to support the use of BIOM in diverse bioinformatics applications. A 1.0.0 release of the biom-format project will coincide with publication of a manuscript describing the project.
+There are two components to the BIOM project: first is `definition of the BIOM format <./documentation/biom_format.html>`_, and second is `development of support objects <./documentation/table_objects.html>`_ in multiple programming languages to support the use of BIOM in diverse bioinformatics applications. The version of the BIOM file format is independent of the version of the `biom-format` software.
 
 Contents
 ========
@@ -20,27 +20,39 @@ Contents
 BIOM version
 ============
 
-The latest official version of the biom-format project and file format is |release|. 
+The latest official version of the biom-format project is |release| and of the BIOM file format is 1.0. Details on the file format can be found `here <./documentation/biom_format.html>`_.
 
-The biom-format project and file format version are currently the same, but these will be decoupled with the 1.0.0 release. Release versions contain three integers in the following format: ``major-version.incremental-version.minor-version``. When ``-dev`` is appended to the end of a version string that indicates a development (or between-release version). For example, ``1.0.0-dev`` would refer to the development version following the 1.0.0 release. 
+Installing the biom-format project
+==================================
 
-Installing the BIOM project
-===========================
+To install the ``biom-format`` project, you can download the release version `biom-format-1.0.0 <https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version. 
 
-To install the BIOM project, you can download the release version `biom-format-0.9.3 <https://github.com/downloads/biom-format/biom-format/biom-format-0.9.3.tgz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version. 
-
-To pull the development version from our svn repository, first ``cd`` to the directory where you'd like to install the code. We'll call this ``$HOME/code``:: 
+We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
 
 	cd $HOME/code
 
-To install the release version, download from `biom-format-0.9.3 <https://github.com/downloads/biom-format/biom-format/biom-format-0.9.3.tgz>`_, and then run ``tar -xvzf`` on the resulting file to unzip it. To install the development version, run the following command::
+To install the release version, download from `biom-format-1.0.0 <https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz>`_, uncompress the file, and change to the resulting directory::
+
+	wget https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz
+	tar -xvzf biom-format-1.0.0.tgz
+	cd $HOME/code/biom-format-1.0.0
+
+Alternatively, to install the development version, pull it from github, and change to the resulting directory::
 
 	git clone git://github.com/biom-format/biom-format.git
-	
+	cd $HOME/code/biom-format
+
 To install (either the development or release version), follow these steps::
 
-	cd $HOME/code/biom-format
 	sudo python setup.py install
+
+If you do not have sudo access on your system (or don't want to install the ``biom-format`` project in the default location) you'll need to install the library code and scripts in specified directories, and then tell your system where to look for those files. You can do this as follows::
+
+	echo "export PATH=$HOME/bin/:$PATH" >> $HOME/.bashrc
+	echo "export PYTHONPATH=$HOME/lib/:$PYTHONPATH" >> $HOME/.bashrc
+	mkdir -p $HOME/bin $HOME/lib/
+	source $HOME/.bashrc
+	python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib/ --install-lib=$HOME/lib/
 
 You should then have access to the biom-format project. You can test this by running the following command::
 	
@@ -52,13 +64,17 @@ Next you can run::
 
 	which convert_biom.py
 
-You should get ``$HOME/code/biom-format/scripts/convert_biom.py`` printed to your screen if it is installed correctly.
+You should get a file path ending with ``convert_biom.py`` printed to your screen if it is installed correctly.
 
 
 Citing the BIOM project
 =======================
 
-While our manuscript is under review you can cite the BIOM project with this URL: `http://www.biom-format.org <http://www.biom-format.org>`_.
+You can cite the BIOM format as follows:
+
+| The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome.
+| Daniel McDonald, Jose C. Clemente, Justin Kuczynski, Jai Ram Rideout, Jesse Stombaugh, Doug Wendel, Andreas Wilke, Susan Huse, John Hufnagle, Folker Meyer, Rob Knight, and J. Gregory Caporaso.
+| GigaScience, June 2012.
 
 Development team
 ================
