@@ -43,7 +43,17 @@ except ImportError:
     list_nparray_to_sparseobj = list_nparray_to_sparsedict
     nparray_to_sparseobj = nparray_to_sparsedict
     list_list_to_sparseobj = list_list_to_sparsedict
-    
+   
+__author__ = "Daniel McDonald"
+__copyright__ = "Copyright 2012, BIOM-Format Project"
+__credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso", 
+                       "Jose Clemente", "Justin Kuczynski"]
+__license__ = "GPL"
+__url__ = "http://biom-format.org"
+__version__ = "0.9.3-dev"
+__maintainer__ = "Daniel McDonald"
+__email__ = "daniel.mcdonald@colorado.edu"   
+   
 class Table(object):
     """Abstract base class for a what a Table is"""
     _biom_type = None
