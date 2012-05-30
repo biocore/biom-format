@@ -9,6 +9,5 @@ __url__ = "http://biom-format.org"
 __version__ = "0.9.3-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Release"
 
-__all__ = ['table','parse','sparsedict','util','unittest','exception']
+__all__ = ['table','parse','sparsemat','sparsedict','util','unittest','exception']
