@@ -3,7 +3,6 @@
 from setuptools import find_packages
 from distutils.core import setup
 from distutils.extension import Extension
-from Cython.Distutils import build_ext
 from os.path import join, split
 from os import getcwd
 from glob import glob
@@ -22,6 +21,12 @@ try:
     import numpy
 except ImportError:
     raise ImportError, "numpy cannot be found. Can't continue."
+
+try:
+    from Cython.Distutils import build_ext
+except ImportError:
+    raise ImportError, "Cython cannot be found. Can't continue."
+
 
 include_path = join(getcwd(), 'python-code', 'support-code', 'include')
 library_path = split(numpy.__file__)[0]
@@ -52,8 +57,7 @@ setup(name='biom-format',
       long_description=long_description,
       ext_modules=[Extension(
                    "_sparsemat", # name of extension
-                   sources=['python-code/support-code/sparsemat.cpp',
-                            'python-code/support-code/sparsemat_lib.cpp'],
+                   sources=['python-code/support-code/sparsemat_lib.cpp'],
                    language="c++", # causes Cython to create C++ source
                    library_dirs=[library_path],
                    include_dirs=[include_path])],
