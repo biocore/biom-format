@@ -27,17 +27,23 @@ Installing the biom-format project
 
 To install the ``biom-format`` project, you can download the release version `biom-format-1.0.0 <https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version. 
 
-To pull the development version from our svn repository, first ``cd`` to the directory where you'd like to install the code. We'll call this ``$HOME/code``:: 
+We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
 
 	cd $HOME/code
 
-To install the release version, download from `biom-format-1.0.0 <https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz>`_, and then run ``tar -xvzf`` on the resulting file to unzip it. To install the development version, run the following command::
+To install the release version, download from `biom-format-1.0.0 <https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz>`_, uncompress the file, and change to the resulting directory::
+
+	wget https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz
+	tar -xvzf biom-format-1.0.0.tgz
+	cd $HOME/code/biom-format-1.0.0
+
+To install the development version, pull it from github, and change to the resulting directory::
 
 	git clone git://github.com/biom-format/biom-format.git
-	
+	cd $HOME/code/biom-format
+
 To install (either the development or release version), follow these steps::
 
-	cd $HOME/code/biom-format
 	sudo python setup.py install
 
 If you do not have sudo access on your system (or don't want to install the ``biom-format`` project in the default location) you'll need to install the library code and scripts in specified directories, and then tell your system where to look for those files. You can do this as follows::
