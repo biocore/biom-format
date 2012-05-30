@@ -25,7 +25,6 @@ except ImportError:
 
 include_path = join(getcwd(), 'python-code', 'support-code', 'include')
 library_path = split(numpy.__file__)[0]
-print library_path
 
 long_description = """BIOM: Biological Observation Matrix
 http://www.biom-format.org
@@ -52,9 +51,10 @@ setup(name='biom-format',
       data_files={},
       long_description=long_description,
       ext_modules=[Extension(
-                   "_sparsemat",                 # name of extension
-                   ["sparsemat.pyx", "sparsemat_lib.cpp"], #  our Cython source
-                   language="c++",  # causes Cython to create C++ source
+                   "_sparsemat", # name of extension
+                   sources=['python-code/support-code/sparsemat.cpp',
+                            'python-code/support-code/sparsemat_lib.cpp'],
+                   language="c++", # causes Cython to create C++ source
                    library_dirs=[library_path],
                    include_dirs=[include_path])],
       cmdclass={'build_ext': build_ext}
