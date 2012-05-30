@@ -38,9 +38,19 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
 cdef class PySparseMatFloat:
     # provide a python interface into the c++ object
     cdef SparseMatFloat *thisptr # so we can refer to self
+    cdef int rows
+    cdef int cols
     
-    def __cinit__(self):
+    def __cinit__(self, int rows, int cols):
         """Using default constructor"""
+        if rows < 0:
+            raise IndexError("The number of rows must be > 0!")
+        if cols < 0:
+            raise IndexError("The number of cols must be > 0!")
+            
+        self.rows = rows
+        self.cols = cols
+        
         self.thisptr = new SparseMatFloat()
 
     def __dealloc__(self):
@@ -49,26 +59,73 @@ cdef class PySparseMatFloat:
 
     def __str__(self):
         """Output like a python dict"""
+        cdef int r
+        cdef int c
+        cdef double v
+        
         output = []
         for (r,c),v in self.items():
             output.append('(%d, %d):%f' % (r,c,v))
         output = ', '.join(output)
         return '{%s}' % output
-        
-    def insert(self, row, col, value):
+ 
+    def _boundcheck(self, int row, int col):
+        """Check row/col are sane"""
+        if row < 0 or row >= self.rows:
+            raise IndexError("Row %d is out of bounds!" % row)
+        if col < 0 or col >= self.cols:
+            raise IndexError("Col %d is out of bounds!" % col)
+             
+    def insert(self, int row, int col, double value):
         """Insert a value into the matrix"""
+        self._boundcheck(row, col)    
         self.thisptr.insert(<unsigned int>row, <unsigned int>col, value)
    
-    def get(self, row, col):
+    def get(self, int row, int col):
         """Get a value from the matrix, return 0.0 if doesn't exist"""
+        self._boundcheck(row, col)
         return self.thisptr.get(<unsigned int>row, <unsigned int>col)
 
-    def erase(self, row, col):
+    def getRow(self, int row, set keys):
+        """Bulk get a row, return a new self type"""
+        cdef int r
+        cdef int c
+        cdef double v
+        cdef int checked_row
+         
+        self._boundcheck(row, 1) # assume at least a single column...
+        checked_row = <unsigned int> row
+        new_row = self.__class__(1, self.cols)
+        
+        for (r,c) in keys:
+            new_row.insert(0, c, self.thisptr.get(checked_row, <unsigned int> c))
+        
+        return new_row
+        
+    def getCol(self, int col, set keys):
+        """Bulk get a col, return a new self type"""
+        cdef int r
+        cdef int c
+        cdef double v
+        cdef int checked_col
+         
+        self._boundcheck(1, col) # assume at least a single row...
+        checked_col = <unsigned int> col
+        new_col = self.__class__(self.rows, 1)
+        
+        for (r,c) in keys:
+            new_col.insert(r, 0, self.thisptr.get(<unsigned int> r, checked_col))
+        
+        return new_col
+        
+    def erase(self, int row, int col):
         """Delete a value from the matrix"""
+        self._boundcheck(row, col)
         self.thisptr.erase(<unsigned int>row, <unsigned int>col)
         
-    def contains(self, row, col):
+    def contains(self, int row, int col):
         """Return True if the row/col exists, False otherwise"""
+        self._boundcheck(row, col)
         if self.thisptr.contains(<unsigned int>row, <unsigned int>col) == 1:
             return True
         else:
@@ -105,9 +162,19 @@ cdef class PySparseMatFloat:
 cdef class PySparseMatInt:
     # provide a python interface into the c++ object
     cdef SparseMatInt *thisptr # so we can refer to self
+    cdef int rows
+    cdef int cols
     
-    def __cinit__(self):
+    def __cinit__(self, int rows, int cols):
         """Using default constructor"""
+        if rows < 0:
+            raise IndexError("The number of rows must be > 0!")
+        if cols < 0:
+            raise IndexError("The number of cols must be > 0!")
+            
+        self.rows = rows
+        self.cols = cols
+        
         self.thisptr = new SparseMatInt()
 
     def __dealloc__(self):
@@ -116,26 +183,41 @@ cdef class PySparseMatInt:
 
     def __str__(self):
         """Output like a python dict"""
+        cdef int r
+        cdef int c
+        cdef double v
         output = []
+        
         for (r,c),v in self.items():
             output.append('(%d, %d):%d' % (r,c,v))
         output = ', '.join(output)
         return '{%s}' % output
    
-    def insert(self, row, col, value):
+    def _boundcheck(self, int row, int col):
+        """Check row/col are sane"""
+        if row < 0 or row >= self.rows:
+            raise IndexError("Row %d is out of bounds!" % row)
+        if col < 0 or col >= self.cols:
+            raise IndexError("Col %d is out of bounds!" % col)
+               
+    def insert(self, int row, int col, int value):
         """Insert a value into the matrix"""
+        self._boundcheck(row, col)
         self.thisptr.insert(<unsigned int>row, <unsigned int>col, value)
    
-    def get(self, row, col):
+    def get(self, int row, int col):
         """Get a value from the matrix, return 0.0 if doesn't exist"""
+        self._boundcheck(row, col)
         return self.thisptr.get(<unsigned int>row, <unsigned int>col)
 
-    def erase(self, row, col):
+    def erase(self, int row, int col):
         """Delete a value from the matrix"""
+        self._boundcheck(row, col)
         self.thisptr.erase(<unsigned int>row, <unsigned int>col)
 
-    def contains(self, row, col):
+    def contains(self, int row, int col):
         """Return True if the row/col exists, False otherwise"""
+        self._boundcheck(row, col)
         if self.thisptr.contains(<unsigned int>row, <unsigned int>col) == 1:
             return True
         else:
@@ -148,6 +230,8 @@ cdef class PySparseMatInt:
     def keys(self):
         """Return keys [(row,col)] similar to Python dict.keys()"""
         cdef items_int foo
+        cdef Py_ssize_t i
+        
         foo = self.thisptr.keys()
         
         results = []
@@ -159,6 +243,8 @@ cdef class PySparseMatInt:
     def items(self):
         """Return items [((row,col),value)] similar to Python dict.items()"""
         cdef items_int foo
+        cdef Py_ssize_t i
+        
         foo = self.thisptr.items()
         
         results = []
