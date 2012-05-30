@@ -3,6 +3,16 @@
 from biom.unit_test import TestCase, main
 from biom.util import natsort, _natsort_key, flatten, unzip
 
+__author__ = "Daniel McDonald"
+__copyright__ = "Copyright 2012, BIOM-Format Project"
+__credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
+                            "Zongzhi Liu", "Micah Hamady", "Daniel McDonald"]
+__license__ = "GPL"
+__url__ = "http://biom-format.org"
+__version__ = "0.9.3-dev"
+__maintainer__ = "Daniel McDonald"
+__email__ = "daniel.mcdonald@colorado.edu"
+
 class UtilTests(TestCase):
     def test_natsort(self):
         """natsort should perform numeric comparisons on strings
@@ -32,7 +42,6 @@ class UtilTests(TestCase):
         # string of ints sort correctly
         self.assertEqual(natsort([('11','A'),('2','B'),('1','C'),('0','D')]),
                             [('0','D'),('1','C'),('2','B'),('11','A')])
-
 
     def test_unzip(self):
         """unzip(items) should be the inverse of zip(*items)

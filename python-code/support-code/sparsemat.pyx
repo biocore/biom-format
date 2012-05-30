@@ -1,3 +1,13 @@
+# __author__ = "Daniel McDonald"
+# __copyright__ = "Copyright 2012, BIOM-Format Project"
+# __credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso", 
+#                        "Jose Clemente", "Justin Kuczynski"]
+# __license__ = "GPL"
+# __url__ = "http://biom-format.org"
+# __version__ = "0.9.3-dev"
+# __maintainer__ = "Daniel McDonald"
+# __email__ = "daniel.mcdonald@colorado.edu"
+
 cdef extern from "sparsemat_lib.h" namespace "sparsemat":
     cdef struct items_int:
         # support struct for returning all rows/cols/values from a integer mat

@@ -14,7 +14,6 @@ __url__ = "http://biom-format.org"
 __version__ = "0.9.3-dev"
 __maintainer__ = "Jose Carlos Clemente Litran"
 __email__ = "jose.clemente@gmail.com"
-__status__ = "Release"
 
 def my_import(name):
     """Imports a module, possibly qualified with periods. Returns the module.

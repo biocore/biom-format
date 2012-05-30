@@ -18,8 +18,7 @@ __url__ = "http://biom-format.org"
 __version__ = "0.9.3-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Release"
-    
+   
 class SparseMatTests(TestCase):
     def setUp(self):
         self.obj = SparseMat(6,3)
@@ -293,7 +292,7 @@ class SupportTests(TestCase):
 
 class PySparseMatIntTests(TestCase):
     def setUp(self):
-        self.obj = PySparseMatInt()
+        self.obj = PySparseMatInt(20,30)
 
     def test_get(self):
         """make sure we can get shibby"""
@@ -316,7 +315,7 @@ class PySparseMatIntTests(TestCase):
 
     def test_contains(self):
         """Make sure we can check if things are present"""
-        x = PySparseMatInt()
+        x = PySparseMatInt(2,3)
         self.assertEqual(x.contains(1,2), 0)
         x.insert(1,2,20)
         self.assertEqual(x.contains(1,2), 1)
@@ -329,7 +328,7 @@ class PySparseMatIntTests(TestCase):
         
     def test_length(self):
         """make sure we can test length"""
-        x = PySparseMatInt()
+        x = PySparseMatInt(3,4)
         self.assertEqual(x.length(), 0)
         x.insert(1,2,10)
         self.assertEqual(x.length(), 1)
@@ -342,7 +341,7 @@ class PySparseMatIntTests(TestCase):
         
     def test_erase(self):
         """make sure we can erase"""
-        x = PySparseMatInt()
+        x = PySparseMatInt(2,3)
         x.insert(1,2,10)
         self.assertEqual(x.get(1,2), 10)
         x.erase(1,2)
@@ -351,7 +350,7 @@ class PySparseMatIntTests(TestCase):
     
     def test_keys(self):
         """make sure we can get keys"""
-        x = PySparseMatInt()
+        x = PySparseMatInt(3,4)
         self.assertEqual(x.keys(), [])
         x.insert(1,2,10)
         x.insert(2,3,4)
@@ -363,7 +362,7 @@ class PySparseMatIntTests(TestCase):
             
     def test_items(self):
         """make sure we can get items"""
-        x = PySparseMatInt()
+        x = PySparseMatInt(3,4)
         self.assertEqual(x.items(), [])
         x.insert(1,2,10)
         x.insert(2,3,4)

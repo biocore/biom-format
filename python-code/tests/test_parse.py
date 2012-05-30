@@ -23,7 +23,6 @@ __url__ = "http://biom-format.org"
 __version__ = "0.9.3-dev"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
-__status__ = "Release"
 
 class ParseTests(TestCase):
     """Tests of parse functions"""

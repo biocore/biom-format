@@ -18,7 +18,6 @@ __url__ = "http://biom-format.org"
 __version__ = "0.9.3-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Release"
 
 class SupportTests(TestCase):
     def setUp(self):
