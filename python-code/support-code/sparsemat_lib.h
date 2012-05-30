@@ -25,7 +25,10 @@ namespace sparsemat {
             float_map_t hash;
             uint64_t current_key;
         public:
+            items_float tmp_items;
+
             SparseMatFloat();
+            ~SparseMatFloat();
             void insert(uint32_t row, uint32_t col, double value);
             double get(uint32_t row, uint32_t col);
             void erase(uint32_t row, uint32_t col);
@@ -33,6 +36,7 @@ namespace sparsemat {
             uint32_t length();
             items_float keys();
             items_float items();
+            void cleanTmpItems();
     };
 
     class SparseMatInt {
@@ -40,7 +44,10 @@ namespace sparsemat {
             int_map_t hash;
             uint64_t current_key;
         public:
+            items_int tmp_items;
+
             SparseMatInt();
+            ~SparseMatInt();
             void insert(uint32_t row, uint32_t col, int32_t value);
             int32_t get(uint32_t row, uint32_t col);
             void erase(uint32_t row, uint32_t col);
@@ -48,5 +55,6 @@ namespace sparsemat {
             uint32_t length();
             items_int keys();
             items_int items();
+            void cleanTmpItems();
     };
 }

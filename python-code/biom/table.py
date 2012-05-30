@@ -393,14 +393,14 @@ class Table(object):
             samp_metadata = [None] * len(self.SampleIds)
         else:
             samp_metadata = self.SampleMetadata
-
+        
         iterator = izip(self._iter_samp(), self.SampleIds, samp_metadata)
         for samp_v, samp_id, samp_md in iterator:
             if conv_to_np:
                 yield (self._conv_to_np(samp_v), samp_id, samp_md)
             else:
                 yield (samp_v, samp_id, samp_md)
-
+        
     def iterObservations(self, conv_to_np=True):
         """Yields (observation_value, observation_id, observation_metadata)
 
@@ -418,7 +418,7 @@ class Table(object):
                 yield (self._conv_to_np(obs_v), obs_id, obs_md)
             else:
                 yield (obs_v, obs_id, obs_md)
-
+        
     def sortSampleOrder(self, sample_order):
         """Return a new table in sample order"""
         samp_md = []

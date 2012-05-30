@@ -5,19 +5,21 @@
 using namespace sparsemat;
 
 // SparseMatFloat
-SparseMatFloat::SparseMatFloat() {}
+SparseMatFloat::SparseMatFloat() {
+    tmp_items.rows = NULL;
+    tmp_items.cols = NULL;
+    tmp_items.values = NULL;
+}
+
+SparseMatFloat::~SparseMatFloat() {
+    cleanTmpItems();
+}
 
 void SparseMatFloat::insert(uint32_t row, uint32_t col, double value) {
     if(value == 0.0)
         return;
         
     current_key = MAKE_KEY(row,col);
-#ifdef _SPARSEMAT_LIB_DEBUG
-    printf("val: %0.10f\n", value);
-    std::cout << "Row: " << row << "\tCol: " << col << "\tval: " << value << std::endl;
-    std::cout << "Current key: " << current_key << "\tvalue: " << value << std::endl;
-    std::cout << "sizeof(hash): " << sizeof(hash) << std::endl;
-#endif
     hash[current_key] = value;
 }
 
@@ -27,12 +29,6 @@ double SparseMatFloat::get(uint32_t row, uint32_t col) {
         return 0.0;
         
     current_key = MAKE_KEY(row, col);
-#ifdef _SPARSEMAT_LIB_DEBUG
-    printf("val: %0.10f\n", hash[current_key]);
-    std::cout << "Row: " << row << "\tCol: " << col << "\tval: "<< hash[current_key] << std::endl;
-    std::cout << "Current key: " << current_key << std::endl;
-    std::cout << "sizeof(hash): " << sizeof(hash) << std::endl;
-#endif
     return hash[current_key];
 }
 
@@ -56,56 +52,72 @@ uint32_t SparseMatFloat::length() {
 }
 
 items_float SparseMatFloat::keys() {
-    items_float all_keys;
     uint32_t n_keys = length();
     uint32_t count = 0;
+        
+    cleanTmpItems();
     
-    all_keys.rows = new uint32_t[n_keys];
-    all_keys.cols = new uint32_t[n_keys];
+    tmp_items.rows = new uint32_t[n_keys];
+    tmp_items.cols = new uint32_t[n_keys];
+    tmp_items.values = NULL;
     
     for(std::tr1::unordered_map<uint64_t,double>::iterator i = hash.begin(); i != hash.end(); i++) {
-        all_keys.rows[count] = DECODE_KEY_ROW(i->first);
-        all_keys.cols[count] = DECODE_KEY_COL(i->first);
+        tmp_items.rows[count] = DECODE_KEY_ROW(i->first);
+        tmp_items.cols[count] = DECODE_KEY_COL(i->first);
+    
         count += 1;
     }
 
-    return all_keys;
+    return tmp_items;
 }
 
 items_float SparseMatFloat::items() {
-    items_float all_keys;
     uint32_t n_keys = length();
     uint32_t count = 0;
     
-    all_keys.rows = new uint32_t[n_keys];
-    all_keys.cols = new uint32_t[n_keys];
-    all_keys.values = new double[n_keys];
+    cleanTmpItems();
+    
+    tmp_items.rows = new uint32_t[n_keys];
+    tmp_items.cols = new uint32_t[n_keys];
+    tmp_items.values = new double[n_keys];
     
     for(std::tr1::unordered_map<uint64_t,double>::iterator i = hash.begin(); i != hash.end(); i++) {
-        all_keys.rows[count] = DECODE_KEY_ROW(i->first);
-        all_keys.cols[count] = DECODE_KEY_COL(i->first);
-        all_keys.values[count] = i->second;
+        tmp_items.rows[count] = DECODE_KEY_ROW(i->first);
+        tmp_items.cols[count] = DECODE_KEY_COL(i->first);
+        tmp_items.values[count] = i->second;
         count += 1;
     }
 
-    return all_keys;
+    return tmp_items;
+}
+
+void SparseMatFloat::cleanTmpItems() {
+    if(tmp_items.rows != NULL)
+        delete tmp_items.rows;
+    
+    if(tmp_items.cols != NULL)
+        delete tmp_items.cols;
+    
+    if(tmp_items.values != NULL)
+        delete tmp_items.values;
 }
 
 // SparseMatInt
-SparseMatInt::SparseMatInt() {}
+SparseMatInt::SparseMatInt() {
+    tmp_items.rows = NULL;
+    tmp_items.cols = NULL;
+    tmp_items.values = NULL;
+}
+
+SparseMatInt::~SparseMatInt() {
+    cleanTmpItems();
+}
 
 void SparseMatInt::insert(uint32_t row, uint32_t col, int32_t value) {
     if(value == 0)
         return;
         
     current_key = MAKE_KEY(row,col);
-#ifdef _SPARSEMAT_LIB_DEBUG
-    std::cout << "max_size = " << hash.max_size() << std::endl;
-    std::cout << "max_bucket_count = " << hash.max_bucket_count() << std::endl;
-    std::cout << "max_load_factor = " << hash.max_load_factor() << std::endl;
-    std::cout << "Row: " << row << "\tCol: " << col << std::endl;
-    std::cout << "Current key: " << current_key << "\tvalue: " << value << std::endl;
-#endif
     hash[current_key] = value;
 }
 
@@ -115,10 +127,6 @@ int32_t SparseMatInt::get(uint32_t row, uint32_t col) {
         return 0;
 
     current_key = MAKE_KEY(row, col);
-#ifdef _SPARSEMAT_LIB_DEBUG
-    std::cout << "Row: " << row << "\tCol: " << col << std::endl;
-    std::cout << "Current key: " << current_key << std::endl;
-#endif
     return hash[current_key];
 }
 
@@ -142,37 +150,52 @@ uint32_t SparseMatInt::length() {
 }
 
 items_int SparseMatInt::keys() {
-    items_int all_keys;
     uint32_t n_keys = length();
     uint32_t count = 0;
     
-    all_keys.rows = new uint32_t[n_keys];
-    all_keys.cols = new uint32_t[n_keys];
+    cleanTmpItems();
+        
+    tmp_items.rows = new uint32_t[n_keys];
+    tmp_items.cols = new uint32_t[n_keys];
+    tmp_items.values = NULL;
     
     for(std::tr1::unordered_map<uint64_t,int32_t>::iterator i = hash.begin(); i != hash.end(); i++) {
-        all_keys.rows[count] = DECODE_KEY_ROW(i->first);
-        all_keys.cols[count] = DECODE_KEY_COL(i->first);
+        tmp_items.rows[count] = DECODE_KEY_ROW(i->first);
+        tmp_items.cols[count] = DECODE_KEY_COL(i->first);
         count += 1;
     }
 
-    return all_keys;
+    // ARG, return by value...
+    return tmp_items;
 }
 
 items_int SparseMatInt::items() {
-    items_int all_keys;
     uint32_t n_keys = length();
     uint32_t count = 0;
     
-    all_keys.rows = new uint32_t[n_keys];
-    all_keys.cols = new uint32_t[n_keys];
-    all_keys.values = new int32_t[n_keys];
+    cleanTmpItems();
+
+    tmp_items.rows = new uint32_t[n_keys];
+    tmp_items.cols = new uint32_t[n_keys];
+    tmp_items.values = new int32_t[n_keys];
     
     for(std::tr1::unordered_map<uint64_t,int32_t>::iterator i = hash.begin(); i != hash.end(); i++) {
-        all_keys.rows[count] = DECODE_KEY_ROW(i->first);
-        all_keys.cols[count] = DECODE_KEY_COL(i->first);
-        all_keys.values[count] = i->second;
+        tmp_items.rows[count] = DECODE_KEY_ROW(i->first);
+        tmp_items.cols[count] = DECODE_KEY_COL(i->first);
+        tmp_items.values[count] = i->second;
         count += 1;
     }
 
-    return all_keys;
+    return tmp_items;
+}
+
+void SparseMatInt::cleanTmpItems() {   
+    if(tmp_items.rows != NULL)
+        delete tmp_items.rows;
+    
+    if(tmp_items.cols != NULL)
+        delete tmp_items.cols;
+    
+    if(tmp_items.values != NULL)
+        delete tmp_items.values;
 }

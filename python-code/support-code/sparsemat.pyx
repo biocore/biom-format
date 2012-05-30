@@ -22,6 +22,7 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
         int length()
         items_float keys()
         items_float items()
+        void cleanItems()
         
     cdef cppclass SparseMatInt:
         # prototype for SparseMatInt c++ object
@@ -33,6 +34,7 @@ cdef extern from "sparsemat_lib.h" namespace "sparsemat":
         int length()
         items_int keys()
         items_int items()
+        void cleanItems()
 
 # inheritence was not working as expected, so it was scrapped.
 cdef class PySparseMatFloat:
@@ -86,7 +88,7 @@ cdef class PySparseMatFloat:
         self._boundcheck(row, col)
         return self.thisptr.get(<unsigned int>row, <unsigned int>col)
 
-    def getRow(self, int row, set keys):
+    def getRow(self, int row, set row_keys):
         """Bulk get a row, return a new self type"""
         cdef int r
         cdef int c
@@ -97,12 +99,12 @@ cdef class PySparseMatFloat:
         checked_row = <unsigned int> row
         new_row = self.__class__(1, self.cols)
         
-        for (r,c) in keys:
+        for (r,c) in row_keys:
             new_row.insert(0, c, self.thisptr.get(checked_row, <unsigned int> c))
         
         return new_row
         
-    def getCol(self, int col, set keys):
+    def getCol(self, int col, set col_keys):
         """Bulk get a col, return a new self type"""
         cdef int r
         cdef int c
@@ -113,7 +115,7 @@ cdef class PySparseMatFloat:
         checked_col = <unsigned int> col
         new_col = self.__class__(self.rows, 1)
         
-        for (r,c) in keys:
+        for (r,c) in col_keys:
             new_col.insert(r, 0, self.thisptr.get(<unsigned int> r, checked_col))
         
         return new_col
@@ -144,7 +146,7 @@ cdef class PySparseMatFloat:
         results = []
         for i in range(self.length()):
             results.append((foo.rows[i], foo.cols[i]))
-        
+                
         return results
     
     def items(self):
@@ -156,7 +158,7 @@ cdef class PySparseMatFloat:
         results = []
         for i in range(self.length()):
             results.append(((foo.rows[i], foo.cols[i]), foo.values[i]))
-        
+                
         return results
     
 cdef class PySparseMatInt:
@@ -210,6 +212,38 @@ cdef class PySparseMatInt:
         self._boundcheck(row, col)
         return self.thisptr.get(<unsigned int>row, <unsigned int>col)
 
+    def getRow(self, int row, set row_keys):
+        """Bulk get a row, return a new self type"""
+        cdef int r
+        cdef int c
+        cdef int v
+        cdef int checked_row
+         
+        self._boundcheck(row, 1) # assume at least a single column...
+        checked_row = <unsigned int> row
+        new_row = self.__class__(1, self.cols)
+        
+        for (r,c) in row_keys:
+            new_row.insert(0, c, self.thisptr.get(checked_row, <unsigned int> c))
+        
+        return new_row
+        
+    def getCol(self, int col, set col_keys):
+        """Bulk get a col, return a new self type"""
+        cdef int r
+        cdef int c
+        cdef int v
+        cdef int checked_col
+         
+        self._boundcheck(1, col) # assume at least a single row...
+        checked_col = <unsigned int> col
+        new_col = self.__class__(self.rows, 1)
+        
+        for (r,c) in col_keys:
+            new_col.insert(r, 0, self.thisptr.get(<unsigned int> r, checked_col))
+        
+        return new_col
+
     def erase(self, int row, int col):
         """Delete a value from the matrix"""
         self._boundcheck(row, col)
@@ -237,7 +271,7 @@ cdef class PySparseMatInt:
         results = []
         for i in range(self.length()):
             results.append((foo.rows[i], foo.cols[i]))
-        
+                
         return results
 
     def items(self):
@@ -250,5 +284,5 @@ cdef class PySparseMatInt:
         results = []
         for i in range(self.length()):
             results.append(((foo.rows[i], foo.cols[i]), foo.values[i]))
-        
+                
         return results
