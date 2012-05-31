@@ -33,11 +33,15 @@ def suite():
     modules_to_test = [
         'test_parse',
         'test_table',
-        'test_sparsemat',
         'test_sparsedict',
         'test_util',
         'test_unit_test',
         ]
+    try:
+        import biom._sparsemat
+        modules_to_test.append('test_sparsemat')
+    except ImportError:
+        pass
 
     alltests = unittest.TestSuite()
     
