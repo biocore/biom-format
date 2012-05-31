@@ -48,13 +48,7 @@ except ImportError:
     SparseObj = "ERROR: Can't find the BIOM library code - is it installed and in your $PYTHONPATH?"
 
 def get_script_version():
-    fp = app_path('convert_biom.py')
-    if not fp:
-        return "Can't find convert_biom.py - is the script directory in your $PATH?"
-    for line in open(fp,'U'):
-        if line.startswith('__version__'):
-            return line.split('=')[1].strip().strip('"').strip("'")
-    return "Something is wrong: can't find __version__ in %s" % fp
+    return __version__
             
 
 def print_biom_config():
