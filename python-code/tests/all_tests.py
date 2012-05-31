@@ -11,7 +11,7 @@ __copyright__ = "Copyright 2012, BIOM-Format Project"
 __credits__ = ["Jose Carlos Clemente Litran", "Daniel McDonald", "Greg Caporaso"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.0.0"
+__version__ = "1.0.0-dev"
 __maintainer__ = "Jose Carlos Clemente Litran"
 __email__ = "jose.clemente@gmail.com"
 
