@@ -242,7 +242,8 @@ class Table(object):
         return self._obs_index[obs_id]
 
     def getValueByIds(self, obs_id, samp_id):
-        """Return the value in the matrix corresponding to (``obs_id``, ``samp_id``)"""
+        """Return value in the matrix corresponding to ``(obs_id, samp_id)``
+        """
         if obs_id not in self._obs_index:
             raise UnknownID, "ObservationId %s not found!" % obs_id
         if samp_id not in self._sample_index:
@@ -251,7 +252,8 @@ class Table(object):
         return self._data[self._obs_index[obs_id], self._sample_index[samp_id]]
 
     def setValueByIds(self, obs_id, samp_id, val):
-        """Set the matrix entry corresponding to (``obs_id``, ``samp_id``) to ``val``"""
+        """Set matrix entry corresponding to ``(obs_id, samp_id)`` to ``val``
+        """
         if obs_id not in self._obs_index:
             raise UnknownID, "ObservationId %s not found!" % obs_id
         if samp_id not in self._sample_index:
@@ -267,11 +269,11 @@ class Table(object):
         return self.delimitedSelf()
 
     def sampleExists(self, id_):
-        """Returns True if sample id_ exists, False otherwise"""
+        """Returns True if sample ``id_`` exists, False otherwise"""
         return id_ in self._sample_index
 
     def observationExists(self, id_):
-        """Returns True if observation id_ exists, False otherwise"""
+        """Returns True if observation ``id_`` exists, False otherwise"""
         return id_ in self._obs_index
 
     def delimitedSelf(self, delim='\t', header_key=None, header_value=None, 
@@ -281,11 +283,12 @@ class Table(object):
         Default str output for the Table is just row/col ids and table data
         without any metadata
 
-        Including observation metadata in output: If ``header_key`` is not ``None``, the
-        observation metadata with that name will be included in the delimited output. 
-        If ``header_value`` is also not ``None``, the observation metadata will use the 
-        provided ``header_value`` as the observation metadata name (i.e., the column header) 
-        in the delimited output. 
+        Including observation metadata in output: If ``header_key`` is not 
+        ``None``, the observation metadata with that name will be included 
+        in the delimited output. If ``header_value`` is also not ``None``, the 
+        observation metadata will use the provided ``header_value`` as the 
+        observation metadata name (i.e., the column header) in the delimited 
+        output. 
         
         ``metadata_formatter``: a function which takes a metadata entry and 
         returns a formatted version that should be written to file
@@ -481,7 +484,8 @@ class Table(object):
     def sortByObservationId(self, sort_f=natsort):
         """Return a table where observations are sorted by ``sort_f``
         
-            ``sort_f`` must take a single parameter: the list of observation ids
+            ``sort_f`` must take a single parameter: the list of observation 
+            ids
         """
         return self.sortObservationOrder(sort_f(self.ObservationIds))
 
@@ -492,12 +496,12 @@ class Table(object):
     def filterSamples(self, f, invert=False):
         """Filter samples from self based on ``f``
         
-        ``f`` must accept three variables, the sample values, sample IDs and sample 
-        metadata. The function must only return ``True`` or ``False``, where ``True`` 
-        indicates that a sample should be retained.
+        ``f`` must accept three variables, the sample values, sample IDs and 
+        sample metadata. The function must only return ``True`` or ``False``, 
+        where ``True`` indicates that a sample should be retained.
         
-        invert: if ``invert == True``, a return value of ``True`` from ``f`` indicates 
-        that a sample should be discarded
+        invert: if ``invert == True``, a return value of ``True`` from ``f`` 
+        indicates that a sample should be discarded
         """
         samp_ids = []
         samp_vals = []
@@ -531,9 +535,10 @@ class Table(object):
     def filterObservations(self, f, invert=False):
         """Filter observations from self based on ``f``
         
-        ``f`` must accept three variables, the observation values, observation 
-        IDs and observation metadata. The function must only return ``True`` or 
-        ``False``, where ``True`` indicates that an observation should be retained.
+        ``f`` must accept three variables, the observation values, observation
+        IDs and observation metadata. The function must only return ``True`` or
+        ``False``, where ``True`` indicates that an observation should be
+        retained.
         
         invert: if ``invert == True``, a return value of ``True`` from ``f`` 
         indicates that an observation should be discarded
@@ -566,8 +571,8 @@ class Table(object):
     def binSamplesByMetadata(self, f):
         """Yields tables by metadata
         
-        ``f`` is given the sample metadata by row and must return what "bin" the
-        sample is part of.
+        ``f`` is given the sample metadata by row and must return what "bin" 
+        the sample is part of.
         """
         bins = {}
         # conversion of vector types is not necessary, vectors are not
@@ -594,8 +599,8 @@ class Table(object):
     def binObservationsByMetadata(self, f):
         """Yields tables by metadata
         
-        ``f`` is given the observation metadata by row and must return what "bin" the
-        observation is part of.
+        ``f`` is given the observation metadata by row and must return what 
+        "bin" the observation is part of.
         """
         bins = {}
         # conversion of vector types is not necessary, vectors are not
@@ -666,8 +671,8 @@ class Table(object):
         observation. 
         
         Metadata for the collapsed observations are retained and 
-        can be referred to by the ``ObservationId`` from each observation within 
-        the bin.
+        can be referred to by the ``ObservationId`` from each observation 
+        within the bin.
         """
         collapsed_data = []
         collapsed_obs_ids = []
@@ -702,9 +707,9 @@ class Table(object):
     def transformSamples(self, f):
         """Iterate over samples, applying a function ``f`` to each value
         
-        ``f`` must take three values: a sample value (int or float), a sample id, 
-        and a sample metadata entry, and return a single value (int or float)
-        that replaces the provided sample value
+        ``f`` must take three values: a sample value (int or float), a sample 
+        id, and a sample metadata entry, and return a single value (int or 
+        float) that replaces the provided sample value
         """
         new_m = []
         for s_v, s_id, s_md in self.iterSamples():
@@ -731,14 +736,14 @@ class Table(object):
                 self.ObservationMetadata, self.TableId)
 
     def normObservationBySample(self):
-        """Return new table with values transformed to relative abundances within each sample
+        """Return new table with vals as relative abundances within each sample
         """
         def f(samp_v, samp_id, samp_md):
             return samp_v / float(samp_v.sum())
         return self.transformSamples(f)
 
     def normSampleByObservation(self):
-        """Return new table with values transformed to relative abundances within each observation
+        """Return new table with vals as relative abundances within each obs
         """  
         def f(obs_v,obs_id,obs_md):
             return obs_v / float(obs_v.sum())
@@ -746,7 +751,8 @@ class Table(object):
         return self.transformObservations(f)
     
     def normObservationByMetadata(self,obs_metadata_id):
-        """Return new table with counts divided by specified observation metadata value"""
+        """Return new table with vals divided by obs_metadata_id
+        """
         def f(obs_v,obs_id,obs_md):
             return obs_v / obs_md[obs_metadata_id]
         return self.transformObservations(f)
@@ -797,8 +803,8 @@ class Table(object):
         where there is overlap in ``(sample_id, observation_id)`` values in the 
         tables
 
-        ``sample_metadata_f`` and ``observation_metadata_f`` define how to merge
-        metadata between tables. The default is to just keep the metadata
+        ``sample_metadata_f`` and ``observation_metadata_f`` define how to 
+        merge metadata between tables. The default is to just keep the metadata
         associated to self if self has metadata otherwise take metadata from
         other. These functions are given both metadata dictsand must return 
         a single metadata dict
@@ -948,7 +954,8 @@ class Table(object):
         This dictionary can then be easily converted into a JSON string for
         serialization.
 
-        ``generated_by``: a string describing the software used to build the table
+        ``generated_by``: a string describing the software used to build the 
+        table
 
         TODO: This method may be very inefficient in terms of memory usage, so
         it needs to be tested with several large tables to determine if
@@ -1033,13 +1040,16 @@ class Table(object):
     def getBiomFormatJsonString(self,generated_by):
         """Returns a JSON string representing the table in BIOM format.
 
-        ``generated_by``: a string describing the software used to build the table"""
+        ``generated_by``: a string describing the software used to build the
+        table
+        """
         return dumps(self.getBiomFormatObject(generated_by))
 
     def getBiomFormatPrettyPrint(self,generated_by):
         """Returns a 'pretty print' format of a BIOM file
 
-        ``generated_by``: a string describing the software used to build the table
+        ``generated_by``: a string describing the software used to build the
+        table
 
         WARNING: This method displays data values in a columnar format and 
         can be misleading.
