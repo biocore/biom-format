@@ -22,6 +22,7 @@ __license__ = "GPL"
 __version__ = "0.9.3-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
+__status__ = "Release"
 
 def is_int(x):
     """Return True if x is int"""
@@ -29,11 +30,17 @@ def is_int(x):
 
 def valid_format_url(table):
     """Check if the format_url is correct"""
+    if VERBOSE:
+        print "Validating format_url..."
+        
     if table['format_url'] != FORMAT_URL:
         raise ValueError, "Invalid format_url"
 
 def valid_shape(table):
     """A matrix header is (int, int) representing the size of a 2D matrix"""
+    if VERBOSE:
+        print "Validating shape..."
+    
     a,b = table['shape']
 
     if not (is_int(a) and is_int(b)):
@@ -41,11 +48,17 @@ def valid_shape(table):
 
 def valid_matrix_type(table):
     """Returns True if x is a valid matrix type"""
+    if VERBOSE:
+        print "Validating matrix_type..."
+        
     if table['matrix_type'] not in MATRIX_TYPES:
         raise ValueError, "Unknown matrix_type"
 
 def valid_matrix_element_type(table):
     """Return True if table['matrix_element_type'] is a valid element type"""
+    if VERBOSE:
+        print "Validating matrix_element_type..."
+        
     if table['matrix_element_type'] not in ELEMENT_TYPES:
         raise ValueError, "Unknown matrix_element_type"
 
@@ -56,6 +69,9 @@ def valid_datetime(table):
                                       note that a 'T' separates the date 
                                       and time)
     """
+    if VERBOSE:
+        print "Validating datetime..."
+        
     try:
         foo = dateutil.parser.parse(table['date'])
     except:
@@ -63,6 +79,9 @@ def valid_datetime(table):
 
 def valid_sparse_data(table):
     """All index positions must be integers and values are of dtype"""
+    if VERBOSE:
+        print "Validating data (sparse)..."
+        
     dtype = ELEMENT_TYPES[table['matrix_element_type']]
     n_rows, n_cols = table['shape']
     n_rows -= 1 # adjust for 0-based index
@@ -88,6 +107,9 @@ def valid_sparse_data(table):
 
 def valid_dense_data(table):
     """All elements must be of dtype and correspond to shape"""
+    if VERBOSE:
+        print "Validating data (dense)..."
+        
     dtype = ELEMENT_TYPES[table['matrix_element_type']]
     n_rows, n_cols = table['shape']
    
@@ -103,12 +125,18 @@ def valid_dense_data(table):
 
 def valid_format(table):
     """Format must be the expected version"""
+    if VERBOSE:
+        print "Validating format..."
+        
     if table['format'] != FORMAT_STRING:
         raise ValueError, "Invalid 'format' %s, must be %s" % \
                 (table['format'], FORMAT_STRING)
 
 def valid_type(table):
     """Table must be a known table type"""
+    if VERBOSE:
+        print "Validating type..."
+        
     if table['type'].lower() not in BIOM_TYPES:
         raise ValueError, "Unknown BIOM type: %s" % table['type']
 
@@ -118,6 +146,9 @@ def valid_biom(table, check_url=False):
     Raises AttributeError if an expected key is missing
     Raises ValueError if the values at a key appear to be malformed
     """
+    if VERBOSE:
+        print "Validating biom object..."
+        
     required_keys = [('format', valid_format),
                      ('format_url', valid_format_url),
                      ('type', valid_type),
@@ -145,6 +176,9 @@ def valid_biom(table, check_url=False):
 
 def valid_generated_by(table):
     """Validate the generated_by field"""
+    if VERBOSE:
+        print "Validating generated_by..."
+        
     if not table['generated_by']:
         raise ValueError, "'generated_by' is not populated"
     if not isinstance(table['generated_by'], unicode):
@@ -176,6 +210,9 @@ def valid_rows(table):
     Raises AttributeError if an expected key is missing
     Raises ValueError if the values at a key appear to be malformed
     """
+    if VERBOSE:
+        print "Validating rows..."
+        
     required_keys = [('id', valid_id), ('metadata', valid_metadata)]
     required_by_type = {}
     required_keys.extend(required_by_type.get(table['type'].lower(), []))
@@ -192,6 +229,9 @@ def valid_columns(table):
     Raises AttributeError if an expected key is missing
     Raises ValueError if the values at a key appear to be malformed
     """
+    if VERBOSE:
+        print "Validating columns..."
+
     required_keys = [('id', valid_id), ('metadata', valid_metadata)]
     required_by_type = {} 
     required_keys.extend(required_by_type.get(table['type'].lower(), []))
@@ -223,17 +263,18 @@ except ImportError:
     cogent_cl_parsing = False
 
 FORMAT_URL = "http://biom-format.org"
-FORMAT_STRING = "Biological Observation Matrix 0.9.1-dev"
+FORMAT_STRING = "Biological Observation Matrix %s" % __version__
 BIOM_TYPES = set(['otu table', 'pathway table', 'function table', 
                   'ortholog table', 'gene table', 'metabolite table', 
                   'taxon table'])
 MATRIX_TYPES = set(['sparse', 'dense'])
 ELEMENT_TYPES = {'int':int,'str':str,'float':float, 'unicode':unicode}
+VERBOSE = False
 
 if cogent_cl_parsing:
     script_info = {}
     script_info['brief_description'] = "Test a biom file for adherence to the format specification."
-    script_info['script_description'] = "Test a biom file for adherence to the format specification. This specification is defined at http://biom-format.org/documentation/biom_format.html"
+    script_info['script_description'] = "Test a biom file for adherence to the format specification. This specification is defined at http://www.qiime.org/..."
     script_info['script_usage'] = [("","Validate the my_data.biom file.","%prog -i my_data.biom")]
     script_info['output_description']= ""
     script_info['required_options'] = [
@@ -246,16 +287,22 @@ if cogent_cl_parsing:
              help='The specific format string, defaults to [default: %default]')]
     script_info['version'] = __version__
 
-
 if __name__ == '__main__':
-    
     if cogent_cl_parsing:
         option_parser, opts, args =\
          parse_command_line_parameters(**script_info)
         biom_fp = opts.biom_fp
+        VERBOSE = opts.verbose
         FORMAT_STRING = opts.format_version
         valid_biom(json.load(open(biom_fp)))
     else:
+        if '-v' in argv:
+            VERBOSE = True
+            argv.remove('-v')
+        elif '--verbose' in argv:
+            VERBOSE = True
+            argv.remove('--verbose')
+            
         if len(argv) == 3:
             biom_fp = open(argv[2])
         elif len(argv) == 5:
