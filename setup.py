@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-#from setuptools import find_packages
 from distutils.core import setup
 from distutils.extension import Extension
 from os.path import join, split
