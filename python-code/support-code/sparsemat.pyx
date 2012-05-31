@@ -56,9 +56,9 @@ cdef class PySparseMatFloat:
     def __cinit__(self, int rows, int cols):
         """Using default constructor"""
         if rows < 0:
-            raise IndexError("The number of rows must be > 0!")
+            raise KeyError("The number of rows must be > 0!")
         if cols < 0:
-            raise IndexError("The number of cols must be > 0!")
+            raise KeyError("The number of cols must be > 0!")
             
         self.rows = rows
         self.cols = cols
@@ -84,9 +84,9 @@ cdef class PySparseMatFloat:
     def _boundcheck(self, int row, int col):
         """Check row/col are sane"""
         if row < 0 or row >= self.rows:
-            raise IndexError("Row %d is out of bounds!" % row)
+            raise KeyError("Row %d is out of bounds!" % row)
         if col < 0 or col >= self.cols:
-            raise IndexError("Col %d is out of bounds!" % col)
+            raise KeyError("Col %d is out of bounds!" % col)
              
     def insert(self, int row, int col, double value):
         """Insert a value into the matrix"""
@@ -180,9 +180,9 @@ cdef class PySparseMatInt:
     def __cinit__(self, int rows, int cols):
         """Using default constructor"""
         if rows < 0:
-            raise IndexError("The number of rows must be > 0!")
+            raise KeyError("The number of rows must be > 0!")
         if cols < 0:
-            raise IndexError("The number of cols must be > 0!")
+            raise KeyError("The number of cols must be > 0!")
             
         self.rows = rows
         self.cols = cols
@@ -208,9 +208,9 @@ cdef class PySparseMatInt:
     def _boundcheck(self, int row, int col):
         """Check row/col are sane"""
         if row < 0 or row >= self.rows:
-            raise IndexError("Row %d is out of bounds!" % row)
+            raise KeyError("Row %d is out of bounds!" % row)
         if col < 0 or col >= self.cols:
-            raise IndexError("Col %d is out of bounds!" % col)
+            raise KeyError("Col %d is out of bounds!" % col)
                
     def insert(self, int row, int col, int value):
         """Insert a value into the matrix"""

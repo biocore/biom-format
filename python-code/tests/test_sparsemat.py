@@ -4,7 +4,7 @@ from _sparsemat import PySparseMatFloat, PySparseMatInt
 from numpy import zeros, ndarray, array
 from biom.unit_test import TestCase, main
 from biom.table import flatten
-from sparsemat import SparseMat, to_sparsemat, \
+from biom.sparsemat import SparseMat, to_sparsemat, \
     list_nparray_to_sparsemat, list_list_to_sparsemat, \
     list_sparsemat_to_sparsemat, nparray_to_sparsemat, \
     dict_to_sparsemat, list_dict_to_sparsemat
@@ -300,8 +300,8 @@ class PySparseMatIntTests(TestCase):
         self.assertEqual(self.obj.get(10,20), 30) # expect cast
         self.assertTrue(type(self.obj.get(10,20)), type(30))
         self.assertEqual(self.obj.get(10,19), 0)
-        self.assertRaises(OverflowError, self.obj.get, -1, 10)
-        self.assertRaises(OverflowError, self.obj.get, 1, -10)
+        self.assertRaises(KeyError, self.obj.get, -1, 10)
+        self.assertRaises(KeyError, self.obj.get, 1, -10)
 
     def test_insert(self):
         """make sure we can insert"""
@@ -310,8 +310,8 @@ class PySparseMatIntTests(TestCase):
         self.assertTrue(type(self.obj.get(10,20)), type(30))
         self.obj.insert(10,20,-10)
         self.assertEqual(self.obj.get(10,20), -10)
-        self.assertRaises(OverflowError, self.obj.insert, -1, 10, 2)
-        self.assertRaises(OverflowError, self.obj.insert, 1, -10, 3)
+        self.assertRaises(KeyError, self.obj.insert, -1, 10, 2)
+        self.assertRaises(KeyError, self.obj.insert, 1, -10, 3)
 
     def test_contains(self):
         """Make sure we can check if things are present"""
@@ -374,7 +374,7 @@ class PySparseMatIntTests(TestCase):
         
 class PySparseMatFloatTests(TestCase):
     def setUp(self):
-        self.obj = PySparseMatFloat(6,3)
+        self.obj = PySparseMatFloat(11,21)
 
     def test_get(self):
         """make sure we can get shibby"""
@@ -382,8 +382,8 @@ class PySparseMatFloatTests(TestCase):
         self.assertEqual(self.obj.get(10,20), 30.0) # expect cast
         self.assertTrue(type(self.obj.get(10,20)), type(30.0))
         self.assertEqual(self.obj.get(10,19), 0.0)
-        self.assertRaises(OverflowError, self.obj.get, -1, 10)
-        self.assertRaises(OverflowError, self.obj.get, 1, -10)
+        self.assertRaises(KeyError, self.obj.get, -1, 10)
+        self.assertRaises(KeyError, self.obj.get, 1, -10)
 
     def test_insert(self):
         """make sure we can insert"""
@@ -392,12 +392,12 @@ class PySparseMatFloatTests(TestCase):
         self.assertTrue(type(self.obj.get(10,20)), type(30.0))
         self.obj.insert(10,20,-10.0)
         self.assertEqual(self.obj.get(10,20), -10.0)
-        self.assertRaises(OverflowError, self.obj.insert, -1, 10, 2.0)
-        self.assertRaises(OverflowError, self.obj.insert, 1, -10, 3.0)
+        self.assertRaises(KeyError, self.obj.insert, -1, 10, 2.0)
+        self.assertRaises(KeyError, self.obj.insert, 1, -10, 3.0)
 
     def test_contains(self):
         """Make sure we can check if things are present"""
-        x = PySparseMatFloat()
+        x = PySparseMatFloat(2,3)
         self.assertEqual(x.contains(1,2), 0)
         x.insert(1,2,20)
         self.assertEqual(x.contains(1,2), 1)
@@ -410,7 +410,7 @@ class PySparseMatFloatTests(TestCase):
         
     def test_length(self):
         """make sure we can test length"""
-        x = PySparseMatFloat()
+        x = PySparseMatFloat(3,4)
         self.assertEqual(x.length(), 0)
         x.insert(1,2,10)
         self.assertEqual(x.length(), 1)
@@ -423,7 +423,7 @@ class PySparseMatFloatTests(TestCase):
         
     def test_erase(self):
         """make sure we can erase"""
-        x = PySparseMatFloat()
+        x = PySparseMatFloat(2,3)
         x.insert(1,2,10)
         self.assertEqual(x.get(1,2), 10.0)
         x.erase(1,2)
@@ -432,7 +432,7 @@ class PySparseMatFloatTests(TestCase):
     
     def test_keys(self):
         """make sure we can get keys"""
-        x = PySparseMatFloat()
+        x = PySparseMatFloat(3,4)
         self.assertEqual(x.keys(), [])
         x.insert(1,2,10)
         x.insert(2,3,4)
@@ -444,7 +444,7 @@ class PySparseMatFloatTests(TestCase):
             
     def test_items(self):
         """make sure we can get items"""
-        x = PySparseMatFloat()
+        x = PySparseMatFloat(3,4)
         self.assertEqual(x.items(), [])
         x.insert(1,2,10)
         x.insert(2,3,4)
