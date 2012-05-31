@@ -25,7 +25,13 @@ The latest official version of the biom-format project is |release| and of the B
 Installing the biom-format project
 ==================================
 
-To install the ``biom-format`` project, you can download the release version `biom-format-1.0.0 <https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version. 
+To install the ``biom-format`` project, you can download the release version `biom-format-1.0.0 <https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
+
+The biom-format project has the following dependencies:
+	* Python 2 (2.6 or later)
+	* numpy (1.3.0 or later)
+	* gcc >= 4.1.2 (optional; used for more efficient sparse table representations)
+	* cython >= 0.14.1 (optional; used for more efficient sparse table representations)
 
 We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
 
