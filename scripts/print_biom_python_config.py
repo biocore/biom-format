@@ -10,7 +10,7 @@ try:
     from cogent import __version__ as pycogent_lib_version
     from cogent.util.misc import app_path
 except ImportError:
-    print "\n** ERROR: Cannot import PyCogent - this is a BIOM dependency.\n"
+    print "\n** ERROR: Cannot import PyCogent - this is a dependency for the biom-format project python-code package.\n"
     exit()
 
 __author__ = "Greg Caporaso"
@@ -26,8 +26,8 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
 script_info = {}
-script_info['brief_description'] = "Print information on the biom-format project installation."
-script_info['script_description'] = "Print information on the biom-format project installation. This is useful for debugging install issues."
+script_info['brief_description'] = "Print information on the biom-format project python-code installation."
+script_info['script_description'] = "Print information on the biom-format project python-code installation. This is useful for debugging install issues."
 script_info['script_usage'] = [("","Print configuration information.","%prog")]
 script_info['output_description']= ""
 script_info['required_options'] = []
