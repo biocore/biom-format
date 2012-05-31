@@ -21,14 +21,14 @@ __email__ = "gregcaporaso@gmail.com"
 try:
     from numpy import __version__ as numpy_lib_version
 except ImportError:
-    numpy_lib_version = "ERROR: Not installed - this is required!"
+    numpy_lib_version = "ERROR: Not installed - this is required! (This will also cause the BIOM libary to not be importable.)"
     
 try:
     from biom import __version__ as biom_lib_version
     from biom.table import SparseObj
 except ImportError:
-    biom_lib_version = "ERROR: Can't find the BIOM library code - is it installed and in your $PYTHONPATH?"
-    SparseObj = "ERROR: Can't find the BIOM library code - is it installed and in your $PYTHONPATH?"
+    biom_lib_version = "ERROR: Can't find the BIOM library code (or numpy) - is it installed and in your $PYTHONPATH?"
+    SparseObj = "ERROR: Can't find the BIOM library code (or numpy) - is it installed and in your $PYTHONPATH?"
 
 def get_script_version():
     return __version__
