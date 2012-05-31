@@ -19,7 +19,6 @@ __url__ = "http://biom-format.org"
 __version__ = "0.9.3-dev"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
-__status__ = "Release"
 
 BIOM_TYPES = {'otu table':[SparseOTUTable, DenseOTUTable], 
               'pathway table':[SparsePathwayTable, DensePathwayTable], 
