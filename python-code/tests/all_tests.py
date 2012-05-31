@@ -11,7 +11,7 @@ __copyright__ = "Copyright 2012, BIOM-Format Project"
 __credits__ = ["Jose Carlos Clemente Litran", "Daniel McDonald", "Greg Caporaso"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "0.9.3-dev"
+__version__ = "1.0.0"
 __maintainer__ = "Jose Carlos Clemente Litran"
 __email__ = "jose.clemente@gmail.com"
 
@@ -33,6 +33,7 @@ def suite():
     modules_to_test = [
         'test_parse',
         'test_table',
+        'test_sparsemat',
         'test_sparsedict',
         'test_util',
         'test_unit_test',

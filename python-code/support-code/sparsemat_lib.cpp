@@ -39,8 +39,12 @@ void SparseMatFloat::erase(uint32_t row, uint32_t col) {
 
 int SparseMatFloat::contains(uint32_t row, uint32_t col) {
     current_key = MAKE_KEY(row, col);
+#if (__GNUC__ == 4) && (__GNUC_MINOR__ > 2)
+    std::unordered_map<uint64_t,double>::const_iterator got = hash.find(current_key);
+#else
     std::tr1::unordered_map<uint64_t,double>::const_iterator got = hash.find(current_key);
-    
+#endif
+
     if(got == hash.end())
         return 0;
     else
@@ -60,8 +64,12 @@ items_float SparseMatFloat::keys() {
     tmp_items.rows = new uint32_t[n_keys];
     tmp_items.cols = new uint32_t[n_keys];
     tmp_items.values = NULL;
-    
+
+#if (__GNUC__ == 4) && (__GNUC_MINOR__ > 2)    
+    for(std::unordered_map<uint64_t,double>::iterator i = hash.begin(); i != hash.end(); i++) {
+#else
     for(std::tr1::unordered_map<uint64_t,double>::iterator i = hash.begin(); i != hash.end(); i++) {
+#endif
         tmp_items.rows[count] = DECODE_KEY_ROW(i->first);
         tmp_items.cols[count] = DECODE_KEY_COL(i->first);
     
@@ -80,8 +88,12 @@ items_float SparseMatFloat::items() {
     tmp_items.rows = new uint32_t[n_keys];
     tmp_items.cols = new uint32_t[n_keys];
     tmp_items.values = new double[n_keys];
-    
+
+#if (__GNUC__ == 4) && (__GNUC_MINOR__ > 2)        
+    for(std::unordered_map<uint64_t,double>::iterator i = hash.begin(); i != hash.end(); i++) {
+#else
     for(std::tr1::unordered_map<uint64_t,double>::iterator i = hash.begin(); i != hash.end(); i++) {
+#endif
         tmp_items.rows[count] = DECODE_KEY_ROW(i->first);
         tmp_items.cols[count] = DECODE_KEY_COL(i->first);
         tmp_items.values[count] = i->second;
@@ -137,8 +149,13 @@ void SparseMatInt::erase(uint32_t row, uint32_t col) {
 
 int SparseMatInt::contains(uint32_t row, uint32_t col) {
     current_key = MAKE_KEY(row, col);
+
+#if (__GNUC__ == 4) && (__GNUC_MINOR__ > 2)        
+    std::unordered_map<uint64_t,int32_t>::const_iterator got = hash.find(current_key);
+#else
     std::tr1::unordered_map<uint64_t,int32_t>::const_iterator got = hash.find(current_key);
-    
+#endif   
+ 
     if(got == hash.end())
         return 0;
     else
@@ -158,8 +175,12 @@ items_int SparseMatInt::keys() {
     tmp_items.rows = new uint32_t[n_keys];
     tmp_items.cols = new uint32_t[n_keys];
     tmp_items.values = NULL;
-    
+
+#if (__GNUC__ == 4) && (__GNUC_MINOR__ > 2)            
+    for(std::unordered_map<uint64_t,int32_t>::iterator i = hash.begin(); i != hash.end(); i++) {
+#else
     for(std::tr1::unordered_map<uint64_t,int32_t>::iterator i = hash.begin(); i != hash.end(); i++) {
+#endif
         tmp_items.rows[count] = DECODE_KEY_ROW(i->first);
         tmp_items.cols[count] = DECODE_KEY_COL(i->first);
         count += 1;
@@ -179,7 +200,11 @@ items_int SparseMatInt::items() {
     tmp_items.cols = new uint32_t[n_keys];
     tmp_items.values = new int32_t[n_keys];
     
+#if (__GNUC__ == 4) && (__GNUC_MINOR__ > 2)            
+    for(std::unordered_map<uint64_t,int32_t>::iterator i = hash.begin(); i != hash.end(); i++) {
+#else
     for(std::tr1::unordered_map<uint64_t,int32_t>::iterator i = hash.begin(); i != hash.end(); i++) {
+#endif
         tmp_items.rows[count] = DECODE_KEY_ROW(i->first);
         tmp_items.cols[count] = DECODE_KEY_COL(i->first);
         tmp_items.values[count] = i->second;

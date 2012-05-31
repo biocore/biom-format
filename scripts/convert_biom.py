@@ -16,10 +16,9 @@ __copyright__ = "Copyright 2012, The BIOM-Format project"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Carlos Clemente Litran"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "0.9.3-dev"
+__version__ = "1.0.0"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
-__status__ = "Release"
 
 BIOM_TYPES = {'otu table':[SparseOTUTable, DenseOTUTable], 
               'pathway table':[SparsePathwayTable, DensePathwayTable], 

@@ -1,6 +1,6 @@
 {
      "id":null,
-     "format": "Biological Observation Matrix 0.9.1-dev",
+     "format": "Biological Observation Matrix 1.0.0",
      "format_url": "http://biom-format.org",
      "type": "OTU table",
      "generated_by": "QIIME revision XYZ",

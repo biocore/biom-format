@@ -4,7 +4,7 @@
 biom-format ``Table`` objects
 ===========================================
 
-The biom-format project provides rich ``Table`` objects to support use of the BIOM file format. The objects encapsulate matrix data (such as OTU counts) and abstract the interaction away from the programmer. This provides the immediate benefit of the programmer not having to worry about what the underlying data object is, and in turn allows for different data representations to be supported. Currently, biom-format supports a ``dense`` object built off of ``numpy.array`` (`NumPy <http://http://numpy.scipy.org/>`_) and a ``sparse`` object built off of Python dictionaries. 
+The biom-format project provides rich ``Table`` objects to support use of the BIOM file format. The objects encapsulate matrix data (such as OTU counts) and abstract the interaction away from the programmer. This provides the immediate benefit of the programmer not having to worry about what the underlying data object is, and in turn allows for different data representations to be supported. Currently, biom-format supports a ``dense`` object built off of ``numpy.array`` (`NumPy <http://numpy.scipy.org/>`_) and a ``sparse`` object built off of Python dictionaries. 
 
 biom-format ``table_factory`` method
 =========================================
@@ -110,7 +110,7 @@ The ``DenseTable`` object fulfills all private member methods stubbed out by the
 Table type objects
 ------------------
 
-The table type objects define variables and methods specific to a table type. Under the majority of situations, these are the objects that should be instantiated.
+The table type objects define variables and methods specific to a table type. These inherit from a ``Container Class`` and a table type base class, and are therefore instantiable. Generally you'll instantiate tables with ``biom.table.table_factory``, and one of these will be passed as the ``constructor`` argument.
 
 ``DenseOTUTable``
 ^^^^^^^^^^^^^^^^^

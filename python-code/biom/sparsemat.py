@@ -12,10 +12,9 @@ __credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "0.9.3-dev"
+__version__ = "1.0.0"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Release"
 
 class SparseMat():
     """Support wrapper for the light weight c++ sparse mat
@@ -31,11 +30,11 @@ class SparseMat():
     def __init__(self, rows, cols, dtype=float, enable_indices=True):
         self.shape = (rows, cols) 
         self.dtype = dtype # casting is minimal, trust the programmer...
-        
+
         if dtype == float:
-            self._data = _sparsemat.PySparseMatFloat()
+            self._data = _sparsemat.PySparseMatFloat(rows, cols)
         elif dtype == int:
-            self._data = _sparsemat.PySparseMatInt()
+            self._data = _sparsemat.PySparseMatInt(rows, cols)
         else:
             raise ValueError, "Unsupported type %s for _sparsemat" % dtype
             
@@ -105,14 +104,8 @@ class SparseMat():
         row,col = args
         in_self_rows, in_self_cols = self.shape
 
-        if row >= in_self_rows or row < 0:
-            raise KeyError, "The specified row is out of bounds"
-        if col >= in_self_cols or col < 0:
-            raise KeyError, "The specified col is out of bounds"
-
         if value == 0:
             if args in self:
-                #self._update_internal_indices(args, value)
                 self.erase(row, col)
             else:
                 return
@@ -138,13 +131,6 @@ class SparseMat():
             else:
                 raise AttributeError, "Can only handle full : slices per axis"
         else:
-            # boundary check
-            self_rows, self_cols = self.shape
-            if row >= self_rows or row < 0:
-                raise IndexError, "Row index out of range"
-            if col >= self_cols or col < 0:
-                raise IndexError, "Col index out of range"
-
             return self._data.get(row,col)
 
     def _update_internal_indices(self, args, value):
@@ -155,45 +141,35 @@ class SparseMat():
         row,col = args
         if value == 0:
             if args in self:
-                self._index_rows[row].remove(args)
-                self._index_cols[col].remove(args)
+                try:
+                    self._index_rows[row].remove(args)
+                    self._index_cols[col].remove(args)
+                except IndexError:
+                    raise KeyError, "Row or col is out of bounds!"
             else:
                 return # short circuit, no point in setting 0
         else:
-            self._index_rows[row].add(args)
-            self._index_cols[col].add(args)
+            try:
+                self._index_rows[row].add(args)
+                self._index_cols[col].add(args)
+            except IndexError:
+                raise KeyError, "Row or col is out of bounds!"
 
     def getRow(self, row):
         """Returns a row in SparseMat form"""
         in_self_rows, in_self_cols = self.shape
-        if row >= in_self_rows or row < 0:
-            raise IndexError, "The specified row is out of bounds"
-    
         new_row = SparseMat(1, in_self_cols, enable_indices=False, \
                             dtype=self.dtype)
-        
-        for r,c in self._index_rows[row]:
-            v = self._data.get(r,c) # hit directly, trust thyself...
-            if v == 0:
-                continue
-            new_row._data.insert(0, c, v)
+        new_row._data = self._data.getRow(row, self._index_rows[row])
         
         return new_row
 
     def getCol(self, col):
         """Return a col in SparseMat form"""
         in_self_rows, in_self_cols = self.shape
-        if col >= in_self_cols or col < 0:
-            raise IndexError, "The specified col is out of bounds"
-
         new_col = SparseMat(in_self_rows, 1, enable_indices=False, \
                             dtype=self.dtype)
-        
-        for r,c in self._index_cols[col]:
-            v = self._data.get(r,c) # hit directly, trust thyself
-            if v == 0:
-                continue
-            new_col._data.insert(r, 0, v)
+        new_col._data = self._data.getCol(col, self._index_cols[col])
         
         return new_col
 
@@ -264,7 +240,7 @@ def list_list_to_sparsemat(data, dtype=float, shape=None):
 
     [[row, col, value], ...]
     """
-    d = dict([((r,c),dtype(v)) for r,c,v in data if v != 0])
+    d = dict([((r,c),v) for r,c,v in data if v != 0])
 
     if shape is None:
         n_rows = 0
@@ -275,9 +251,9 @@ def list_list_to_sparsemat(data, dtype=float, shape=None):
             if c >= n_cols:
                 n_cols = c + 1
 
-        mat = SparseMat(n_rows, n_cols)
+        mat = SparseMat(n_rows, n_cols, dtype=dtype)
     else:
-        mat = SparseMat(*shape)
+        mat = SparseMat(*shape, dtype=dtype)
 
     mat.update(d)
     return mat
@@ -285,22 +261,22 @@ def list_list_to_sparsemat(data, dtype=float, shape=None):
 def nparray_to_sparsemat(data, dtype=float):
     """Convert a numpy array to a SparseMat"""
     if len(data.shape) == 1:
-        mat = SparseMat(1, data.shape[0])
+        mat = SparseMat(1, data.shape[0], dtype=dtype)
 
         for idx,v in enumerate(data):
             if v != 0:
-                mat[(0,idx)] = dtype(v)
+                mat[(0,idx)] = v
     else:
         mat = SparseMat(*data.shape)
         for row_idx, row in enumerate(data):
             for col_idx, value in enumerate(row):
                 if value != 0:
-                    mat[(row_idx, col_idx)] = dtype(value)
+                    mat[(row_idx, col_idx)] = value
     return mat
 
 def list_nparray_to_sparsemat(data, dtype=float):
     """Takes a list of numpy arrays and creates a SparseMat"""
-    mat = SparseMat(len(data), len(data[0]))
+    mat = SparseMat(len(data), len(data[0]),dtype=dtype)
     for row_idx, row in enumerate(data):
         if len(row.shape) != 1:
             raise TableException, "Cannot convert non-1d vectors!"
@@ -308,7 +284,7 @@ def list_nparray_to_sparsemat(data, dtype=float):
             raise TableException, "Row vector isn't the correct length!"
 
         for col_idx, val in enumerate(row):
-            mat[row_idx, col_idx] = dtype(val)
+            mat[row_idx, col_idx] = val
     return mat
 
 def list_sparsemat_to_sparsemat(data, dtype=float):
@@ -333,13 +309,13 @@ def list_sparsemat_to_sparsemat(data, dtype=float):
             is_col = False
             n_rows = len(data)
 
-    mat = SparseMat(n_rows, n_cols)
+    mat = SparseMat(n_rows, n_cols,dtype=dtype)
     for row_idx,row in enumerate(data):
         for (foo,col_idx),val in row.items():
             if is_col:
-                mat[foo,row_idx] = dtype(val)
+                mat[foo,row_idx] = val
             else:
-                mat[row_idx,col_idx] = dtype(val)
+                mat[row_idx,col_idx] = val
 
     return mat
     
@@ -365,13 +341,13 @@ def list_dict_to_sparsemat(data, dtype=float):
             is_col = False
             n_rows = len(data)
 
-    mat = SparseMat(n_rows, n_cols)
+    mat = SparseMat(n_rows, n_cols, dtype=dtype)
     for row_idx,row in enumerate(data):
         for (foo,col_idx),val in row.items():
             if is_col:
-                mat[foo,row_idx] = dtype(val)
+                mat[foo,row_idx] = val
             else:
-                mat[row_idx,col_idx] = dtype(val)
+                mat[row_idx,col_idx] = val
 
     return mat
 
@@ -379,6 +355,6 @@ def dict_to_sparsemat(data, dtype=float):
     """takes a dict {(row,col):val} and creates a SparseMat"""
     n_rows = max(data.keys(), key=itemgetter(0))[0] + 1
     n_cols = max(data.keys(), key=itemgetter(1))[1] + 1
-    mat = SparseMat(n_rows, n_cols)
+    mat = SparseMat(n_rows, n_cols,dtype=dtype)
     mat.update(data)
     return mat
