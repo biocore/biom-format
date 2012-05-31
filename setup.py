@@ -10,7 +10,7 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, The BIOM Format"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente"]
 __license__ = "GPL"
-__version__ = "0.9.3-dev"
+__version__ = "1.0.0"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 __status__ = "Development"
@@ -32,7 +32,6 @@ try:
         cython_present = False
 except ImportError:
     cython_present = False
-    raise ImportError, "Cython cannot be found. Can't continue."
 
 
 support_code_path = join(getcwd(), 'python-code', 'support-code')
