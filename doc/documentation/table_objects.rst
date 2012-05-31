@@ -110,7 +110,7 @@ The ``DenseTable`` object fulfills all private member methods stubbed out by the
 Table type objects
 ------------------
 
-The table type objects define variables and methods specific to a table type. Under the majority of situations, these are the objects that should be instantiated.
+The table type objects define variables and methods specific to a table type. These inherit from a ``Container Class`` and a table type base class, and are therefore instantiable. Generally you'll instantiate tables with ``biom.table.table_factory``, and one of these will be passed as the ``constructor`` argument.
 
 ``DenseOTUTable``
 ^^^^^^^^^^^^^^^^^

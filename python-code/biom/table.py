@@ -173,7 +173,7 @@ class Table(object):
     def reduce(self, f, axis):
         """Reduce over axis with f
 
-        axis can be either 'sample' or 'observation'
+        ``axis`` can be either ``sample`` or ``observation``
         """
         if self.isEmpty():
             raise TableException, "Cannot reduce an empty table"
@@ -192,9 +192,11 @@ class Table(object):
         
         axis can be:
 
-        'whole'       : whole matrix sum
-        'sample'      : return a vector with a sum for each sample
-        'observation' : return a vector with a sum for each observation
+        ``whole``       : whole matrix sum
+        
+        ``sample``     : return a vector with a sum for each sample
+        
+        ``observation`` : return a vector with a sum for each observation
         """
         if axis == 'whole':
             return sum(self.reduce(add, 'sample'))
@@ -208,7 +210,7 @@ class Table(object):
     def addObservationMetadata(self, md):
         """Take a dict of metadata and add it to an observation.
 
-        {observation_id:{dict_of_metadata}}
+        ``md`` should be of the form ``{observation_id:{dict_of_metadata}}``
         """
         if self.ObservationMetadata != None:
             for id_, md_entry in md.items():
@@ -219,7 +221,7 @@ class Table(object):
     def addSampleMetadata(self, md):
         """Take a dict of metadata and add it to a sample.
     
-        {sample_id:{dict_of_metadata}}
+        ``md`` should be of the form ``{sample_id:{dict_of_metadata}}``
         """
         if self.SampleMetadata != None:
             for id_, md_entry in md.items():
@@ -228,19 +230,20 @@ class Table(object):
             self.SampleMetadata = [md[id_] for id_ in self.SampleIds]
 
     def getSampleIndex(self, samp_id):
-        """Returns the sample index"""
+        """Returns the sample index for sample ``samp_id``"""
         if samp_id not in self._sample_index:
             raise UnknownID, "SampleId %s not found!" % samp_id
         return self._sample_index[samp_id]
 
     def getObservationIndex(self, obs_id):
-        """Returns the obs index"""
+        """Returns the observation index for observation ``obs_id``"""
         if obs_id not in self._obs_index:
             raise UnknownID, "ObservationId %s not found!" % obs_id
         return self._obs_index[obs_id]
 
     def getValueByIds(self, obs_id, samp_id):
-        """Return the value in the matrix corresponding to (obs_id, samp_id)"""
+        """Return value in the matrix corresponding to ``(obs_id, samp_id)``
+        """
         if obs_id not in self._obs_index:
             raise UnknownID, "ObservationId %s not found!" % obs_id
         if samp_id not in self._sample_index:
@@ -249,7 +252,8 @@ class Table(object):
         return self._data[self._obs_index[obs_id], self._sample_index[samp_id]]
 
     def setValueByIds(self, obs_id, samp_id, val):
-        """Set the value in the matrix corresponding to (obs_id, samp_id)"""
+        """Set matrix entry corresponding to ``(obs_id, samp_id)`` to ``val``
+        """
         if obs_id not in self._obs_index:
             raise UnknownID, "ObservationId %s not found!" % obs_id
         if samp_id not in self._sample_index:
@@ -265,26 +269,29 @@ class Table(object):
         return self.delimitedSelf()
 
     def sampleExists(self, id_):
-        """Returns True if sample exists, False otherwise"""
+        """Returns True if sample ``id_`` exists, False otherwise"""
         return id_ in self._sample_index
 
     def observationExists(self, id_):
-        """Returns True if observation exists, False otherwise"""
+        """Returns True if observation ``id_`` exists, False otherwise"""
         return id_ in self._obs_index
 
     def delimitedSelf(self, delim='\t', header_key=None, header_value=None, 
         metadata_formatter=str):
-        """Stringify self in a delimited form
+        """Return self as a string in a delimited form
         
         Default str output for the Table is just row/col ids and table data
         without any metadata
 
-        If header_key is not None, try to pull out that key from observation
-        metadata. If header_value is not None, use the header_value in the
-        output.
+        Including observation metadata in output: If ``header_key`` is not 
+        ``None``, the observation metadata with that name will be included 
+        in the delimited output. If ``header_value`` is also not ``None``, the 
+        observation metadata will use the provided ``header_value`` as the 
+        observation metadata name (i.e., the column header) in the delimited 
+        output. 
         
-        metadata_formatter: a function which takes a metadata entry and 
-         returns a formatted version that should be written to file
+        ``metadata_formatter``: a function which takes a metadata entry and 
+        returns a formatted version that should be written to file
         """
         if self.isEmpty():
             raise TableException, "Cannot delimit self if I don't have data..."
@@ -319,7 +326,7 @@ class Table(object):
         return '\n'.join(output)
 
     def isEmpty(self):
-        """Returns true if the table is empty"""
+        """Returns ``True`` if the table is empty"""
         if not self.SampleIds or not self.ObservationIds:
             return True
         else:
@@ -365,39 +372,39 @@ class Table(object):
 
     # _index objs are in place, can now do sampleData(self, sample_id) and observationData(self, obs_id)
     def sampleData(self, id_, conv_to_np=False):
-        """Return observations associated to a sample id"""
+        """Return observations associated with sample id ``id_``"""
         if id_ not in self._sample_index:
             raise UnknownID, "ID %s is not a known sample ID!" % id_
         return self._conv_to_np(self._data[:,self._sample_index[id_]])
 
     def observationData(self, id_):
-        """Return samples associated to a observation id"""
+        """Return samples associated with observation id ``id_``"""
         if id_ not in self._obs_index:
             raise UnknownID, "ID %s is not a known observation ID!" % id_
         return self._conv_to_np(self._data[self._obs_index[id_],:])
 
     def copy(self):
-        """Returns a copy of the Table"""
+        """Returns a copy of the table"""
         #### NEEDS TO BE A DEEP COPY, MIGHT NOT GET METADATA! NEED TEST!
         return self.__class__(self._data.copy(), self.SampleIds[:], 
                 self.ObservationIds[:], self.SampleMetadata, 
                 self.ObservationMetadata, self.TableId)
 
     def iterSampleData(self):
-        """Yields sample_values"""
+        """Yields sample values"""
         for samp_v in self._iter_samp():
             yield self._conv_to_np(samp_v)
 
     def iterObservationData(self):
-        """Yields observation_values"""
+        """Yields observation values"""
         for obs_v in self._iter_obs():
             yield self._conv_to_np(obs_v)
 
     def iterSamples(self, conv_to_np=True):
-        """Yields (sample_values, sample_id, sample_metadata)
+        """Yields ``(sample_value, sample_id, sample_metadata)``
 
-        NOTE: will return None in sample_metadata positions if 
-        self.SampleMetadata is set to None
+        NOTE: will return ``None`` in ``sample_metadata`` positions if 
+        ``self.SampleMetadata`` is set to ``None``
         """
         if self.SampleMetadata is None:
             samp_metadata = [None] * len(self.SampleIds)
@@ -412,10 +419,10 @@ class Table(object):
                 yield (samp_v, samp_id, samp_md)
         
     def iterObservations(self, conv_to_np=True):
-        """Yields (observation_value, observation_id, observation_metadata)
+        """Yields ``(observation_value, observation_id, observation_metadata)``
 
-        NOTE: will return None in observation_metadata positions if 
-        self.ObservationMetadata is set to None
+        NOTE: will return ``None`` in ``observation_metadata`` positions if 
+        ``self.ObservationMetadata`` is set to ``None``
         """
         if self.ObservationMetadata is None:
             obs_metadata = [None] * len(self.ObservationIds)
@@ -430,7 +437,7 @@ class Table(object):
                 yield (obs_v, obs_id, obs_md)
         
     def sortSampleOrder(self, sample_order):
-        """Return a new table in sample order"""
+        """Return a new table with samples in ``sample_order``"""
         samp_md = []
         vals = []
 
@@ -449,7 +456,7 @@ class Table(object):
                 self.ObservationMetadata, self.TableId)
 
     def sortObservationOrder(self, obs_order):
-        """Return a new table in observation order"""
+        """Return a new table with observations in ``observation order``"""
         obs_md = []
         vals = []
 
@@ -468,11 +475,18 @@ class Table(object):
                 obs_md, self.TableId)
 
     def sortBySampleId(self, sort_f=natsort):
-        """Return a table sorted by sort_f"""
+        """Return a table where samples are sorted by ``sort_f``
+        
+            ``sort_f`` must take a single parameter: the list of sample ids
+        """
         return self.sortSampleOrder(sort_f(self.SampleIds))
 
     def sortByObservationId(self, sort_f=natsort):
-        """Return a table sorted by sort_f"""
+        """Return a table where observations are sorted by ``sort_f``
+        
+            ``sort_f`` must take a single parameter: the list of observation 
+            ids
+        """
         return self.sortObservationOrder(sort_f(self.ObservationIds))
 
     # a good refactor in the future is a general filter() method and then
@@ -480,10 +494,14 @@ class Table(object):
 
     # take() is tempting here as well...
     def filterSamples(self, f, invert=False):
-        """Filter samples in self based on f
+        """Filter samples from self based on ``f``
         
-        f must accept three variables, the sample values, sample IDs and sample 
-        metadata. The function must only return true or false.
+        ``f`` must accept three variables, the sample values, sample IDs and 
+        sample metadata. The function must only return ``True`` or ``False``, 
+        where ``True`` indicates that a sample should be retained.
+        
+        invert: if ``invert == True``, a return value of ``True`` from ``f`` 
+        indicates that a sample should be discarded
         """
         samp_ids = []
         samp_vals = []
@@ -515,10 +533,15 @@ class Table(object):
                 self.ObservationMetadata, self.TableId)
 
     def filterObservations(self, f, invert=False):
-        """Filter observations in self based on f
+        """Filter observations from self based on ``f``
         
-        f must accept three variables, the observation values, observation ids
-        and observation metadata. The function must only return true or false.
+        ``f`` must accept three variables, the observation values, observation
+        IDs and observation metadata. The function must only return ``True`` or
+        ``False``, where ``True`` indicates that an observation should be
+        retained.
+        
+        invert: if ``invert == True``, a return value of ``True`` from ``f`` 
+        indicates that an observation should be discarded
         """
         obs_ids = []
         obs_vals = []
@@ -548,8 +571,8 @@ class Table(object):
     def binSamplesByMetadata(self, f):
         """Yields tables by metadata
         
-        f is given the sample metadata by row and must return what "bin" the
-        sample is part of.
+        ``f`` is given the sample metadata by row and must return what "bin" 
+        the sample is part of.
         """
         bins = {}
         # conversion of vector types is not necessary, vectors are not
@@ -576,8 +599,8 @@ class Table(object):
     def binObservationsByMetadata(self, f):
         """Yields tables by metadata
         
-        f is given the sample metadata by row and must return what "bin" the
-        sample is part of.
+        ``f`` is given the observation metadata by row and must return what 
+        "bin" the observation is part of.
         """
         bins = {}
         # conversion of vector types is not necessary, vectors are not
@@ -603,11 +626,12 @@ class Table(object):
 
     def collapseSamplesByMetadata(self, metadata_f, reduce_f=add, norm=True, 
             min_group_size=2):
-        """Collapse a table by sample metadata
+        """Collapse samples in a table by sample metadata
         
         Bin samples by metadata then collapse each bin into a single sample.
+        
         Metadata for the collapsed samples are retained and can be referred to
-        by the SampleId from each sample within the bin.
+        by the ``SampleId`` from each sample within the bin.
         """
         collapsed_data = []
         collapsed_sample_ids = []
@@ -641,12 +665,14 @@ class Table(object):
 
     def collapseObservationsByMetadata(self, metadata_f, reduce_f=add, 
             norm=True, min_group_size=2):
-        """Collapse a table by observation metadata
+        """Collapse observations in a table by observation metadata
         
         Bin observations by metadata then collapse each bin into a single 
-        observation. Metadata for the collapsed observations are retained and 
-        can be referred to by the ObservationId from each observation within 
-        the bin.
+        observation. 
+        
+        Metadata for the collapsed observations are retained and 
+        can be referred to by the ``ObservationId`` from each observation 
+        within the bin.
         """
         collapsed_data = []
         collapsed_obs_ids = []
@@ -679,9 +705,11 @@ class Table(object):
                 self.SampleMetadata, collapsed_obs_md, self.TableId)
 
     def transformSamples(self, f):
-        """Apply a function to each sample
+        """Iterate over samples, applying a function ``f`` to each value
         
-        f is passed a numpy vector and must return a vector
+        ``f`` must take three values: a sample value (int or float), a sample 
+        id, and a sample metadata entry, and return a single value (int or 
+        float) that replaces the provided sample value
         """
         new_m = []
         for s_v, s_id, s_md in self.iterSamples():
@@ -692,9 +720,12 @@ class Table(object):
                 self.ObservationMetadata, self.TableId)
 
     def transformObservations(self, f):
-        """Apply a function to each observation
+        """Iterate over observations, applying a function ``f`` to each value
 
-        f is passed a numpy vector and must return a vector
+        ``f`` must take three values: an observation value (int or float), an 
+        observation id, and an observation metadata entry, and return a single
+        value (int or float) that replaces the provided observation value
+
         """
         new_obs_v = []
         for obs_v, obs_id, obs_md in self.iterObservations():
@@ -705,28 +736,31 @@ class Table(object):
                 self.ObservationMetadata, self.TableId)
 
     def normObservationBySample(self):
-        """Return new table with relative abundance in each sample"""
+        """Return new table with vals as relative abundances within each sample
+        """
         def f(samp_v, samp_id, samp_md):
             return samp_v / float(samp_v.sum())
         return self.transformSamples(f)
 
     def normSampleByObservation(self):
-        """Return new table with relative abundance in each observation"""  
+        """Return new table with vals as relative abundances within each obs
+        """  
         def f(obs_v,obs_id,obs_md):
             return obs_v / float(obs_v.sum())
         #f = lambda x: x / float(x.sum())
         return self.transformObservations(f)
     
     def normObservationByMetadata(self,obs_metadata_id):
-        """Return new table with counts divided by specified metadata value"""
+        """Return new table with vals divided by obs_metadata_id
+        """
         def f(obs_v,obs_id,obs_md):
             return obs_v / obs_md[obs_metadata_id]
         return self.transformObservations(f)
 
     def nonzero(self):
-        """Returns types of nonzero locations within the data matrix
+        """Returns locations of nonzero locations within the data matrix
 
-        The values returned are (observation_id, sample_id)
+        The values returned are ``(observation_id, sample_id)``
         """
         # this is naively implemented. If performance is a concern, private
         # methods can be written to hit against the underlying types directly
@@ -762,24 +796,24 @@ class Table(object):
         """Merge two tables together
 
         The axes, samples and observations, can be controlled independently. 
-        Both can either work on 'union' or 'intersection'. 
+        Both can either work on ``union`` or ``intersection``. 
 
-        merge_f is a function that takes two arguments and returns a value. 
+        ``merge_f`` is a function that takes two arguments and returns a value. 
         The method is parameterized so that values can be added or subtracted
-        where there is overlap in (sample_id, observation_id) values in the 
+        where there is overlap in ``(sample_id, observation_id)`` values in the 
         tables
 
-        sample_metadata_f and observation_metadata_f define how to merge
-        metadata between tables. The default is to just keep the metadata
+        ``sample_metadata_f`` and ``observation_metadata_f`` define how to 
+        merge metadata between tables. The default is to just keep the metadata
         associated to self if self has metadata otherwise take metadata from
         other. These functions are given both metadata dictsand must return 
         a single metadata dict
 
-        NOTE: There is an implicit type conversion to float. Tables using
+        NOTE: There is an implicit type conversion to ``float``. Tables using
         strings as the type are not supported. No check is currently in
         place.
 
-        NOTE: The return type is always that of self
+        NOTE: The return type is always that of ``self``
         """
         # determine the sample order in the resulting table
         if Sample is 'union':
@@ -915,12 +949,13 @@ class Table(object):
                 obs_ids[:], sample_md, obs_md)
 
     def getBiomFormatObject(self, generated_by):
-        """Returns a dictionary representing the table in Biom format.
+        """Returns a dictionary representing the table in BIOM format.
 
         This dictionary can then be easily converted into a JSON string for
         serialization.
 
-        generated_by - a string describing the software used to build the table
+        ``generated_by``: a string describing the software used to build the 
+        table
 
         TODO: This method may be very inefficient in terms of memory usage, so
         it needs to be tested with several large tables to determine if
@@ -1003,11 +1038,18 @@ class Table(object):
         return biom_format_obj
 
     def getBiomFormatJsonString(self,generated_by):
-        """Returns a JSON string representing the table in Biom format."""
+        """Returns a JSON string representing the table in BIOM format.
+
+        ``generated_by``: a string describing the software used to build the
+        table
+        """
         return dumps(self.getBiomFormatObject(generated_by))
 
     def getBiomFormatPrettyPrint(self,generated_by):
-        """Returns a 'pretty print' format of a biom file
+        """Returns a 'pretty print' format of a BIOM file
+
+        ``generated_by``: a string describing the software used to build the
+        table
 
         WARNING: This method displays data values in a columnar format and 
         can be misleading.
@@ -1254,6 +1296,35 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
         - list of SparseObj representation vectors
         - list of lists of sparse values [[row, col, value], ...]
         - list of lists of dense values [[value, value, ...], ...]
+    
+    Example usage to create a SparseOTUTable object::
+    
+        from biom.table import table_factory, SparseOTUTable
+        from numpy import array
+
+        sample_ids = ['s1','s2','s3','s4']
+        sample_md = [{'pH':4.2,'country':'Peru'},
+                     {'pH':5.2,'country':'Peru'},
+                     {'pH':5.0,'country':'Peru'},
+                     {'pH':4.9,'country':'Peru'}]
+
+        observation_ids = ['o1','o2','o3']
+        observation_md = [{'domain':'Archaea'},
+                          {'domain':'Bacteria'},
+                          {'domain':'Bacteria'}]
+
+        data = array([[1,2,3,4],
+                      [-1,6,7,8],
+                      [9,10,11,12]])
+
+        t = table_factory(data,
+                          sample_ids,
+                          observation_ids,
+                          sample_md,
+                          observation_md,
+                          constructor=SparseOTUTable)
+    
+    
     """
     if 'dtype' in kwargs:
         dtype = kwargs['dtype']
