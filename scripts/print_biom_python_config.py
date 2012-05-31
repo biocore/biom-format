@@ -5,13 +5,6 @@
 For more details, see http://biom-format.org
 """
 from sys import platform, version as python_version, executable
-try:
-    from cogent.util.option_parsing import parse_command_line_parameters, make_option
-    from cogent import __version__ as pycogent_lib_version
-    from cogent.util.misc import app_path
-except ImportError:
-    print "\n** ERROR: Cannot import PyCogent - this is a dependency for the biom-format project python-code package.\n"
-    exit()
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2012, The BIOM-Format Project"
@@ -21,19 +14,9 @@ __credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso",
                "Sue Huse"]
 __url__ = "http://biom-format.org"
 __license__ = "GPL"
-__version__ = "0.9.3-dev"
+__version__ = "1.0.0"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
-
-script_info = {}
-script_info['brief_description'] = "Print information on the biom-format project python-code installation."
-script_info['script_description'] = "Print information on the biom-format project python-code installation. This is useful for debugging install issues."
-script_info['script_usage'] = [("","Print configuration information.","%prog")]
-script_info['output_description']= ""
-script_info['required_options'] = []
-script_info['optional_options'] = []
-script_info['version'] = __version__
-script_info['help_on_no_arguments'] = False
 
 try:
     from numpy import __version__ as numpy_lib_version
@@ -49,7 +32,6 @@ except ImportError:
 
 def get_script_version():
     return __version__
-            
 
 def print_biom_config():
     
@@ -65,7 +47,6 @@ def print_biom_config():
         print "%*s:\t%s" % (max_len,v[0],v[1])
 
     version_info = [
-     ("PyCogent version", pycogent_lib_version),
      ("NumPy version", numpy_lib_version),
      ("biom-format library version", biom_lib_version),
      ("biom-format script version", get_script_version()),]
@@ -89,8 +70,6 @@ def print_biom_config():
     print ""
 
 if __name__ == '__main__':
-    
-    option_parser, opts, args = parse_command_line_parameters(**script_info)
     
     print_biom_config()
     
