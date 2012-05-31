@@ -46,7 +46,6 @@ system('cython %s/_sparsemat.pyx -o %s/_sparsemat.cpp --cplus' % (support_code_p
 
 from subprocess import Popen, PIPE
 gcc_version = map(int, Popen('gcc -dumpversion', shell=True, stdout=PIPE).stdout.read().split('.'))
-print gcc_version
 if gcc_version[0] == 4 and gcc_version[1] > 2:
     extra_compile_args = ['-std=c++0x']
 else:
@@ -79,4 +78,4 @@ setup(name='biom-format',
 
 
 
-setup()
+#setup()
