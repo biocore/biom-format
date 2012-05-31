@@ -28,7 +28,7 @@ except ImportError:
     raise ImportError, "Cython cannot be found. Can't continue."
 
 
-include_path = join(getcwd(), 'python-code', 'support-code', 'include')
+support_code_path = join(getcwd(), 'python-code', 'support-code')
 library_path = split(numpy.__file__)[0]
 
 long_description = """BIOM: Biological Observation Matrix
@@ -40,6 +40,9 @@ Jesse Stombaugh, Doug Wendel, Andreas Wilke, Susan Huse, John
 Hufnagle, Folker Meyer, Rob Knight and J Gregory Caporaso.
 GigaScience, accepted 2012.
 """
+
+from os import system
+system('cython %s/_sparsemat.pyx -o %s/_sparsemat.cpp --cplus' % (support_code_path, support_code_path))
 
 setup(name='biom-format',
       version=__version__,
@@ -56,11 +59,13 @@ setup(name='biom-format',
       data_files={},
       long_description=long_description,
       ext_modules=[Extension(
-                   "_sparsemat", # name of extension
-                   sources=['python-code/support-code/sparsemat_lib.cpp'],
-                   language="c++", # causes Cython to create C++ source
+                   "biom._sparsemat",
+                   sources=['python-code/support-code/_sparsemat.cpp',
+                            'python-code/support-code/sparsemat_lib.cpp'],
+                   language="c++",
+                   extra_compiler_args=['-std=c++0x'],
                    library_dirs=[library_path],
-                   include_dirs=[include_path])],
+                   include_dirs=[])],
       cmdclass={'build_ext': build_ext}
 )
 
