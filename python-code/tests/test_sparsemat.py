@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from _sparsemat import PySparseMatFloat, PySparseMatInt
+from biom._sparsemat import PySparseMatFloat, PySparseMatInt
 from numpy import zeros, ndarray, array
 from biom.unit_test import TestCase, main
 from biom.table import flatten
@@ -54,8 +54,8 @@ class SparseMatTests(TestCase):
         self.assertEqual(self.obj[(1,2)], 3)
         self.assertEqual(self.obj[1,2], 3)
         self.assertEqual(self.obj[1,1], 0)
-        self.assertRaises(IndexError, self.obj.__getitem__, (3,3))
-        self.assertRaises(IndexError, self.obj.__getitem__, (-1,2))
+        self.assertRaises(KeyError, self.obj.__getitem__, (3,3))
+        self.assertRaises(KeyError, self.obj.__getitem__, (-1,2))
         self.assertRaises(IndexError, self.obj.__getitem__, 1)
 
     def test_getitem_slice(self):
@@ -146,7 +146,7 @@ class SparseMatTests(TestCase):
         obs = self.obj.getRow(4)
         self.assertEqual(obs,exp)
 
-        self.assertRaises(IndexError, self.obj.getRow, -1)
+        self.assertRaises(KeyError, self.obj.getRow, -1)
 
     def test_getCol(self):
         """Get a col"""
@@ -159,7 +159,7 @@ class SparseMatTests(TestCase):
         obs = self.obj.getCol(1)
         self.assertEqual(obs,exp)
 
-        self.assertRaises(IndexError, self.obj.getCol, -1)
+        self.assertRaises(KeyError, self.obj.getCol, -1)
 
     def test_update(self):
         """updates should work and update indexes"""
