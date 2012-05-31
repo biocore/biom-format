@@ -44,6 +44,14 @@ GigaScience, accepted 2012.
 from os import system
 system('cython %s/_sparsemat.pyx -o %s/_sparsemat.cpp --cplus' % (support_code_path, support_code_path))
 
+from subprocess import Popen, PIPE
+gcc_version = map(int, Popen('gcc -dumpversion', shell=True, stdout=PIPE).stdout.read().split('.'))
+print gcc_version
+if gcc_version[0] == 4 and gcc_version[1] > 2:
+    extra_compile_args = ['-std=c++0x']
+else:
+    extra_compile_args = []
+
 setup(name='biom-format',
       version=__version__,
       description='Biological Observation Matrix',
@@ -63,7 +71,7 @@ setup(name='biom-format',
                    sources=['python-code/support-code/_sparsemat.cpp',
                             'python-code/support-code/sparsemat_lib.cpp'],
                    language="c++",
-                   extra_compiler_args=['-std=c++0x'],
+                   extra_compile_args=extra_compile_args,
                    library_dirs=[library_path],
                    include_dirs=[])],
       cmdclass={'build_ext': build_ext}

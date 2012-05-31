@@ -1,7 +1,8 @@
-#include <tr1/unordered_map>
-
 #if (__GNUC__ == 4) && (__GNUC_MINOR__ > 2)
 #  include <cstdint>
+#  include <unordered_map>
+#else
+#  include <tr1/unordered_map>
 #endif
 
 #define MAKE_KEY(row,col) (uint64_t(row) << 32 | col)
@@ -9,9 +10,14 @@
 #define DECODE_KEY_COL(key) uint32_t(key & 0x00000000ffffffff)
 
 namespace sparsemat {
+#if (__GNUC__ == 4) && (__GNUC_MINOR__ > 2)
+    typedef std::unordered_map<uint64_t, double> float_map_t;
+    typedef std::unordered_map<uint64_t, int32_t> int_map_t;
+#else    
     typedef std::tr1::unordered_map<uint64_t, double> float_map_t;
     typedef std::tr1::unordered_map<uint64_t, int32_t> int_map_t;
-    
+#endif
+
     struct items_int {
         uint32_t *rows;
         uint32_t *cols;
