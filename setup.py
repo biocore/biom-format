@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from setuptools import find_packages
+#from setuptools import find_packages
 from distutils.core import setup
 from distutils.extension import Extension
 from os.path import join, split
@@ -59,7 +59,7 @@ setup(name='biom-format',
       maintainer=__maintainer__,
       maintainer_email=__email__,
       url='http://www.biom-format.org',
-      packages=find_packages("python-code"),
+      packages=['biom'],
       scripts=glob('scripts/*py'),
       package_dir={'':'python-code'},
       package_data={},
