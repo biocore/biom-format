@@ -312,7 +312,7 @@ def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping, proces
         obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
 
     if constructor._biom_matrix_type == 'sparse':
-        data = nparray_to_sparsedict(data)
+        data = nparray_to_sparseobj(data)
     
     return table_factory(data, sample_ids, obs_ids, sample_metadata, 
                          obs_metadata, constructor=constructor)
