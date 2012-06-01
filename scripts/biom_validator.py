@@ -262,7 +262,7 @@ except ImportError:
     cogent_cl_parsing = False
 
 FORMAT_URL = "http://biom-format.org"
-FORMAT_STRING = "Biological Observation Matrix %s" % __version__
+FORMAT_STRING = "Biological Observation Matrix 1.0.0"
 BIOM_TYPES = set(['otu table', 'pathway table', 'function table', 
                   'ortholog table', 'gene table', 'metabolite table', 
                   'taxon table'])

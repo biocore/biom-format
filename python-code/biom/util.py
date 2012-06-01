@@ -14,7 +14,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 def get_biom_format_version_string():
     """Returns the current Biom file format version."""
-    return "Biological Observation Matrix %s" % __version__
+    return "Biological Observation Matrix 1.0.0"
  
 def get_biom_format_url_string():
     """Returns the current Biom file format description URL."""
