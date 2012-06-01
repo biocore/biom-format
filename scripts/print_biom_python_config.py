@@ -14,7 +14,7 @@ __credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso",
                "Sue Huse"]
 __url__ = "http://biom-format.org"
 __license__ = "GPL"
-__version__ = "1.0.0"
+__version__ = "1.0.0a"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
