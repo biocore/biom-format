@@ -50,7 +50,7 @@ __credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso",
                        "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.0.0b"
+__version__ = "1.0.0"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"   
    
@@ -711,13 +711,15 @@ class Table(object):
         id, and a sample metadata entry, and return a single value (int or 
         float) that replaces the provided sample value
         """
+        dtype = float
         new_m = []
         for s_v, s_id, s_md in self.iterSamples():
-            new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
+            new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md), \
+                                                 dtype=dtype))
 
-        return self.__class__(self._conv_to_self_type(new_m, transpose=True), 
-                self.SampleIds[:], self.ObservationIds[:], self.SampleMetadata,
-                self.ObservationMetadata, self.TableId)
+        return self.__class__(self._conv_to_self_type(new_m, dtype=dtype, \
+                transpose=True), self.SampleIds[:], self.ObservationIds[:], 
+                self.SampleMetadata, self.ObservationMetadata, self.TableId)
 
     def transformObservations(self, f):
         """Iterate over observations, applying a function ``f`` to each value
@@ -727,11 +729,13 @@ class Table(object):
         value (int or float) that replaces the provided observation value
 
         """
+        dtype = float
         new_obs_v = []
         for obs_v, obs_id, obs_md in self.iterObservations():
-            new_obs_v.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
+            new_obs_v.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md),
+                                                     dtype=dtype))
 
-        return self.__class__(self._conv_to_self_type(new_obs_v),
+        return self.__class__(self._conv_to_self_type(new_obs_v, dtype=dtype),
                 self.SampleIds[:],self.ObservationIds[:],self.SampleMetadata,
                 self.ObservationMetadata, self.TableId)
 
@@ -977,7 +981,7 @@ class Table(object):
                 get_biom_format_url_string()
         biom_format_obj["generated_by"] = generated_by
         biom_format_obj["date"] = "%s" % datetime.now().isoformat()
-
+        
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
         try:
@@ -1027,7 +1031,8 @@ class Table(object):
                 sparse_values = []
                 for col_index, val in enumerate(dense_values):
                     if float(val) != 0.0:
-                        sparse_values.append([obs_index, col_index, dtype(val)])
+                        sparse_values.append([obs_index, col_index, \
+                                    dtype(val)])
                 biom_format_obj["data"].extend(sparse_values)
 
         # Fill in details about the columns in the table.
@@ -1035,6 +1040,7 @@ class Table(object):
         for samp in self.iterSamples():
             biom_format_obj["columns"].append(
                     {"id" : "%s" % samp[1], "metadata" : samp[2]})
+        
         return biom_format_obj
 
     def getBiomFormatJsonString(self,generated_by):
@@ -1092,9 +1098,11 @@ class SparseTable(Table):
                 new_v[col] = val
         return new_v
 
-    def _conv_to_self_type(self, vals, transpose=False):
+    def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
-        return to_sparse(vals, transpose, self._dtype)
+        if dtype is None:
+            dtype = self._dtype
+        return to_sparse(vals, transpose, dtype)
 
     def __iter__(self):
         """Defined by subclass"""
@@ -1135,8 +1143,9 @@ class DenseTable(Table):
         """Converts a vector to a numpy array"""
         return asarray(v)
 
-    def _conv_to_self_type(self, vals, transpose=False):
+    def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
+        # dtype call ignored, numpy will handle implicitly
         # expects row vector here...
         if transpose:
             return asarray(vals).T
