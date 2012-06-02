@@ -15,7 +15,7 @@ __credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.0.0b"
+__version__ = "1.0.0a"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
    
@@ -145,6 +145,30 @@ class SparseMatTests(TestCase):
         exp = SparseMat(1,3)
         obs = self.obj.getRow(4)
         self.assertEqual(obs,exp)
+
+        obj = SparseMat(4,1)
+        obj[0,0] = 5
+        obj[1,0] = 6
+        obj[2,0] = 7
+        obj[3,0] = 8
+        exp1 = SparseMat(1,1)
+        exp1[0,0] = 5
+        exp2 = SparseMat(1,1)
+        exp2[0,0] = 6
+        exp3 = SparseMat(1,1)
+        exp3[0,0] = 7
+        exp4 = SparseMat(1,1)
+        exp4[0,0] = 8
+        obs1 = obj.getRow(0)
+        obs2 = obj.getRow(1)
+        obs3 = obj.getRow(2)
+        obs4 = obj.getRow(3)
+        self.assertRaises(IndexError,obj.getRow, 4)
+
+        self.assertEqual(obs1, exp1)
+        self.assertEqual(obs2, exp2)
+        self.assertEqual(obs3, exp3)
+        self.assertEqual(obs4, exp4)
 
         self.assertRaises(KeyError, self.obj.getRow, -1)
 
