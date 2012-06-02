@@ -17,7 +17,7 @@ __copyright__ = "Copyright 2012, BIOM-Format Project"
 __credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso", "Jose Carlos Clemente Litran"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.0.0a"
+__version__ = "1.0.0b"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
