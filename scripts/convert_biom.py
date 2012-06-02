@@ -16,7 +16,7 @@ __copyright__ = "Copyright 2012, The BIOM-Format project"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Carlos Clemente Litran"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.0.0b"
+__version__ = "1.0.0c"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 

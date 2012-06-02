@@ -15,7 +15,7 @@ __credits__ = ["Daniel McDonald", "Jai Rideout", "Justin Kuczynski",
                "Greg Caporaso", "Jose Clemente"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.0.0b"
+__version__ = "1.0.0c"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
