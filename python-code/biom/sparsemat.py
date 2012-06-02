@@ -160,6 +160,9 @@ class SparseMat():
         in_self_rows, in_self_cols = self.shape
         new_row = SparseMat(1, in_self_cols, enable_indices=False, \
                             dtype=self.dtype)
+        if row >= in_self_rows:
+            raise IndexError, "Row is out of bounds"
+
         new_row._data = self._data.getRow(row, self._index_rows[row])
         
         return new_row
@@ -169,6 +172,8 @@ class SparseMat():
         in_self_rows, in_self_cols = self.shape
         new_col = SparseMat(in_self_rows, 1, enable_indices=False, \
                             dtype=self.dtype)
+        if col >= in_self_cols:
+            raise IndexError, "Col is out of bounds"
         new_col._data = self._data.getCol(col, self._index_cols[col])
         
         return new_col
