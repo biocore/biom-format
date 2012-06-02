@@ -1027,7 +1027,7 @@ class Table(object):
                 sparse_values = []
                 for col_index, val in enumerate(dense_values):
                     if float(val) != 0.0:
-                        sparse_values.append([obs_index, col_index, val])
+                        sparse_values.append([obs_index, col_index, dtype(val)])
                 biom_format_obj["data"].extend(sparse_values)
 
         # Fill in details about the columns in the table.
