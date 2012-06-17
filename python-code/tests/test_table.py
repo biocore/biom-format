@@ -1916,7 +1916,7 @@ class DenseOTUTableTests(TestCase):
         """Should return a dictionary of the minimal table in Biom format."""
         exp = {'rows': [{'id': '1', 'metadata': None},
                         {'id': '2', 'metadata': None}],
-               'format': 'Biological Observation Matrix %s' % __version__,
+               'format': 'Biological Observation Matrix 1.0.0',
                'generated_by':'foo',
                'data': [[5, 6], [7, 8]],
                'columns': [{'id': 'a', 'metadata': None},
@@ -1940,7 +1940,7 @@ class DenseOTUTableTests(TestCase):
                                     {'taxonomy': ['k__a', 'p__b']}},
                         {'id': '2', 'metadata': 
                                     {'taxonomy': ['k__a', 'p__c']}}],
-               'format': 'Biological Observation Matrix %s' % __version__,
+               'format': 'Biological Observation Matrix 1.0.0',
                'data': [[5, 6], [7, 8]], 
                'generated_by':'foo',
                'columns': [{'id': 'a', 'metadata':
@@ -1961,7 +1961,7 @@ class DenseOTUTableTests(TestCase):
         """Should return a dictionary of the empty table in Biom format."""
         exp = {'rows': [], 
                'format': 
-               'Biological Observation Matrix %s' % __version__,
+               'Biological Observation Matrix 1.0.0',
                'data': [], 
                'columns': [],
                'generated_by':'foo',
@@ -1979,7 +1979,7 @@ class DenseOTUTableTests(TestCase):
         """Should return a dictionary of the partial metadata table."""
         exp1 = {'rows': [{'id': '1', 'metadata': None},
                          {'id': '2', 'metadata': None}], 
-                'format':'Biological Observation Matrix %s' % __version__, 
+                'format':'Biological Observation Matrix 1.0.0', 
                 'data': [[0, 2], [9, 10]],
                 'columns': [{'id': 'a', 'metadata': {'barcode': 'aatt'}},
                             {'id': 'b', 'metadata': {'barcode': 'ttgg'}}], 
@@ -1995,7 +1995,7 @@ class DenseOTUTableTests(TestCase):
 
         exp2 = {'rows': [{'id':'1', 'metadata':{'taxonomy':['k__a', 'p__b']}},
                          {'id':'2', 'metadata':{'taxonomy':['k__a', 'p__c']}}],
-                'format':'Biological Observation Matrix %s' % __version__, 
+                'format':'Biological Observation Matrix 1.0.0', 
                 'data': [[0, 2], [9, 10]],
                 'columns': [{'id': 'a', 'metadata': None},
                             {'id': 'b', 'metadata': None}], 
@@ -2014,7 +2014,7 @@ class DenseOTUTableTests(TestCase):
         """Should return a dictionary of the table with float values."""
         exp = {'rows': [{'id': '1', 'metadata': None},
                         {'id': '2', 'metadata': None}], 
-               'format':'Biological Observation Matrix %s' % __version__, 
+               'format':'Biological Observation Matrix 1.0.0', 
                'data':[[0.0, 2.5, 3.3999999999999999], 
                        [9.3000000000000007, 10.23, 2.2000000000000002]], 
                'columns':[{'id': 'a', 'metadata': None}, 
@@ -2035,7 +2035,7 @@ class DenseOTUTableTests(TestCase):
         """Should return a dictionary of the table with string values."""
         exp = {'rows': [{'id': 'Obs1', 'metadata': None},
                         {'id': 'Obs2', 'metadata': None}],
-               'format': 'Biological Observation Matrix %s' % __version__, 
+               'format': 'Biological Observation Matrix 1.0.0', 
                'data':[['val1', 'val2'], 
                        ['val3', 'val4']], 
                'columns':[{'id': 'Samp1', 'metadata': None},
@@ -2076,7 +2076,7 @@ class SparseOTUTableTests(TestCase):
         """Should return a dictionary of the minimal table in Biom format."""
         exp = {'rows': [{'id': '1', 'metadata': None},
                         {'id': '2', 'metadata': None}],
-               'format': 'Biological Observation Matrix %s' % __version__,
+               'format': 'Biological Observation Matrix 1.0.0',
                'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
                'columns': [{'id': 'a', 'metadata': None},
                            {'id': 'b', 'metadata': None}],
@@ -2095,7 +2095,7 @@ class SparseOTUTableTests(TestCase):
         """Should return a dictionary of the rich table in Biom format."""
         exp = {'rows': [{'id':'1','metadata':{'taxonomy':['k__a', 'p__b']}},
                         {'id':'2','metadata':{'taxonomy':['k__a', 'p__c']}}],
-               'format': 'Biological Observation Matrix %s' % __version__,
+               'format': 'Biological Observation Matrix 1.0.0',
                'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
                'columns': [{'id': 'a', 'metadata':{'barcode': 'aatt'}}, 
                            {'id': 'b', 'metadata':{'barcode': 'ttgg'}}],
@@ -2114,7 +2114,7 @@ class SparseOTUTableTests(TestCase):
         """Should return a dictionary of the table with float values."""
         exp = {'rows': [{'id': '1', 'metadata': None},
                         {'id': '2', 'metadata': None}], 
-               'format':'Biological Observation Matrix %s' % __version__, 
+               'format':'Biological Observation Matrix 1.0.0', 
                'data':[[0, 1, 2.5], 
                        [0, 2, 3.3999999999999999],
                        [1, 0, 9.3000000000000007], 
