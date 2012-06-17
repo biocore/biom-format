@@ -977,7 +977,7 @@ class Table(object):
                 get_biom_format_url_string()
         biom_format_obj["generated_by"] = generated_by
         biom_format_obj["date"] = "%s" % datetime.now().isoformat()
-
+        
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
         try:
@@ -1027,7 +1027,8 @@ class Table(object):
                 sparse_values = []
                 for col_index, val in enumerate(dense_values):
                     if float(val) != 0.0:
-                        sparse_values.append([obs_index, col_index, dtype(val)])
+                        sparse_values.append([obs_index, col_index, \
+                                    dtype(val)])
                 biom_format_obj["data"].extend(sparse_values)
 
         # Fill in details about the columns in the table.
@@ -1035,6 +1036,7 @@ class Table(object):
         for samp in self.iterSamples():
             biom_format_obj["columns"].append(
                     {"id" : "%s" % samp[1], "metadata" : samp[2]})
+        
         return biom_format_obj
 
     def getBiomFormatJsonString(self,generated_by):
