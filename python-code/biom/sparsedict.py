@@ -227,7 +227,7 @@ def list_list_to_sparsedict(data, dtype=float, shape=None):
 def nparray_to_sparsedict(data, dtype=float):
     """Convert a numpy array to a dict"""
     if len(data.shape) == 1:
-        mat = SparseDict(1, data.shape[0])
+        mat = SparseDict(1, data.shape[0], dtype=dtype,enable_indices=False)
 
         for idx,v in enumerate(data):
             if v != 0:

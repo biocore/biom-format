@@ -229,7 +229,7 @@ cdef class PySparseMatInt:
         cdef int v
         cdef int checked_row
          
-        self._boundcheck(row, 1) # assume at least a single column...
+        self._boundcheck(row, 0) # assume at least a single column...
         checked_row = <unsigned int> row
         new_row = self.__class__(1, self.cols)
         
@@ -245,7 +245,7 @@ cdef class PySparseMatInt:
         cdef int v
         cdef int checked_col
          
-        self._boundcheck(1, col) # assume at least a single row...
+        self._boundcheck(0, col) # assume at least a single row...
         checked_col = <unsigned int> col
         new_col = self.__class__(self.rows, 1)
         

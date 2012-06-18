@@ -22,7 +22,6 @@ try:
         dict_to_sparsemat, list_dict_to_sparsemat, \
         list_nparray_to_sparsemat, nparray_to_sparsemat, \
         list_list_to_sparsemat
-        
     SparseObj = SparseMat
     to_sparse = to_sparsemat
     dict_to_sparseobj = dict_to_sparsemat
@@ -711,13 +710,15 @@ class Table(object):
         id, and a sample metadata entry, and return a single value (int or 
         float) that replaces the provided sample value
         """
+        dtype = float
         new_m = []
         for s_v, s_id, s_md in self.iterSamples():
-            new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
+            new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md), \
+                                                 dtype=dtype))
 
-        return self.__class__(self._conv_to_self_type(new_m, transpose=True), 
-                self.SampleIds[:], self.ObservationIds[:], self.SampleMetadata,
-                self.ObservationMetadata, self.TableId)
+        return self.__class__(self._conv_to_self_type(new_m, dtype=dtype, \
+                transpose=True), self.SampleIds[:], self.ObservationIds[:], 
+                self.SampleMetadata, self.ObservationMetadata, self.TableId)
 
     def transformObservations(self, f):
         """Iterate over observations, applying a function ``f`` to each value
@@ -727,11 +728,13 @@ class Table(object):
         value (int or float) that replaces the provided observation value
 
         """
+        dtype = float
         new_obs_v = []
         for obs_v, obs_id, obs_md in self.iterObservations():
-            new_obs_v.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
+            new_obs_v.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md),
+                                                     dtype=dtype))
 
-        return self.__class__(self._conv_to_self_type(new_obs_v),
+        return self.__class__(self._conv_to_self_type(new_obs_v, dtype=dtype),
                 self.SampleIds[:],self.ObservationIds[:],self.SampleMetadata,
                 self.ObservationMetadata, self.TableId)
 
@@ -1094,9 +1097,11 @@ class SparseTable(Table):
                 new_v[col] = val
         return new_v
 
-    def _conv_to_self_type(self, vals, transpose=False):
+    def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
-        return to_sparse(vals, transpose, self._dtype)
+        if dtype is None:
+            dtype = self._dtype
+        return to_sparse(vals, transpose, dtype)
 
     def __iter__(self):
         """Defined by subclass"""
@@ -1137,8 +1142,9 @@ class DenseTable(Table):
         """Converts a vector to a numpy array"""
         return asarray(v)
 
-    def _conv_to_self_type(self, vals, transpose=False):
+    def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
+        # dtype call ignored, numpy will handle implicitly
         # expects row vector here...
         if transpose:
             return asarray(vals).T

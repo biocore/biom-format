@@ -266,7 +266,7 @@ def list_list_to_sparsemat(data, dtype=float, shape=None):
 def nparray_to_sparsemat(data, dtype=float):
     """Convert a numpy array to a SparseMat"""
     if len(data.shape) == 1:
-        mat = SparseMat(1, data.shape[0], dtype=dtype)
+        mat = SparseMat(1, data.shape[0], dtype=dtype, enable_indices=False)
 
         for idx,v in enumerate(data):
             if v != 0:
