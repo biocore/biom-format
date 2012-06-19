@@ -1,0 +1,24 @@
+Package: RBIOM
+Version: 0.1.0
+Date: 2012-06-18
+Maintainer: Paul J. McMurdie
+    <mcmurdie@stanford.edu> and biom-format team http://biom-format.org/
+License: AGPL-3
+Title: This is an R package for interfacing with the BIOM
+    format.
+Type: Package
+Author: Paul J. McMurdie <mcmurdie@stanford.edu> and biom-format team http://biom-format.org/
+Description: This is an R package for interfacing with the
+    BIOM format.
+Imports:
+    plyr (>= 1.7),
+    ape (>= 3.0),
+    RJSONIO (>= 0.98),
+    Matrix (>= 1.0)
+Depends:
+    R (>= 2.15.0),
+    methods
+Collate:
+    'allClasses.R'
+    'allPackage.R'
+    'IO-methods.R'
