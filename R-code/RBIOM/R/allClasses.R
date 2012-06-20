@@ -6,6 +6,7 @@
 #'
 #' @seealso \code{\link[ape]{phylo}}, \code{\link{setOldClass}}
 #'
+#' @import ape
 #' @name phylo-class
 #' @rdname phylo-class
 #' @exportClass phylo
@@ -19,8 +20,6 @@ setOldClass("phylo")
 #' @keywords internal
 setClassUnion("dataFrameOrNull", c("data.frame", "NULL"))
 #' @keywords internal
-setClassUnion("matrixOrNULL", c("matrix", "NULL"))
-#' @keywords internal
 setClassUnion("phyloOrNULL", c("phylo", "NULL"))
 ################################################################################
 # Eventually, class definitions should go here. Most expected is a class
@@ -29,7 +28,7 @@ setClassUnion("phyloOrNULL", c("phylo", "NULL"))
 ################################################################################
 #' A native R-representation of the BIOM format.
 #'
-#' For documentation of the format see \url{http://biom-format.org/}. 
+#' For documentation of the text file format see \url{http://biom-format.org/}. 
 #' 
 #' slots:
 #' \describe{
@@ -39,11 +38,14 @@ setClassUnion("phyloOrNULL", c("phylo", "NULL"))
 #'    \item{tre}{ a single object of class phylo, from the package ape}
 #' }
 #'
-#' @seealso The constructor, \code{\link{phyloseq}}, 
-#'  the merger \code{\link{merge_phyloseq}}, and also the component 
-#'  constructor/accessors \code{\link{otuTable}}, \code{\link{sampleData}},
-#'  \code{\link{taxTab}}, and \code{\link{tre}}.
+#' @seealso
+#' The constructor, \code{\link{BIOM}}
 #' 
+#' The accessors, \code{\link{header}}, \code{\link{abundance}},
+#'  \code{\link{taxonomy}}, \code{\link{sampleData}}, \code{\link{tree}}.
+#' 
+#' @import ape
+#' @import Matrix
 #' @name BIOM-class
 #' @rdname BIOM-class
 #' @exportClass BIOM
@@ -51,7 +53,7 @@ setClass("BIOM",
 	representation(
 	header     = "list",
 	abundance  = "Matrix",
-	taxonomy   = "matrixOrNULL",
+	taxonomy   = "dataFrameOrNull",
 	sampleData = "dataFrameOrNull",
 	tree       = "phyloOrNULL")
 )

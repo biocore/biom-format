@@ -13,7 +13,7 @@ parseGreenGenesPrefix <- function(char.vec){
 }
 ################################################################################
 ################################################################################
-#' Read a BIOM file
+#' Read a BIOM-format file, returning a \code{biom-class}.
 #'
 #' New versions of QIIME produce a more-comprehensive and formally-defined
 #' JSON file format. From the QIIME website:
@@ -24,7 +24,7 @@ parseGreenGenesPrefix <- function(char.vec){
 #' 
 #' \url{http://biom-format.org/} 
 #'
-#' @usage read_biom(BIOMfilename, taxaPrefix=NULL, version=0.9)
+#' @usage read_biom(BIOMfilename, taxaPrefix=NULL, parallel=FALSE, version=1.0)
 #'
 #' @param BIOMfilename (Required). A character string indicating the 
 #'  file location of the BIOM formatted file. This is a JSON formatted file,
@@ -32,12 +32,27 @@ parseGreenGenesPrefix <- function(char.vec){
 #' 
 #'  \url{http://www.qiime.org/svn_documentation/documentation/biom_format.html}
 #' 
-#' @param taxaPrefix (Optional). Character string. What category of prefix precedes
-#'  the taxonomic label at each taxonomic rank. Currently only ``greengenes'' is
-#'  a supported option, and implies that the first letter indicates the 
-#'  taxonomic rank, followed by two underscores and then the actual taxonomic
+#' @param taxaPrefix (Optional). Character string. 
+#'  What category of prefix precedes
+#'  the taxonomic label at each taxonomic rank. 
+#'  Currently only ``greengenes'' is a supported option, 
+#'  and implies that the first letter indicates the taxonomic rank, 
+#'  followed by two underscores and then the actual taxonomic
 #'  assignment at that rank. The default value is \code{NULL}, meaning that
 #'  no prefix or rank identifier will be interpreted. 
+#'
+#' @param parallel (Optional). Logical. Wrapper option for \code{.parallel}
+#'  parameter in \code{plyr-package} functions. 
+#'  If \code{TRUE},
+#'  apply parsing functions in parallel using parallel backend
+#'  declared with (probably) \code{foreach}-package and its supporting backend packages.
+#'  This is implemented via plyr, so backend options could change depending on
+#'  how plyr-package evolves.
+#'  A second caveat,
+#'  plyr-parallelization currently works most-cleanly with \code{multicore}-like
+#'  backends (Mac OS X, Unix?), and may throw warnings for SNOW-like backends.
+#'  See the example below for code invoking multicore-style backend within
+#'  the \code{doParallel} package.
 #' 
 #' @param version (Optional). Numeric. The expected version number of the file.
 #'  As the BIOM format evolves, version-specific importers will be available
@@ -55,7 +70,7 @@ parseGreenGenesPrefix <- function(char.vec){
 #' @examples
 #'  # # # import with default parameters, specify a file
 #'  # read_biom(myBIOMfile)
-read_biom <- function(BIOMfilename, taxaPrefix=NULL, version=0.9){
+read_biom <- function(BIOMfilename, taxaPrefix=NULL, parallel=FALSE, version=1.0){
 	
 	# Read the data
 	x <- fromJSON(BIOMfilename)
@@ -65,12 +80,13 @@ read_biom <- function(BIOMfilename, taxaPrefix=NULL, version=0.9){
 	########################################
 	# Check if sparse. Must parse differently than dense
 	if( x$matrix_type == "sparse" ){
-		otumat <- matrix(0, nrow=x$shape[1], ncol=x$shape[2])
-		dummy <- sapply(x$data, function(i){otumat[(i[1]+1), (i[2]+1)] <<- i[3]})
-	}
-	# parse the dense matrix instead.
-	if( x$matrix_type == "dense" ){
-		# each row will be complete data values, should use laply
+		otumat <- Matrix(0, nrow=x$shape[1], ncol=x$shape[2])
+		# Loop through each sparse line and assign to relevant position in otumat.
+		for( i in x$data ){
+			otumat[(i[1]+1), (i[2]+1)] <- i[3]
+		}
+	} else if( x$matrix_type == "dense" ){ 
+		# parse the dense matrix instead using plyr's laply
 		otumat <- laply(x$data, function(i){i})
 	}
 	
@@ -86,25 +102,16 @@ read_biom <- function(BIOMfilename, taxaPrefix=NULL, version=0.9){
 	########################################
 	# Need to check if taxonomy information is empty (minimal BIOM file)
 	if(  all( sapply(sapply(x$rows, function(i){i$metadata}), is.null) )  ){
-		taxtab <- NULL
+		taxdf <- NULL
 	} else {
-		# taxdf <- laply(x$rows, function(i){i$metadata$taxonomy}, .parallel=parallel)
-		# Figure out the max number of columns (could be jagged in BIOM format)
-		ncols <- max(sapply(head(x$rows), function(i){length(i$metadata$taxonomy)}))
-		# Initialize character matrix
-		taxdf <- matrix(NA_character_, nrow=length(x$rows), ncol=ncols)
-		# Fill in the matrix by row.
-		for( i in 1:length(x$rows) ){
-			if( sum(taxaPrefix %in% "greengenes") > 0 ){
-				taxdf[i, 1:length(x$rows[[i]]$metadata$taxonomy)] <- parseGreenGenesPrefix(x$rows[[i]]$metadata$taxonomy)
-			} else {
-				taxdf[i, 1:length(x$rows[[i]]$metadata$taxonomy)] <- x$rows[[i]]$metadata$taxonomy
-			}
+		# If GreenGenes, trim the prefix and use to name ultimately variable/column
+		if( sum(taxaPrefix %in% "greengenes") > 0 ){
+			taxdf <- ldply(x$rows, function(i){parseGreenGenesPrefix(i$metadata$taxonomy)}, .parallel=parallel)
+		} else {
+			taxdf <- ldply(x$rows, function(i){i$metadata$taxonomy}, .parallel=parallel)
 		}
-		# Now convert to matrix, name the rows as "id" (the taxa name), coerce to taxonomyTable
-		# Note that there is no character matrix in the Matrix-package. standard R char matrix used instead.
-		taxtab           <- as(taxdf, "matrix")
-		rownames(taxtab) <- sapply(x$rows, function(i){i$id})
+		# Add rownames to taxonomy data.frame.
+		rownames(taxdf) <- sapply(x$rows, function(i){i$id})
 	}
 	
 	########################################
@@ -122,7 +129,6 @@ read_biom <- function(BIOMfilename, taxaPrefix=NULL, version=0.9){
 			}
 		}, .parallel=parallel)
 		rownames(samdata) <- sapply(x$columns, function(i){i$id})
-
 	}
 	
 	########################################
@@ -131,7 +137,7 @@ read_biom <- function(BIOMfilename, taxaPrefix=NULL, version=0.9){
 	########################################
 	# Add header (not empty list by default, read file.)
 	# Add tree read/test if that is implemented.
-	return( BIOM(ab.mat, header=list(), taxonomy=taxtab, sampleData=samdata, tree=NULL) )
+	return( BIOM(ab.mat, header=list(), taxonomy=taxdf, sampleData=samdata, tree=NULL) )
 
 }
 ################################################################################

@@ -1,8 +1,9 @@
 \name{read_biom}
 \alias{read_biom}
-\title{Read a BIOM file}
+\title{Read a BIOM-format file, returning a \code{biom-class}.}
 \usage{
-  read_biom(BIOMfilename, taxaPrefix=NULL, version=0.9)
+  read_biom(BIOMfilename, taxaPrefix=NULL, parallel=FALSE,
+  version=1.0)
 }
 \arguments{
   \item{BIOMfilename}{(Required). A character string
@@ -21,10 +22,24 @@
   The default value is \code{NULL}, meaning that no prefix
   or rank identifier will be interpreted.}
 
+  \item{parallel}{(Optional). Logical. Wrapper option for
+  \code{.parallel} parameter in \code{plyr-package}
+  functions. If \code{TRUE}, apply parsing functions in
+  parallel using parallel backend declared with (probably)
+  \code{foreach}-package and its supporting backend
+  packages. This is implemented via plyr, so backend
+  options could change depending on how plyr-package
+  evolves. A second caveat, plyr-parallelization currently
+  works most-cleanly with \code{multicore}-like backends
+  (Mac OS X, Unix?), and may throw warnings for SNOW-like
+  backends. See the example below for code invoking
+  multicore-style backend within the \code{doParallel}
+  package.}
+
   \item{version}{(Optional). Numeric. The expected version
   number of the file. As the BIOM format evolves,
   version-specific importers will be available by adjusting
-  the version value. Default is \code{0.9}. Not
+  the version value. Default is \code{1.0}. Not
   implemented. Has no effect (yet).}
 }
 \value{
@@ -41,9 +56,7 @@
   counts of observations in one or more biological
   samples.''
 
-  \url{http://www.qiime.org/svn_documentation/documentation/biom_format.html}
-
-  Also now at \url{http://biom-format.org/}
+  \url{http://biom-format.org/}
 }
 \examples{
 # # # import with default parameters, specify a file

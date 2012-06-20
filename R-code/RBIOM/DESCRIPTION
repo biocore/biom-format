@@ -1,13 +1,13 @@
 Package: RBIOM
 Version: 0.1.0
-Date: 2012-06-18
-Maintainer: Paul J. McMurdie
-    <mcmurdie@stanford.edu> and biom-format team http://biom-format.org/
+Date: 2012-06-19
+Maintainer: Paul J. McMurdie <mcmurdie@stanford.edu>
 License: AGPL-3
 Title: This is an R package for interfacing with the BIOM
     format.
 Type: Package
-Author: Paul J. McMurdie <mcmurdie@stanford.edu> and biom-format team http://biom-format.org/
+Author: Paul J. McMurdie <mcmurdie@stanford.edu> and
+    biom-format team http://biom-format.org/
 Description: This is an R package for interfacing with the
     BIOM format.
 Imports:
@@ -22,3 +22,4 @@ Collate:
     'allClasses.R'
     'allPackage.R'
     'IO-methods.R'
+    'BIOM-class.R'
