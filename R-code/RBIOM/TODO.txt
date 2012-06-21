@@ -1,0 +1,14 @@
+RBIOM is under very active development. 
+
+Planned feature improvements are publicly catalogued at the main RBIOM development site on github; specifically on the ["Issues" page for biom-format](https://github.com/biom-format/biom-format/issues)
+
+If the feature you are hoping for is not listed, you are welcome to add it as a feature request "issue" on this page. This request will be publicly available and listed on the page.
+
+Meanwhile, the R-code branch has not been merged with the master biom-format branch just yet, and consequently, it doesn't seem quite appropriate to post issues that no one else can yet work on until I've submitted the pull request.
+
+TO DO before merge:
+
+- Added some tests within R package
+- Add the relevant test command into the top-level test script
+- Add example code to "examples" section in function-level documentation.
+- More-clearly document the BIOM class.

@@ -1,6 +1,6 @@
 # RBIOM
 
-This is an R package for interfacing with the BIOM format.
+This is an R package for interfacing with the [biom format](http://biom-format.org/).
 
 Some more details:
 
