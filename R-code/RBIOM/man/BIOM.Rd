@@ -54,6 +54,20 @@
 }
 \examples{
 #
-# # Examples to go here.
+# # # import with default parameters, specify a file
+biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "RBIOM")
+x <- read_biom(biom_file)
+show(x)
+print(x)
+header(x)
+abundance(x)
+taxonomy(x)
+sampleData(x)
+tree(x, FALSE)
+}
+\seealso{
+  The \code{\link{read_biom}} import function.
+
+  Accessor functions like \code{\link{header}}.
 }
 

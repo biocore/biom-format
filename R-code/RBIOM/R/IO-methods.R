@@ -24,9 +24,9 @@ parseGreenGenesPrefix <- function(char.vec){
 #' 
 #' \url{http://biom-format.org/} 
 #'
-#' @usage read_biom(BIOMfilename, taxaPrefix=NULL, parallel=FALSE, version=1.0)
+#' @usage read_biom(biom_file, taxaPrefix=NULL, parallel=FALSE, version=1.0)
 #'
-#' @param BIOMfilename (Required). A character string indicating the 
+#' @param biom_file (Required). A character string indicating the 
 #'  file location of the BIOM formatted file. This is a JSON formatted file,
 #'  specific to biological datasets, as described in 
 #' 
@@ -61,6 +61,11 @@ parseGreenGenesPrefix <- function(char.vec){
 #'
 #' @return An instance of the \code{biom-class}.
 #'
+#' @seealso 
+#' The \code{\link{BIOM}} constructor function.
+#'
+#' Accessor functions like \code{\link{header}}.
+#'
 #' @references \url{http://www.qiime.org/svn_documentation/documentation/biom_format.html}
 #'
 #' @importFrom RJSONIO fromJSON
@@ -68,13 +73,39 @@ parseGreenGenesPrefix <- function(char.vec){
 #' @importFrom plyr laply
 #' @export
 #' @examples
-#'  # # # import with default parameters, specify a file
-#'  # read_biom(myBIOMfile)
-read_biom <- function(BIOMfilename, taxaPrefix=NULL, parallel=FALSE, version=1.0){
+#' # # # import with default parameters, specify a file
+#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "RBIOM")
+#' read_biom(biom_file)
+#' x <- read_biom(biom_file)
+#' show(x)
+#' print(x)
+#' header(x)
+#' abundance(x)
+#' taxonomy(x)
+#' sampleData(x)
+#' tree(x, FALSE)
+#' ## The previous example uses system.file() because of constraints in specifying a fixed
+#' ##   path within a reproducible example in a package. 
+#' ## In practice, however, you should simply provide "hard-link"
+#' ## character string path to your file:
+#' # myBIOMfile <- "path/to/my/biomfile.biom"
+#' # read_biom(myBIOMfile)
+read_biom <- function(biom_file, taxaPrefix=NULL, parallel=FALSE, version=1.0){
 	
 	# Read the data
-	x <- fromJSON(BIOMfilename)
-	
+	x <- fromJSON(biom_file)
+
+	########################################
+	# Header
+	########################################
+	# # Store header as everything up to the "rows" key.
+	# # Protect against missing header keys causing an error
+	header <- list() # Initialize header
+	try(header <- x[1:(charmatch("rows", names(x)) - 1)], TRUE)
+	if( identical(header, list()) ){
+		warning("Header information missing from this file.")
+	}
+		
 	########################################
 	# OTU table:
 	########################################
@@ -94,7 +125,9 @@ read_biom <- function(BIOMfilename, taxaPrefix=NULL, parallel=FALSE, version=1.0
 	rownames(otumat) <- sapply(x$rows, function(i){i$id})
 	colnames(otumat) <- sapply(x$columns, function(i){i$id})
 	
-	# Instantiates a "Matrix" class object, usually sparse.
+	# Instantiates a "Matrix" daughter class, usually sparse,
+	# but precise daughter class is chosen dynamically based
+	# on properties of the data (if actually dense, it stays dense).
 	ab.mat <- Matrix(otumat)
 	
 	########################################
@@ -117,9 +150,10 @@ read_biom <- function(BIOMfilename, taxaPrefix=NULL, parallel=FALSE, version=1.0
 	########################################
 	# Sample Data ("columns" in QIIME/BIOM)
 	########################################
-	# If there is no metadata (all NULL), then set samdata <- NULL
+	# If there is no metadata (all NULL), then set samdata to NULL, representing empty.
 	if(  all( sapply(sapply(x$columns, function(i){i$metadata}), is.null) )  ){
 		samdata <- NULL
+	# Otherwise, parse it.
 	} else {
 		samdata <- ldply(x$columns, function(i){
 			if( class(i$metadata) == "list"){
@@ -132,12 +166,11 @@ read_biom <- function(BIOMfilename, taxaPrefix=NULL, parallel=FALSE, version=1.0
 	}
 	
 	########################################
-	# Put together into a list. 
-	# Should eventually be a BIOM object (special class)
+	# Use the BIOM() function to instantiate a biom-class with the data.
 	########################################
 	# Add header (not empty list by default, read file.)
 	# Add tree read/test if that is implemented.
-	return( BIOM(ab.mat, header=list(), taxonomy=taxdf, sampleData=samdata, tree=NULL) )
+	return( BIOM(ab.mat, header=header, taxonomy=taxdf, sampleData=samdata, tree=NULL) )
 
 }
 ################################################################################

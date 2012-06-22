@@ -2,11 +2,11 @@
 \alias{read_biom}
 \title{Read a BIOM-format file, returning a \code{biom-class}.}
 \usage{
-  read_biom(BIOMfilename, taxaPrefix=NULL, parallel=FALSE,
+  read_biom(biom_file, taxaPrefix=NULL, parallel=FALSE,
   version=1.0)
 }
 \arguments{
-  \item{BIOMfilename}{(Required). A character string
+  \item{biom_file}{(Required). A character string
   indicating the file location of the BIOM formatted file.
   This is a JSON formatted file, specific to biological
   datasets, as described in
@@ -60,9 +60,29 @@
 }
 \examples{
 # # # import with default parameters, specify a file
+biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "RBIOM")
+read_biom(biom_file)
+x <- read_biom(biom_file)
+show(x)
+print(x)
+header(x)
+abundance(x)
+taxonomy(x)
+sampleData(x)
+tree(x, FALSE)
+## The previous example uses system.file() because of constraints in specifying a fixed
+##   path within a reproducible example in a package.
+## In practice, however, you should simply provide "hard-link"
+## character string path to your file:
+# myBIOMfile <- "path/to/my/biomfile.biom"
 # read_biom(myBIOMfile)
 }
 \references{
   \url{http://www.qiime.org/svn_documentation/documentation/biom_format.html}
+}
+\seealso{
+  The \code{\link{BIOM}} constructor function.
+
+  Accessor functions like \code{\link{header}}.
 }
 

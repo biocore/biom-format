@@ -39,9 +39,23 @@
 #'
 #' @return An instance of the \code{\link{BIOM-class}}. 
 #'
+#' @seealso 
+#' The \code{\link{read_biom}} import function.
+#'
+#' Accessor functions like \code{\link{header}}.
+#'
 #' @export
 #' @examples #
-#' # # Examples to go here.
+#' # # # import with default parameters, specify a file
+#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "RBIOM")
+#' x <- read_biom(biom_file)
+#' show(x)
+#' print(x)
+#' header(x)
+#' abundance(x)
+#' taxonomy(x)
+#' sampleData(x)
+#' tree(x, FALSE)
 BIOM <- function(abundance, header=list(), taxonomy=NULL, sampleData=NULL, tree=NULL){
 	
 	# # Some instantiation checks should go here...
@@ -56,6 +70,66 @@ BIOM <- function(abundance, header=list(), taxonomy=NULL, sampleData=NULL, tree=
 	
 	return(biom)
 }
+################################################################################
+#' Method extensions to show for BIOM objects.
+#'
+#' See the general documentation of \code{\link[methods]{show}} method for
+#' expected behavior. 
+#'
+#' @seealso \code{\link[methods]{show}}
+#' 
+#' @export
+#' @aliases show,BIOM-method
+#' @docType methods
+#' @rdname show-methods
+#' @examples
+#' # # # import with default parameters, specify a file
+#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "RBIOM")
+#' (x <- read_biom(biom_file) )
+#' show(x)
+setMethod("show", "BIOM", function(object){
+	# cat("BIOM-class experiment-level object", fill=TRUE)
+	# print header
+	for( i in names(header(object)) ){
+		# Only show non-null elements
+		if( !is.null(header(object)[[i]]) ){
+			cat(paste(i, header(object)[[i]][[1]], sep=": "), fill=TRUE)
+		}
+	}
+
+	# print otuTable (always there).
+	cat(paste("OTU Table:          [", nrow(abundance(object)), " taxa by ", 
+        ncol(abundance(object)), " samples]", sep = ""), fill = TRUE
+	)	
+
+	# print Sample Data if there
+	if(!is.null(sampleData(object, FALSE))){
+        cat(paste("Sample Data:         [", dim(sampleData(object))[1], " samples by ", 
+	        dim(sampleData(object))[2], 
+            " sample variables]:", sep = ""), fill = TRUE)
+	}
+
+	# print taxonomy if present
+	if(!is.null(taxonomy(object, FALSE))){
+        cat(paste("Taxa Data:     [", dim(taxonomy(object))[1], " taxa by ", 
+	        dim(taxonomy(object))[2], 
+            " taxa variables]:", sep = ""), fill = TRUE)
+	}
+	
+	# print tree if there
+	if(!is.null(tree(object, FALSE))){
+        cat(paste("Phylogenetic Tree:  [", length(tree(object)$tip.label), " tips and ", 
+	        tree(object)$Nnode,
+            " internal nodes]", sep = ""),
+        	fill = TRUE
+        )
+		if( is.rooted(tree(object)) ){
+			cat("                     rooted", fill=TRUE)
+		} else {
+			cat("                     unrooted", fill=TRUE)
+		}        
+	}
+})
 ################################################################################
 ################################################################################
 #' Universal slot accessor for the \code{\link{BIOM-class}}.
