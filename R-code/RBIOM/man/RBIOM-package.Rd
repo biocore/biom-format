@@ -1,7 +1,7 @@
 \docType{package}
-\name{RBIOM-package}
-\alias{RBIOM-package}
-\title{This is an R package for interfacing with the BIOM format.}
+\name{rbiom-package}
+\alias{rbiom-package}
+\title{This is an R package for interfacing with the biom format.}
 \description{
   This is an R package for interfacing with the BIOM
   format. We plan to include tools for both reading and

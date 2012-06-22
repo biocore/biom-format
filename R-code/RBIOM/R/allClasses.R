@@ -23,10 +23,10 @@ setClassUnion("dataFrameOrNull", c("data.frame", "NULL"))
 setClassUnion("phyloOrNULL", c("phylo", "NULL"))
 ################################################################################
 # Eventually, class definitions should go here. Most expected is a class
-# definition for the "BIOM" class that represents generally the BIOM format
+# definition for the "biom" class that represents generally the biom format
 # structure within R.
 ################################################################################
-#' A native R-representation of the BIOM format.
+#' A native R-representation of the biom format.
 #'
 #' For documentation of the text file format see \url{http://biom-format.org/}. 
 #' 
@@ -39,20 +39,20 @@ setClassUnion("phyloOrNULL", c("phylo", "NULL"))
 #' }
 #'
 #' @seealso
-#' The constructor, \code{\link{BIOM}}
+#' The constructor, \code{\link{biom}}
 #' 
 #' The accessors, \code{\link{header}}, \code{\link{abundance}},
 #'  \code{\link{taxonomy}}, \code{\link{sampleData}}, \code{\link{tree}}.
 #' 
 #' @import ape
 #' @import Matrix
-#' @name BIOM-class
-#' @rdname BIOM-class
-#' @exportClass BIOM
+#' @name biom-class
+#' @rdname biom-class
+#' @exportClass biom
 #'
 #' @examples #
 #' # # # import with default parameters, specify a file
-#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "RBIOM")
+#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
 #' x <- read_biom(biom_file)
 #' show(x)
 #' print(x)
@@ -61,7 +61,7 @@ setClassUnion("phyloOrNULL", c("phylo", "NULL"))
 #' taxonomy(x)
 #' sampleData(x)
 #' tree(x, FALSE)
-setClass("BIOM",
+setClass("biom",
 	representation(
 	header     = "list",
 	abundance  = "Matrix",

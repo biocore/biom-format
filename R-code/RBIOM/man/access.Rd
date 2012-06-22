@@ -1,11 +1,11 @@
 \name{access}
 \alias{access}
-\title{Universal slot accessor for the \code{\link{BIOM-class}}.}
+\title{Universal slot accessor for the \code{\link{biom-class}}.}
 \usage{
   access(biom, slot, errorIfNULL=FALSE)
 }
 \arguments{
-  \item{biom}{(Required). \code{\link{BIOM-class}}.}
+  \item{biom}{(Required). \code{\link{biom-class}}.}
 
   \item{slot}{(Required). A character string indicating the
   slot (not data class) of the component data type that is

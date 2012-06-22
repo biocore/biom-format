@@ -5,7 +5,7 @@
 \alias{sampleData}
 \alias{taxonomy}
 \alias{tree}
-\title{Accessors for the \code{\link{BIOM-class}}.}
+\title{Accessors for the \code{\link{biom-class}}.}
 \usage{
   header(biom, errorIfNULL=TRUE)
 
@@ -18,7 +18,7 @@
   tree(biom, errorIfNULL = TRUE)
 }
 \arguments{
-  \item{biom}{(Required). \code{\link{BIOM-class}}.}
+  \item{biom}{(Required). \code{\link{biom-class}}.}
 
   \item{errorIfNULL}{(Optional). Logical. Should the
   accessor stop with an error if the slot is empty
@@ -26,10 +26,10 @@
 }
 \description{
   Convenience functions for accessing particular components
-  of the \code{\link{BIOM-class}}.
+  of the \code{\link{biom-class}}.
 }
 \details{
-  Some features of the BIOM-format can be essentially
+  Some features of the biom-format can be essentially
   empty, and are represented as \code{NULL} in R once
   imported. By default, these accessors will throw an error
   if a \code{NULL} is encountered, under the assumption

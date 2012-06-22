@@ -1,6 +1,6 @@
-\name{BIOM-class}
-\alias{BIOM-class}
-\title{A native R-representation of the BIOM format.}
+\name{biom-class}
+\alias{biom-class}
+\title{A native R-representation of the biom format.}
 \description{
   For documentation of the text file format see
   \url{http://biom-format.org/}.
@@ -15,7 +15,7 @@
 \examples{
 #
 # # # import with default parameters, specify a file
-biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "RBIOM")
+biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
 x <- read_biom(biom_file)
 show(x)
 print(x)
@@ -26,7 +26,7 @@ sampleData(x)
 tree(x, FALSE)
 }
 \seealso{
-  The constructor, \code{\link{BIOM}}
+  The constructor, \code{\link{biom}}
 
   The accessors, \code{\link{header}},
   \code{\link{abundance}}, \code{\link{taxonomy}},

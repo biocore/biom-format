@@ -1,8 +1,8 @@
-\name{BIOM}
-\alias{BIOM}
-\title{Build and return an instance of the BIOM-class.}
+\name{biom}
+\alias{biom}
+\title{Build and return an instance of the biom-class.}
 \usage{
-  BIOM(abundance, header=list(), taxonomy=NULL,
+  biom(abundance, header=list(), taxonomy=NULL,
   sampleData=NULL, tree=NULL)
 }
 \arguments{
@@ -11,9 +11,9 @@
   represent taxa and columns different samples.}
 
   \item{header}{(OPTIONAL). A list or \code{NULL}. The
-  header information describing this BIOM file, it's
+  header information describing this biom file, it's
   format, and other meta-data. Basically all the elements
-  above \code{"rows"} in the BIOM format description.
+  above \code{"rows"} in the biom format description.
   \url{http://biom-format.org/documentation/format_versions/biom-1.0.html}.
   Default is \code{NULL}.}
 
@@ -30,32 +30,32 @@
   \code{NULL}}
 }
 \value{
-  An instance of the \code{\link{BIOM-class}}.
+  An instance of the \code{\link{biom-class}}.
 }
 \description{
-  This is for instantiating a BIOM object within R
-  (\code{\link{BIOM-class}}), and assumes relevant data is
+  This is for instantiating a biom object within R
+  (\code{\link{biom-class}}), and assumes relevant data is
   already available in R. This is different than reading a
-  BIOM file into R. If you are instead interested in
-  importing a BIOM file into R, you should use the
+  biom file into R. If you are instead interested in
+  importing a biom file into R, you should use the
   \code{\link{read_biom}} function. It is probably worth
   noting that \code{\link{read_biom}} uses this function to
-  construct its \code{\link{BIOM-class}} instance after
-  parsing the raw data from the BIOM file into R. This
+  construct its \code{\link{biom-class}} instance after
+  parsing the raw data from the biom file into R. This
   function is made available (exported) so that other
   users/developers can easily represent analogous data in
   this structure if needed.
 }
 \details{
-  \code{BIOM()} is a constructor method. This is the main
+  \code{biom()} is a constructor method. This is the main
   method suggested for constructing an experiment-level
-  (\code{\link{BIOM-class}}) object from its component
+  (\code{\link{biom-class}}) object from its component
   data.
 }
 \examples{
 #
 # # # import with default parameters, specify a file
-biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "RBIOM")
+biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
 x <- read_biom(biom_file)
 show(x)
 print(x)

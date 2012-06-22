@@ -1,2 +1,2 @@
 library("testthat")
-test_package("RBIOM")
+test_package("rbiom")

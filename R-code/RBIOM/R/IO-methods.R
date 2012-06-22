@@ -13,7 +13,7 @@ parseGreenGenesPrefix <- function(char.vec){
 }
 ################################################################################
 ################################################################################
-#' Read a BIOM-format file, returning a \code{biom-class}.
+#' Read a biom-format file, returning a \code{biom-class}.
 #'
 #' New versions of QIIME produce a more-comprehensive and formally-defined
 #' JSON file format. From the QIIME website:
@@ -27,7 +27,7 @@ parseGreenGenesPrefix <- function(char.vec){
 #' @usage read_biom(biom_file, taxaPrefix=NULL, parallel=FALSE, version=1.0)
 #'
 #' @param biom_file (Required). A character string indicating the 
-#'  file location of the BIOM formatted file. This is a JSON formatted file,
+#'  file location of the biom formatted file. This is a JSON formatted file,
 #'  specific to biological datasets, as described in 
 #' 
 #'  \url{http://www.qiime.org/svn_documentation/documentation/biom_format.html}
@@ -55,14 +55,14 @@ parseGreenGenesPrefix <- function(char.vec){
 #'  the \code{doParallel} package.
 #' 
 #' @param version (Optional). Numeric. The expected version number of the file.
-#'  As the BIOM format evolves, version-specific importers will be available
+#'  As the biom format evolves, version-specific importers will be available
 #'  by adjusting the version value. Default is \code{1.0}. Not implemented.
 #'  Has no effect (yet).
 #'
 #' @return An instance of the \code{biom-class}.
 #'
 #' @seealso 
-#' The \code{\link{BIOM}} constructor function.
+#' The \code{\link{biom}} constructor function.
 #'
 #' Accessor functions like \code{\link{header}}.
 #'
@@ -74,7 +74,7 @@ parseGreenGenesPrefix <- function(char.vec){
 #' @export
 #' @examples
 #' # # # import with default parameters, specify a file
-#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "RBIOM")
+#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
 #' read_biom(biom_file)
 #' x <- read_biom(biom_file)
 #' show(x)
@@ -88,8 +88,8 @@ parseGreenGenesPrefix <- function(char.vec){
 #' ##   path within a reproducible example in a package. 
 #' ## In practice, however, you should simply provide "hard-link"
 #' ## character string path to your file:
-#' # myBIOMfile <- "path/to/my/biomfile.biom"
-#' # read_biom(myBIOMfile)
+#' # mybiomfile <- "path/to/my/biomfile.biom"
+#' # read_biom(mybiomfile)
 read_biom <- function(biom_file, taxaPrefix=NULL, parallel=FALSE, version=1.0){
 	
 	# Read the data
@@ -133,7 +133,7 @@ read_biom <- function(biom_file, taxaPrefix=NULL, parallel=FALSE, version=1.0){
 	########################################
 	# Taxonomy Table
 	########################################
-	# Need to check if taxonomy information is empty (minimal BIOM file)
+	# Need to check if taxonomy information is empty (minimal biom file)
 	if(  all( sapply(sapply(x$rows, function(i){i$metadata}), is.null) )  ){
 		taxdf <- NULL
 	} else {
@@ -148,7 +148,7 @@ read_biom <- function(biom_file, taxaPrefix=NULL, parallel=FALSE, version=1.0){
 	}
 	
 	########################################
-	# Sample Data ("columns" in QIIME/BIOM)
+	# Sample Data ("columns" in biom)
 	########################################
 	# If there is no metadata (all NULL), then set samdata to NULL, representing empty.
 	if(  all( sapply(sapply(x$columns, function(i){i$metadata}), is.null) )  ){
@@ -166,11 +166,11 @@ read_biom <- function(biom_file, taxaPrefix=NULL, parallel=FALSE, version=1.0){
 	}
 	
 	########################################
-	# Use the BIOM() function to instantiate a biom-class with the data.
+	# Use the biom() function to instantiate a biom-class with the data.
 	########################################
 	# Add header (not empty list by default, read file.)
 	# Add tree read/test if that is implemented.
-	return( BIOM(ab.mat, header=header, taxonomy=taxdf, sampleData=samdata, tree=NULL) )
+	return( biom(ab.mat, header=header, taxonomy=taxdf, sampleData=samdata, tree=NULL) )
 
 }
 ################################################################################

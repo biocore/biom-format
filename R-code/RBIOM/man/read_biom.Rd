@@ -1,13 +1,13 @@
 \name{read_biom}
 \alias{read_biom}
-\title{Read a BIOM-format file, returning a \code{biom-class}.}
+\title{Read a biom-format file, returning a \code{biom-class}.}
 \usage{
   read_biom(biom_file, taxaPrefix=NULL, parallel=FALSE,
   version=1.0)
 }
 \arguments{
   \item{biom_file}{(Required). A character string
-  indicating the file location of the BIOM formatted file.
+  indicating the file location of the biom formatted file.
   This is a JSON formatted file, specific to biological
   datasets, as described in
 
@@ -37,7 +37,7 @@
   package.}
 
   \item{version}{(Optional). Numeric. The expected version
-  number of the file. As the BIOM format evolves,
+  number of the file. As the biom format evolves,
   version-specific importers will be available by adjusting
   the version value. Default is \code{1.0}. Not
   implemented. Has no effect (yet).}
@@ -60,7 +60,7 @@
 }
 \examples{
 # # # import with default parameters, specify a file
-biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "RBIOM")
+biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
 read_biom(biom_file)
 x <- read_biom(biom_file)
 show(x)
@@ -74,14 +74,14 @@ tree(x, FALSE)
 ##   path within a reproducible example in a package.
 ## In practice, however, you should simply provide "hard-link"
 ## character string path to your file:
-# myBIOMfile <- "path/to/my/biomfile.biom"
-# read_biom(myBIOMfile)
+# mybiomfile <- "path/to/my/biomfile.biom"
+# read_biom(mybiomfile)
 }
 \references{
   \url{http://www.qiime.org/svn_documentation/documentation/biom_format.html}
 }
 \seealso{
-  The \code{\link{BIOM}} constructor function.
+  The \code{\link{biom}} constructor function.
 
   Accessor functions like \code{\link{header}}.
 }
