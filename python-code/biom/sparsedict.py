@@ -46,7 +46,14 @@ class SparseDict(dict):
 
     def __setitem__(self,args,value):
         """Wrap setitem, complain if out of bounds"""
-        row,col = args
+        try:
+            row,col = args
+        except:
+            # fast support foo[5] = 10, like numpy 1d vectors
+            col = args
+            row = 0
+            args = (row,col) # passed onto update_internal_indices
+    
         in_self_rows, in_self_cols = self.shape
 
         if row >= in_self_rows or row < 0:
@@ -97,6 +104,9 @@ class SparseDict(dict):
 
     def _update_internal_indices(self, args, value):
         """Update internal row,col indices"""
+        if not self._indices_enabled:
+            return
+            
         row,col = args
         if value == 0:
             if args in self:
