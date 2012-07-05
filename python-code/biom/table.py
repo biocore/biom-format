@@ -794,17 +794,12 @@ class Table(object):
                 idx += 1
         return new_order
 
-    def merge(self, other, Sample='union', Observation='union', merge_f=add,
+    def merge(self, other, Sample='union', Observation='union',
             sample_metadata_f=prefer_self, observation_metadata_f=prefer_self):
         """Merge two tables together
 
         The axes, samples and observations, can be controlled independently. 
         Both can either work on ``union`` or ``intersection``. 
-
-        ``merge_f`` is a function that takes two arguments and returns a value. 
-        The method is parameterized so that values can be added or subtracted
-        where there is overlap in ``(sample_id, observation_id)`` values in the 
-        tables
 
         ``sample_metadata_f`` and ``observation_metadata_f`` define how to 
         merge metadata between tables. The default is to just keep the metadata
@@ -821,7 +816,7 @@ class Table(object):
         # determine the sample order in the resulting table
         if Sample is 'union':
             new_samp_order = self._union_id_order(self.SampleIds, 
-                                                  other.SampleIds) 
+                                                  other.SampleIds)         
         elif Sample is 'intersection':
             new_samp_order = self._intersect_id_order(self.SampleIds,
                                                       other.SampleIds)
@@ -837,6 +832,11 @@ class Table(object):
                                                       other.ObservationIds)
         else:
             raise TableException, "Unknown observation merge type: %s" % Observation
+
+        # convert these to lists, no need to be dictionaries and reduces
+        # calls to items() and allows for pre-caluculating insert order
+        new_samp_order = sorted(new_samp_order.items(), key=itemgetter(1))
+        new_obs_order = sorted(new_obs_order.items(), key=itemgetter(1))
        
         # if we don't have any samples, complain loudly. This is likely from 
         # performing an intersection without overlapping ids
@@ -851,6 +851,15 @@ class Table(object):
         other_samp_idx = other._sample_index
         self_samp_idx = self._sample_index
 
+        # pre-calculate sample order from each table. We only need to do this 
+        # once which dramatically reduces the number of dict lookups necessary
+        # within the inner loop
+        other_samp_order = []
+        self_samp_order = []
+        for samp_id, nsi in new_samp_order: # nsi -> new_sample_index
+            other_samp_order.append((nsi, other_samp_idx.get(samp_id, None)))
+            self_samp_order.append((nsi, self_samp_idx.get(samp_id,None)))
+
         # pre-allocate the a list for placing the resulting vectors as the 
         # placement id is not ordered
         vals = [None for i in range(len(new_obs_order))] 
@@ -859,7 +868,7 @@ class Table(object):
         # resulting sample ids and sample metadata
         sample_ids = []
         sample_md = []
-        for id_,idx in sorted(new_samp_order.items(), key=itemgetter(1)):
+        for id_,idx in new_samp_order:
             sample_ids.append(id_)
 
             # if we have sample metadata, grab it
@@ -880,7 +889,7 @@ class Table(object):
         # resulting observation ids and sample metadata
         obs_ids = []
         obs_md = []
-        for id_,idx in sorted(new_obs_order.items(), key=itemgetter(1)):
+        for id_,idx in new_obs_order:
             obs_ids.append(id_)
 
             # if we have observation metadata, grab it
@@ -901,19 +910,33 @@ class Table(object):
 
         # length used for construction of new vectors
         vec_length = len(new_samp_order)
+        
+        # The following lines of code allow for removing type conversions,
+        # however it should be noted that in testing as of 7.5.12, this 
+        # degraded performance due to the vastly higher performing numpy
+        # __setitem__ interface.
+        #if self._biom_matrix_type is 'sparse':
+        #    data_f = lambda: self._data.__class__(1, vec_length, dtype=float,\
+        #                                    enable_indices=False)
+        #else:
+        #    data_f = lambda: zeros(vec_length, dtype=float) 
 
         # walk over observations in our new order
-        for obs_id, new_obs_idx in new_obs_order.iteritems():
+        for obs_id, new_obs_idx in new_obs_order:
             # create new vector for matrix values
             new_vec = zeros(vec_length, dtype='float')
-
+            
+            # This method allows for the creation of a matrix of self type. 
+            # See note above
+            #new_vec = data_f()
+            
             # see if the observation exists in other, if so, pull it out.
             # if not, set to the placeholder missing
             if other.observationExists(obs_id):
                 other_vec = other.observationData(obs_id)
             else:
                 other_vec = None
-
+                
             # see if the observation exists in self, if so, pull it out.
             # if not, set to the placeholder missing
             if self.observationExists(obs_id):
@@ -921,29 +944,43 @@ class Table(object):
             else:
                 self_vec = None
 
-            ### do we want a sanity check to make sure that self_vec AND 
-            ### other_vec are not 'missing'??
-
-            # walk over samples in our new order
-            for samp_id, new_samp_idx in new_samp_order.iteritems():
-                # pull out each individual sample value. This is expensive, but
-                # the vectors are in a different alignment. It is possible that
-                # this could be improved with numpy take but needs to handle
-                # missing values appropriately
-                if self_vec is None or samp_id not in self_samp_idx:
-                    self_vec_value = 0
-                else:
-                    self_vec_value = self_vec[self_samp_idx[samp_id]]
-
-                if other_vec is None or samp_id not in other_samp_idx:
-                    other_vec_value = 0
-                else: 
-                    other_vec_value = other_vec[other_samp_idx[samp_id]]
-
-                # pass both values to our merge_f
-                new_vec[new_samp_idx] = merge_f(self_vec_value, 
-                                                other_vec_value)
-
+            # short circuit. If other doesn't have any values, then we can just
+            # take all values from self
+            if other_vec is None:
+                for (n_idx, s_idx) in self_samp_order:
+                    if s_idx is not None:
+                        new_vec[n_idx] = self_vec[s_idx]
+                                    
+            # short circuit. If self doesn't have any values, then we can just
+            # take all values from other
+            elif self_vec is None:
+                for (n_idx, o_idx) in other_samp_order:
+                    if o_idx is not None:
+                        new_vec[n_idx] = other_vec[o_idx]
+                         
+            else:
+                # NOTE: DM 7.5.12, no observed improvement at the profile level
+                # was made on this inner loop by using self_samp_order and 
+                # other_samp_order lists.
+                
+                # walk over samples in our new order
+                for samp_id, new_samp_idx in new_samp_order:
+                    # pull out each individual sample value. This is expensive,
+                    # but the vectors are in a different alignment. It is 
+                    # possible that this could be improved with numpy take but 
+                    # needs to handle missing values appropriately
+                    if samp_id not in self_samp_idx:
+                        self_vec_value = 0
+                    else:
+                        self_vec_value = self_vec[self_samp_idx[samp_id]]
+            
+                    if samp_id not in other_samp_idx:
+                        other_vec_value = 0
+                    else: 
+                        other_vec_value = other_vec[other_samp_idx[samp_id]]
+                        
+                    new_vec[new_samp_idx] = self_vec_value + other_vec_value
+                
             # convert our new vector to self type as to make sure we don't
             # accidently force a dense representation in memory
             vals[new_obs_idx] = self._conv_to_self_type(new_vec)
@@ -1101,7 +1138,11 @@ class SparseTable(Table):
         """For converting vectors to a compatible self type"""
         if dtype is None:
             dtype = self._dtype
-        return to_sparse(vals, transpose, dtype)
+            
+        if isinstance(vals, self._data.__class__):
+            return vals
+        else:
+            return to_sparse(vals, transpose, dtype)
 
     def __iter__(self):
         """Defined by subclass"""
