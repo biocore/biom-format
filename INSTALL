@@ -15,7 +15,6 @@ To install system-wide:
 
 $ python setup.py install
 
-Assuming the biom module was installed into a directory that is already visible
-from your PYTHONPATH, you can build the documentation locally with:
+If you have Sphinx installed, you can build the documentation locally with:
 
-$ python setup.py build_sphinx
+$ cd doc; make html
