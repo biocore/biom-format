@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-from cogent.util.unit_test import TestCase, main
-from dbdata import dbData, biomdb
+from biom.unit_test import TestCase, main
+from biom.dbdata import dbData, biomdb
 from numpy import array
 
 class dbdataTests(TestCase):

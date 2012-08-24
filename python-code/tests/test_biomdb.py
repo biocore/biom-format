@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # encoding: utf-8
 
-from cogent.util.unit_test import TestCase, main
-from biomdb import BiomDB
+from biom.unit_test import TestCase, main
+from biom.biomdb import BiomDB
 from MySQLdb import ProgrammingError, OperationalError
 
 class BiomDBTests(TestCase):
