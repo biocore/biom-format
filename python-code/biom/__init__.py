@@ -14,6 +14,7 @@ __all__ = ['table','parse','sparsemat','sparsedict','util','unittest','exception
 
 from sys import modules
 
+from biom.exception import InvalidSparseBackendException
 from biom.util import load_biom_config
 
 biom_config = load_biom_config()
@@ -86,10 +87,10 @@ def get_sparse_backend():
         valid_backend = False
 
     if not valid_backend:
-        raise ValueError("The sparse matrix backend '%s' could not be loaded "
-                "because it is either unrecognized or your biom-format "
-                "install does not support it (e.g. no Cython, so no access to "
-                "SparseMat)." % backend)
+        raise InvalidSparseBackendException("The sparse matrix backend '%s' "
+                "could not be loaded because it is either unrecognized or "
+                "your biom-format install does not support it (e.g. no "
+                "Cython, so no access to SparseMat)." % backend)
 
     return SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
            list_nparray_to_sparseobj, nparray_to_sparseobj, \
