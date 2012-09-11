@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-from numpy import array, where, zeros
+from numpy import where, zeros, array
 from biom.unit_test import TestCase, main
 from biom.table import TableException, Table, \
     DenseTable, SparseTable, DenseOTUTable, SparseOTUTable,\
     UnknownID, prefer_self, index_list, dict_to_nparray, \
     list_dict_to_nparray, table_factory, list_list_to_nparray, flatten, unzip, \
     natsort, to_sparse, nparray_to_sparseobj, list_nparray_to_sparseobj, \
-    SparseObj
+    SparseObj, get_zerod_matrix
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM Format"
@@ -22,6 +22,19 @@ __email__ = "daniel.mcdonald@colorado.edu"
 class SupportTests(TestCase):
     def setUp(self):
         pass
+
+    def get_zerod_matrix(self):
+        """returns a zerod matrix"""
+        foo = array([[1,2,3],[4,5,6]])
+        exp = zeros((2,3))
+        obs = get_zerod_matrix(foo)
+        self.assertEqual(obs,exp)
+
+        foo = SparseObj(2,3)
+        foo[1,2] = 3
+        exp = SparseObj(2,3)
+        obs = get_zerod_matrix(foo)
+        self.assertEqual(obs,exp)
 
     def test_table_factory_sparseobj_nparray(self):
         """beat the table_factory sparsely to death"""
@@ -1515,7 +1528,7 @@ class SparseTableTests(TestCase):
         exp_md = SparseTable(md_sd, ['b'], ['1','2'], 
                 [{'barcode':'ttgg'}], [{'taxonomy':['k__a','p__b']},
                                        {'taxonomy':['k__a','p__c']}])
-        
+       
         obs_value = self.st_rich.filterSamples(f_value)
         obs_id = self.st_rich.filterSamples(f_id)
         obs_md = self.st_rich.filterSamples(f_md)

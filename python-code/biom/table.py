@@ -52,7 +52,7 @@ __url__ = "http://biom-format.org"
 __version__ = "1.0.0-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"   
-   
+
 class Table(object):
     """Abstract base class for a what a Table is"""
     _biom_type = None
@@ -521,7 +521,7 @@ class Table(object):
         # if we don't have any values to keep, throw an exception as we can 
         # create an inconsistancy in which there are observation ids but no
         # matrix data in the resulting table
-        if not samp_vals:
+        if not samp_ids:
             raise TableException, "All samples filtered out!"
 
         # the additional call to _conv_to_self_type is to convert a list of 
@@ -711,13 +711,19 @@ class Table(object):
         float) that replaces the provided sample value
         """
         dtype = float
-        new_m = []
-        for s_v, s_id, s_md in self.iterSamples():
-            new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md), \
-                                                 dtype=dtype))
+        new_m = get_zerod_matrix(self._data, dtype)
 
-        return self.__class__(self._conv_to_self_type(new_m, dtype=dtype, \
-                transpose=True), self.SampleIds[:], self.ObservationIds[:], 
+        i = 0
+        for s_v, s_id, s_md in self.iterSamples():
+            s_v = f(s_v, s_id, s_md)
+            
+            for j,v in enumerate(s_v):
+                if v:
+                    # force transpose
+                    new_m[j,i] = v
+            i += 1
+
+        return self.__class__(new_m, self.SampleIds[:], self.ObservationIds[:],
                 self.SampleMetadata, self.ObservationMetadata, self.TableId)
 
     def transformObservations(self, f):
@@ -729,13 +735,19 @@ class Table(object):
 
         """
         dtype = float
-        new_obs_v = []
-        for obs_v, obs_id, obs_md in self.iterObservations():
-            new_obs_v.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md),
-                                                     dtype=dtype))
+        new_obs_v = get_zerod_matrix(self._data, dtype)
 
-        return self.__class__(self._conv_to_self_type(new_obs_v, dtype=dtype),
-                self.SampleIds[:],self.ObservationIds[:],self.SampleMetadata,
+        i = 0
+        for obs_v, obs_id, obs_md in self.iterObservations():
+            obs_v = f(obs_v, obs_id, obs_md)
+
+            for j,v in enumerate(obs_v):
+                if v:
+                    new_obs_v[i,j] = v
+            i += 1
+
+        return self.__class__(new_obs_v, self.SampleIds[:], 
+                self.ObservationIds[:], self.SampleMetadata, 
                 self.ObservationMetadata, self.TableId)
 
     def normObservationBySample(self):
@@ -1442,3 +1454,12 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
             SampleMetadata=sample_metadata,
             ObservationMetadata=observation_metadata,
             TableId=table_id, **kwargs)
+
+def get_zerod_matrix(mat, dtype=float):
+    """Returns a zerod matrix"""
+    if isinstance(mat, ndarray):
+        return zeros(mat.shape, dtype=float)
+    elif isinstance(mat, SparseObj):
+        return SparseObj(*mat.shape, dtype=float)
+    else:
+        raise TableException, "Unknown mat type"
