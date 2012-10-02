@@ -43,8 +43,20 @@ class SparseMat():
             self._index_cols = [set() for i in range(cols)]
         else:
             self._index_rows = None
-            self._index_rows = None
+            self._index_cols = None
         self._indices_enabled = enable_indices
+
+    def rebuildIndices(self):
+        """(re)Build indices"""
+        ir = [set() for i in range(self.shape[0])]
+        ic = [set() for i in range(self.shape[1])]
+
+        for ((r,c),v) in self.items():
+            ir[r].add((r,c))
+            ic[c].add((r,c))
+
+        self._index_rows = ir
+        self._index_cols = ic
 
     def items(self):
         """Generater returning ((r,c),v)"""

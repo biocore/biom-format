@@ -37,6 +37,21 @@ class SparseMatTests(TestCase):
         self.assertNotEqual(id(self.obj._index_rows), id(obs._index_rows))
         self.assertNotEqual(id(self.obj._index_cols), id(obs._index_cols))
 
+    def test_rebuildIndices(self):
+        """rebuild table indices"""
+        sm = SparseMat(3,4,enable_indices=False)
+        sm[0,0] = 10
+        sm[0,2] = 0
+        sm[1,3] = -5
+        sm[1,2] = 1
+        self.assertEqual(sm._index_rows, None)
+        self.assertEqual(sm._index_cols, None)
+        sm.rebuildIndices()
+        self.assertEqual(sm._index_rows, [set([(0,0)]),set([(1,3), (1,2)]),
+                                          set([])])
+        self.assertEqual(sm._index_cols, [set([(0,0)]), set([]),
+                                          set([(1,2)]), set([(1,3)])])
+
     def test_setitem(self):
         self.obj[(2,2)] = 10
         exp = sorted([((1,2),3),((5,2),6),((2,2),10)])
