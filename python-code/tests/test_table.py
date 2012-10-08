@@ -1373,7 +1373,7 @@ class SparseTableTests(TestCase):
         exp[(1,0)] = 7
         exp[(1,1)] = 8        
         obs = self.st1._conv_to_self_type(self.vals)
-        self.assertEqual(obs.items(), exp.items())
+        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
 
         exp = SparseObj(2,2)
         exp[(0,0)] = 5
@@ -1381,17 +1381,7 @@ class SparseTableTests(TestCase):
         exp[(1,0)] = 6
         exp[(1,1)] = 8        
         obs = self.st1._conv_to_self_type(self.vals, transpose=True)
-        self.assertEqual(obs.items(), exp.items())
-
-        # is this test needed?
-        #exp = SparseDict(2,2)
-        #exp[(0,0)] = 5
-        #exp[(0,1)] = 6
-        #exp[(1,0)] = 7
-        #exp[(1,1)] = 8
-        #obs = self.st1._conv_to_self_type([((0,0),5),((0,1),6),
-        #                                   ((1,0),7),((1,1),8)])
-        #self.assertEqual(obs.items(), exp.items())
+        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
 
         # passing a single vector
         exp = SparseObj(1,3)
@@ -1399,7 +1389,7 @@ class SparseTableTests(TestCase):
         exp[(0,1)] = 0
         exp[(0,2)] = 3
         obs = self.st1._conv_to_self_type(array([2,0,3]))
-        self.assertEqual(obs.items(), exp.items())
+        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
 
         # passing a list of dicts
         exp = SparseObj(2,3)
@@ -1411,7 +1401,7 @@ class SparseTableTests(TestCase):
         exp[(1,2)] = 10
         obs = self.st1._conv_to_self_type([{(0,0):5,(0,1):6,(0,2):7},
                                            {(1,0):8,(1,1):9,(1,2):10}])
-        self.assertEqual(obs.items(), exp.items()) 
+        self.assertEqual(sorted(obs.items()), sorted(exp.items())) 
 
     def test_iter(self):
         """Should iterate over samples"""
@@ -1431,7 +1421,7 @@ class SparseTableTests(TestCase):
         exp = map(self._to_dict_f, [r1, r2])
         obs = map(self._to_dict_f, self.st1._iter_obs())
 
-        self.assertEqual(obs, exp)
+        self.assertEqual(sorted(obs), sorted(exp))
 
     def test_iter_samp(self):
         """Iterate over samples of sparse matrix"""
