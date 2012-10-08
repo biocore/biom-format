@@ -563,6 +563,11 @@ def to_csmat(values, transpose=False, dtype=float):
         if transpose:
             mat = mat.T
         return mat
+    elif isinstance(values, CSMat):
+        mat = values
+        if transpose:
+            mat = mat.T
+        return mat
     else:
         raise TableException, "Unknown input type"
         
