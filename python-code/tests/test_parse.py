@@ -11,7 +11,7 @@ from biom.parse import parse_biom_table_str, \
         parse_mapping, pick_constructor, parse_biom_pathway_table,\
         parse_biom_function_table, parse_biom_ortholog_table, \
         parse_biom_gene_table, parse_biom_metabolite_table, \
-        parse_biom_taxon_table, OBS_META_TYPES
+        parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_csmat
 from biom.table import SparseOTUTable, DenseOTUTable
 from biom.exception import BiomParseException
 
@@ -40,6 +40,17 @@ class ParseTests(TestCase):
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
         self.biom_otu_table1_w_tax = biom_otu_table1_w_tax.split('\n')
         self.biom_otu_table1_no_tax = biom_otu_table1_no_tax.split('\n')
+
+    def test_light_parse_biom_csmat(self):
+        """Parse a table more direct"""
+        self.assertRaises(AttributeError, light_parse_biom_csmat, \
+                          self.biom_minimal_dense, DenseOTUTable)
+
+        from string import strip
+        biomstr = ''.join(map(strip, self.biom_minimal_sparse.splitlines()))
+        t = light_parse_biom_csmat(biomstr,SparseOTUTable)
+        t2 = parse_biom_table_str(biomstr,SparseOTUTable)
+        self.assertEqual(t,t2)
 
     def test_pick_constructor(self):
         """Pick a sane constructor"""
