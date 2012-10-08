@@ -15,13 +15,12 @@ from biom.exception import TableException, UnknownID
 from biom.util import get_biom_format_version_string, \
     get_biom_format_url_string, unzip, flatten, _natsort_key, natsort, \
     prefer_self, index_list
-    
-# try to use the cxx sparsemat if it is available
+
 try:
-    from biom.sparsemat import SparseMat, to_sparsemat, \
-        dict_to_sparsemat, list_dict_to_sparsemat, \
-        list_nparray_to_sparsemat, nparray_to_sparsemat, \
-        list_list_to_sparsemat
+    from foo import FORCE_CSMAT
+    from biom.sparsemat import SparseMat, to_sparsemat, dict_to_sparsemat,\
+            list_nparray_to_sparsemat, nparray_to_sparsemat, \
+            list_list_to_sparsemat, list_dict_to_sparsemat
     SparseObj = SparseMat
     to_sparse = to_sparsemat
     dict_to_sparseobj = dict_to_sparsemat
@@ -30,19 +29,16 @@ try:
     nparray_to_sparseobj = nparray_to_sparsemat
     list_list_to_sparseobj = list_list_to_sparsemat
 except ImportError:
-    from biom.sparsedict import SparseDict, to_sparsedict, \
-        dict_to_sparsedict, list_dict_to_sparsedict, \
-        list_nparray_to_sparsedict, nparray_to_sparsedict, \
-        list_list_to_sparsedict
-        
-    SparseObj = SparseDict
-    to_sparse = to_sparsedict
-    dict_to_sparseobj = dict_to_sparsedict
-    list_dict_to_sparseobj = list_dict_to_sparsedict
-    list_nparray_to_sparseobj = list_nparray_to_sparsedict
-    nparray_to_sparseobj = nparray_to_sparsedict
-    list_list_to_sparseobj = list_list_to_sparsedict
-   
+    from biom.csmat import CSMat, to_csmat, dict_to_csmat, list_dict_to_csmat,\
+         list_nparray_to_csmat, nparray_to_csmat, list_list_to_csmat
+    SparseObj = CSMat
+    to_sparse = to_csmat
+    dict_to_sparseobj = dict_to_csmat
+    list_dict_to_sparseobj = list_dict_to_csmat
+    list_nparray_to_sparseobj = list_nparray_to_csmat
+    nparray_to_sparseobj = nparray_to_csmat
+    list_list_to_sparseobj = list_list_to_csmat
+
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
 __credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso", 
@@ -92,7 +88,7 @@ class Table(object):
             n_obs, n_samp = self._data.shape
         except:
             n_obs = n_samp = 0
-
+        
         if n_obs != len(self.ObservationIds):
             raise TableException, \
                     "Number of ObservationIds differs from matrix size!"
