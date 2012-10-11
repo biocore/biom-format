@@ -264,16 +264,16 @@ class CSMat():
         res = []
         if self._order == 'csr':
             for row,i in enumerate(self._pkd_ax[1:]):
-                for col,val in zip(self._unpkd_ax[last:i],self._values[last:i]):
+                for col,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
                     res.append(((row,col),val))
                 last = i
         elif self._order == 'csc':
             for col,i in enumerate(self._pkd_ax[1:]):
-                for row,val in zip(self._unpkd_ax[last:i],self._values[last:i]):
+                for row,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
                     res.append(((row,col),val))
                 last = i
         else:
-            for r,c,v in zip(self._coo_rows, self._coo_cols, self._coo_values):
+            for r,c,v in izip(self._coo_rows, self._coo_cols, self._coo_values):
                 res.append(((r,c),v))
         return res
 
