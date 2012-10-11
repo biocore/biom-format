@@ -259,7 +259,7 @@ class CSMat():
         return (pkd_ax, unpkd_ax, values)
 
     def items(self):
-        """Generater returning ((r,c),v)"""
+        """returns [((r,c),v)]"""
         last = 0
         res = []
         if self._order == 'csr':
@@ -276,6 +276,23 @@ class CSMat():
             for r,c,v in izip(self._coo_rows, self._coo_cols, self._coo_values):
                 res.append(((r,c),v))
         return res
+
+    def iteritems(self):
+        """Generater returning ((r,c),v)"""
+        last = 0
+        if self._order == 'csr':
+            for row,i in enumerate(self._pkd_ax[1:]):
+                for col,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
+                    yield ((row,col),val)
+                last = i
+        elif self._order == 'csc':
+            for col,i in enumerate(self._pkd_ax[1:]):
+                for row,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
+                    yield ((row,col),val)
+                last = i
+        else:
+            for r,c,v in izip(self._coo_rows, self._coo_cols, self._coo_values):
+                yield ((r,c),v)
 
     def __contains__(self, args):
         """Return True if args are in self, false otherwise"""

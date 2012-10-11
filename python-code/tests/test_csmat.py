@@ -122,6 +122,19 @@ class CSMatTests(TestCase):
         self.assertEqual(obs_csr, exp)
         self.assertEqual(obs_csc, exp)
 
+    def test_iteritems(self):
+        """Get items out"""
+        exp = sorted([((0,0),1.0),((0,1),2.0),((1,2),3.0),((2,3),4.0)])
+        obs_coo = sorted(self.obj.iteritems())
+        self.obj.convert("csr")
+        obs_csr = sorted(self.obj.iteritems())
+        self.obj.convert("csc")
+        obs_csc = sorted(self.obj.iteritems())
+
+        self.assertEqual(obs_coo, exp)
+        self.assertEqual(obs_csr, exp)
+        self.assertEqual(obs_csc, exp)
+
     def test_contains(self):
         """Make sure we can check things exist"""
         sm1 = CSMat(3,4)
