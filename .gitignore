@@ -21,3 +21,6 @@ _sparsemat.cpp
 Icon?
 ehthumbs.db
 Thumbs.db
+
+# For vim swap files
+.*.swp

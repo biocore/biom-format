@@ -11,7 +11,7 @@ from biom.table import TableException, Table, \
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM Format"
-__credits__ = ["Daniel McDonald", "Jai Rideout", "Justin Kuczynski",
+__credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
                "Greg Caporaso", "Jose Clemente"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
@@ -23,7 +23,7 @@ class SupportTests(TestCase):
     def setUp(self):
         pass
 
-    def get_zerod_matrix(self):
+    def test_get_zerod_matrix(self):
         """returns a zerod matrix"""
         foo = array([[1,2,3],[4,5,6]])
         exp = zeros((2,3))

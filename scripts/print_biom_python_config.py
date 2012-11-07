@@ -9,7 +9,7 @@ from sys import platform, version as python_version, executable
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2012, The BIOM-Format Project"
 __credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso", 
-               "Jai Rideout", "Justin Kuczynski", "Andreas Wilke",
+               "Jai Ram Rideout", "Justin Kuczynski", "Andreas Wilke",
                "Tobias Paczian", "Rob Knight", "Folker Meyer", 
                "Sue Huse"]
 __url__ = "http://biom-format.org"
@@ -21,21 +21,25 @@ __email__ = "gregcaporaso@gmail.com"
 try:
     from numpy import __version__ as numpy_lib_version
 except ImportError:
-    numpy_lib_version = "ERROR: Not installed - this is required! (This will also cause the BIOM libary to not be importable.)"
-    
+    numpy_lib_version = "ERROR: Not installed - this is required! (This will also cause the BIOM library to not be importable.)"
+
 try:
     from biom import __version__ as biom_lib_version
-    from biom.table import SparseObj
 except ImportError:
     biom_lib_version = "ERROR: Can't find the BIOM library code (or numpy) - is it installed and in your $PYTHONPATH?"
+
+try:
+    from biom.exception import InvalidSparseBackendException
+    from biom.table import SparseObj
+except ImportError:
     SparseObj = "ERROR: Can't find the BIOM library code (or numpy) - is it installed and in your $PYTHONPATH?"
+except InvalidSparseBackendException as e:
+    SparseObj = "ERROR: %s" % e
 
 def get_script_version():
     return __version__
-            
 
 def print_biom_config():
-    
     system_info = [
      ("Platform", platform),
      ("Python/GCC version",python_version.replace('\n', ' ')),
@@ -70,8 +74,6 @@ def print_biom_config():
         print "%*s:\t%s" % (max_len,v[0],v[1])
     print ""
 
-if __name__ == '__main__':
-    
-    print_biom_config()
-    
 
+if __name__ == '__main__':
+    print_biom_config()
