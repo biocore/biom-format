@@ -8,7 +8,8 @@ from unittest import main, TestSuite, findTestCases, \
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
-                    "Zongzhi Liu", "Micah Hamady", "Daniel McDonald"]
+               "Zongzhi Liu", "Micah Hamady", "Daniel McDonald",
+               "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
 __version__ = "1.0.0-dev"
@@ -215,3 +216,14 @@ class TestCase(TestCaseOriginal):
             testing.assert_equal(observed, expected)
     #following needed to get our version instead of unittest's
     assertEqual = assertEquals = failUnlessEqual
+
+    def assertNotSameObj(self, observed, expected, msg=None):
+        """Fail if 'observed is expected'"""
+        try:
+            if observed is not expected:
+                return
+        except:
+            pass
+        raise self.failureException, \
+        (msg or 'Observed %s is the same as expected %s' % \
+        (`observed`, `expected`))
