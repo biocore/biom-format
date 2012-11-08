@@ -71,7 +71,7 @@ class Table(object):
             n_obs, n_samp = self._data.shape
         except:
             n_obs = n_samp = 0
-
+        
         if n_obs != len(self.ObservationIds):
             raise TableException, \
                     "Number of ObservationIds differs from matrix size!"
