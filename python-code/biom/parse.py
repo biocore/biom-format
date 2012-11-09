@@ -26,16 +26,15 @@ MATRIX_ELEMENT_TYPE = {'int':int,'float':float,'unicode':unicode,
                       u'int':int,u'float':float,u'unicode':unicode}
 
 QUOTE = '"'
-LEFT_SQR = "["
-RIGHT_SQR = "]"
-LEFT_BRK = "{"
-RIGHT_BRK = "}"
-JSON_OPEN = set([LEFT_SQR, LEFT_BRK])
-JSON_CLOSE = set([RIGHT_SQR, RIGHT_BRK])
+JSON_OPEN = set(["[", "{"])
+JSON_CLOSE = set(["]", "}"])
 JSON_SKIP = set([" ","\t","\n",","])
 JSON_START = set(["0","1","2","3","4","5","6","7","8","9","{","[",'"'])
 def direct_parse_key(biom_str, key):
-    """Returns key:value from the biom string, or """""
+    """Returns key:value from the biom string, or ""
+    
+    This method pulls an arbitrary key/value pair out from a BIOM string
+    """
     base_idx = biom_str.find('"%s":' % key)
     if base_idx == -1:
         return ""
@@ -75,6 +74,98 @@ def direct_parse_key(biom_str, key):
             cur_idx += 1
 
     return biom_str[base_idx:cur_idx]
+
+def direct_slice_data(biom_str, to_keep, axis):
+    """Pull out specific slices from a BIOM string
+
+    biom_str : JSON-formatted BIOM string
+    to_keep  : indices to keep
+    axis     : either 'samples' or 'observations'
+    
+    Will raise IndexError if the inices are out of bounds. Fully zerod rows
+    or columns are possible and this is _not_ checked. 
+    """
+    if axis not in ['observations','samples']:
+        raise IndexError, "Unknown axis type"
+
+    # it would be nice if all of these lookups could be done in a single
+    # traversal of biom_str, but it likely is at the cost of code complexity
+    shape_kv_pair = direct_parse_key(biom_str, "shape")
+    if shape_kv_pair == "":
+        raise ValueError, "biom_str does not appear to be in BIOM format!"
+
+    data_fields = direct_parse_key(biom_str, "data")
+    if data_fields == "":
+        raise ValueError, "biom_str does not appear to be in BIOM format!"
+
+    matrix_type_kv_pair = direct_parse_key(biom_str, "matrix_type")
+    if matrix_type_kv_pair == "":
+        raise ValueError, "biom_str does not appear to be in BIOM format!"
+
+    # determine shape
+    raw_shape = shape_kv_pair.split(':')[-1].replace("[","").replace("]","")
+    n_rows, n_cols = map(int, raw_shape.split(","))
+   
+    # slice to just data
+    data_start = data_fields.find('[') + 1 # find [[ for start, and move to [
+    data_fields = data_fields[data_start:len(data_fields)-1] # trim trailing ]
+    
+    # determine matrix type
+    matrix_type = matrix_type_kv_pair.split(':')[-1].strip()
+
+    # bounds check
+    if min(to_keep) < 0:
+        raise IndexError, "Observations to keep are out of bounds!"
+    
+    # more bounds check and set new shape
+    new_shape = "[%d, %d]"
+    if axis == 'observations':
+        if max(to_keep) >= n_rows:
+            raise IndexError, "Observations to keep are out of bounds!"
+        new_shape = new_shape % (len(to_keep), n_cols)
+    elif axis == 'samples':
+        if max(to_keep) >= n_cols:
+            raise IndexError, "Samples to keep are out of bounds!"
+        new_shape = new_shape % (n_rows, len(to_keep))
+
+    to_keep = set(to_keep)
+    new_data = []
+    if matrix_type == '"dense"':
+        if axis == 'observations':
+            # iterate rows, keep those specified
+            for row_count, row in enumerate(data_fields.split('],')):
+                if row_count in to_keep:
+                    new_data.append(row.strip())
+        elif axis == 'samples':
+            # iterate rows
+            for row in data_fields.split('],'):
+                new_row = []
+                # dive into the cols and keep those specified
+                for col_idx,v in enumerate(row.split(',')):
+                    if col_idx in to_keep:
+                        v = v.strip()
+                        new_row.append(v)
+                new_data.append("[%s" % ','.join(new_row))
+    elif matrix_type == '"sparse"':
+        if axis == 'observations':
+            # interogate all the datas
+            for rcv in data_fields.split('],'):
+                r,c,v = rcv.split(',')
+                r = r.strip()[1:] # trim off [
+                if int(r) in to_keep:
+                    new_data.append(rcv.strip())
+        elif axis == 'samples':
+            # could do sparse obs/samp in one forloop, but then theres the 
+            # expense of the additional if-statement in the loop
+            for rcv in data_fields.split('],'):
+                r,c,v = rcv.split(',')
+                if int(c) in to_keep:
+                    new_data.append(rcv.strip())
+    else:
+        print matrix_type, matrix_type == '"dense"'
+        raise ValueError, "biom_str does not appear to be in BIOM format!"
+
+    return '"data": [%s]], "shape": %s' % ('],'.join(new_data), new_shape)
 
 def light_parse_biom_csmat(biom_str, constructor):
     """Light-weight BIOM parser for CSMat-Sparse objects

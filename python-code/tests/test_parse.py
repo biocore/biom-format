@@ -12,7 +12,7 @@ from biom.parse import parse_biom_table_str, \
         parse_biom_function_table, parse_biom_ortholog_table, \
         parse_biom_gene_table, parse_biom_metabolite_table, \
         parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_csmat, \
-        direct_parse_key
+        direct_parse_key, direct_slice_data
 
 from biom.table import SparseOTUTable, DenseOTUTable
 from biom.exception import BiomParseException
@@ -81,10 +81,48 @@ class ParseTests(TestCase):
         obs = direct_parse_key(test_str, "X")
         self.assertEqual(obs, exp)
 
-    def test_direct_slice_data(self):
+    def test_direct_slice_data_dense_obs(self):
         """Directly slice data entries"""
-        keep_rows = [1,3]
-        self.fail()
+        keep = [1,3]
+        exp = """"data": [[5,1,0,2,3,1],[2,1,1,0,0,1]], "shape": [2, 6]"""
+        obs = direct_slice_data(biom_minimal_dense, keep, 'observations')
+        self.assertEqual(obs, exp)
+
+    def test_direct_slice_data_dense_samp(self):
+        """Directly slice data entries"""
+        keep = [1,3]
+        exp = """"data": [[0,0],[1,2],[0,4],[1,0],[1,0]], "shape": [5, 2]"""
+        obs = direct_slice_data(biom_minimal_dense, keep, 'samples')
+        self.assertEqual(obs, exp)
+
+    def test_direct_slice_data_dense_idxerr(self):
+        """Directly slice data entries"""
+        keep = [1,7]
+        self.assertRaises(IndexError, direct_slice_data, biom_minimal_dense, 
+                          keep, 'samples')
+
+    def test_direct_slice_data_sparse_obs(self):
+        """Directly slice data entries"""
+        keep = [1,3]
+        exp = '"data": [[1,0,5],[1,1,1],[1,3,2],[1,4,3],[1,5,1],' \
+                       '[3,0,2],[3,1,1],[3,2,1],[3,5,1]], "shape": [2, 6]'
+        obs = direct_slice_data(biom_minimal_sparse, keep, 'observations')
+        self.assertEqual(obs, exp)
+
+    def test_direct_slice_data_sparse_samp(self):
+        """Directly slice data entries"""
+        keep = [1,3]
+        exp = '"data": [[1,1,1],[1,3,2],[2,3,4],[3,1,1],[4,1,1]], '\
+                '"shape": [5, 2]'
+        obs = direct_slice_data(biom_minimal_sparse, keep, 'samples')
+        self.assertEqual(obs, exp)
+
+    def test_direct_slice_data_sparse_idxerr(self):
+        """Directly slice data entries"""
+        keep = [1,7]
+        self.assertRaises(IndexError, direct_slice_data, biom_minimal_sparse, 
+                          keep, 'samples')
+
     def test_light_parse_biom_csmat(self):
         """Parse a table more direct"""
         self.assertRaises(AttributeError, light_parse_biom_csmat, \
