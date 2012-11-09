@@ -11,7 +11,9 @@ from biom.parse import parse_biom_table_str, \
         parse_mapping, pick_constructor, parse_biom_pathway_table,\
         parse_biom_function_table, parse_biom_ortholog_table, \
         parse_biom_gene_table, parse_biom_metabolite_table, \
-        parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_csmat
+        parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_csmat, \
+        direct_parse_key
+
 from biom.table import SparseOTUTable, DenseOTUTable
 from biom.exception import BiomParseException
 
@@ -41,6 +43,48 @@ class ParseTests(TestCase):
         self.biom_otu_table1_w_tax = biom_otu_table1_w_tax.split('\n')
         self.biom_otu_table1_no_tax = biom_otu_table1_no_tax.split('\n')
 
+    def test_direct_parse_key_object(self):
+        """Parse a specific key (eg column, rows, etc)"""
+        exp = '''"rows":[
+                {"id":"GG_OTU_1", "metadata":null},
+                {"id":"GG_OTU_2", "metadata":null},
+                {"id":"GG_OTU_3", "metadata":null},
+                {"id":"GG_OTU_4", "metadata":null},
+                {"id":"GG_OTU_5", "metadata":null}
+            ]'''  
+        obs = direct_parse_key(biom_minimal_sparse, "rows")
+        self.assertEqual(obs, exp)
+
+    def test_direct_parse_key_non_existant(self):
+        """test a non existant key"""
+        exp = ""
+        obs = direct_parse_key(biom_minimal_sparse, "does not exist")
+        self.assertEqual(obs, exp)
+
+    def test_direct_parse_key_string(self):
+        """direct parse a key:string pair"""
+        exp = '"generated_by": "QIIME revision XYZ"'
+        obs = direct_parse_key(biom_minimal_sparse, "generated_by")
+        self.assertEqual(obs, exp)
+
+    def test_direct_parse_key_int(self):
+        """direct parse a key:int pair"""
+        test_str = '{"a":{"b":[1,2]},"X":10}'
+        exp = '"X":10'
+        obs = direct_parse_key(test_str, "X")
+        self.assertEqual(obs, exp)
+
+    def test_direct_parse_key_float(self):
+        """direct parse a key:float pair"""
+        test_str = '{"a":{"b":[1,2]},"X":10.123}'
+        exp = '"X":10.123'
+        obs = direct_parse_key(test_str, "X")
+        self.assertEqual(obs, exp)
+
+    def test_direct_slice_data(self):
+        """Directly slice data entries"""
+        keep_rows = [1,3]
+        self.fail()
     def test_light_parse_biom_csmat(self):
         """Parse a table more direct"""
         self.assertRaises(AttributeError, light_parse_biom_csmat, \

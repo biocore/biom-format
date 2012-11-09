@@ -25,6 +25,57 @@ __email__ = "daniel.mcdonald@colorado.edu"
 MATRIX_ELEMENT_TYPE = {'int':int,'float':float,'unicode':unicode,
                       u'int':int,u'float':float,u'unicode':unicode}
 
+QUOTE = '"'
+LEFT_SQR = "["
+RIGHT_SQR = "]"
+LEFT_BRK = "{"
+RIGHT_BRK = "}"
+JSON_OPEN = set([LEFT_SQR, LEFT_BRK])
+JSON_CLOSE = set([RIGHT_SQR, RIGHT_BRK])
+JSON_SKIP = set([" ","\t","\n",","])
+JSON_START = set(["0","1","2","3","4","5","6","7","8","9","{","[",'"'])
+def direct_parse_key(biom_str, key):
+    """Returns key:value from the biom string, or """""
+    base_idx = biom_str.find('"%s":' % key)
+    if base_idx == -1:
+        return ""
+    else:
+        start_idx = base_idx + len(key) + 3 # shift over "key":
+
+    # find the start token
+    cur_idx = start_idx 
+    while biom_str[cur_idx] not in JSON_START:  
+        cur_idx += 1
+    
+    if biom_str[cur_idx] not in JSON_OPEN:
+        # do we have a number?
+        while biom_str[cur_idx] not in [",","{","}"]:
+            cur_idx += 1
+            
+    else:
+        # we have an object
+        stack = [biom_str[cur_idx]]
+        cur_idx += 1
+        while stack:
+            cur_char = biom_str[cur_idx]
+            
+            if cur_char == QUOTE:
+                if stack[-1] == QUOTE:
+                    stack.pop()
+                else:
+                    stack.append(cur_char)
+            elif cur_char in JSON_CLOSE:
+                try:
+                    stack.pop()
+                except IndexError: # got an int or float?
+                    cur_idx -= 1
+                    break
+            elif cur_char in JSON_OPEN:
+                stack.append(cur_char)
+            cur_idx += 1
+
+    return biom_str[base_idx:cur_idx]
+
 def light_parse_biom_csmat(biom_str, constructor):
     """Light-weight BIOM parser for CSMat-Sparse objects
 
