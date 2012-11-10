@@ -12,7 +12,7 @@ from biom.parse import parse_biom_table_str, \
         parse_biom_function_table, parse_biom_ortholog_table, \
         parse_biom_gene_table, parse_biom_metabolite_table, \
         parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_csmat, \
-        direct_parse_key, direct_slice_data
+        direct_parse_key, direct_slice_data, get_axis_indices
 
 from biom.table import SparseOTUTable, DenseOTUTable
 from biom.exception import BiomParseException
@@ -122,6 +122,26 @@ class ParseTests(TestCase):
         keep = [1,7]
         self.assertRaises(IndexError, direct_slice_data, biom_minimal_sparse, 
                           keep, 'samples')
+
+    def test_get_axis_indices_obs(self):
+        """directly slice either the rows or columns"""
+        keep = ['GG_OTU_1','GG_OTU_4']
+        exp = [0,3]
+        obs = get_axis_indices(biom_minimal_dense, keep, 'observations')
+        self.assertEqual(obs, exp)
+
+        self.assertRaises(KeyError, get_axis_indices, biom_minimal_dense, 
+                         ['X'], 'observations')
+
+    def test_get_axis_indices_obs(self):
+        """directly slice either the rows or columns"""
+        keep = ['Sample2','Sample1']
+        exp = [0,1]
+        obs = get_axis_indices(biom_minimal_dense, keep, 'samples')
+        self.assertEqual(obs, exp)
+        
+        self.assertRaises(KeyError, get_axis_indices, biom_minimal_dense,
+                         ['X'], 'samples')
 
     def test_light_parse_biom_csmat(self):
         """Parse a table more direct"""

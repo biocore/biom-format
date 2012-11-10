@@ -130,6 +130,7 @@ def direct_slice_data(biom_str, to_keep, axis):
 
     to_keep = set(to_keep)
     new_data = []
+    ### decompose these???
     if matrix_type == '"dense"':
         if axis == 'observations':
             # iterate rows, keep those specified
@@ -166,6 +167,36 @@ def direct_slice_data(biom_str, to_keep, axis):
         raise ValueError, "biom_str does not appear to be in BIOM format!"
 
     return '"data": [%s]], "shape": %s' % ('],'.join(new_data), new_shape)
+
+def get_axis_indices(biom_str, to_keep, axis):
+    """Returns the indices for the associated ids to keep
+
+    biom_str : a BIOM formatted JSON string
+    to_keep  : a list of IDs to get indices for
+    axis     : either 'samples' or 'observations'
+    
+    Raises KeyError if unknown key is specified
+    """
+    to_keep = set(to_keep)
+    if axis == 'observations':
+        axis_key = 'rows'
+        axis_data = direct_parse_key(biom_str, axis_key)
+    elif axis == "samples":
+        axis_key = 'columns'
+        axis_data = direct_parse_key(biom_str, axis_key)
+    else:
+        raise ValueError, "Unknown axis!"
+
+    if axis_data == "":
+        raise ValueError, "biom_str does not appear to be in BIOM format!"
+
+    axis_data = json.loads("{%s}" % axis_data)
+
+    all_ids = set([v['id'] for v in axis_data[axis_key]])
+    if not to_keep.issubset(all_ids):
+        raise KeyError, "Not all of the to_keep ids are in biom_str!"
+
+    return [i for i,v in enumerate(axis_data[axis_key]) if v['id'] in to_keep]
 
 def light_parse_biom_csmat(biom_str, constructor):
     """Light-weight BIOM parser for CSMat-Sparse objects
