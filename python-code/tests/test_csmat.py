@@ -10,7 +10,7 @@ from biom.csmat import CSMat, to_csmat, \
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Daniel McDonald"]
+__credits__ = ["Daniel McDonald", "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
 __version__ = "1.0.0-dev"
@@ -166,11 +166,11 @@ class CSMatTests(TestCase):
         sm2.bulkCOOUpdate([0,1,1],[0,1,2],[1,2,3])
         sm3 = CSMat(3,2)
         sm3.bulkCOOUpdate([0,1,2],[0,1,1],[1,2,3])
-       
+
         sm1.convert('csr')
         self.assertEqual(sm1, sm2)
         self.assertNotEqual(sm1,sm3)
-        
+
         sm1[0,1] = 10
         sm2[0,1] = 5
         self.assertNotEqual(sm1, sm2)
@@ -178,7 +178,14 @@ class CSMatTests(TestCase):
         sm2.absorbUpdates()
         sm2[0,1] = 10
         self.assertEqual(sm1, sm2)
-        
+
+        # Test empty matrices.
+        empty_sm1 = CSMat(2,3)
+        empty_sm2 = CSMat(2,3)
+        empty_sm3 = CSMat(2,2)
+        self.assertTrue(empty_sm1 == empty_sm2)
+        self.assertFalse(empty_sm1 == empty_sm3)
+
     def test_getRow(self):
         """Get a row"""
         exp = CSMat(1,4)
@@ -217,6 +224,12 @@ class CSMatTests(TestCase):
 
         self.assertRaises(IndexError, self.obj.getRow, -1)
 
+        # Test matrix that only contains zeroes.
+        sm = CSMat(3, 4)
+        exp = CSMat(1, 4)
+        obs = sm.getRow(2)
+        self.assertEqual(obs, exp)
+
     def test_getCol(self):
         """Get a col"""
         exp = CSMat(3,1)
@@ -230,6 +243,12 @@ class CSMatTests(TestCase):
         self.assertEqual(obs,exp)
 
         self.assertRaises(IndexError, self.obj.getCol, -1)
+
+        # Test matrix that only contains zeroes.
+        sm = CSMat(3, 4)
+        exp = CSMat(3, 1)
+        obs = sm.getCol(2)
+        self.assertEqual(obs, exp)
 
     def test_update(self):
         """updates should work on new and inplace values"""
