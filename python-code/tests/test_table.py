@@ -285,11 +285,6 @@ class TableTests(TestCase):
         self.assertEqual(1, self.simple_derived.getObservationIndex(4))
         self.assertRaises(UnknownID, self.simple_derived.getObservationIndex,5)
 
-    def test_setValueByIds(self):
-        """sets a value by ids"""
-        self.simple_derived.setValueByIds(3,1,10)
-        self.assertEqual(self.simple_derived._data, array([[10,6],[7,8]]))
-
     def test_sortBySampleID(self):
         """sort a table by samples ids"""
         self.assertRaises(NotImplementedError, self.t1.sortBySampleId)
@@ -551,21 +546,6 @@ class TableTests(TestCase):
         self.assertEqual(self.simple_derived[1,1], 8)
         self.assertRaises(IndexError, self.simple_derived.__getitem__, [1,2])
 
-    def test_setitem(self):
-        """setitem should work as expected"""
-        self.simple_derived[0,0] *= 2
-        self.simple_derived[1,0] *= 2
-        self.simple_derived[0,1] *= 2
-        self.simple_derived[1,1] *= 2
-        
-        self.assertRaises(IndexError, self.simple_derived.__setitem__, [1,2], 3)
-
-        self.assertEqual(self.simple_derived[0,0], 10)
-        self.assertEqual(self.simple_derived[1,0], 14)
-        self.assertEqual(self.simple_derived[0,1], 12)
-        self.assertEqual(self.simple_derived[1,1], 16)
-
-
     def test_str(self):
         """str is dependent on derived class"""
         self.assertRaises(TableException, str, self.t1)
@@ -638,6 +618,19 @@ class TableTests(TestCase):
         """returns true if empty"""
         self.assertTrue(self.t1.isEmpty())
         self.assertFalse(self.simple_derived.isEmpty())
+
+    def test_immutability(self):
+        """Test Table object immutability."""
+        # Try to set members to something completely different.
+        self.assertRaises(TypeError, self.t1.__setattr__, 'SampleIds',
+                          ['foo', 'bar'])
+        self.assertRaises(TypeError, self.simple_derived.__setattr__,
+                          'ObservationIds', ['foo', 'bar'])
+        self.assertRaises(TypeError, self.t2.__setattr__,
+                          'SampleMetadata', [{'foo':'bar'}, {'bar':'baz'}])
+        self.assertRaises(TypeError, self.t1.__setattr__,
+                          'ObservationMetadata', [{'foo':'bar'},
+                                                  {'bar':'baz'}])
 
 class DenseTableTests(TestCase):
     def setUp(self):
@@ -867,8 +860,8 @@ class DenseTableTests(TestCase):
         self.assertEqual(obs, exp)
 
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
-        self.dt1[1,0] = 0
-        gen = self.dt1.iterSampleData()
+        dt = DenseTable(array([[5,6],[0,8]]), ['a','b'],['1','2'])
+        gen = dt.iterSampleData()
         exp = [array([5,0]), array([6,8])]
         obs = list(gen)
         self.assertEqual(obs, exp)
@@ -1451,8 +1444,9 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
 
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
-        self.st1[1,0] = 0
-        gen = self.st1.iterSamples()
+        vals = {(0,0):5,(0,1):6,(1,1):8}
+        st = SparseTable(to_sparse(vals), ['a','b'],['1','2'])
+        gen = st.iterSamples()
         exp = [(array([5,0]), 'a', None), (array([6,8]), 'b', None)]
         obs = list(gen)
         self.assertEqual(obs, exp)
@@ -1483,8 +1477,9 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
 
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
-        self.st1[1,0] = 0
-        gen = self.st1.iterSampleData()
+        vals = {(0,0):5,(0,1):6,(1,1):8}
+        st = SparseTable(to_sparse(vals), ['a','b'],['1','2'])
+        gen = st.iterSampleData()
         exp = [array([5,0]), array([6,8])]
         obs = list(gen)
         self.assertEqual(obs, exp)

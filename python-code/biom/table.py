@@ -206,10 +206,6 @@ class Table(object):
         """Passes through to internal matrix"""
         return self._data[args]
 
-    def __setitem__(self, args, value):
-        """Passes through to internal matrix"""
-        self._data[args] = value
-
     def reduce(self, f, axis):
         """Reduce over axis with f
 
@@ -269,16 +265,6 @@ class Table(object):
 
         return self._data[self._obs_index[obs_id], self._sample_index[samp_id]]
 
-    def setValueByIds(self, obs_id, samp_id, val):
-        """Set matrix entry corresponding to ``(obs_id, samp_id)`` to ``val``
-        """
-        if obs_id not in self._obs_index:
-            raise UnknownID, "ObservationId %s not found!" % obs_id
-        if samp_id not in self._sample_index:
-            raise UnknownID, "SampleId %s not found!" % samp_id
-
-        self._data[self._obs_index[obs_id], self._sample_index[samp_id]] = val
-
     def __str__(self):
         """Stringify self
 
@@ -316,7 +302,7 @@ class Table(object):
 
         samp_ids = delim.join(map(str, self.SampleIds))
 
-        # 17hrs of programing straight later...
+        # 17 hrs of straight programming later...
         if header_key is not None:
             if header_value is None:
                 raise TableException, "You need to specify both header_key and header_value"
@@ -389,7 +375,7 @@ class Table(object):
         raise NotImplementedError
 
     # _index objs are in place, can now do sampleData(self, sample_id) and observationData(self, obs_id)
-    def sampleData(self, id_, conv_to_np=False):
+    def sampleData(self, id_):
         """Return observations associated with sample id ``id_``"""
         if id_ not in self._sample_index:
             raise UnknownID, "ID %s is not a known sample ID!" % id_
@@ -425,7 +411,7 @@ class Table(object):
         ``self.SampleMetadata`` is set to ``None``
         """
         if self.SampleMetadata is None:
-            samp_metadata = [None] * len(self.SampleIds)
+            samp_metadata = (None,) * len(self.SampleIds)
         else:
             samp_metadata = self.SampleMetadata
         
@@ -443,7 +429,7 @@ class Table(object):
         ``self.ObservationMetadata`` is set to ``None``
         """
         if self.ObservationMetadata is None:
-            obs_metadata = [None] * len(self.ObservationIds)
+            obs_metadata = (None,) * len(self.ObservationIds)
         else:
             obs_metadata = self.ObservationMetadata
         
@@ -1127,7 +1113,8 @@ class Table(object):
         WARNING: This method displays data values in a columnar format and 
         can be misleading.
         """
-        return dumps(self.getBiomFormatObject(generated_by), sort_keys=True, indent=4)
+        return dumps(self.getBiomFormatObject(generated_by), sort_keys=True,
+                     indent=4)
 
 class SparseTable(Table):
     _biom_matrix_type = "sparse"
