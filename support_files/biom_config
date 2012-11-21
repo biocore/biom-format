@@ -4,4 +4,4 @@
 # specified by $BIOM_CONFIG_FP and edit that copy of the file.
 
 # Can be SparseDict or SparseMat. Defaults to SparseDict if not present.
-python_code_sparse_backend	SparseDict
+python_code_sparse_backend	SparseMat
