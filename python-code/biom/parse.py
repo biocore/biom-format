@@ -107,7 +107,7 @@ def direct_slice_data(biom_str, to_keep, axis):
     n_rows, n_cols = map(int, raw_shape.split(","))
    
     # slice to just data
-    data_start = data_fields.find('[') + 1 # find [[ for start, and move to [
+    data_start = data_fields.find('[') +1
     data_fields = data_fields[data_start:len(data_fields)-1] # trim trailing ]
     
     # determine matrix type
@@ -128,45 +128,93 @@ def direct_slice_data(biom_str, to_keep, axis):
             raise IndexError, "Samples to keep are out of bounds!"
         new_shape = new_shape % (n_rows, len(to_keep))
 
-    to_keep = set(to_keep)
+    to_keep = set(to_keep) 
     new_data = []
-    ### decompose these???
+
     if matrix_type == '"dense"':
         if axis == 'observations':
-            # iterate rows, keep those specified
-            for row_count, row in enumerate(data_fields.split('],')):
-                if row_count in to_keep:
-                    new_data.append(row.strip())
+            new_data = _direct_slice_data_dense_obs(data_fields, to_keep)
         elif axis == 'samples':
-            # iterate rows
-            for row in data_fields.split('],'):
-                new_row = []
-                # dive into the cols and keep those specified
-                for col_idx,v in enumerate(row.split(',')):
-                    if col_idx in to_keep:
-                        v = v.strip()
-                        new_row.append(v)
-                new_data.append("[%s" % ','.join(new_row))
+            new_data = _direct_slice_data_dense_samp(data_fields, to_keep)
     elif matrix_type == '"sparse"':
         if axis == 'observations':
-            # interogate all the datas
-            for rcv in data_fields.split('],'):
-                r,c,v = rcv.split(',')
-                r = r.strip()[1:] # trim off [
-                if int(r) in to_keep:
-                    new_data.append(rcv.strip())
+            new_data = _direct_slice_data_sparse_obs(data_fields, to_keep)
         elif axis == 'samples':
-            # could do sparse obs/samp in one forloop, but then theres the 
-            # expense of the additional if-statement in the loop
-            for rcv in data_fields.split('],'):
-                r,c,v = rcv.split(',')
-                if int(c) in to_keep:
-                    new_data.append(rcv.strip())
+            new_data = _direct_slice_data_sparse_samp(data_fields, to_keep)
     else:
-        print matrix_type, matrix_type == '"dense"'
         raise ValueError, "biom_str does not appear to be in BIOM format!"
+    
+    return '"data": %s, "shape": %s' % (new_data, new_shape)
 
-    return '"data": [%s]], "shape": %s' % ('],'.join(new_data), new_shape)
+STRIP_F = lambda x: x.strip("[] \n\t")
+def _remap_axis_sparse_obs(rcv, lookup):
+    """Remap a sparse observation axis"""
+    row,col,value = map(STRIP_F, rcv.split(','))
+    return "%s,%s,%s" % (lookup[row], col, value)    
+
+def _remap_axis_sparse_samp(rcv, lookup):
+    """Remap a sparse sample axis"""
+    row,col,value = map(STRIP_F, rcv.split(','))
+    return "%s,%s,%s" % (row, lookup[col], value)    
+
+def _direct_slice_data_dense_obs(data, to_keep):
+    """slice observations from data
+    
+    data : raw data string from a biom file
+    to_keep : rows to keep
+    """
+    new_data = []
+    for row_count, row in enumerate(data.split('],')):
+        if row_count in to_keep:
+            new_data.append(STRIP_F(row))
+    return '[[%s]]' % '],['.join(new_data)
+
+def _direct_slice_data_dense_samp(data, to_keep):
+    """slice samples from data
+    
+    data : raw data string from a biom file
+    to_keep : columns to keep
+    """
+    new_data = []
+    for row in data.split('],'):
+        new_row = []
+        # dive into the cols and keep those specified
+        for col_idx,v in enumerate(row.split(',')):
+            if col_idx in to_keep:
+                new_row.append(STRIP_F(v))
+        new_data.append("%s" % ','.join(new_row))
+    return '[[%s]]' % '],['.join(new_data)
+
+def _direct_slice_data_sparse_obs(data, to_keep):
+    """slice observations from data
+    
+    data : raw data string from a biom file
+    to_keep : rows to keep
+    """
+    # interogate all the datas
+    new_data = []
+    remap_lookup = dict([(str(v),i) for i,v in enumerate(sorted(to_keep))])
+    for rcv in data.split('],'):
+        r,c,v = STRIP_F(rcv).split(',')
+        if r in remap_lookup:
+            new_data.append(_remap_axis_sparse_obs(rcv, remap_lookup))
+    return '[[%s]]' % '],['.join(new_data)
+
+def _direct_slice_data_sparse_samp(data, to_keep):
+    """slice samples from data
+    
+    data : raw data string from a biom file
+    to_keep : columns to keep
+    """
+    # could do sparse obs/samp in one forloop, but then theres the 
+    # expense of the additional if-statement in the loop
+    new_data = []
+    remap_lookup = dict([(str(v),i) for i,v in enumerate(sorted(to_keep))])
+    for rcv in data.split('],'):
+        r,c,v = rcv.split(',')
+        if c in remap_lookup:
+            new_data.append(_remap_axis_sparse_samp(rcv, remap_lookup))
+    return '[[%s]]' % '],['.join(new_data)
 
 def get_axis_indices(biom_str, to_keep, axis):
     """Returns the indices for the associated ids to keep
@@ -196,7 +244,15 @@ def get_axis_indices(biom_str, to_keep, axis):
     if not to_keep.issubset(all_ids):
         raise KeyError, "Not all of the to_keep ids are in biom_str!"
 
-    return [i for i,v in enumerate(axis_data[axis_key]) if v['id'] in to_keep]
+    idxs = [i for i,v in enumerate(axis_data[axis_key]) if v['id'] in to_keep]
+    idxs_lookup = set(idxs)
+
+    subset = {axis_key:[]}
+    for i,v in enumerate(axis_data[axis_key]):
+        if i in idxs_lookup:
+            subset[axis_key].append(v)
+
+    return idxs, json.dumps(subset)[1:-1] # trim off { and }
 
 def light_parse_biom_csmat(biom_str, constructor):
     """Light-weight BIOM parser for CSMat-Sparse objects
