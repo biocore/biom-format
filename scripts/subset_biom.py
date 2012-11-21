@@ -22,7 +22,7 @@ except ImportError:
 if cogent_cl_parsing:
     script_info = {}
     script_info['brief_description'] = "Subset a BIOM file."
-    script_info['script_description'] = "Subset a BIOM file without fully parsing it"
+    script_info['script_description'] = "Subset a BIOM file, over either the observations or samples, without fully parsing it. This script is intended to assist working with very large tables when tight on memory, or as a light weight way to subset a full table. Currently, it is possible to produce tables with rows or columns (observations or samples) that are fully zerod."
     script_info['script_usage'] = [("","Subset the observations in my_data.biom file.","%prog -i my_data.biom -a observations -s file_with_ids")]
     script_info['output_description']= ""
     script_info['required_options'] = [
@@ -43,7 +43,7 @@ else:
      make_option('-i','--biom_fp',type="string",
                  help='the BIological Observation Matrix filepath'),
      make_option('-a','--axis', type='string',
-                  help="The axis to subset over"),
+                  help="The axis to subset over, either 'samples' or 'observations'"),
      make_option('-s','--ids_fp',type="string",
                  help="A file containing a single column of IDs to retain"),
      make_option('-o','--output_fp',type="string",
