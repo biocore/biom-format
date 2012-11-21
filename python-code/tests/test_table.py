@@ -487,7 +487,6 @@ class TableTests(TestCase):
         self.assertEqual(t.SampleMetadata[1]['barcode'],'GGGG')
         self.assertEqual(t.SampleMetadata[2]['barcode'],'AAAA')
         self.assertEqual(t.SampleMetadata[3]['barcode'],'CCCC')
-        
 
     def test_add_sample_metadata_one_entry(self):
         """ addSampleMetadata functions with single md entry """
@@ -811,23 +810,24 @@ class DenseTableTests(TestCase):
     def test_eq(self):
         """eq is defined by equality of data matrix, ids and metadata"""
         self.assertTrue(self.dt1 == self.dt2)
-        self.dt1.ObservationIds = [1,2,3]
+        # Have to skirt around our object's immutability.
+        object.__setattr__(self.dt1, 'ObservationIds', [1,2,3])
         self.assertFalse(self.dt1 == self.dt2)
 
-        self.dt1.ObservationIds = self.dt2.ObservationIds
-        self.dt1._data = array([[1,2],[10,20]])
+        object.__setattr__(self.dt1, 'ObservationIds', self.dt2.ObservationIds)
+        object.__setattr__(self.dt1, '_data', array([[1,2],[10,20]]))
         self.assertFalse(self.dt1 == self.dt2)
 
     def test_ne(self):
         """ne is defined by non-equality of data matrix, ids or metadata"""
         self.assertFalse(self.dt1 != self.dt2)
-        self.dt1._data = array([[1,2],[10,20]])
+        object.__setattr__(self.dt1, '_data', array([[1,2],[10,20]]))
         self.assertTrue(self.dt1 != self.dt2)
 
-        self.dt1._data = self.dt2._data
-        self.dt1.SampleIds = [10,20,30]
+        object.__setattr__(self.dt1, '_data', self.dt2._data)
+        object.__setattr__(self.dt1, 'SampleIds', [10,20,30])
         self.assertTrue(self.dt1 != self.dt2)
-    
+
     def test_iterSamples(self):
         """Iterates samples"""
         gen = self.dt1.iterSamples()
@@ -1217,11 +1217,12 @@ class SparseTableTests(TestCase):
     def test_eq(self):
         """sparse equality"""
         self.assertTrue(self.st1 == self.st2)
-        self.st1.ObservationIds = [1,2,3]
+        object.__setattr__(self.st1, 'ObservationIds', [1,2,3])
         self.assertFalse(self.st1 == self.st2)
 
-        self.st1.ObservationIds = self.st2.ObservationIds
-        self.st1._data = nparray_to_sparseobj(array([[1,2],[10,20]]))
+        object.__setattr__(self.st1, 'ObservationIds', self.st2.ObservationIds)
+        object.__setattr__(self.st1, '_data',
+                           nparray_to_sparseobj(array([[1,2],[10,20]])))
         self.assertFalse(self.st1 == self.st2)
 
     def test_data_equality(self):
