@@ -188,16 +188,26 @@ class CSMat():
         tmp_rows = tmp_rows.take(order)
         unpkd_ax = unpkd_ax.take(order)
 
-        v_last = tmp_rows[0]
-        pkd_ax = [0]
+        v_last = -1
+        pkd_ax = []
         pos = 0
         p_last = 0
 
         # determine starting values idx for each row
         # sort values and columns within each row
+        rows_to_process = range(self.shape[0])
         for v in tmp_rows:
             if v != v_last:
                 pkd_ax.append(pos)
+
+                empty_rows = rows_to_process[:rows_to_process.index(v)]
+                #print empty_rows
+                if empty_rows:
+                    pkd_ax.extend([pkd_ax[-1]] * len(empty_rows))
+                    for r in empty_rows:
+                        rows_to_process.remove(r)
+                rows_to_process.remove(v)
+
                 col_order = argsort(unpkd_ax[p_last:pos])
                 unpkd_ax[p_last:pos] = unpkd_ax[p_last:pos].take(col_order)
                 values[p_last:pos] = values[p_last:pos].take(col_order)
@@ -210,6 +220,10 @@ class CSMat():
         values[p_last:pos] = values[p_last:pos].take(col_order)
         
         pkd_ax.append(pos)
+
+        #print rows_to_process
+        if rows_to_process:
+            pkd_ax.extend([pkd_ax[-1]] * len(rows_to_process))
 
         pkd_ax = array(pkd_ax, dtype=uint32)
         
