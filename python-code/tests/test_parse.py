@@ -175,10 +175,10 @@ class ParseTests(TestCase):
                     [2,1,1,0,0,1],
                     [0,1,1,0,0,0]])
 
-        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',])
-        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',))
+        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
         self.assertEqual(tab.SampleMetadata,None)
         self.assertEqual(tab.ObservationMetadata,None)
         self.assertEqual(tab._data, exp_data)
@@ -194,10 +194,10 @@ class ParseTests(TestCase):
                     [2,1,1,0,0,1],
                     [0,1,1,0,0,0]])
 
-        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',])
-        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',))
+        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
         self.assertEqual(tab.SampleMetadata,None)
         self.assertEqual(tab.ObservationMetadata,None)
         self.assertEqual(tab._data, exp_data)
@@ -213,10 +213,10 @@ class ParseTests(TestCase):
                     [2,1,1,0,0,1],
                     [0,1,1,0,0,0]])
 
-        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',])
-        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',))
+        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
         self.assertEqual(tab.SampleMetadata,None)
         self.assertEqual(tab.ObservationMetadata,None)
         self.assertEqual(tab._data, exp_data)
@@ -232,10 +232,10 @@ class ParseTests(TestCase):
                     [2,1,1,0,0,1],
                     [0,1,1,0,0,0]])
 
-        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',])
-        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',))
+        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
         self.assertEqual(tab.SampleMetadata,None)
         self.assertEqual(tab.ObservationMetadata,None)
         self.assertEqual(tab._data, exp_data)
@@ -251,10 +251,10 @@ class ParseTests(TestCase):
                     [2,1,1,0,0,1],
                     [0,1,1,0,0,0]])
 
-        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',])
-        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',))
+        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
         self.assertEqual(tab.SampleMetadata,None)
         self.assertEqual(tab.ObservationMetadata,None)
         self.assertEqual(tab._data, exp_data)
@@ -270,10 +270,10 @@ class ParseTests(TestCase):
                     [2,1,1,0,0,1],
                     [0,1,1,0,0,0]])
 
-        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',])
-        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',))
+        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
         self.assertEqual(tab.SampleMetadata,None)
         self.assertEqual(tab.ObservationMetadata,None)
         self.assertEqual(tab._data, exp_data)
@@ -284,20 +284,20 @@ class ParseTests(TestCase):
         # parse_biom_table methods
         tab1_fh = json.load(StringIO(self.biom_minimal_dense))
         tab = parse_biom_otu_table(tab1_fh)
-        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',])
-        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',))
+        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
         self.assertEqual(tab.SampleMetadata,None)
         self.assertEqual(tab.ObservationMetadata,None)
         
     def test_parse_biom_table_minimal_dense(self):
         tab1_fh = StringIO(self.biom_minimal_dense)
         tab = parse_biom_table(tab1_fh)
-        self.assertEqual((tab.SampleIds),['Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',])
-        self.assertEqual((tab.ObservationIds),['GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',))
+        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
         self.assertEqual(tab.SampleMetadata,None)
         self.assertEqual(tab.ObservationMetadata,None)
 
@@ -314,14 +314,14 @@ class ParseTests(TestCase):
 
         self.assertFloatEqual(tab1_sams,tab2_sams)
 
-        self.assertEqual((tab1.SampleIds),['Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',])
-        self.assertEqual((tab1.ObservationIds),['GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
-        self.assertEqual((tab2.SampleIds),['Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',])
-        self.assertEqual((tab2.ObservationIds),['GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'])
+        self.assertEqual((tab1.SampleIds),('Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',))
+        self.assertEqual((tab1.ObservationIds),('GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
+        self.assertEqual((tab2.SampleIds),('Sample1','Sample2',
+            'Sample3','Sample4','Sample5','Sample6',))
+        self.assertEqual((tab2.ObservationIds),('GG_OTU_1','GG_OTU_2',
+            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
 
     def test_parse_biom_table_str(self):
         """tests for parse_biom_table_str"""

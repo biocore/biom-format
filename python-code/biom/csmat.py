@@ -9,7 +9,7 @@ from itertools import izip
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Daniel McDonald"] 
+__credits__ = ["Daniel McDonald", "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
 __version__ = "1.0.0-dev"
@@ -363,7 +363,12 @@ class CSMat():
         if self.hasUpdates():
             self.absorbUpdates()
         if other.hasUpdates():
-            self.absorbUpdates()
+            other.absorbUpdates()
+
+        # Handle the case when both are same size and only contain zeroes (they
+        # cannot be converted into CS format).
+        if self.size == 0 and other.size == 0:
+            return True
 
         if self.shape[1] == 1:
             self.convert("csc")
@@ -480,42 +485,46 @@ class CSMat():
         """Returns a row in Sparse COO form"""
         if row >= self.shape[0] or row < 0:
             raise IndexError, "Row %d is out of bounds!" % row
-        
-        if self._order != "csr":
-            self.convert("csr")
-        
+
         n_rows,n_cols = self.shape
         v = self.__class__(1, n_cols, dtype=self.dtype)
-        
-        start = self._pkd_ax[row]
-        stop = self._pkd_ax[row + 1]
-        n_vals = stop - start
-        
-        v._coo_rows = [uint32(0)] * n_vals
-        v._coo_cols = list(self._unpkd_ax[start:stop])
-        v._coo_values = list(self._values[start:stop])
-        
+
+        # Handle case where we have nonzero values. If we only have zeroes,
+        # simply return the new matrix.
+        if self.size > 0:
+            if self._order != "csr":
+                self.convert("csr")
+
+            start = self._pkd_ax[row]
+            stop = self._pkd_ax[row + 1]
+            n_vals = stop - start
+            
+            v._coo_rows = [uint32(0)] * n_vals
+            v._coo_cols = list(self._unpkd_ax[start:stop])
+            v._coo_values = list(self._values[start:stop])
+
         return v
 
     def getCol(self, col):
         """Return a col in CSMat form"""
         if col >= self.shape[1] or col < 0:
             raise IndexError, "Col %d is out of bounds!" % col
-        
-        if self._order != "csc":
-            self.convert("csc")
-        
+
         n_rows,n_cols = self.shape
         v = self.__class__(n_rows, 1, dtype=self.dtype)
-        
-        start = self._pkd_ax[col]
-        stop = self._pkd_ax[col + 1]
-        n_vals = stop - start
 
-        v._coo_cols = [uint32(0)] * n_vals
-        v._coo_rows = list(self._unpkd_ax[start:stop])
-        v._coo_values = list(self._values[start:stop])
-        
+        if self.size > 0:
+            if self._order != "csc":
+                self.convert("csc")
+
+            start = self._pkd_ax[col]
+            stop = self._pkd_ax[col + 1]
+            n_vals = stop - start
+
+            v._coo_cols = [uint32(0)] * n_vals
+            v._coo_rows = list(self._unpkd_ax[start:stop])
+            v._coo_values = list(self._values[start:stop])
+
         return v
 
     def transpose(self):
