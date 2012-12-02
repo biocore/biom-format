@@ -11,7 +11,12 @@ from biom.parse import parse_biom_table_str, \
         parse_mapping, pick_constructor, parse_biom_pathway_table,\
         parse_biom_function_table, parse_biom_ortholog_table, \
         parse_biom_gene_table, parse_biom_metabolite_table, \
-        parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_csmat
+        parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_csmat, \
+        direct_parse_key, direct_slice_data, get_axis_indices, \
+        _direct_slice_data_dense_obs, _direct_slice_data_dense_samp, \
+        _direct_slice_data_sparse_obs, _direct_slice_data_sparse_samp, \
+        _remap_axis_sparse_obs, _remap_axis_sparse_samp
+
 from biom.table import SparseOTUTable, DenseOTUTable
 from biom.exception import BiomParseException
 
@@ -40,6 +45,183 @@ class ParseTests(TestCase):
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
         self.biom_otu_table1_w_tax = biom_otu_table1_w_tax.split('\n')
         self.biom_otu_table1_no_tax = biom_otu_table1_no_tax.split('\n')
+
+    def test_direct_parse_key_object(self):
+        """Parse a specific key (eg column, rows, etc)"""
+        exp = '''"rows":[
+                {"id":"GG_OTU_1", "metadata":null},
+                {"id":"GG_OTU_2", "metadata":null},
+                {"id":"GG_OTU_3", "metadata":null},
+                {"id":"GG_OTU_4", "metadata":null},
+                {"id":"GG_OTU_5", "metadata":null}
+            ]'''  
+        obs = direct_parse_key(biom_minimal_sparse, "rows")
+        self.assertEqual(obs, exp)
+
+    def test_direct_parse_key_non_existant(self):
+        """test a non existant key"""
+        exp = ""
+        obs = direct_parse_key(biom_minimal_sparse, "does not exist")
+        self.assertEqual(obs, exp)
+
+    def test_direct_parse_key_string(self):
+        """direct parse a key:string pair"""
+        exp = '"generated_by": "QIIME revision XYZ"'
+        obs = direct_parse_key(biom_minimal_sparse, "generated_by")
+        self.assertEqual(obs, exp)
+
+    def test_direct_parse_key_int(self):
+        """direct parse a key:int pair"""
+        test_str = '{"a":{"b":[1,2]},"X":10}'
+        exp = '"X":10'
+        obs = direct_parse_key(test_str, "X")
+        self.assertEqual(obs, exp)
+
+    def test_direct_parse_key_float(self):
+        """direct parse a key:float pair"""
+        test_str = '{"a":{"b":[1,2]},"X":10.123}'
+        exp = '"X":10.123'
+        obs = direct_parse_key(test_str, "X")
+        self.assertEqual(obs, exp)
+
+    def test_direct_slice_data_dense_obs(self):
+        """Directly slice data entries"""
+        keep = [1,3]
+        exp = """"data": [[5,1,0,2,3,1],[2,1,1,0,0,1]], "shape": [2, 6]"""
+        obs = direct_slice_data(biom_minimal_dense, keep, 'observations')
+        self.assertEqual(obs, exp)
+
+    def test_direct_slice_data_dense_samp(self):
+        """Directly slice data entries"""
+        keep = [1,3]
+        exp = """"data": [[0,0],[1,2],[0,4],[1,0],[1,0]], "shape": [5, 2]"""
+        obs = direct_slice_data(biom_minimal_dense, keep, 'samples')
+        self.assertEqual(obs, exp)
+
+    def test_direct_slice_data_dense_idxerr(self):
+        """Directly slice data entries"""
+        keep = [1,7]
+        self.assertRaises(IndexError, direct_slice_data, biom_minimal_dense, 
+                          keep, 'samples')
+
+    def test_direct_slice_data_sparse_obs(self):
+        """Directly slice data entries"""
+        keep = [1,3]
+        exp = '"data": [[0,0,5],[0,1,1],[0,3,2],[0,4,3],[0,5,1],' \
+                       '[1,0,2],[1,1,1],[1,2,1],[1,5,1]], "shape": [2, 6]'
+        obs = direct_slice_data(biom_minimal_sparse, keep, 'observations')
+        self.assertEqual(obs, exp)
+
+    def test_direct_slice_data_sparse_samp(self):
+        """Directly slice data entries"""
+        keep = [1,3]
+        exp = '"data": [[1,0,1],[1,1,2],[2,1,4],[3,0,1],[4,0,1]], '\
+                '"shape": [5, 2]'
+        obs = direct_slice_data(biom_minimal_sparse, keep, 'samples')
+        self.assertEqual(obs, exp)
+
+    def test_direct_slice_data_sparse_idxerr(self):
+        """Directly slice data entries"""
+        keep = ['1','7']
+        self.assertRaises(IndexError, direct_slice_data, biom_minimal_sparse, 
+                          keep, 'samples')
+
+    def test__remap_axis_sparse_obs(self):
+        """remap row idx based off of a lookup"""
+        lookup = {'5':'3','10':'0'}
+        in_tuple1 = "5,2,3"
+        in_tuple2 = "10,5,10"
+        in_tuple3 = "5,4,6"
+        exp1 = "3,2,3"
+        exp2 = "0,5,10"
+        exp3 = "3,4,6"
+        obs1 = _remap_axis_sparse_obs(in_tuple1, lookup)
+        obs2 = _remap_axis_sparse_obs(in_tuple2, lookup)
+        obs3 = _remap_axis_sparse_obs(in_tuple3, lookup)
+        self.assertEqual(obs1, exp1)
+        self.assertEqual(obs2, exp2)
+        self.assertEqual(obs3, exp3)
+
+    def test__remap_axis_sparse_samp(self):
+        """remap row idx based off of a lookup"""
+        lookup = {'5':'3','10':'0'}
+        in_tuple1 = "5,5,3"
+        in_tuple2 = "10,10,10"
+        in_tuple3 = "doesn't matter,10,6"
+        exp1 = "5,3,3"
+        exp2 = "10,0,10"
+        exp3 = "doesn't matter,0,6"
+        obs1 = _remap_axis_sparse_samp(in_tuple1, lookup)
+        obs2 = _remap_axis_sparse_samp(in_tuple2, lookup)
+        obs3 = _remap_axis_sparse_samp(in_tuple3, lookup)
+        self.assertEqual(obs1, exp1)
+        self.assertEqual(obs2, exp2)
+        self.assertEqual(obs3, exp3)
+
+    def test__direct_slice_data_dense_obs(self):
+        """keep some data by row"""
+        input_chunk = """[[0,0,1,0,0,0], 
+                  [5,1,0,2,3,1],[0,0,1,4,2,0],
+                  [2,1,1,0,0,1], [0,1,1,0,0,0]]"""
+        to_keep = set([1,2])
+        exp = "[[5,1,0,2,3,1],[0,0,1,4,2,0]]"
+        obs = _direct_slice_data_dense_obs(input_chunk, to_keep)
+        self.assertEqual(obs, exp)
+
+    def test__direct_slice_data_dense_samp(self):
+        """keep some data by column"""
+        input_chunk = """[[0,0,1,0,0,0], 
+                  [5,1,0,2,3,1],[0,0,1,4,2,0],
+                  [2,1,1,0,0,1], [0,1,1,0,0,0]]"""
+        to_keep = set([1,2])
+        exp = "[[0,1],[1,0],[0,1],[1,1],[1,1]]"
+        obs = _direct_slice_data_dense_samp(input_chunk, to_keep)
+        self.assertEqual(obs, exp)
+
+    def test__direct_slice_data_sparse_obs(self):
+        """keep some data by row"""
+        input_chunk = """[[0,2,1], [1,0,5], [1,1,1],
+             [1,3,2],[1,4,3],[1,5,1],   [2,2,1],
+                [2,3,4],
+            [2,4,2],[3,0,2],[3,1,1],[4,1,1], [4,2,1]]"""
+        to_keep = set([2,1])
+        exp = "[[0,0,5],[0,1,1],[0,3,2],[0,4,3],[0,5,1],"\
+               "[1,2,1],[1,3,4],[1,4,2]]"
+        obs = _direct_slice_data_sparse_obs(input_chunk, to_keep)
+        self.assertEqual(obs, exp)
+
+    def test__direct_slice_data_sparse_samp(self):
+        """keep some data by column"""
+        input_chunk = """[[0,2,1], [1,0,5], [1,1,1],
+             [1,3,2],[1,4,3],[1,5,1],   [2,2,1],
+                [2,3,4],
+            [2,4,2],[3,0,2],[3,1,1],[4,1,1], [4,2,1]]"""
+        to_keep = set([2,1])
+        exp = "[[0,1,1],[1,0,1],[2,1,1],[3,0,1],[4,0,1],[4,1,1]]"
+        obs = _direct_slice_data_sparse_samp(input_chunk, to_keep)
+        self.assertEqual(obs, exp)
+
+    def test_get_axis_indices_obs(self):
+        """directly slice either the rows or columns"""
+        keep = ['GG_OTU_1','GG_OTU_4']
+        exp = ([0,3], '"rows": [{"id": "GG_OTU_1", "metadata": null}, '
+                               '{"id": "GG_OTU_4", "metadata": null}]')
+        obs = get_axis_indices(biom_minimal_dense, keep, 'observations')
+        self.assertEqual(obs, exp)
+
+        self.assertRaises(KeyError, get_axis_indices, biom_minimal_dense, 
+                         ['X'], 'observations')
+
+    def test_get_axis_indices_samp(self):
+        """directly slice either the rows or columns"""
+        keep = ['Sample2','Sample1']
+        exp = ([0,1], '"columns": [{"id": "Sample1", "metadata": null}, '\
+                                  '{"id": "Sample2", "metadata": null}]')
+        obs = get_axis_indices(biom_minimal_dense, keep, 'samples')
+        self.assertEqual(obs, exp)
+        
+        self.assertRaises(KeyError, get_axis_indices, biom_minimal_dense,
+                         ['X'], 'samples')
 
     def test_light_parse_biom_csmat(self):
         """Parse a table more direct"""
