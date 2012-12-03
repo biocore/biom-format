@@ -1076,7 +1076,87 @@ class Table(object):
         ``generated_by``: a string describing the software used to build the
         table
         """
-        return dumps(self.getBiomFormatObject(generated_by))
+        if self._biom_type is None:
+            raise TableException, "Unknown biom type"
+
+        if (not isinstance(generated_by, str) and
+            not isinstance(generated_by, unicode)):
+            raise TableException, "Must specify a generated_by string"
+
+        # Fill in top-level metadata.
+        id_ = '"id": "%s"' % str(self.TableId)
+        format_ = '"format": "%s"' % get_biom_format_version_string()
+        format_url = '"format_url": "%s"' % get_biom_format_url_string()
+        generated_by = '"generated_by": "%s"' % generated_by
+        date = '"date": "%s"' % datetime.now().isoformat()
+        
+        # Determine if we have any data in the matrix, and what the shape of
+        # the matrix is.
+        try:
+            num_rows, num_cols = self._data.shape
+        except:
+            num_rows = num_cols = 0
+        hasData = True if num_rows > 0 and num_cols > 0 else False
+
+        # Default the matrix element type to test to be an integer in case we
+        # don't have any data in the matrix to test.
+        test_element = 0
+        if hasData:
+            test_element = self[0,0]
+
+        # Determine the type of elements the matrix is storing.
+        if isinstance(test_element, int):
+            dtype, matrix_element_type = int, "int"
+        elif isinstance(test_element, float):
+            dtype, matrix_element_type = float, "float"
+        elif isinstance(test_element, unicode):
+            dtype, matrix_element_type = unicode, "unicode"
+        else:
+            raise TableException("Unsupported matrix data type.")
+
+        # Fill in details about the matrix.
+        type_ = '"type": "%s"' % self._biom_type
+        matrix_type = '"matrix_type": "%s"' % self._biom_matrix_type
+        matrix_element_type = '"matrix_element_type": "%s"' % matrix_element_type
+        shape = '"shape": [%d, %d]' % (num_rows, num_cols)
+
+        # Fill in details about the rows in the table and fill in the matrix's
+        # data.
+        rows_tmp = []
+        data_tmp = []
+        for obs_index, obs in enumerate(self.iterObservations()):
+            rows_tmp.append('{"id": "%s", "metadata": %s}' % (obs[1], 
+                                                              dumps(obs[2])))
+
+            # If the matrix is dense, simply convert the numpy array to a list
+            # of data values. If the matrix is sparse, we need to store the
+            # data in sparse format, as it is given to us in a numpy array in
+            # dense format (i.e. includes zeroes) by iterObservations().
+            if self._biom_matrix_type == "dense":
+                data_tmp.append("[%s]" % ','.join(map(str, obs[0])))
+
+            elif self._biom_matrix_type == "sparse":
+                for col_index, val in enumerate(obs[0]):
+                    if float(val) != 0.0:
+                        data_tmp.append("[%d,%d,%d]" %(obs_index,col_index,val))
+
+        # Fill in details about the columns in the table.
+        columns_tmp = []
+        for samp in self.iterSamples():
+            columns_tmp.append('{"id": "%s", "metadata": %s}' % (samp[1], 
+                                                                dumps(samp[2])))
+
+        rows = '"rows": [%s]' % ','.join(rows_tmp)
+        cols = '"columns": [%s]' % ','.join(columns_tmp)
+        data = '"data": [%s]' % ','.join(data_tmp)
+
+        del data_tmp
+        del rows_tmp
+        del columns_tmp
+
+        return "{%s}" % ','.join([id_, format_, format_url, type_, generated_by, 
+                                  date, rows, cols, matrix_type, 
+                                  matrix_element_type, shape, data])
 
     def getBiomFormatPrettyPrint(self,generated_by):
         """Returns a 'pretty print' format of a BIOM file
