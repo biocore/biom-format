@@ -19,24 +19,29 @@ class MakeTablesTests(TestCase):
     def test_get_next_row_index(self):
         """Determine the next row index"""
         n = 10
-        
+
+        cur_row = 1
+        exp_row = 2
+        obs_row = get_next_row_index(n, cur_row)
+        self.assertEqual(obs_row, exp_row)
+
+        cur_row = 0
+        exp_row = 1
+        obs_row = get_next_row_index(n, cur_row)
+        self.assertEqual(obs_row, exp_row)
+
         cur_row = 8
         exp_row = 9
         obs_row = get_next_row_index(n,cur_row)
         self.assertEqual(obs_row, exp_row)
 
         cur_row = 9 # n = 10, idx of 9 is max row
-        exp_row = 8 
+        exp_row = 7 
         obs_row = get_next_row_index(n,cur_row)
         self.assertEqual(obs_row, exp_row)
 
         cur_row = 1
         exp_row = 0
-        obs_row = get_next_row_index(n, cur_row)
-        self.assertEqual(obs_row, exp_row)
-
-        cur_row = 0
-        exp_row = 1
         obs_row = get_next_row_index(n, cur_row)
         self.assertEqual(obs_row, exp_row)
 

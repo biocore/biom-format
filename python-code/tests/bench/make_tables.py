@@ -14,9 +14,10 @@ def get_next_row_index(n, cur_row):
     global N_DIRECTION
     if (cur_row + N_DIRECTION) >= n:
         N_DIRECTION = -1
+        cur_row -= 1 # shift back one
     elif (cur_row + N_DIRECTION) < 0:
         N_DIRECTION = 1
-
+   
     return cur_row + N_DIRECTION
 
 M_DIRECTION = 1
