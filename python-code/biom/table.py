@@ -1096,11 +1096,14 @@ class Table(object):
         
         return biom_format_obj
 
-    def getBiomFormatJsonString(self,generated_by):
+    def getBiomFormatJsonString(self,generated_by, direct_io=None):
         """Returns a JSON string representing the table in BIOM format.
 
         ``generated_by``: a string describing the software used to build the
         table
+
+        If direct_io is not None, the final output is written directly to
+        direct_io
         """
         if self._biom_type is None:
             raise TableException, "Unknown biom type"
@@ -1110,11 +1113,19 @@ class Table(object):
             raise TableException, "Must specify a generated_by string"
 
         # Fill in top-level metadata.
-        id_ = '"id": "%s"' % str(self.TableId)
-        format_ = '"format": "%s"' % get_biom_format_version_string()
-        format_url = '"format_url": "%s"' % get_biom_format_url_string()
-        generated_by = '"generated_by": "%s"' % generated_by
-        date = '"date": "%s"' % datetime.now().isoformat()
+        if direct_io:
+            direct_io.write('{')
+            direct_io.write('"id": "%s",' % str(self.TableId))
+            direct_io.write('"format": "%s",' % get_biom_format_version_string())
+            direct_io.write('"format_url": "%s",' % get_biom_format_url_string())
+            direct_io.write('"generated_by": "%s",' % generated_by)
+            direct_io.write('"date": "%s",' % datetime.now().isoformat())
+        else:
+            id_ = '"id": "%s",' % str(self.TableId)
+            format_ = '"format": "%s",' % get_biom_format_version_string()
+            format_url = '"format_url": "%s",' % get_biom_format_url_string()
+            generated_by = '"generated_by": "%s",' % generated_by
+            date = '"date": "%s",' % datetime.now().isoformat()
         
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
@@ -1141,48 +1152,93 @@ class Table(object):
             raise TableException("Unsupported matrix data type.")
 
         # Fill in details about the matrix.
-        type_ = '"type": "%s"' % self._biom_type
-        matrix_type = '"matrix_type": "%s"' % self._biom_matrix_type
-        matrix_element_type = '"matrix_element_type": "%s"' % matrix_element_type
-        shape = '"shape": [%d, %d]' % (num_rows, num_cols)
+        if direct_io:
+            direct_io.write('"type": "%s",' % self._biom_type)
+            direct_io.write('"matrix_type": "%s",' % self._biom_matrix_type)
+            direct_io.write('"matrix_element_type": "%s",' % matrix_element_type)
+            direct_io.write('"shape": [%d, %d],' % (num_rows, num_cols))
+        else:
+            type_ = '"type": "%s",' % self._biom_type
+            matrix_type = '"matrix_type": "%s",' % self._biom_matrix_type
+            matrix_element_type = '"matrix_element_type": "%s",' % matrix_element_type
+            shape = '"shape": [%d, %d],' % (num_rows, num_cols)
 
         # Fill in details about the rows in the table and fill in the matrix's
         # data.
-        rows_tmp = []
-        data_tmp = []
+        if direct_io:
+            direct_io.write('"data": [')
+        else:
+            data = '"data": ['
+
+        max_row_idx = len(self.ObservationIds) - 1
+        rows = '"rows": ['
         for obs_index, obs in enumerate(self.iterObservations()):
-            rows_tmp.append('{"id": "%s", "metadata": %s}' % (obs[1], 
-                                                              dumps(obs[2])))
+            #rows_tmp.append('{"id": "%s", "metadata": %s}' % (obs[1], 
+            #                                                  dumps(obs[2])))
+            
+            # i'm crying on the inside
+            if obs_index != max_row_idx:
+                rows += '{"id": "%s", "metadata": %s},' % (obs[1], 
+                                                           dumps(obs[2]))
+            else:
+                rows += '{"id": "%s", "metadata": %s}],' % (obs[1], 
+                                                           dumps(obs[2]))
 
             # If the matrix is dense, simply convert the numpy array to a list
             # of data values. If the matrix is sparse, we need to store the
             # data in sparse format, as it is given to us in a numpy array in
             # dense format (i.e. includes zeroes) by iterObservations().
             if self._biom_matrix_type == "dense":
-                data_tmp.append("[%s]" % ','.join(map(str, obs[0])))
+                if direct_io:
+                    if obs_index != max_row_idx:
+                        direct_io.write("[%s]," % ','.join(map(str, obs[0])))
+                    else:
+                        direct_io.write("[%s]]," % ','.join(map(str, obs[0])))
+                else:
+                    if obs_index != max_row_idx:
+                        data += "[%s]," % ','.join(map(str, obs[0]))
+                    else:
+                        data += "[%s]]," % ','.join(map(str, obs[0]))
 
             elif self._biom_matrix_type == "sparse":
                 for col_index, val in enumerate(obs[0]):
                     if float(val) != 0.0:
-                        data_tmp.append("[%d,%d,%d]" %(obs_index,col_index,val))
+                        if direct_io:
+                            if obs_index != max_row_idx:
+                                direct_io.write("[%d,%d,%d]," % (obs_index, 
+                                                                col_index, val))
+                            else:
+                                direct_io.write("[%d,%d,%d]]," % (obs_index, 
+                                                                col_index, val))
+                        else:
+                            if obs_index != max_row_idx:
+                                data += "[%d,%d,%d]," % (obs_index, col_index, 
+                                                        val)
+                            else:
+                                data += "[%d,%d,%d]]," % (obs_index, col_index, 
+                                                        val)
+                            
 
         # Fill in details about the columns in the table.
-        columns_tmp = []
-        for samp in self.iterSamples():
-            columns_tmp.append('{"id": "%s", "metadata": %s}' % (samp[1], 
-                                                                dumps(samp[2])))
+        columns = '"columns": ['
+        max_col_idx = len(self.SampleIds) - 1
+        for samp_index, samp in enumerate(self.iterSamples()):
+            if samp_index != max_col_idx:
+                columns += '{"id": "%s", "metadata": %s},' % (samp[1], 
+                                                                dumps(samp[2]))
+            else:
+                columns += '{"id": "%s", "metadata": %s}]' % (samp[1], 
+                                                                dumps(samp[2]))
 
-        rows = '"rows": [%s]' % ','.join(rows_tmp)
-        cols = '"columns": [%s]' % ','.join(columns_tmp)
-        data = '"data": [%s]' % ','.join(data_tmp)
-
-        del data_tmp
-        del rows_tmp
-        del columns_tmp
-
-        return "{%s}" % ','.join([id_, format_, format_url, type_, generated_by, 
-                                  date, rows, cols, matrix_type, 
-                                  matrix_element_type, shape, data])
+        if direct_io:
+            direct_io.write(rows)
+            direct_io.write(columns); 
+            direct_io.write('}')
+        else:
+            return "{%s}" % ''.join([id_, format_, format_url, type_, 
+                                      generated_by, date, 
+                                      matrix_type, matrix_element_type, shape, 
+                                      data, rows, columns])
 
     def getBiomFormatPrettyPrint(self,generated_by):
         """Returns a 'pretty print' format of a BIOM file
