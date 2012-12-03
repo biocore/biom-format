@@ -8,7 +8,8 @@ import doctest, biom.unit_test as unittest, sys, os
 
 __author__ = "Jose Carlos Clemente Litran"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Jose Carlos Clemente Litran", "Daniel McDonald", "Greg Caporaso"]
+__credits__ = ["Jose Carlos Clemente Litran", "Daniel McDonald",
+               "Greg Caporaso", "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
 __version__ = "1.0.0-dev"
@@ -33,6 +34,7 @@ def suite():
     modules_to_test = [
         'test_parse',
         'test_table',
+        'test_csmat',
         'test_sparsedict',
         'test_util',
         'test_unit_test',
