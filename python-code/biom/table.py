@@ -1171,7 +1171,9 @@ class Table(object):
             data = '"data": ['
 
         max_row_idx = len(self.ObservationIds) - 1
+        max_col_idx = len(self.SampleIds) - 1
         rows = '"rows": ['
+        have_written = False
         for obs_index, obs in enumerate(self.iterObservations()):
             #rows_tmp.append('{"id": "%s", "metadata": %s}' % (obs[1], 
             #                                                  dumps(obs[2])))
@@ -1201,27 +1203,39 @@ class Table(object):
                         data += "[%s]]," % ','.join(map(str, obs[0]))
 
             elif self._biom_matrix_type == "sparse":
+                built_row = []
                 for col_index, val in enumerate(obs[0]):
                     if float(val) != 0.0:
+                        built_row.append("[%d,%d,%d]" % (obs_index, col_index, 
+                                                         val))
+                        #if direct_io:
+                        #    direct_io.write("[%d,%d,%d]" % (obs_index, col_index, 
+                        #                                    val))
+                        #    written_in_row = True
+                        #else:
+                        #    data += "[%d,%d,%d]" % (obs_index, col_index, val)
+                        #    written_in_row = True
+                if built_row:
+                    if have_written:
                         if direct_io:
-                            if obs_index != max_row_idx:
-                                direct_io.write("[%d,%d,%d]," % (obs_index, 
-                                                                col_index, val))
-                            else:
-                                direct_io.write("[%d,%d,%d]]," % (obs_index, 
-                                                                col_index, val))
+                            direct_io.write(',')
                         else:
-                            if obs_index != max_row_idx:
-                                data += "[%d,%d,%d]," % (obs_index, col_index, 
-                                                        val)
-                            else:
-                                data += "[%d,%d,%d]]," % (obs_index, col_index, 
-                                                        val)
-                            
+                            data += ','
+                    if direct_io:
+                        direct_io.write(','.join(built_row))
+                    else:
+                        data += ','.join(built_row)
+
+                    have_written = True
+
+        if self._biom_matrix_type == 'sparse':
+            if direct_io:
+                direct_io.write("],")
+            else:
+                data += "],"
 
         # Fill in details about the columns in the table.
         columns = '"columns": ['
-        max_col_idx = len(self.SampleIds) - 1
         for samp_index, samp in enumerate(self.iterSamples()):
             if samp_index != max_col_idx:
                 columns += '{"id": "%s", "metadata": %s},' % (samp[1], 
