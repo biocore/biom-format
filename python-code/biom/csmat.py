@@ -603,8 +603,13 @@ def list_list_to_csmat(data, dtype=float, shape=None):
     [[row, col, value], ...]
     """
     rows, cols, values = zip(*data)
-    n_rows = max(rows) + 1
-    n_cols = max(cols) + 1
+
+    if shape is None:
+        n_rows = max(rows) + 1
+        n_cols = max(cols) + 1
+    else:
+        n_rows, n_cols = shape
+
     mat = CSMat(n_rows, n_cols)
     mat.bulkCOOUpdate(rows, cols, values)
     return mat
