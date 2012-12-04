@@ -1103,7 +1103,7 @@ class Table(object):
         table
 
         If direct_io is not None, the final output is written directly to
-        direct_io
+        direct_io during processing.
         """
         if self._biom_type is None:
             raise TableException, "Unknown biom type"
@@ -1175,9 +1175,6 @@ class Table(object):
         rows = '"rows": ['
         have_written = False
         for obs_index, obs in enumerate(self.iterObservations()):
-            #rows_tmp.append('{"id": "%s", "metadata": %s}' % (obs[1], 
-            #                                                  dumps(obs[2])))
-            
             # i'm crying on the inside
             if obs_index != max_row_idx:
                 rows += '{"id": "%s", "metadata": %s},' % (obs[1], 
@@ -1192,30 +1189,30 @@ class Table(object):
             # dense format (i.e. includes zeroes) by iterObservations().
             if self._biom_matrix_type == "dense":
                 if direct_io:
+                    # if we are not on the last row
                     if obs_index != max_row_idx:
                         direct_io.write("[%s]," % ','.join(map(str, obs[0])))
                     else:
                         direct_io.write("[%s]]," % ','.join(map(str, obs[0])))
                 else:
+                    # if we are not on the last row
                     if obs_index != max_row_idx:
                         data += "[%s]," % ','.join(map(str, obs[0]))
                     else:
                         data += "[%s]]," % ','.join(map(str, obs[0]))
 
             elif self._biom_matrix_type == "sparse":
+                # turns out its a pain to figure out when to place commas. the
+                # simple work around, at the expense of a little memory 
+                # (bound by the number of samples) is to build of what will be
+                # written, and then add in the commas where necessary.
                 built_row = []
                 for col_index, val in enumerate(obs[0]):
                     if float(val) != 0.0:
                         built_row.append("[%d,%d,%d]" % (obs_index, col_index, 
                                                          val))
-                        #if direct_io:
-                        #    direct_io.write("[%d,%d,%d]" % (obs_index, col_index, 
-                        #                                    val))
-                        #    written_in_row = True
-                        #else:
-                        #    data += "[%d,%d,%d]" % (obs_index, col_index, val)
-                        #    written_in_row = True
                 if built_row:
+                    # if we have written a row already, its safe to add a comma
                     if have_written:
                         if direct_io:
                             direct_io.write(',')
@@ -1228,6 +1225,7 @@ class Table(object):
 
                     have_written = True
 
+        # finalize the data block
         if self._biom_matrix_type == 'sparse':
             if direct_io:
                 direct_io.write("],")
