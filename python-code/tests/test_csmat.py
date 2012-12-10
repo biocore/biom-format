@@ -645,6 +645,27 @@ class CSMatTests(TestCase):
         obs = self.obj._expand_compressed([0,2,5,8,10])
         self.assertEqual(obs,exp)
 
+        exp = [1,1,1,1,1,2,2,2,3,3]
+        obs = self.obj._expand_compressed([0,0,5,8,10])
+        self.assertEqual(obs,exp)
+
+        exp = [0,0,2,2,2,2,2,2,3,3]
+        obs = self.obj._expand_compressed([0,2,2,8,10])
+        self.assertEqual(obs,exp)
+
+        exp = [0,0,1,1,1,2,2,2,2,2]
+        obs = self.obj._expand_compressed([0,2,5,10,10])
+        self.assertEqual(obs,exp)
+
+        exp = [0,0,1,1,1,1,1,1,1,1]
+        obs = self.obj._expand_compressed([0,2,10,10,10])
+        self.assertEqual(obs,exp)
+
+        exp = []
+        obs = self.obj._expand_compressed([0,0,0,0,0])
+        self.assertEqual(obs,exp)
+
+
 class SupportTests(TestCase):
     def test_list_list_to_csmat(self):
         """convert [[row,col,value], ...] to csmat"""

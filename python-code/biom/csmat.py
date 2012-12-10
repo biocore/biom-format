@@ -397,7 +397,7 @@ class CSMat():
             self._order = "csr"
 
     def _expand_compressed(self, pkd_ax):
-        """Expands oacked"""
+        """Expands packed axis"""
         expanded = zeros(pkd_ax[-1], dtype=uint32)
         last_idx = 0
         pos = uint32(0)
@@ -447,7 +447,7 @@ class CSMat():
         order is either csc or csr
 
         Returns instantly if is stable, throws ValueError if the sparse rep
-        is already build
+        is already built
         """
         if order == 'csr':
             csr = self._toCSR(self._coo_rows, self._coo_cols, self._coo_values)
