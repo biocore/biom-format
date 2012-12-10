@@ -19,11 +19,94 @@ __email__ = "daniel.mcdonald@colorado.edu"
    
 class CSMatTests(TestCase):
     def setUp(self):
+        # No empty rows/columns.
+
+        # 1 2 0 0
+        # 0 0 3 0
+        # 0 0 0 4
         self.obj = CSMat(3,4)
-        #self.obj.update({(0,0):1,(0,1):2,(1,2):3,(2,3):4})
         self.obj._coo_rows = [0, 0, 1, 2]
         self.obj._coo_cols = [0, 1, 2, 3]
         self.obj._coo_values = [1, 2, 3, 4]
+
+        # Empty rows.
+
+        # 0 0 0 0
+        # 1 9 0 0
+        # 1 1 2 0
+        self.empty_row_start = CSMat(3, 4)
+        self.empty_row_start._coo_values = [1, 9, 1, 1, 2]
+        self.empty_row_start._coo_rows = [1, 1, 2, 2, 2]
+        self.empty_row_start._coo_cols = [0, 1, 0, 1, 2]
+
+        # 1 9 0 0
+        # 0 0 0 0
+        # 1 1 2 0
+        self.empty_row_mid = CSMat(3, 4)
+        self.empty_row_mid._coo_values = [1, 9, 1, 1, 2]
+        self.empty_row_mid._coo_rows = [0, 0, 2, 2, 2]
+        self.empty_row_mid._coo_cols = [0, 1, 0, 1, 2]
+
+        # 1 9 0 0
+        # 1 1 2 0
+        # 0 0 0 0
+        self.empty_row_end = CSMat(3, 4)
+        self.empty_row_end._coo_values = [1, 9, 1, 1, 2]
+        self.empty_row_end._coo_rows = [0, 0, 1, 1, 1]
+        self.empty_row_end._coo_cols = [0, 1, 0, 1, 2]
+
+        # 1 9 0 0
+        # 0 0 0 0
+        # 0 0 0 0
+        self.empty_rows = CSMat(3, 4)
+        self.empty_rows._coo_values = [1, 9]
+        self.empty_rows._coo_rows = [0, 0]
+        self.empty_rows._coo_cols = [0, 1]
+
+        # Empty columns.
+
+        # 0 0 0
+        # 0 9 1
+        # 0 8 0
+        # 0 0 3
+        self.empty_col_start = CSMat(4, 3)
+        self.empty_col_start._coo_values = [9, 1, 8, 3]
+        self.empty_col_start._coo_rows = [1, 1, 2, 3]
+        self.empty_col_start._coo_cols = [1, 2, 1, 2]
+
+        # 0 0 0
+        # 9 0 1
+        # 8 0 0
+        # 0 0 3
+        self.empty_col_mid = CSMat(4, 3)
+        self.empty_col_mid._coo_values = [9, 1, 8, 3]
+        self.empty_col_mid._coo_rows = [1, 1, 2, 3]
+        self.empty_col_mid._coo_cols = [0, 2, 0, 2]
+
+        # 0 0 0
+        # 9 1 0
+        # 8 0 0
+        # 0 3 0
+        self.empty_col_end = CSMat(4, 3)
+        self.empty_col_end._coo_values = [9, 1, 8, 3]
+        self.empty_col_end._coo_rows = [1, 1, 2, 3]
+        self.empty_col_end._coo_cols = [0, 1, 0, 1]
+
+        # 0 0 0
+        # 0 0 1
+        # 0 0 0
+        # 0 0 3
+        self.empty_cols = CSMat(4, 3)
+        self.empty_cols._coo_values = [1, 3]
+        self.empty_cols._coo_rows = [1, 3]
+        self.empty_cols._coo_cols = [2, 2]
+
+        # Empty matrix.
+
+        # 0 0 0 0
+        # 0 0 0 0
+        # 0 0 0 0
+        self.empty = CSMat(3, 4)
 
     def test_copy(self):
         """copy thy self"""
@@ -41,7 +124,7 @@ class CSMatTests(TestCase):
         obs[1,2] = 3
         obs[0,0] = 5
         self.assertNotEqual(obs, self.obj)
-        
+
     def test_absorbUpdates(self):
         """absorb all the updates"""
         self.obj.convert("csr")
@@ -212,10 +295,31 @@ class CSMatTests(TestCase):
 
         self.assertRaises(IndexError, self.obj.getRow, -1)
 
-        # Test matrix that only contains zeroes.
-        sm = CSMat(3, 4)
+        # Test matrices with empty rows.
         exp = CSMat(1, 4)
-        obs = sm.getRow(2)
+        exp[0,0] = 1
+        exp[0,1] = 9
+        obs = self.empty_row_start.getRow(1)
+        self.assertEqual(obs, exp)
+
+        exp = CSMat(1, 4)
+        obs = self.empty_row_start.getRow(0)
+        self.assertEqual(obs, exp)
+
+        obs = self.empty_row_mid.getRow(1)
+        self.assertEqual(obs, exp)
+
+        obs = self.empty_row_end.getRow(2)
+        self.assertEqual(obs, exp)
+
+        obs = self.empty_rows.getRow(1)
+        self.assertEqual(obs, exp)
+
+        obs = self.empty_rows.getRow(2)
+        self.assertEqual(obs, exp)
+
+        # Test completely empty matrix.
+        obs = self.empty.getRow(2)
         self.assertEqual(obs, exp)
 
     def test_getCol(self):
@@ -297,96 +401,80 @@ class CSMatTests(TestCase):
         # 0 0 0 0
         # 1 9 0 0
         # 1 1 2 0
-        empty_row_start = CSMat(3, 4)
-        empty_row_start._coo_values = [1, 9, 1, 1, 2]
-        empty_row_start._coo_rows = [1, 1, 2, 2, 2]
-        empty_row_start._coo_cols = [0, 1, 0, 1, 2]
+        self.empty_row_start.convert("csr")
 
-        empty_row_start.convert("csr")
+        self.assertEqual(self.empty_row_start._order, "csr")
+        self.assertEqual(self.empty_row_start._coo_values, [])
+        self.assertEqual(self.empty_row_start._coo_rows, [])
+        self.assertEqual(self.empty_row_start._coo_cols, [])
 
-        self.assertEqual(empty_row_start._order, "csr")
-        self.assertEqual(empty_row_start._coo_values, [])
-        self.assertEqual(empty_row_start._coo_rows, [])
-        self.assertEqual(empty_row_start._coo_cols, [])
-
-        self.assertEqual(empty_row_start._pkd_ax, [0, 0, 2, 5])
-        self.assertEqual(empty_row_start._unpkd_ax, [0, 1, 0, 1, 2])
-        self.assertEqual(empty_row_start._values, [1, 9, 1, 1, 2])
-
-        # 1 9 0 0
-        # 1 1 2 0
-        # 0 0 0 0
-        empty_row_end = CSMat(3, 4)
-        empty_row_end._coo_values = [1, 9, 1, 1, 2]
-        empty_row_end._coo_rows = [0, 0, 1, 1, 1]
-        empty_row_end._coo_cols = [0, 1, 0, 1, 2]
-
-        empty_row_end.convert("csr")
-
-        self.assertEqual(empty_row_end._order, "csr")
-        self.assertEqual(empty_row_end._coo_values, [])
-        self.assertEqual(empty_row_end._coo_rows, [])
-        self.assertEqual(empty_row_end._coo_cols, [])
-
-        self.assertEqual(empty_row_end._pkd_ax, [0, 2, 5, 5])
-        self.assertEqual(empty_row_end._unpkd_ax, [0, 1, 0, 1, 2])
-        self.assertEqual(empty_row_end._values, [1, 9, 1, 1, 2])
+        self.assertEqual(self.empty_row_start._pkd_ax, [0, 0, 2, 5])
+        self.assertEqual(self.empty_row_start._unpkd_ax, [0, 1, 0, 1, 2])
+        self.assertEqual(self.empty_row_start._values, [1, 9, 1, 1, 2])
 
         # 1 9 0 0
         # 0 0 0 0
         # 1 1 2 0
-        empty_row_mid = CSMat(3, 4)
-        empty_row_mid._coo_values = [1, 9, 1, 1, 2]
-        empty_row_mid._coo_rows = [0, 0, 2, 2, 2]
-        empty_row_mid._coo_cols = [0, 1, 0, 1, 2]
+        self.empty_row_mid.convert("csr")
 
-        empty_row_mid.convert("csr")
+        self.assertEqual(self.empty_row_mid._order, "csr")
+        self.assertEqual(self.empty_row_mid._coo_values, [])
+        self.assertEqual(self.empty_row_mid._coo_rows, [])
+        self.assertEqual(self.empty_row_mid._coo_cols, [])
 
-        self.assertEqual(empty_row_mid._order, "csr")
-        self.assertEqual(empty_row_mid._coo_values, [])
-        self.assertEqual(empty_row_mid._coo_rows, [])
-        self.assertEqual(empty_row_mid._coo_cols, [])
+        self.assertEqual(self.empty_row_mid._pkd_ax, [0, 2, 2, 5])
+        self.assertEqual(self.empty_row_mid._unpkd_ax, [0, 1, 0, 1, 2])
+        self.assertEqual(self.empty_row_mid._values, [1, 9, 1, 1, 2])
 
-        self.assertEqual(empty_row_mid._pkd_ax, [0, 2, 2, 5])
-        self.assertEqual(empty_row_mid._unpkd_ax, [0, 1, 0, 1, 2])
-        self.assertEqual(empty_row_mid._values, [1, 9, 1, 1, 2])
+        # 1 9 0 0
+        # 1 1 2 0
+        # 0 0 0 0
+        self.empty_row_end.convert("csr")
+
+        self.assertEqual(self.empty_row_end._order, "csr")
+        self.assertEqual(self.empty_row_end._coo_values, [])
+        self.assertEqual(self.empty_row_end._coo_rows, [])
+        self.assertEqual(self.empty_row_end._coo_cols, [])
+
+        self.assertEqual(self.empty_row_end._pkd_ax, [0, 2, 5, 5])
+        self.assertEqual(self.empty_row_end._unpkd_ax, [0, 1, 0, 1, 2])
+        self.assertEqual(self.empty_row_end._values, [1, 9, 1, 1, 2])
 
         # 1 9 0 0
         # 0 0 0 0
         # 0 0 0 0
-        empty_rows = CSMat(3, 4)
-        empty_rows._coo_values = [1, 9]
-        empty_rows._coo_rows = [0, 0]
-        empty_rows._coo_cols = [0, 1]
+        self.empty_rows.convert("csr")
 
-        empty_rows.convert("csr")
+        self.assertEqual(self.empty_rows._order, "csr")
+        self.assertEqual(self.empty_rows._coo_values, [])
+        self.assertEqual(self.empty_rows._coo_rows, [])
+        self.assertEqual(self.empty_rows._coo_cols, [])
 
-        self.assertEqual(empty_rows._order, "csr")
-        self.assertEqual(empty_rows._coo_values, [])
-        self.assertEqual(empty_rows._coo_rows, [])
-        self.assertEqual(empty_rows._coo_cols, [])
+        self.assertEqual(self.empty_rows._pkd_ax, [0, 2, 2, 2])
+        self.assertEqual(self.empty_rows._unpkd_ax, [0, 1])
+        self.assertEqual(self.empty_rows._values, [1, 9])
 
-        self.assertEqual(empty_rows._pkd_ax, [0, 2, 2, 2])
-        self.assertEqual(empty_rows._unpkd_ax, [0, 1])
-        self.assertEqual(empty_rows._values, [1, 9])
+        # Test an empty matrix.
 
         # 0 0 0 0
         # 0 0 0 0
         # 0 0 0 0
-        empty = CSMat(3, 4)
-        empty.convert("csr")
+        self.empty.convert("csr")
 
-        self.assertEqual(empty._order, "csr")
-        self.assertEqual(empty._coo_values, [])
-        self.assertEqual(empty._coo_rows, [])
-        self.assertEqual(empty._coo_cols, [])
+        self.assertEqual(self.empty._order, "csr")
+        self.assertEqual(self.empty._coo_values, [])
+        self.assertEqual(self.empty._coo_rows, [])
+        self.assertEqual(self.empty._coo_cols, [])
 
-        self.assertEqual(empty._pkd_ax, [0, 0, 0, 0])
-        self.assertEqual(empty._unpkd_ax, [])
-        self.assertEqual(empty._values, [])
+        self.assertEqual(self.empty._pkd_ax, [0, 0, 0, 0])
+        self.assertEqual(self.empty._unpkd_ax, [])
+        self.assertEqual(self.empty._values, [])
 
     def test_convert_coo_csc(self):
         """convert coo to csc"""
+        # 1 2 0 0
+        # 0 0 3 0
+        # 0 0 0 4
         self.obj.convert("csc")
         self.assertEqual(self.obj._order, "csc")
         self.assertEqual(self.obj._coo_values, [])
@@ -396,6 +484,84 @@ class CSMatTests(TestCase):
         self.assertEqual(self.obj._pkd_ax, [0, 1, 2, 3, 4])
         self.assertEqual(self.obj._unpkd_ax, [0, 0, 1, 2])
         self.assertEqual(self.obj._values, [1,2,3,4])
+
+        # Test empty columns.
+
+        # 0 0 0
+        # 0 9 1
+        # 0 8 0
+        # 0 0 3
+        self.empty_col_start.convert("csc")
+
+        self.assertEqual(self.empty_col_start._order, "csc")
+        self.assertEqual(self.empty_col_start._coo_values, [])
+        self.assertEqual(self.empty_col_start._coo_rows, [])
+        self.assertEqual(self.empty_col_start._coo_cols, [])
+
+        self.assertEqual(self.empty_col_start._pkd_ax, [0, 0, 2, 4])
+        self.assertEqual(self.empty_col_start._unpkd_ax, [1, 2, 1, 3])
+        self.assertEqual(self.empty_col_start._values, [9, 8, 1, 3])
+
+        # 0 0 0
+        # 9 0 1
+        # 8 0 0
+        # 0 0 3
+        self.empty_col_mid.convert("csc")
+
+        self.assertEqual(self.empty_col_mid._order, "csc")
+        self.assertEqual(self.empty_col_mid._coo_values, [])
+        self.assertEqual(self.empty_col_mid._coo_rows, [])
+        self.assertEqual(self.empty_col_mid._coo_cols, [])
+
+        self.assertEqual(self.empty_col_mid._pkd_ax, [0, 2, 2, 4])
+        self.assertEqual(self.empty_col_mid._unpkd_ax, [1, 2, 1, 3])
+        self.assertEqual(self.empty_col_mid._values, [9, 8, 1, 3])
+
+        # 0 0 0
+        # 9 1 0
+        # 8 0 0
+        # 0 3 0
+        self.empty_col_end.convert("csc")
+
+        self.assertEqual(self.empty_col_end._order, "csc")
+        self.assertEqual(self.empty_col_end._coo_values, [])
+        self.assertEqual(self.empty_col_end._coo_rows, [])
+        self.assertEqual(self.empty_col_end._coo_cols, [])
+
+        self.assertEqual(self.empty_col_end._pkd_ax, [0, 2, 4, 4])
+        self.assertEqual(self.empty_col_end._unpkd_ax, [1, 2, 1, 3])
+        self.assertEqual(self.empty_col_end._values, [9, 8, 1, 3])
+
+        # 0 0 0
+        # 0 0 1
+        # 0 0 0
+        # 0 0 3
+        self.empty_cols.convert("csc")
+
+        self.assertEqual(self.empty_cols._order, "csc")
+        self.assertEqual(self.empty_cols._coo_values, [])
+        self.assertEqual(self.empty_cols._coo_rows, [])
+        self.assertEqual(self.empty_cols._coo_cols, [])
+
+        self.assertEqual(self.empty_cols._pkd_ax, [0, 0, 0, 2])
+        self.assertEqual(self.empty_cols._unpkd_ax, [1, 3])
+        self.assertEqual(self.empty_cols._values, [1, 3])
+
+        # Test an empty matrix.
+
+        # 0 0 0 0
+        # 0 0 0 0
+        # 0 0 0 0
+        self.empty.convert("csc")
+
+        self.assertEqual(self.empty._order, "csc")
+        self.assertEqual(self.empty._coo_values, [])
+        self.assertEqual(self.empty._coo_rows, [])
+        self.assertEqual(self.empty._coo_cols, [])
+
+        self.assertEqual(self.empty._pkd_ax, [0, 0, 0, 0, 0])
+        self.assertEqual(self.empty._unpkd_ax, [])
+        self.assertEqual(self.empty._values, [])
 
     def test_convert_csr_coo(self):
         """convert csr to coo"""

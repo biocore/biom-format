@@ -128,19 +128,17 @@ class CSMat():
         n_rows,n_cols = self.shape
         v = self.__class__(1, n_cols, dtype=self.dtype)
 
-        # Handle case where we have nonzero values. If we only have zeroes,
-        # simply return the new matrix.
-        if self.size > 0:
-            if self._order != "csr":
-                self.convert("csr")
+        if self._order != "csr":
+            self.convert("csr")
 
-            start = self._pkd_ax[row]
-            stop = self._pkd_ax[row + 1]
-            n_vals = stop - start
-            
-            v._coo_rows = [uint32(0)] * n_vals
-            v._coo_cols = list(self._unpkd_ax[start:stop])
-            v._coo_values = list(self._values[start:stop])
+        start = self._pkd_ax[row]
+        stop = self._pkd_ax[row + 1]
+        n_vals = stop - start
+        
+        # TODO performance gains if we use numpy?
+        v._coo_rows = [uint32(0)] * n_vals
+        v._coo_cols = list(self._unpkd_ax[start:stop])
+        v._coo_values = list(self._values[start:stop])
 
         return v
 
@@ -160,12 +158,15 @@ class CSMat():
             stop = self._pkd_ax[col + 1]
             n_vals = stop - start
 
+            # TODO performance gains if we use numpy?
             v._coo_cols = [uint32(0)] * n_vals
             v._coo_rows = list(self._unpkd_ax[start:stop])
             v._coo_values = list(self._values[start:stop])
 
         return v
 
+    # TODO these next two methods need to be heavily tested with empty
+    # rows/cols.
     def items(self):
         """returns [((r,c),v)]"""
         last = 0
@@ -186,7 +187,7 @@ class CSMat():
         return res
 
     def iteritems(self):
-        """Generater returning ((r,c),v)"""
+        """Generator returning ((r,c),v)"""
         last = 0
         if self._order == 'csr':
             for row,i in enumerate(self._pkd_ax[1:]):
@@ -231,8 +232,7 @@ class CSMat():
         if other.hasUpdates():
             other.absorbUpdates()
 
-        # Handle the case when both are same size and only contain zeroes (they
-        # cannot be converted into CS format).
+        # TODO remove
         if self.size == 0 and other.size == 0:
             return True
 
@@ -487,7 +487,6 @@ class CSMat():
                 pkd_ax.append(pos)
 
                 empty_rows = rows_to_process[:rows_to_process.index(v)]
-                #print empty_rows
                 if empty_rows:
                     pkd_ax.extend([pkd_ax[-1]] * len(empty_rows))
                     for r in empty_rows:
@@ -507,14 +506,10 @@ class CSMat():
         
         pkd_ax.append(pos)
 
-        #print rows_to_process
         if rows_to_process:
             pkd_ax.extend([pkd_ax[-1]] * len(rows_to_process))
 
         pkd_ax = array(pkd_ax, dtype=uint32)
-        
-        if len(pkd_ax) != (self.shape[0] + 1):
-            raise ValueError, "Empty rows exist!"
 
         return (pkd_ax, unpkd_ax, values)
 
@@ -529,14 +524,24 @@ class CSMat():
         tmp_cols = tmp_cols.take(order)
         unpkd_ax = unpkd_ax.take(order)
 
-        v_last = tmp_cols[0]
-        pkd_ax = [0]
+        v_last = -1
+        pkd_ax = []
         pos = 0
         p_last = 0
+
         ### gotta be something in numpy that does this...
+        cols_to_process = range(self.shape[1])
         for v in tmp_cols:
             if v != v_last:
                 pkd_ax.append(pos)
+
+                empty_cols = cols_to_process[:cols_to_process.index(v)]
+                if empty_cols:
+                    pkd_ax.extend([pkd_ax[-1]] * len(empty_cols))
+                    for c in empty_cols:
+                        cols_to_process.remove(c)
+                cols_to_process.remove(v)
+
                 row_order = argsort(unpkd_ax[p_last:pos])
                 unpkd_ax[p_last:pos] = unpkd_ax[p_last:pos].take(row_order)
                 values[p_last:pos] = values[p_last:pos].take(row_order)
@@ -551,10 +556,10 @@ class CSMat():
 
         pkd_ax.append(pos)
 
+        if cols_to_process:
+            pkd_ax.extend([pkd_ax[-1]] * len(cols_to_process))
+
         pkd_ax = array(pkd_ax, dtype=uint32)
-        
-        if len(pkd_ax) != (self.shape[1] + 1):
-            raise ValueError, "Empty columns exist!"
 
         return (pkd_ax, unpkd_ax, values)
 
