@@ -145,18 +145,6 @@ class CSMatTests(TestCase):
         assert (1,2) not in sm1
         sm1[1,2] = 10
         assert (1,2) in sm1
-        #sm1.erase(1,2)
-        #assert (1,2) not in sm1
-                
-    def test_erase(self):
-        """Make sure we can get rid of elements"""
-        #sm1 = CSMat(4,6)
-        #self.assertEqual(sm1[2,3], 0.0)
-        #sm1.erase(2,3)
-        #self.assertEqual(sm1[2,3], 0.0)
-        #sm1[2,3] = 10
-        #self.assertEqual(sm1[2,3], 10.0)
-        self.assertRaises(NotImplementedError, self.obj.erase, 1,1)
 
     def test_eq(self):
         """Tests for equality"""

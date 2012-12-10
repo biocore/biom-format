@@ -17,51 +17,35 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
 class CSMat():
-    """Support for compressed sparse and coordinate list formats
+    """Compressed sparse (CSR/CSC) and coordinate list (COO) formats.
 
-    Must specify rows and columns in advance
+    Builds sparse matrix in COO format first (good for incremental
+    construction) and then converts to CSR/CSC for efficient row/column access.
 
-    Object cannot "grow" in shape
+    Must specify number of rows and columns in advance.
 
-    enable_indices is ignored
+    Object cannot "grow" in shape.
+
+    enable_indices is ignored.
     """
 
     def __init__(self, rows, cols, dtype=float, enable_indices=True):
         self.shape = (rows, cols) 
         self.dtype = dtype # casting is minimal, trust the programmer...
-
-        # yale, or csr/csc format
+        self._order = "coo"
 
         # coordinate list 
         self._coo_values = []
         self._coo_rows = []
         self._coo_cols = []
 
-        self._order = "coo"
+        # yale, or csr/csc format
         self._values = array([], dtype=dtype)
         self._pkd_ax = array([], dtype=uint32)
         self._unpkd_ax = array([], dtype=uint32)
 
-    def bulkCOOUpdate(self, rows, cols, values):
-        """Expects 3 iterables in aligned by index"""
-        self._coo_values.extend(values)
-        self._coo_rows.extend(rows)
-        self._coo_cols.extend(cols)
-
-    def update(self, data):
-        """Update from a dict"""
-        for (r,c),v in data.iteritems():
-            self[(r,c)] = v
-
-    def hasUpdates(self):
-        """Returns true if it appears there are updates"""
-        if len(self._coo_values) != 0:
-            return True
-        else:
-            return False
-
     def _get_size(self):
-        """Returns the number of elements stored"""
+        """Returns the number of non-zero elements stored"""
         if self.hasUpdates():
             self.absorbUpdates()
 
@@ -70,6 +54,58 @@ class CSMat():
         else:
             return self._pkd_ax[-1]
     size = property(_get_size)
+
+    def transpose(self):
+        """Transpose self"""
+        new_self = self.copy()
+
+        if new_self._order != "coo":
+            rebuild = new_self._order
+            new_self.convert("coo")
+        else:
+            rebuild = None
+
+        new_self.shape = new_self.shape[::-1]
+        tmp = new_self._coo_rows
+        new_self._coo_rows = new_self._coo_cols
+        new_self._coo_cols = tmp
+
+        if rebuild is not None:
+            self.convert(rebuild)
+
+        return new_self
+    T = property(transpose)
+
+    def update(self, data):
+        """Update from a dict"""
+        for (r,c),v in data.iteritems():
+            self[(r,c)] = v
+
+    def bulkCOOUpdate(self, rows, cols, values):
+        """Expects 3 iterables aligned by index"""
+        self._coo_values.extend(values)
+        self._coo_rows.extend(rows)
+        self._coo_cols.extend(cols)
+
+    def hasUpdates(self):
+        """Returns true if it appears there are updates"""
+        if len(self._coo_values) != 0:
+            return True
+        else:
+            return False
+
+    def absorbUpdates(self):
+        """If there are COO values not in CS form, pack them in"""
+        if self._order == 'coo':
+            return
+        
+        if not self._coo_values:
+            return
+
+        # possibly a better way to do this
+        order = self._order
+        self.convert("coo")
+        self.convert(order)
 
     def convert(self, to_order):
         """Converts to csc <-> csr, csc <-> coo, csr <-> coo"""
@@ -84,18 +120,268 @@ class CSMat():
             else:
                 self._buildCSfromCS()
 
-    def absorbUpdates(self):
-        """If there are COO values not in CS form, pack them in"""
-        if self._order == 'coo':
-            return
-        
-        if not self._coo_values:
-            return
+    def getRow(self, row):
+        """Returns a row in Sparse COO form"""
+        if row >= self.shape[0] or row < 0:
+            raise IndexError, "Row %d is out of bounds!" % row
 
-        # possibly a better way to do this
-        order = self._order
-        self.convert("coo")
-        self.convert(order)
+        n_rows,n_cols = self.shape
+        v = self.__class__(1, n_cols, dtype=self.dtype)
+
+        # Handle case where we have nonzero values. If we only have zeroes,
+        # simply return the new matrix.
+        if self.size > 0:
+            if self._order != "csr":
+                self.convert("csr")
+
+            start = self._pkd_ax[row]
+            stop = self._pkd_ax[row + 1]
+            n_vals = stop - start
+            
+            v._coo_rows = [uint32(0)] * n_vals
+            v._coo_cols = list(self._unpkd_ax[start:stop])
+            v._coo_values = list(self._values[start:stop])
+
+        return v
+
+    def getCol(self, col):
+        """Return a col in CSMat form"""
+        if col >= self.shape[1] or col < 0:
+            raise IndexError, "Col %d is out of bounds!" % col
+
+        n_rows,n_cols = self.shape
+        v = self.__class__(n_rows, 1, dtype=self.dtype)
+
+        if self.size > 0:
+            if self._order != "csc":
+                self.convert("csc")
+
+            start = self._pkd_ax[col]
+            stop = self._pkd_ax[col + 1]
+            n_vals = stop - start
+
+            v._coo_cols = [uint32(0)] * n_vals
+            v._coo_rows = list(self._unpkd_ax[start:stop])
+            v._coo_values = list(self._values[start:stop])
+
+        return v
+
+    def items(self):
+        """returns [((r,c),v)]"""
+        last = 0
+        res = []
+        if self._order == 'csr':
+            for row,i in enumerate(self._pkd_ax[1:]):
+                for col,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
+                    res.append(((row,col),val))
+                last = i
+        elif self._order == 'csc':
+            for col,i in enumerate(self._pkd_ax[1:]):
+                for row,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
+                    res.append(((row,col),val))
+                last = i
+        else:
+            for r,c,v in izip(self._coo_rows, self._coo_cols, self._coo_values):
+                res.append(((r,c),v))
+        return res
+
+    def iteritems(self):
+        """Generater returning ((r,c),v)"""
+        last = 0
+        if self._order == 'csr':
+            for row,i in enumerate(self._pkd_ax[1:]):
+                for col,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
+                    yield ((row,col),val)
+                last = i
+        elif self._order == 'csc':
+            for col,i in enumerate(self._pkd_ax[1:]):
+                for row,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
+                    yield ((row,col),val)
+                last = i
+        else:
+            for r,c,v in izip(self._coo_rows, self._coo_cols, self._coo_values):
+                yield ((r,c),v)
+
+    def __contains__(self, args):
+        """Return True if args are in self, false otherwise"""
+        if self._getitem(args) == (None, None, None):
+            return False
+        else:
+            return True
+
+    def copy(self):
+        """Return a copy of self"""
+        new_self = self.__class__(*self.shape, dtype=self.dtype)
+        new_self._coo_rows = self._coo_rows[:]
+        new_self._coo_cols = self._coo_cols[:]
+        new_self._coo_values = self._coo_values[:]
+        new_self._pkd_ax = self._pkd_ax.copy()
+        new_self._unpkd_ax = self._unpkd_ax.copy()
+        new_self._values = self._values.copy()
+        new_self._order = self._order[:]
+        return new_self
+
+    def __eq__(self, other):
+        """Returns true if both CSMats are the same"""
+        if self.shape != other.shape:
+            return False
+
+        if self.hasUpdates():
+            self.absorbUpdates()
+        if other.hasUpdates():
+            other.absorbUpdates()
+
+        # Handle the case when both are same size and only contain zeroes (they
+        # cannot be converted into CS format).
+        if self.size == 0 and other.size == 0:
+            return True
+
+        if self.shape[1] == 1:
+            self.convert("csc")
+            other.convert("csc")
+        else:
+            if self._order is "coo":
+                self.convert("csr")
+
+            if other._order is "coo":
+                other.convert("csr")
+            else:
+                self.convert("csr")
+    
+        if len(self._pkd_ax) != len(other._pkd_ax):
+            return False
+
+        if len(self._unpkd_ax) != len(other._unpkd_ax):
+            return False
+
+        if (self._pkd_ax != other._pkd_ax).any():
+            return False
+
+        if (self._unpkd_ax != other._unpkd_ax).any():
+            return False
+        
+        if (self._values != other._values).any():
+            return False
+        
+        return True
+
+    def __ne__(self, other):
+        """Return true if both CSMats are not equal"""
+        return not (self == other)
+
+    def __str__(self):
+        """dump priv data"""
+        l = []
+        l.append(self._order)
+        l.append("_coo_values\t" + '\t'.join(map(str, self._coo_values)))
+        l.append("_coo_rows\t" + '\t'.join(map(str, self._coo_rows)))
+        l.append("_coo_cols\t" + '\t'.join(map(str, self._coo_cols)))
+        l.append("_values\t" + '\t'.join(map(str, self._values)))
+        l.append("_pkd_ax\t" + '\t'.join(map(str, self._pkd_ax)))
+        l.append("_unpkd_ax\t" + '\t'.join(map(str, self._unpkd_ax)))
+        return '\n'.join(l)
+
+    def __setitem__(self,args,value):
+        """Wrap setitem, complain if out of bounds"""
+        try:
+            row,col = args
+        except:
+            # fast support foo[5] = 10, like numpy 1d vectors
+            col = args
+            row = 0
+            args = (row,col)
+        
+        if row >= self.shape[0]:
+            raise IndexError, "Row %d is out of bounds!" % row
+        if col >= self.shape[1]:
+            raise IndexError, "Col %d is out of bounds!" % col
+
+        if value == 0:
+            if args in self:
+                self.erase(row, col)
+            else:
+                return
+        else:
+            res = self._getitem(args)
+            if res == (None, None, None):
+                self._coo_rows.append(row)
+                self._coo_cols.append(col)
+                self._coo_values.append(value)
+            else:
+                if self._order == "coo":
+                    self._coo_values[res[0]] = value
+                else:
+                    self._values[res[-1]] = value
+
+    def __getitem__(self,args):
+        """Wrap getitem to handle slices"""
+        try:
+            row,col = args
+        except TypeError:
+            raise IndexError, "Must specify (row, col)"
+
+        if isinstance(row, slice): 
+            if row.start is None and row.stop is None:
+                return self.getCol(col)
+            else:
+                raise AttributeError, "Can only handle full : slices per axis"
+        elif isinstance(col, slice):
+            if col.start is None and col.stop is None:
+                return self.getRow(row)
+            else:
+                raise AttributeError, "Can only handle full : slices per axis"
+        else:
+            if row >= self.shape[0] or row < 0:
+                raise IndexError, "Row out of bounds!"
+            if col >= self.shape[1] or col < 0:
+                raise IndexError, "Col out of bounds!"
+
+            res = self._getitem(args)
+            if res == (None,None,None):
+                return self.dtype(0)
+            else:
+                if self._order == 'coo':
+                    return self._coo_values[res[0]]
+                else:
+                    return self._values[res[-1]]
+                
+        return self.dtype(0)
+
+    def _getitem(self, args):
+        """Mine for an item
+        
+        if order is csc | csr, returns
+        pkd_ax_idx, unpkd_ax_idx_, values_idx 
+
+        if order is coo, returns
+        rows_idx, cols_idx, values_idx (all the samething..)
+        """
+        row,col = args
+        if self._order == 'csr':
+            start = self._pkd_ax[row]
+            stop = self._pkd_ax[row+1]
+            for i,c in enumerate(self._unpkd_ax[start:stop]):
+                if c == col:
+                    return (row, start+i, start+i)
+
+        elif self._order == 'csc':
+            start = self._pkd_ax[col]
+            stop = self._pkd_ax[col+1]
+            for i,r in enumerate(self._unpkd_ax[start:stop]):
+                if r == row:
+                    return (start+i, col, start+i)
+
+        elif self._order == "coo":
+            # O(N) naive... but likely not a major use case
+            idx = 0
+            for (r,c) in izip(self._coo_rows, self._coo_cols):
+                if r == row and c == col:
+                    return (idx, idx, idx)
+                idx += 1
+        else:
+            raise ValueError, "Unknown matrix type: %s" % self._order
+
+        return (None, None, None)
 
     def _buildCSfromCS(self):
         """Convert csc <-> csr"""
@@ -272,296 +558,6 @@ class CSMat():
 
         return (pkd_ax, unpkd_ax, values)
 
-    def items(self):
-        """returns [((r,c),v)]"""
-        last = 0
-        res = []
-        if self._order == 'csr':
-            for row,i in enumerate(self._pkd_ax[1:]):
-                for col,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
-                    res.append(((row,col),val))
-                last = i
-        elif self._order == 'csc':
-            for col,i in enumerate(self._pkd_ax[1:]):
-                for row,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
-                    res.append(((row,col),val))
-                last = i
-        else:
-            for r,c,v in izip(self._coo_rows, self._coo_cols, self._coo_values):
-                res.append(((r,c),v))
-        return res
-
-    def iteritems(self):
-        """Generater returning ((r,c),v)"""
-        last = 0
-        if self._order == 'csr':
-            for row,i in enumerate(self._pkd_ax[1:]):
-                for col,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
-                    yield ((row,col),val)
-                last = i
-        elif self._order == 'csc':
-            for col,i in enumerate(self._pkd_ax[1:]):
-                for row,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
-                    yield ((row,col),val)
-                last = i
-        else:
-            for r,c,v in izip(self._coo_rows, self._coo_cols, self._coo_values):
-                yield ((r,c),v)
-
-    def __contains__(self, args):
-        """Return True if args are in self, false otherwise"""
-        if self._getitem(args) == (None, None, None):
-            return False
-        else:
-            return True
-
-    def _getitem(self, args):
-        """Mine for an item
-        
-        if order is csc | csr, returns
-        pkd_ax_idx, unpkd_ax_idx_, values_idx 
-
-        if order is coo, returns
-        rows_idx, cols_idx, values_idx (all the samething..)
-        """
-        row,col = args
-        if self._order == 'csr':
-            start = self._pkd_ax[row]
-            stop = self._pkd_ax[row+1]
-            for i,c in enumerate(self._unpkd_ax[start:stop]):
-                if c == col:
-                    return (row, start+i, start+i)
-
-        elif self._order == 'csc':
-            start = self._pkd_ax[col]
-            stop = self._pkd_ax[col+1]
-            for i,r in enumerate(self._unpkd_ax[start:stop]):
-                if r == row:
-                    return (start+i, col, start+i)
-
-        elif self._order == "coo":
-            # O(N) naive... but likely not a major use case
-            idx = 0
-            for (r,c) in izip(self._coo_rows, self._coo_cols):
-                if r == row and c == col:
-                    return (idx, idx, idx)
-                idx += 1
-        else:
-            raise ValueError, "Unknown matrix type: %s" % self._order
-
-        return (None, None, None)
-    
-    def erase(self, row, col):
-        """Deletes the item at row,col"""
-        #self._update_internal_indices((row,col), 0)
-        #self._data.erase(row, col)
-        raise NotImplementedError
-
-    def copy(self):
-        """Return a copy of self"""
-        new_self = self.__class__(*self.shape, dtype=self.dtype)
-        new_self._coo_rows = self._coo_rows[:]
-        new_self._coo_cols = self._coo_cols[:]
-        new_self._coo_values = self._coo_values[:]
-        new_self._pkd_ax = self._pkd_ax.copy()
-        new_self._unpkd_ax = self._unpkd_ax.copy()
-        new_self._values = self._values.copy()
-        new_self._order = self._order[:]
-        return new_self
-
-    def __eq__(self, other):
-        """Returns true if both CSMats are the same"""
-        if self.shape != other.shape:
-            return False
-
-        if self.hasUpdates():
-            self.absorbUpdates()
-        if other.hasUpdates():
-            other.absorbUpdates()
-
-        # Handle the case when both are same size and only contain zeroes (they
-        # cannot be converted into CS format).
-        if self.size == 0 and other.size == 0:
-            return True
-
-        if self.shape[1] == 1:
-            self.convert("csc")
-            other.convert("csc")
-        else:
-            if self._order is "coo":
-                self.convert("csr")
-
-            if other._order is "coo":
-                other.convert("csr")
-            else:
-                self.convert("csr")
-    
-        if len(self._pkd_ax) != len(other._pkd_ax):
-            return False
-
-        if len(self._unpkd_ax) != len(other._unpkd_ax):
-            return False
-
-        if (self._pkd_ax != other._pkd_ax).any():
-            return False
-
-        if (self._unpkd_ax != other._unpkd_ax).any():
-            return False
-        
-        if (self._values != other._values).any():
-            return False
-        
-        return True
-   
-    def __str__(self):
-        """dump priv data"""
-        l = []
-        l.append(self._order)
-        l.append("_coo_values\t" + '\t'.join(map(str, self._coo_values)))
-        l.append("_coo_rows\t" + '\t'.join(map(str, self._coo_rows)))
-        l.append("_coo_cols\t" + '\t'.join(map(str, self._coo_cols)))
-        l.append("_values\t" + '\t'.join(map(str, self._values)))
-        l.append("_pkd_ax\t" + '\t'.join(map(str, self._pkd_ax)))
-        l.append("_unpkd_ax\t" + '\t'.join(map(str, self._unpkd_ax)))
-        return '\n'.join(l)
-
-    def __ne__(self, other):
-        """Return true if both CSMats are not equal"""
-        return not (self == other)
-           
-    def __setitem__(self,args,value):
-        """Wrap setitem, complain if out of bounds"""
-        try:
-            row,col = args
-        except:
-            # fast support foo[5] = 10, like numpy 1d vectors
-            col = args
-            row = 0
-            args = (row,col)
-        
-        if row >= self.shape[0]:
-            raise IndexError, "Row %d is out of bounds!" % row
-        if col >= self.shape[1]:
-            raise IndexError, "Col %d is out of bounds!" % col
-
-        if value == 0:
-            if args in self:
-                self.erase(row, col)
-            else:
-                return
-        else:
-            res = self._getitem(args)
-            if res == (None, None, None):
-                self._coo_rows.append(row)
-                self._coo_cols.append(col)
-                self._coo_values.append(value)
-            else:
-                if self._order == "coo":
-                    self._coo_values[res[0]] = value
-                else:
-                    self._values[res[-1]] = value
-
-    def __getitem__(self,args):
-        """Wrap getitem to handle slices"""
-        try:
-            row,col = args
-        except TypeError:
-            raise IndexError, "Must specify (row, col)"
-
-        if isinstance(row, slice): 
-            if row.start is None and row.stop is None:
-                return self.getCol(col)
-            else:
-                raise AttributeError, "Can only handle full : slices per axis"
-        elif isinstance(col, slice):
-            if col.start is None and col.stop is None:
-                return self.getRow(row)
-            else:
-                raise AttributeError, "Can only handle full : slices per axis"
-        else:
-            if row >= self.shape[0] or row < 0:
-                raise IndexError, "Row out of bounds!"
-            if col >= self.shape[1] or col < 0:
-                raise IndexError, "Col out of bounds!"
-
-            res = self._getitem(args)
-            if res == (None,None,None):
-                return self.dtype(0)
-            else:
-                if self._order == 'coo':
-                    return self._coo_values[res[0]]
-                else:
-                    return self._values[res[-1]]
-                
-        return self.dtype(0)
-
-    def getRow(self, row):
-        """Returns a row in Sparse COO form"""
-        if row >= self.shape[0] or row < 0:
-            raise IndexError, "Row %d is out of bounds!" % row
-
-        n_rows,n_cols = self.shape
-        v = self.__class__(1, n_cols, dtype=self.dtype)
-
-        # Handle case where we have nonzero values. If we only have zeroes,
-        # simply return the new matrix.
-        if self.size > 0:
-            if self._order != "csr":
-                self.convert("csr")
-
-            start = self._pkd_ax[row]
-            stop = self._pkd_ax[row + 1]
-            n_vals = stop - start
-            
-            v._coo_rows = [uint32(0)] * n_vals
-            v._coo_cols = list(self._unpkd_ax[start:stop])
-            v._coo_values = list(self._values[start:stop])
-
-        return v
-
-    def getCol(self, col):
-        """Return a col in CSMat form"""
-        if col >= self.shape[1] or col < 0:
-            raise IndexError, "Col %d is out of bounds!" % col
-
-        n_rows,n_cols = self.shape
-        v = self.__class__(n_rows, 1, dtype=self.dtype)
-
-        if self.size > 0:
-            if self._order != "csc":
-                self.convert("csc")
-
-            start = self._pkd_ax[col]
-            stop = self._pkd_ax[col + 1]
-            n_vals = stop - start
-
-            v._coo_cols = [uint32(0)] * n_vals
-            v._coo_rows = list(self._unpkd_ax[start:stop])
-            v._coo_values = list(self._values[start:stop])
-
-        return v
-
-    def transpose(self):
-        """Transpose self"""
-        new_self = self.copy()
-
-        if new_self._order != "coo":
-            rebuild = new_self._order
-            new_self.convert("coo")
-        else:
-            rebuild = None
-
-        new_self.shape = new_self.shape[::-1]
-        tmp = new_self._coo_rows
-        new_self._coo_rows = new_self._coo_cols
-        new_self._coo_cols = tmp
-
-        if rebuild is not None:
-            self.convert(rebuild)
-
-        return new_self
-
-    T = property(transpose)
 
 def to_csmat(values, transpose=False, dtype=float):
     """Tries to returns a populated CSMat object
