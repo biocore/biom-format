@@ -14,12 +14,7 @@ __version__ = "1.0.0-dev"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
-OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
-                  'naive': lambda x: x
-                  }
-OBS_META_TYPES['taxonomy'] = OBS_META_TYPES['sc_separated']
-
-usage = "usage: Detailed usage examples can be found here: http://biom-format.org/documentation/metadata_addition.html"
+usage = "usage: Detailed usage examples can be found here: http://biom-format.org/documentation/adding_metadata.html"
 desc = "Script to add sample and/or observation metadata to BIOM-formatted files."
 
 parser = OptionParser(usage=usage, description=desc, version=__version__)
