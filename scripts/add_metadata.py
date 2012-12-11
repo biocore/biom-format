@@ -35,13 +35,19 @@ opt_group = OptionGroup(parser, 'Optional Options')
 opt_options = [make_option('-m','--sample_mapping_fp',type="string",
                     help='The sample mapping filepath (will add sample metadata to '+\
                     'biom file, if provided) [default: %default]'),
-                    
                make_option('--observation_mapping_fp',type="string",
                     help='The observation mapping filepath (will add observation metadata '+ \
                             'to biom file, if provided) [default: %default]'),
+               make_option('--observation_fields_to_split',type="string",
+                    help=('The observation metadata fields to split on '
+                          'semi-colons [default: %default]'),
+                          default='taxonomy'),
                ]
 opt_group.add_options(opt_options)
 parser.add_option_group(opt_group)
+
+def split_on_semicolons(x):
+    return [e.strip() for e in x.split(';')]
 
 def main():
     opts,args = parser.parse_args()
@@ -55,6 +61,7 @@ def main():
     
     sample_mapping_fp = opts.sample_mapping_fp
     obs_mapping_fp = opts.observation_mapping_fp
+    observation_fields_to_split = opts.observation_fields_to_split.split(',')
     
     if sample_mapping_fp != None:
         sample_mapping = parse_mapping(open(sample_mapping_fp,'U'))
@@ -62,7 +69,7 @@ def main():
         sample_mapping = None
     
     if obs_mapping_fp != None:
-        process_fns = {'taxonomy': lambda x: [e.strip() for e in x.split(';')]}
+        process_fns = {}.fromkeys(observation_fields_to_split,split_on_semicolons)
         obs_mapping = parse_mapping(open(obs_mapping_fp, 'U'),process_fns=process_fns)
     else:
         obs_mapping = None
