@@ -375,11 +375,34 @@ class CSMatTests(TestCase):
         exp[2,3] = 4
         self.assertEqual(exp, self.obj)
 
-    def test_T(self):
+    def test_transpose(self):
         """test transpose"""
         exp = CSMat(4,3)
         exp.update({(0,0):1,(1,0):2,(2,1):3,(3,2):4})
         obs = self.obj.T
+        self.assertEqual(obs, exp)
+
+        # 0 0 0
+        # 0 0 1
+        # 0 0 0
+        # 0 0 3
+        exp = CSMat(3, 4)
+        exp.update({(2,1):1,(2,3):3})
+        obs = self.empty_cols.T
+        self.assertEqual(obs, exp)
+
+        exp.convert("csc")
+        self.empty_cols.convert("csc")
+        obs = self.empty_cols.T
+        self.assertEqual(obs, exp)
+
+        exp = CSMat(4, 3)
+        obs = self.empty.T
+        self.assertEqual(obs, exp)
+
+        exp.convert("csr")
+        self.empty.convert("csr")
+        obs = self.empty.T
         self.assertEqual(obs, exp)
 
     def test_bulkCOOUpdate(self):
@@ -402,6 +425,18 @@ class CSMatTests(TestCase):
         self.assertEqual(self.obj.size, 4)
         self.obj.bulkCOOUpdate([1,2],[3,4],[5,6])
         self.assertEqual(self.obj.size, 6)
+
+        self.assertEqual(self.empty_rows.size, 2)
+        self.empty_rows.convert("csr")
+        self.assertEqual(self.empty_rows.size, 2)
+        self.empty_rows.convert("csc")
+        self.assertEqual(self.empty_rows.size, 2)
+
+        self.assertEqual(self.empty.size, 0)
+        self.empty_rows.convert("csr")
+        self.assertEqual(self.empty.size, 0)
+        self.empty_rows.convert("csc")
+        self.assertEqual(self.empty.size, 0)
 
     def test_convert_coo_csr(self):
         """convert coo to csr"""

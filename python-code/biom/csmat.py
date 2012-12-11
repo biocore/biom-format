@@ -34,7 +34,7 @@ class CSMat():
         self.dtype = dtype # casting is minimal, trust the programmer...
         self._order = "coo"
 
-        # coordinate list 
+        # coordinate list format
         self._coo_values = []
         self._coo_rows = []
         self._coo_cols = []
@@ -45,7 +45,7 @@ class CSMat():
         self._unpkd_ax = array([], dtype=uint32)
 
     def _get_size(self):
-        """Returns the number of non-zero elements stored"""
+        """Returns the number of non-zero elements stored (NNZ)."""
         if self.hasUpdates():
             self.absorbUpdates()
 
@@ -71,7 +71,7 @@ class CSMat():
         new_self._coo_cols = tmp
 
         if rebuild is not None:
-            self.convert(rebuild)
+            new_self.convert(rebuild)
 
         return new_self
     T = property(transpose)
@@ -82,7 +82,7 @@ class CSMat():
             self[(r,c)] = v
 
     def bulkCOOUpdate(self, rows, cols, values):
-        """Expects 3 iterables aligned by index"""
+        """Stages data in COO format. Expects 3 iterables aligned by index."""
         self._coo_values.extend(values)
         self._coo_rows.extend(rows)
         self._coo_cols.extend(cols)
@@ -236,14 +236,11 @@ class CSMat():
             self.convert("csc")
             other.convert("csc")
         else:
-            if self._order is "coo":
+            if self._order != "csr":
                 self.convert("csr")
-
-            if other._order is "coo":
+            if other._order != "csr":
                 other.convert("csr")
-            else:
-                self.convert("csr")
-    
+
         if len(self._pkd_ax) != len(other._pkd_ax):
             return False
 
@@ -255,10 +252,10 @@ class CSMat():
 
         if (self._unpkd_ax != other._unpkd_ax).any():
             return False
-        
+
         if (self._values != other._values).any():
             return False
-        
+
         return True
 
     def __ne__(self, other):
@@ -286,7 +283,7 @@ class CSMat():
             col = args
             row = 0
             args = (row,col)
-        
+
         if row >= self.shape[0]:
             raise IndexError, "Row %d is out of bounds!" % row
         if col >= self.shape[1]:
