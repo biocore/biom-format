@@ -232,10 +232,6 @@ class CSMat():
         if other.hasUpdates():
             other.absorbUpdates()
 
-        # TODO remove
-        if self.size == 0 and other.size == 0:
-            return True
-
         if self.shape[1] == 1:
             self.convert("csc")
             other.convert("csc")
