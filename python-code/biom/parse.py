@@ -738,6 +738,7 @@ def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None, \
 def parse_mapping(lines, 
                   strip_quotes=True, 
                   suppress_stripping=False,
+                  header = None,
                   process_fns=None):
     """Parser for map file that relates samples to metadata.
     
@@ -790,7 +791,7 @@ def parse_mapping(lines,
 
     # Create lists to store the results
     mapping_data = []
-    header = []
+    header = header or []
     comments = []
 
     # Begin iterating over lines
