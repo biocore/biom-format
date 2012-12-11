@@ -336,10 +336,32 @@ class CSMatTests(TestCase):
 
         self.assertRaises(IndexError, self.obj.getCol, -1)
 
-        # Test matrix that only contains zeroes.
-        sm = CSMat(3, 4)
+        # Test matrices with empty columns.
+        exp = CSMat(4, 1)
+        exp[1,0] = 9
+        exp[2,0] = 8
+        obs = self.empty_col_start.getCol(1)
+        self.assertEqual(obs, exp)
+
+        exp = CSMat(4, 1)
+        obs = self.empty_col_start.getCol(0)
+        self.assertEqual(obs, exp)
+
+        obs = self.empty_col_mid.getCol(1)
+        self.assertEqual(obs, exp)
+
+        obs = self.empty_col_end.getCol(2)
+        self.assertEqual(obs, exp)
+
+        obs = self.empty_cols.getCol(0)
+        self.assertEqual(obs, exp)
+
+        obs = self.empty_cols.getCol(1)
+        self.assertEqual(obs, exp)
+
+        # Test completely empty matrix.
         exp = CSMat(3, 1)
-        obs = sm.getCol(2)
+        obs = self.empty.getCol(2)
         self.assertEqual(obs, exp)
 
     def test_update(self):
