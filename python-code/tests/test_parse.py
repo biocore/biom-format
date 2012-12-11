@@ -286,6 +286,18 @@ class ParseTests(TestCase):
         obs = parse_mapping(s2)
         self.assertEqual(obs, exp)
 
+    def test_parse_mapping_w_map_fs(self):
+        """parse_mapping_file functions as expected w process_fns"""
+        s1 = ['#sample\ta\tb', '#comment line to skip',\
+              'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
+        exp = ([['x','y','z'],['i','j','k']],\
+               ['sample','a','b'],\
+               ['comment line to skip','more skip'])
+        exp = {'x':{'a':'y','b':'zzz'},'i':{'a':'j','b':'kkk'}}
+        process_fns = {'b': lambda x: x*3}
+        obs = parse_mapping(s1,process_fns=process_fns)
+        self.assertEqual(obs, exp)
+
     def test_parse_classic_table_to_rich_table(self):
         tab1_fh = StringIO(self.otu_table1)
         md_parse = lambda x: x.split('; ')
