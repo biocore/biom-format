@@ -140,6 +140,12 @@ class CSMatTests(TestCase):
         exp = sorted([((0,0),1),((0,1),2),((2,2),10),((1,2),3),((2,3),4)])
         self.assertEqual(sorted(self.obj.items()), exp)
         self.assertRaises(IndexError, self.obj.__setitem__, (100,50), 10)
+        self.assertRaises(ValueError, self.empty_cols.__setitem__, [3,2], 0)
+
+        self.empty_cols.convert("csr")
+        self.empty_cols[(2,2)] = 42
+        exp = sorted([((1,2),1),((2,2),42),((3,2),3)])
+        self.assertEqual(sorted(self.empty_cols.items()), exp)
 
     def test_getitem_simple(self):
         """Tests simple getitem"""
@@ -163,6 +169,22 @@ class CSMatTests(TestCase):
 
         self.assertRaises(IndexError, self.obj.__getitem__, (10,slice(None)))
         self.assertRaises(AttributeError, self.obj.__getitem__, (3, slice(1,2,3)))
+
+        exp = CSMat(4,1)
+        self.assertEqual(self.empty_cols[:,0], exp)
+        self.assertEqual(self.empty_cols[:,1], exp)
+        exp[1,0] = 1
+        exp[3,0] = 3
+        self.assertEqual(self.empty_cols[:,2], exp)
+
+        exp = CSMat(1,3)
+        self.assertEqual(self.empty_cols[0,:], exp)
+        self.assertEqual(self.empty_cols[2,:], exp)
+        exp[0,2] = 1
+        self.assertEqual(self.empty_cols[1,:], exp)
+        exp = CSMat(1,3)
+        exp[0,2] = 3
+        self.assertEqual(self.empty_cols[3,:], exp)
 
     def test_getitem_direct(self):
         """test _getitem"""
@@ -192,6 +214,32 @@ class CSMatTests(TestCase):
         self.assertEqual(self.obj._getitem((1,1)), (None, None, None))
         self.assertEqual(self.obj._order, "csc")
 
+        self.assertEqual(self.empty_cols._order, "coo")
+        self.assertEqual(self.empty_cols._getitem((2,2)), (None, None, None))
+        self.assertEqual(self.empty_cols._getitem((1,2)), (0, 0, 0))
+
+        self.empty_cols.convert("csr")
+        self.assertEqual(self.empty_cols._order, "csr")
+        self.assertEqual(self.empty_cols._getitem((2,2)), (None, None, None))
+        self.assertEqual(self.empty_cols._getitem((1,2)), (1, 0, 0))
+
+        self.empty_cols.convert("csc")
+        self.assertEqual(self.empty_cols._order, "csc")
+        self.assertEqual(self.empty_cols._getitem((2,2)), (None, None, None))
+        self.assertEqual(self.empty_cols._getitem((1,2)), (0, 2, 0))
+
+        self.assertEqual(self.empty._order, "coo")
+        self.assertEqual(self.empty._getitem((0,0)), (None, None, None))
+        self.assertEqual(self.empty._getitem((2,2)), (None, None, None))
+
+        self.empty.convert("csr")
+        self.assertEqual(self.empty._getitem((0,0)), (None, None, None))
+        self.assertEqual(self.empty._getitem((2,2)), (None, None, None))
+
+        self.empty.convert("csc")
+        self.assertEqual(self.empty._getitem((0,0)), (None, None, None))
+        self.assertEqual(self.empty._getitem((2,2)), (None, None, None))
+
     def test_items(self):
         """Get items out"""
         exp = sorted([((0,0),1.0),((0,1),2.0),((1,2),3.0),((2,3),4.0)])
@@ -200,6 +248,28 @@ class CSMatTests(TestCase):
         obs_csr = sorted(self.obj.items())
         self.obj.convert("csc")
         obs_csc = sorted(self.obj.items())
+
+        self.assertEqual(obs_coo, exp)
+        self.assertEqual(obs_csr, exp)
+        self.assertEqual(obs_csc, exp)
+
+        exp = sorted([((1,2),1),((3,2),3)])
+        obs_coo = sorted(self.empty_cols.items())
+        self.empty_cols.convert("csr")
+        obs_csr = sorted(self.empty_cols.items())
+        self.empty_cols.convert("csc")
+        obs_csc = sorted(self.empty_cols.items())
+
+        self.assertEqual(obs_coo, exp)
+        self.assertEqual(obs_csr, exp)
+        self.assertEqual(obs_csc, exp)
+
+        exp = []
+        obs_coo = sorted(self.empty.items())
+        self.empty.convert("csr")
+        obs_csr = sorted(self.empty.items())
+        self.empty.convert("csc")
+        obs_csc = sorted(self.empty.items())
 
         self.assertEqual(obs_coo, exp)
         self.assertEqual(obs_csr, exp)
@@ -218,6 +288,28 @@ class CSMatTests(TestCase):
         self.assertEqual(obs_csr, exp)
         self.assertEqual(obs_csc, exp)
 
+        exp = sorted([((1,2),1),((3,2),3)])
+        obs_coo = sorted(self.empty_cols.iteritems())
+        self.empty_cols.convert("csr")
+        obs_csr = sorted(self.empty_cols.iteritems())
+        self.empty_cols.convert("csc")
+        obs_csc = sorted(self.empty_cols.iteritems())
+
+        self.assertEqual(obs_coo, exp)
+        self.assertEqual(obs_csr, exp)
+        self.assertEqual(obs_csc, exp)
+
+        exp = []
+        obs_coo = sorted(self.empty.iteritems())
+        self.empty.convert("csr")
+        obs_csr = sorted(self.empty.iteritems())
+        self.empty.convert("csc")
+        obs_csc = sorted(self.empty.iteritems())
+
+        self.assertEqual(obs_coo, exp)
+        self.assertEqual(obs_csr, exp)
+        self.assertEqual(obs_csc, exp)
+
     def test_contains(self):
         """Make sure we can check things exist"""
         sm1 = CSMat(3,4)
@@ -228,6 +320,12 @@ class CSMatTests(TestCase):
         assert (1,2) not in sm1
         sm1[1,2] = 10
         assert (1,2) in sm1
+
+        assert (0,2) not in self.empty_cols
+        assert (1,2) in self.empty_cols
+        self.empty_cols.convert("csr")
+        assert (0,2) not in self.empty_cols
+        assert (1,2) in self.empty_cols
 
     def test_eq(self):
         """Tests for equality"""
@@ -250,12 +348,27 @@ class CSMatTests(TestCase):
         sm2[0,1] = 10
         self.assertEqual(sm1, sm2)
 
+        # Test empty rows/columns.
+        self.empty_cols.convert("csr")
+        self.empty_cols.update({(1,0):2})
+        exp = CSMat(4, 3)
+        exp[1,0] = 2
+        exp[1,2] = 1
+        exp[3,2] = 3
+        self.assertEqual(self.empty_cols, exp)
+
         # Test empty matrices.
         empty_sm1 = CSMat(2,3)
         empty_sm2 = CSMat(2,3)
         empty_sm3 = CSMat(2,2)
         self.assertTrue(empty_sm1 == empty_sm2)
         self.assertFalse(empty_sm1 == empty_sm3)
+
+        empty_sm1.convert("csr")
+        empty_sm2.convert("csc")
+        self.assertTrue(empty_sm1 == empty_sm2)
+        empty_sm2.convert("coo")
+        self.assertTrue(empty_sm1 == empty_sm2)
 
     def test_getRow(self):
         """Get a row"""
@@ -375,6 +488,14 @@ class CSMatTests(TestCase):
         exp[2,3] = 4
         self.assertEqual(exp, self.obj)
 
+        self.empty_cols.convert("csr")
+        self.empty_cols.update({(1,0):2})
+        exp = CSMat(4, 3)
+        exp[1,0] = 2
+        exp[1,2] = 1
+        exp[3,2] = 3
+        self.assertEqual(self.empty_cols, exp)
+
     def test_transpose(self):
         """test transpose"""
         exp = CSMat(4,3)
@@ -382,10 +503,6 @@ class CSMatTests(TestCase):
         obs = self.obj.T
         self.assertEqual(obs, exp)
 
-        # 0 0 0
-        # 0 0 1
-        # 0 0 0
-        # 0 0 3
         exp = CSMat(3, 4)
         exp.update({(2,1):1,(2,3):3})
         obs = self.empty_cols.T
@@ -440,9 +557,6 @@ class CSMatTests(TestCase):
 
     def test_convert_coo_csr(self):
         """convert coo to csr"""
-        # 1 2 0 0
-        # 0 0 3 0
-        # 0 0 0 4
         self.obj.convert("csr")
         self.assertEqual(self.obj._order, "csr")
         self.assertEqual(self.obj._coo_values, [])
@@ -454,10 +568,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.obj._values, [1,2,3,4])
 
         # Test empty rows.
-
-        # 0 0 0 0
-        # 1 9 0 0
-        # 1 1 2 0
         self.empty_row_start.convert("csr")
 
         self.assertEqual(self.empty_row_start._order, "csr")
@@ -469,9 +579,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_row_start._unpkd_ax, [0, 1, 0, 1, 2])
         self.assertEqual(self.empty_row_start._values, [1, 9, 1, 1, 2])
 
-        # 1 9 0 0
-        # 0 0 0 0
-        # 1 1 2 0
         self.empty_row_mid.convert("csr")
 
         self.assertEqual(self.empty_row_mid._order, "csr")
@@ -483,9 +590,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_row_mid._unpkd_ax, [0, 1, 0, 1, 2])
         self.assertEqual(self.empty_row_mid._values, [1, 9, 1, 1, 2])
 
-        # 1 9 0 0
-        # 1 1 2 0
-        # 0 0 0 0
         self.empty_row_end.convert("csr")
 
         self.assertEqual(self.empty_row_end._order, "csr")
@@ -497,9 +601,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_row_end._unpkd_ax, [0, 1, 0, 1, 2])
         self.assertEqual(self.empty_row_end._values, [1, 9, 1, 1, 2])
 
-        # 1 9 0 0
-        # 0 0 0 0
-        # 0 0 0 0
         self.empty_rows.convert("csr")
 
         self.assertEqual(self.empty_rows._order, "csr")
@@ -512,10 +613,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_rows._values, [1, 9])
 
         # Test an empty matrix.
-
-        # 0 0 0 0
-        # 0 0 0 0
-        # 0 0 0 0
         self.empty.convert("csr")
 
         self.assertEqual(self.empty._order, "csr")
@@ -529,9 +626,6 @@ class CSMatTests(TestCase):
 
     def test_convert_coo_csc(self):
         """convert coo to csc"""
-        # 1 2 0 0
-        # 0 0 3 0
-        # 0 0 0 4
         self.obj.convert("csc")
         self.assertEqual(self.obj._order, "csc")
         self.assertEqual(self.obj._coo_values, [])
@@ -543,11 +637,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.obj._values, [1,2,3,4])
 
         # Test empty columns.
-
-        # 0 0 0
-        # 0 9 1
-        # 0 8 0
-        # 0 0 3
         self.empty_col_start.convert("csc")
 
         self.assertEqual(self.empty_col_start._order, "csc")
@@ -559,10 +648,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_col_start._unpkd_ax, [1, 2, 1, 3])
         self.assertEqual(self.empty_col_start._values, [9, 8, 1, 3])
 
-        # 0 0 0
-        # 9 0 1
-        # 8 0 0
-        # 0 0 3
         self.empty_col_mid.convert("csc")
 
         self.assertEqual(self.empty_col_mid._order, "csc")
@@ -574,10 +659,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_col_mid._unpkd_ax, [1, 2, 1, 3])
         self.assertEqual(self.empty_col_mid._values, [9, 8, 1, 3])
 
-        # 0 0 0
-        # 9 1 0
-        # 8 0 0
-        # 0 3 0
         self.empty_col_end.convert("csc")
 
         self.assertEqual(self.empty_col_end._order, "csc")
@@ -589,10 +670,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_col_end._unpkd_ax, [1, 2, 1, 3])
         self.assertEqual(self.empty_col_end._values, [9, 8, 1, 3])
 
-        # 0 0 0
-        # 0 0 1
-        # 0 0 0
-        # 0 0 3
         self.empty_cols.convert("csc")
 
         self.assertEqual(self.empty_cols._order, "csc")
@@ -605,10 +682,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_cols._values, [1, 3])
 
         # Test an empty matrix.
-
-        # 0 0 0 0
-        # 0 0 0 0
-        # 0 0 0 0
         self.empty.convert("csc")
 
         self.assertEqual(self.empty._order, "csc")
@@ -634,10 +707,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.obj._values, array([]))
 
         # Test empty rows.
-
-        # 0 0 0 0
-        # 1 9 0 0
-        # 1 1 2 0
         self.empty_row_start.convert("csr")
         self.empty_row_start.convert("coo")
 
@@ -650,9 +719,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_row_start._unpkd_ax, array([]))
         self.assertEqual(self.empty_row_start._values, array([]))
 
-        # 1 9 0 0
-        # 0 0 0 0
-        # 1 1 2 0
         self.empty_row_mid.convert("csr")
         self.empty_row_mid.convert("coo")
 
@@ -665,9 +731,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_row_mid._unpkd_ax, array([]))
         self.assertEqual(self.empty_row_mid._values, array([]))
 
-        # 1 9 0 0
-        # 1 1 2 0
-        # 0 0 0 0
         self.empty_row_end.convert("csr")
         self.empty_row_end.convert("coo")
 
@@ -680,9 +743,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_row_end._unpkd_ax, array([]))
         self.assertEqual(self.empty_row_end._values, array([]))
 
-        # 1 9 0 0
-        # 0 0 0 0
-        # 0 0 0 0
         self.empty_rows.convert("csr")
         self.empty_rows.convert("coo")
 
@@ -696,10 +756,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_rows._values, array([]))
 
         # Test an empty matrix.
-
-        # 0 0 0 0
-        # 0 0 0 0
-        # 0 0 0 0
         self.empty.convert("csr")
         self.empty.convert("coo")
 
@@ -726,11 +782,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.obj._values, array([]))
 
         # Test empty columns.
-
-        # 0 0 0
-        # 0 9 1
-        # 0 8 0
-        # 0 0 3
         self.empty_col_start.convert("csc")
         self.empty_col_start.convert("coo")
 
@@ -743,10 +794,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_col_start._unpkd_ax, array([]))
         self.assertEqual(self.empty_col_start._values, array([]))
 
-        # 0 0 0
-        # 9 0 1
-        # 8 0 0
-        # 0 0 3
         self.empty_col_mid.convert("csc")
         self.empty_col_mid.convert("coo")
 
@@ -759,10 +806,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_col_mid._unpkd_ax, array([]))
         self.assertEqual(self.empty_col_mid._values, array([]))
 
-        # 0 0 0
-        # 9 1 0
-        # 8 0 0
-        # 0 3 0
         self.empty_col_end.convert("csc")
         self.empty_col_end.convert("coo")
 
@@ -775,10 +818,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_col_end._unpkd_ax, array([]))
         self.assertEqual(self.empty_col_end._values, array([]))
 
-        # 0 0 0
-        # 0 0 1
-        # 0 0 0
-        # 0 0 3
         self.empty_cols.convert("csc")
         self.empty_cols.convert("coo")
 
@@ -792,10 +831,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_cols._values, array([]))
 
         # Test an empty matrix.
-
-        # 0 0 0 0
-        # 0 0 0 0
-        # 0 0 0 0
         self.empty.convert("csc")
         self.empty.convert("coo")
 
@@ -822,11 +857,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.obj._values, [1,2,3,4])
 
         # Test a matrix with empty rows and columns.
-
-        # 0 0 0
-        # 0 0 1
-        # 0 0 0
-        # 0 0 3
         self.empty_cols.convert("csc")
         self.empty_cols.convert("csr")
 
@@ -840,10 +870,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_cols._values, [1,3])
 
         # Test an empty matrix.
-
-        # 0 0 0 0
-        # 0 0 0 0
-        # 0 0 0 0
         self.empty.convert("csc")
         self.empty.convert("csr")
 
@@ -870,11 +896,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.obj._values, [1,2,3,4])
 
         # Test a matrix with empty rows and columns.
-
-        # 0 0 0
-        # 0 0 1
-        # 0 0 0
-        # 0 0 3
         self.empty_cols.convert("csr")
         self.empty_cols.convert("csc")
 
@@ -888,10 +909,6 @@ class CSMatTests(TestCase):
         self.assertEqual(self.empty_cols._values, [1,3])
 
         # Test an empty matrix.
-
-        # 0 0 0 0
-        # 0 0 0 0
-        # 0 0 0 0
         self.empty.convert("csr")
         self.empty.convert("csc")
 

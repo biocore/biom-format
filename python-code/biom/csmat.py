@@ -125,6 +125,9 @@ class CSMat():
         if row >= self.shape[0] or row < 0:
             raise IndexError, "Row %d is out of bounds!" % row
 
+        if self.hasUpdates():
+            self.absorbUpdates()
+
         n_rows,n_cols = self.shape
         v = self.__class__(1, n_cols, dtype=self.dtype)
 
@@ -135,7 +138,6 @@ class CSMat():
         stop = self._pkd_ax[row + 1]
         n_vals = stop - start
         
-        # TODO performance gains if we use numpy?
         v._coo_rows = [uint32(0)] * n_vals
         v._coo_cols = list(self._unpkd_ax[start:stop])
         v._coo_values = list(self._values[start:stop])
@@ -147,28 +149,30 @@ class CSMat():
         if col >= self.shape[1] or col < 0:
             raise IndexError, "Col %d is out of bounds!" % col
 
+        if self.hasUpdates():
+            self.absorbUpdates()
+
         n_rows,n_cols = self.shape
         v = self.__class__(n_rows, 1, dtype=self.dtype)
 
-        if self.size > 0:
-            if self._order != "csc":
-                self.convert("csc")
+        if self._order != "csc":
+            self.convert("csc")
 
-            start = self._pkd_ax[col]
-            stop = self._pkd_ax[col + 1]
-            n_vals = stop - start
+        start = self._pkd_ax[col]
+        stop = self._pkd_ax[col + 1]
+        n_vals = stop - start
 
-            # TODO performance gains if we use numpy?
-            v._coo_cols = [uint32(0)] * n_vals
-            v._coo_rows = list(self._unpkd_ax[start:stop])
-            v._coo_values = list(self._values[start:stop])
+        v._coo_cols = [uint32(0)] * n_vals
+        v._coo_rows = list(self._unpkd_ax[start:stop])
+        v._coo_values = list(self._values[start:stop])
 
         return v
 
-    # TODO these next two methods need to be heavily tested with empty
-    # rows/cols.
     def items(self):
         """returns [((r,c),v)]"""
+        if self.hasUpdates():
+            self.absorbUpdates()
+
         last = 0
         res = []
         if self._order == 'csr':
@@ -188,6 +192,9 @@ class CSMat():
 
     def iteritems(self):
         """Generator returning ((r,c),v)"""
+        if self.hasUpdates():
+            self.absorbUpdates()
+
         last = 0
         if self._order == 'csr':
             for row,i in enumerate(self._pkd_ax[1:]):
@@ -291,9 +298,8 @@ class CSMat():
 
         if value == 0:
             if args in self:
-                self.erase(row, col)
-            else:
-                return
+                raise ValueError("Cannot set an existing non-zero element to "
+                                 "zero.")
         else:
             res = self._getitem(args)
             if res == (None, None, None):
@@ -344,11 +350,14 @@ class CSMat():
         """Mine for an item
         
         if order is csc | csr, returns
-        pkd_ax_idx, unpkd_ax_idx_, values_idx 
+        pkd_ax_idx, unpkd_ax_idx, values_idx 
 
         if order is coo, returns
-        rows_idx, cols_idx, values_idx (all the samething..)
+        rows_idx, cols_idx, values_idx (all the same thing...)
         """
+        if self.hasUpdates():
+            self.absorbUpdates()
+
         row,col = args
         if self._order == 'csr':
             start = self._pkd_ax[row]
@@ -479,6 +488,8 @@ class CSMat():
             if v != v_last:
                 pkd_ax.append(pos)
 
+                # Determine if we skipped any rows (i.e. we have empty rows).
+                # Copy the last row's index for all empty rows.
                 empty_rows = rows_to_process[:rows_to_process.index(v)]
                 if empty_rows:
                     pkd_ax.extend([pkd_ax[-1]] * len(empty_rows))
