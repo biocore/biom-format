@@ -38,18 +38,56 @@ opt_options = [make_option('-m','--sample_mapping_fp',type="string",
                make_option('--observation_mapping_fp',type="string",
                     help='The observation mapping filepath (will add observation metadata '+ \
                             'to biom file, if provided) [default: %default]'),
-               make_option('--observation_fields_to_split',type="string",
-                    help=('comma-separated list of the observation metadata '
+               make_option('--hierarchical_fields',type="string",
+                    help=('comma-separated list of the metadata '
                           'fields to split on semi-colons. this is useful '
                           'for hierarchical data such as taxonomy or functional '
                           'category [default: %default]'),
-                          default='taxonomy'),
+                          default=None),
+               make_option('--int_fields',type="string",
+                    help=('comma-separated list of the metadata '
+                          'fields to cast to integers. this is useful '
+                          'for integer data such as "DaysSinceStart" [default: %default]'),
+                          default=None),
+               make_option('--float_fields',type="string",
+                    help=('comma-separated list of the metadata '
+                          'fields to cast to floating point numbers. this is useful '
+                          'for real number data such as "pH" [default: %default]'),
+                          default=None),
+               make_option('--observation_header',type="string",
+                    help=('comma-separated list of the observation metadata '
+                          'field names. this is useful if a header line is not '
+                          'provided with the metadata, if you want to rename the '
+                          'fields, or if you want to include only the first n '
+                          'fields where n is the number of entries provided here '
+                          ' [default: use header from observation_mapping_fp]'),
+                          default=None),
+               make_option('--sample_header',type="string",
+                    help=('comma-separated list of the sample metadata '
+                          'field names. this is useful if a header line is not '
+                          'provided with the metadata, if you want to rename the '
+                          'fields, or if you want to include only the first n '
+                          'fields where n is the number of entries provided here '
+                          ' [default: use header from sample_mapping_fp]'),
+                          default=None),
                ]
 opt_group.add_options(opt_options)
 parser.add_option_group(opt_group)
 
 def split_on_semicolons(x):
     return [e.strip() for e in x.split(';')]
+
+def int_(x):
+    try:
+        return int(x)
+    except ValueError:
+        return x
+
+def float_(x):
+    try:
+        return float(x)
+    except ValueError:
+        return x
 
 def main():
     opts,args = parser.parse_args()
@@ -61,18 +99,45 @@ def main():
         parser.print_help()
         parser.error('Must specify an output file!')
     
+    ## process header information, if provided
+    observation_header = opts.observation_header
+    sample_header = opts.sample_header
+    if opts.observation_header != None:
+        observation_header = observation_header.split(',')
+    if opts.sample_header != None:
+        sample_header = sample_header.split(',')
+    
+    ## define metadata processing functions, if any
+    process_fns = {}
+    hierarchical_fields = opts.hierarchical_fields
+    if hierarchical_fields != None:
+        process_fns.update({}.fromkeys(hierarchical_fields.split(','),
+                                      split_on_semicolons))
+    
+    int_fields = opts.int_fields
+    if int_fields != None:
+        process_fns.update({}.fromkeys(int_fields.split(','),
+                                      int_))
+    
+    float_fields = opts.float_fields
+    if float_fields != None:
+        process_fns.update({}.fromkeys(float_fields.split(','),
+                                      float_))
+
+    ## parse mapping files
     sample_mapping_fp = opts.sample_mapping_fp
     obs_mapping_fp = opts.observation_mapping_fp
-    observation_fields_to_split = opts.observation_fields_to_split.split(',')
-    
     if sample_mapping_fp != None:
-        sample_mapping = parse_mapping(open(sample_mapping_fp,'U'))
+        sample_mapping = parse_mapping(open(sample_mapping_fp,'U'),
+                                       process_fns=process_fns,
+                                       header=sample_header)
     else:
         sample_mapping = None
     
     if obs_mapping_fp != None:
-        process_fns = {}.fromkeys(observation_fields_to_split,split_on_semicolons)
-        obs_mapping = parse_mapping(open(obs_mapping_fp, 'U'),process_fns=process_fns)
+        obs_mapping = parse_mapping(open(obs_mapping_fp, 'U'),
+                                    process_fns=process_fns,
+                                    header=observation_header)
     else:
         obs_mapping = None
     
@@ -80,17 +145,19 @@ def main():
         parser.print_help()
         parser.error('Must specify sample_mapping and/or obs_mapping.')
     
-    table = parse_biom_table(open(opts.input_fp,'U'))
+    ## parse the table and open the output file for writing
     output_f = open(opts.output_fp,'w')
+    table = parse_biom_table(open(opts.input_fp,'U'))
     
+    ## add metadata as necessary
     if sample_mapping:
         table.addSampleMetadata(sample_mapping)
     
     if obs_mapping:
         table.addObservationMetadata(obs_mapping)
 
+    ## write the output file and close it
     output_f.write(table.getBiomFormatJsonString(generatedby()))
-    
     output_f.close()
     
 if __name__ == "__main__":
