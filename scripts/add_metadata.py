@@ -39,8 +39,10 @@ opt_options = [make_option('-m','--sample_mapping_fp',type="string",
                     help='The observation mapping filepath (will add observation metadata '+ \
                             'to biom file, if provided) [default: %default]'),
                make_option('--observation_fields_to_split',type="string",
-                    help=('The observation metadata fields to split on '
-                          'semi-colons [default: %default]'),
+                    help=('comma-separated list of the observation metadata '
+                          'fields to split on semi-colons. this is useful '
+                          'for hierarchical data such as taxonomy or functional '
+                          'category [default: %default]'),
                           default='taxonomy'),
                ]
 opt_group.add_options(opt_options)
