@@ -10,10 +10,7 @@ To get help with ``add_medata.py`` you can call::
 
 	add_metadata.py -h
 
-Example input files
-===================
-
-This script takes a BIOM file, and corresponding sample and/or observation mapping files. 
+This script takes a BIOM file, and corresponding sample and/or observation mapping files. The following examples are used in the commands below.
 
 Your BIOM file might look like the following::
 
@@ -88,7 +85,7 @@ An observation metadata mapping file might look like the following. Notice that 
 
 
 Adding metadata
----------------
+===============
 
 To add sample metadata to a BIOM file, you can run the following::
 
@@ -215,8 +212,8 @@ In the last case, the resulting BIOM file will look like the following::
 	}
 
 
-More complex processing
------------------------
+Processing metadata while adding
+================================
 
 There are some additional parameters you can pass to this script for more complex processing. 
 
@@ -227,6 +224,7 @@ You can tell the script to process certain metadata column values as integers (`
 	add_metadata.py -i table.biom -o table.w_md.biom --observation_mapping_fp obs_md.txt --sample_mapping_fp sam_md.txt --int_fields DOB --hierarchical_fields taxonomy --float_fields confidence
 
 Here your resulting BIOM file will look like the following, where ``DOB`` values are now integers (compare to the above: they're not quoted now), ``confidence`` values are now floating point numbers (again, not quoted now), and ``taxonomy`` values are now lists where each entry is a taxonomy level, opposed to above where they appear as a single semi-colon-separated string.
+::
 
 	{
 	    "columns": [
@@ -340,8 +338,8 @@ Here your resulting BIOM file will look like the following, where ``DOB`` values
 
 If you have multiple fields that you'd like processed in one of these ways, you can pass a comma-separated list of field names (e.g., ``--float_fields confidence,pH``).
 
-Renaming (or naming) metadata columns
--------------------------------------
+Renaming (or naming) metadata columns while adding
+==================================================
 
 You can also override the names of the metadata fields provided in the mapping files with the ``--observation_header`` and ``--sample_header`` parameters. This is useful if you want to rename metadata columns, or if metadata column headers aren't present in your metadata mapping file. If you pass either of these parameters, you must name all columns in order. If there are more columns in the metadata mapping file then there are headers, extra columns will be ignored (so this is also a useful way to select only the first n columns from your mapping file). For example, if you want to rename the ``DOB`` column in the sample metadata mapping you could do the following::
 	
