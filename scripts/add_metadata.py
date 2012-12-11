@@ -62,7 +62,8 @@ def main():
         sample_mapping = None
     
     if obs_mapping_fp != None:
-        obs_mapping = parse_mapping(open(obs_mapping_fp, 'U'))
+        process_fns = {'taxonomy': lambda x: [e.strip() for e in x.split(';')]}
+        obs_mapping = parse_mapping(open(obs_mapping_fp, 'U'),process_fns=process_fns)
     else:
         obs_mapping = None
     
