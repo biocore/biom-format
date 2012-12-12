@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from numpy import where, zeros, array
+from numpy import where, zeros, array, reshape, arange
 from biom.unit_test import TestCase, main
 from biom.table import TableException, Table, \
     DenseTable, SparseTable, DenseOTUTable, SparseOTUTable,\
@@ -8,6 +8,8 @@ from biom.table import TableException, Table, \
     list_dict_to_nparray, table_factory, list_list_to_nparray, flatten, unzip, \
     natsort, to_sparse, nparray_to_sparseobj, list_nparray_to_sparseobj, \
     SparseObj, get_zerod_matrix
+from biom.parse import parse_biom_table 
+from StringIO import StringIO
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM Format"
@@ -1046,6 +1048,88 @@ class DenseTableTests(TestCase):
         """Should throw an exception because there is no table type."""
         self.assertRaises(TableException, self.dt1.getBiomFormatObject, 'asd')
         self.assertRaises(TableException, self.dt_rich.getBiomFormatObject, 'asd')
+
+    def test_getBiomFormatJsonString_dense(self):
+        """Get a BIOM format string"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo':i} for i in range(5)]
+        samp_md = [{'bar':i} for i in range(10)]
+        data = reshape(arange(50), (5,10))
+       
+        # using OTUTable type to support parsing round trip
+        t = DenseOTUTable(data, samp_ids, obs_ids, samp_md, obs_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.getBiomFormatJsonString('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_getBiomFormatJsonString_dense_directio(self):
+        """Get a BIOM format string"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo':i} for i in range(5)]
+        samp_md = [{'bar':i} for i in range(10)]
+        data = reshape(arange(50), (5,10))
+       
+        # using OTUTable type to support parsing round trip
+        t = DenseOTUTable(data, samp_ids, obs_ids, samp_md, obs_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.getBiomFormatJsonString('asd',direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_getBiomFormatJsonString_sparse(self):
+        """Get a BIOM format string"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo':i} for i in range(5)]
+        samp_md = [{'bar':i} for i in range(10)]
+        data = [[0,0,10], [1,1,11], [2,2,12], [3,3,13], [4,4,14],
+                [3,5,15], [2,6,16], [1,7,18], [0,8,19], [1,9,20]]
+        
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, samp_ids, obs_ids, samp_md, obs_md, 
+                            constructor=SparseOTUTable)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.getBiomFormatJsonString('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_getBiomFormatJsonString_sparse_directio(self):
+        """Get a BIOM format string"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo':i} for i in range(5)]
+        samp_md = [{'bar':i} for i in range(10)]
+        data = [[0,0,10], [1,1,11], [2,2,12], [3,3,13], [4,4,14],
+                [3,5,15], [2,6,16], [1,7,18], [0,8,19], [1,9,20]]
+        
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, samp_ids, obs_ids, samp_md, obs_md, 
+                            constructor=SparseOTUTable)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.getBiomFormatJsonString('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
 
     def test_binSamplesByMetadata(self):
         """Yield tables binned by sample metadata"""
