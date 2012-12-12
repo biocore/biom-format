@@ -10,7 +10,7 @@ from types import NoneType
 from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
-from numpy import count_nonzero, ndarray, asarray, array, newaxis, zeros
+from numpy import ndarray, asarray, array, newaxis, zeros
 
 from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID
@@ -1392,8 +1392,8 @@ class DenseTable(Table):
         density = 0.0
 
         if not self.isEmpty():
-            density = (count_nonzero(self._data) / (len(self.SampleIds) *
-                                                    len(self.ObservationIds)))
+            density = (len(self._data.nonzero()[0]) /
+                       (len(self.SampleIds) * len(self.ObservationIds)))
 
         return density
 
