@@ -740,7 +740,7 @@ def parse_mapping(lines,
                   suppress_stripping=False,
                   header = None,
                   process_fns=None):
-    """Parser for map file that relates samples to metadata.
+    """Parser for map file that relates samples or observations to metadata.
     
     Format: header line with fields
             optionally other comment lines starting with #

@@ -6,7 +6,7 @@ Adding sample and observation metadata to biom files
 
 Frequently you'll have an existing BIOM file and want to add sample and/or observation metadata to it. For samples, metadata is frequently environmental or technical details about your samples: the subject that a sample was collected from, the pH of the sample, the PCR primers used to amplify DNA from the samples, etc. For observations, metadata is frequently a categorization of the observation: the taxonomy of an OTU, or the EC hierarchy of a gene. You can use the ``add_metadata.py`` script to add this information to an existing BIOM file.
 
-To get help with ``add_medata.py`` you can call::
+To get help with ``add_metadata.py`` you can call::
 
 	add_metadata.py -h
 
@@ -70,7 +70,7 @@ A sample metadata mapping file could then look like the following. Notice that t
 	Sample5	AGCAGCACTTGT	20070101
 	Sample6	AGCAGCACAACT	20070716
 
-An observation metadata mapping file might look like the following. Notice that there is an extra observation in here with respect to the above BIOM table. Any samples in the mapping file that are not in the BIOM file are ignored.
+An observation metadata mapping file might look like the following. Notice that there is an extra observation in here with respect to the above BIOM table. Any observations in the mapping file that are not in the BIOM file are ignored.
 ::
 
 	#OTUID	taxonomy	confidence
@@ -91,7 +91,7 @@ To add sample metadata to a BIOM file, you can run the following::
 
 	add_metadata.py -i min_sparse_otu_table.biom -o table.w_smd.biom --sample_mapping_fp sam_md.txt
 
-Too add observation metadata to a BIOM file, you can run the following::
+To add observation metadata to a BIOM file, you can run the following::
 
 	add_metadata.py -i min_sparse_otu_table.biom -o table.w_omd.biom --observation_mapping_fp obs_md.txt
 
