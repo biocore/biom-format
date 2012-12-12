@@ -13,7 +13,8 @@ from biom.parse import parse_biom_table, parse_mapping, convert_biom_to_table, \
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2012, The BIOM-Format project"
-__credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Carlos Clemente Litran"]
+__credits__ = ["Greg Caporaso", "Daniel McDonald",
+               "Jose Carlos Clemente Litran", "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
 __version__ = "1.0.0-dev"
@@ -50,10 +51,10 @@ parser.add_option_group(req_group)
 opt_group = OptionGroup(parser, 'Optional Options')
 opt_options = [make_option('-t','--biom_type',type='choice',
                     choices=['sparse','dense'],default='sparse',
-                    help="Type of biom file to write (dense or sparse) when" 
+                    help="Type of biom file to write (dense or sparse) when "
                           "passed a classic table [default: %default]"),
                make_option('-b','--biom_to_classic_table',
-                    action='store_true', help="Convert biom file to classic" 
+                    action='store_true', help="Convert biom file to classic "
                     "table file [default: convert "
                     "classic table file to biom file]",default=False),
                make_option('--sparse_biom_to_dense_biom',action='store_true',
@@ -65,23 +66,28 @@ opt_options = [make_option('-t','--biom_type',type='choice',
                     "[default: convert "
                     "classic table file to biom file]",default=False),
                make_option('-m','--sample_mapping_fp',type="string",
-                    help='The mapping filepath (will add sample metadata to '+\
+                    help='The mapping filepath (will add sample metadata to '
                     'biom file, if provided) [default: %default]'),
                make_option('--observation_mapping_fp',type="string",
-                    help='The mapping filepath (will add observation metadata '+ \
-                            'to biom file, if provided) [default: %default]'),
-               make_option('--header_key',type="string",default=None, \
-                    help='Pull this key from observation metadata within a '+ \
-                    'biom file when writing a classic table [default: no observation metadata will be written]'),
-               make_option('--output_metadata_id',type="string",default=None, \
-                    help='Name for the observation metadata column when writing a '+ \
-                    'biom file as a classic table [default: same name as in biom-formatted table]'),
+                    help='The mapping filepath (will add observation metadata '
+                    'to biom file, if provided) [default: %default]'),
+               make_option('--header_key',type="string",default=None,
+                    help='Pull this key from observation metadata within a '
+                    'biom file when writing a classic table [default: no '
+                    'observation metadata will be written]'),
+               make_option('--output_metadata_id',type="string",default=None,
+                    help='Name for the observation metadata column when '
+                    'writing a biom file as a classic table [default: same '
+                    'name as in biom-formatted table]'),
                make_option('--process_obs_metadata',type="choice",
-                           choices=OBS_META_TYPES.keys(), default='naive', 
-                    help='Process metadata associated with observations ('+ \
-                    ','.join(OBS_META_TYPES.keys()) + ') when converting from a classic table [default: %default]'),
+                           choices=OBS_META_TYPES.keys(), default='naive',
+                    help='Process metadata associated with observations when '
+                    'converting from a classic table. Must be one of: ' +
+                    ', '.join(OBS_META_TYPES.keys()) + ' [default: %default]'),
                make_option('--biom_table_type',type="string",default=None,
-                    help='The biom table type to get converted into')]
+                    help='The biom table type to get converted into. Required '
+                    'when converting a classic table file to biom file. Must '
+                    'be one of: %s' % ', '.join(BIOM_TYPES.keys()))]
 opt_group.add_options(opt_options)
 parser.add_option_group(opt_group)
 
