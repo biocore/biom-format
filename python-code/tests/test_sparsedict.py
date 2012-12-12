@@ -10,7 +10,7 @@ from biom.sparsedict import SparseDict, to_sparsedict, \
  
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso", 
+__credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso", 
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
@@ -143,6 +143,22 @@ class SparseDictTests(TestCase):
         exp.update({(2,1):3,(2,5):6})
         obs = self.obj.T
         self.assertEqual(obs, exp)
+
+    def test_get_size(self):
+        """test getting the number of nonzero elements"""
+        self.assertEqual(self.obj.size, 2)
+
+        # Test with setting an element explicitly to zero.
+        sd = SparseDict(2,4)
+        sd.update({(0,1):3,(1,2):7,(0,0):0})
+        self.assertEqual(sd.size, 2)
+
+        # Test with an empty matrix.
+        sd = SparseDict(2,4)
+        self.assertEqual(sd.size, 0)
+        sd = SparseDict(0,0)
+        self.assertEqual(sd.size, 0)
+
 
 class SupportTests(TestCase):
     def test_list_list_to_sparsedict(self):
