@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from numpy import where, zeros, array
+from numpy import where, zeros, array, reshape, arange
 from biom.unit_test import TestCase, main
 from biom.table import TableException, Table, \
     DenseTable, SparseTable, DenseOTUTable, SparseOTUTable,\
@@ -8,6 +8,8 @@ from biom.table import TableException, Table, \
     list_dict_to_nparray, table_factory, list_list_to_nparray, flatten, unzip, \
     natsort, to_sparse, nparray_to_sparseobj, list_nparray_to_sparseobj, \
     SparseObj, get_zerod_matrix
+from biom.parse import parse_biom_table 
+from StringIO import StringIO
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM Format"
@@ -285,11 +287,6 @@ class TableTests(TestCase):
         self.assertEqual(1, self.simple_derived.getObservationIndex(4))
         self.assertRaises(UnknownID, self.simple_derived.getObservationIndex,5)
 
-    def test_setValueByIds(self):
-        """sets a value by ids"""
-        self.simple_derived.setValueByIds(3,1,10)
-        self.assertEqual(self.simple_derived._data, array([[10,6],[7,8]]))
-
     def test_sortBySampleID(self):
         """sort a table by samples ids"""
         self.assertRaises(NotImplementedError, self.t1.sortBySampleId)
@@ -487,7 +484,6 @@ class TableTests(TestCase):
         self.assertEqual(t.SampleMetadata[1]['barcode'],'GGGG')
         self.assertEqual(t.SampleMetadata[2]['barcode'],'AAAA')
         self.assertEqual(t.SampleMetadata[3]['barcode'],'CCCC')
-        
 
     def test_add_sample_metadata_one_entry(self):
         """ addSampleMetadata functions with single md entry """
@@ -551,21 +547,6 @@ class TableTests(TestCase):
         self.assertEqual(self.simple_derived[0,1], 6)
         self.assertEqual(self.simple_derived[1,1], 8)
         self.assertRaises(IndexError, self.simple_derived.__getitem__, [1,2])
-
-    def test_setitem(self):
-        """setitem should work as expected"""
-        self.simple_derived[0,0] *= 2
-        self.simple_derived[1,0] *= 2
-        self.simple_derived[0,1] *= 2
-        self.simple_derived[1,1] *= 2
-        
-        self.assertRaises(IndexError, self.simple_derived.__setitem__, [1,2], 3)
-
-        self.assertEqual(self.simple_derived[0,0], 10)
-        self.assertEqual(self.simple_derived[1,0], 14)
-        self.assertEqual(self.simple_derived[0,1], 12)
-        self.assertEqual(self.simple_derived[1,1], 16)
-
 
     def test_str(self):
         """str is dependent on derived class"""
@@ -639,6 +620,19 @@ class TableTests(TestCase):
         """returns true if empty"""
         self.assertTrue(self.t1.isEmpty())
         self.assertFalse(self.simple_derived.isEmpty())
+
+    def test_immutability(self):
+        """Test Table object immutability."""
+        # Try to set members to something completely different.
+        self.assertRaises(TypeError, self.t1.__setattr__, 'SampleIds',
+                          ['foo', 'bar'])
+        self.assertRaises(TypeError, self.simple_derived.__setattr__,
+                          'ObservationIds', ['foo', 'bar'])
+        self.assertRaises(TypeError, self.t2.__setattr__,
+                          'SampleMetadata', [{'foo':'bar'}, {'bar':'baz'}])
+        self.assertRaises(TypeError, self.t1.__setattr__,
+                          'ObservationMetadata', [{'foo':'bar'},
+                                                  {'bar':'baz'}])
 
 class DenseTableTests(TestCase):
     def setUp(self):
@@ -811,23 +805,24 @@ class DenseTableTests(TestCase):
     def test_eq(self):
         """eq is defined by equality of data matrix, ids and metadata"""
         self.assertTrue(self.dt1 == self.dt2)
-        self.dt1.ObservationIds = [1,2,3]
+        # Have to skirt around our object's immutability.
+        object.__setattr__(self.dt1, 'ObservationIds', [1,2,3])
         self.assertFalse(self.dt1 == self.dt2)
 
-        self.dt1.ObservationIds = self.dt2.ObservationIds
-        self.dt1._data = array([[1,2],[10,20]])
+        object.__setattr__(self.dt1, 'ObservationIds', self.dt2.ObservationIds)
+        object.__setattr__(self.dt1, '_data', array([[1,2],[10,20]]))
         self.assertFalse(self.dt1 == self.dt2)
 
     def test_ne(self):
         """ne is defined by non-equality of data matrix, ids or metadata"""
         self.assertFalse(self.dt1 != self.dt2)
-        self.dt1._data = array([[1,2],[10,20]])
+        object.__setattr__(self.dt1, '_data', array([[1,2],[10,20]]))
         self.assertTrue(self.dt1 != self.dt2)
 
-        self.dt1._data = self.dt2._data
-        self.dt1.SampleIds = [10,20,30]
+        object.__setattr__(self.dt1, '_data', self.dt2._data)
+        object.__setattr__(self.dt1, 'SampleIds', [10,20,30])
         self.assertTrue(self.dt1 != self.dt2)
-    
+
     def test_iterSamples(self):
         """Iterates samples"""
         gen = self.dt1.iterSamples()
@@ -867,8 +862,8 @@ class DenseTableTests(TestCase):
         self.assertEqual(obs, exp)
 
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
-        self.dt1[1,0] = 0
-        gen = self.dt1.iterSampleData()
+        dt = DenseTable(array([[5,6],[0,8]]), ['a','b'],['1','2'])
+        gen = dt.iterSampleData()
         exp = [array([5,0]), array([6,8])]
         obs = list(gen)
         self.assertEqual(obs, exp)
@@ -1054,6 +1049,88 @@ class DenseTableTests(TestCase):
         self.assertRaises(TableException, self.dt1.getBiomFormatObject, 'asd')
         self.assertRaises(TableException, self.dt_rich.getBiomFormatObject, 'asd')
 
+    def test_getBiomFormatJsonString_dense(self):
+        """Get a BIOM format string"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo':i} for i in range(5)]
+        samp_md = [{'bar':i} for i in range(10)]
+        data = reshape(arange(50), (5,10))
+       
+        # using OTUTable type to support parsing round trip
+        t = DenseOTUTable(data, samp_ids, obs_ids, samp_md, obs_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.getBiomFormatJsonString('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_getBiomFormatJsonString_dense_directio(self):
+        """Get a BIOM format string"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo':i} for i in range(5)]
+        samp_md = [{'bar':i} for i in range(10)]
+        data = reshape(arange(50), (5,10))
+       
+        # using OTUTable type to support parsing round trip
+        t = DenseOTUTable(data, samp_ids, obs_ids, samp_md, obs_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.getBiomFormatJsonString('asd',direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_getBiomFormatJsonString_sparse(self):
+        """Get a BIOM format string"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo':i} for i in range(5)]
+        samp_md = [{'bar':i} for i in range(10)]
+        data = [[0,0,10], [1,1,11], [2,2,12], [3,3,13], [4,4,14],
+                [3,5,15], [2,6,16], [1,7,18], [0,8,19], [1,9,20]]
+        
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, samp_ids, obs_ids, samp_md, obs_md, 
+                            constructor=SparseOTUTable)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.getBiomFormatJsonString('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_getBiomFormatJsonString_sparse_directio(self):
+        """Get a BIOM format string"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo':i} for i in range(5)]
+        samp_md = [{'bar':i} for i in range(10)]
+        data = [[0,0,10], [1,1,11], [2,2,12], [3,3,13], [4,4,14],
+                [3,5,15], [2,6,16], [1,7,18], [0,8,19], [1,9,20]]
+        
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, samp_ids, obs_ids, samp_md, obs_md, 
+                            constructor=SparseOTUTable)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.getBiomFormatJsonString('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
     def test_binSamplesByMetadata(self):
         """Yield tables binned by sample metadata"""
         f = lambda x: x['age']
@@ -1217,11 +1294,12 @@ class SparseTableTests(TestCase):
     def test_eq(self):
         """sparse equality"""
         self.assertTrue(self.st1 == self.st2)
-        self.st1.ObservationIds = [1,2,3]
+        object.__setattr__(self.st1, 'ObservationIds', [1,2,3])
         self.assertFalse(self.st1 == self.st2)
 
-        self.st1.ObservationIds = self.st2.ObservationIds
-        self.st1._data = nparray_to_sparseobj(array([[1,2],[10,20]]))
+        object.__setattr__(self.st1, 'ObservationIds', self.st2.ObservationIds)
+        object.__setattr__(self.st1, '_data',
+                           nparray_to_sparseobj(array([[1,2],[10,20]])))
         self.assertFalse(self.st1 == self.st2)
 
     def test_data_equality(self):
@@ -1450,8 +1528,9 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
 
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
-        self.st1[1,0] = 0
-        gen = self.st1.iterSamples()
+        vals = {(0,0):5,(0,1):6,(1,1):8}
+        st = SparseTable(to_sparse(vals), ['a','b'],['1','2'])
+        gen = st.iterSamples()
         exp = [(array([5,0]), 'a', None), (array([6,8]), 'b', None)]
         obs = list(gen)
         self.assertEqual(obs, exp)
@@ -1482,8 +1561,9 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
 
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
-        self.st1[1,0] = 0
-        gen = self.st1.iterSampleData()
+        vals = {(0,0):5,(0,1):6,(1,1):8}
+        st = SparseTable(to_sparse(vals), ['a','b'],['1','2'])
+        gen = st.iterSampleData()
         exp = [array([5,0]), array([6,8])]
         obs = list(gen)
         self.assertEqual(obs, exp)

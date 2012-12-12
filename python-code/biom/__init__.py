@@ -10,7 +10,8 @@ __version__ = "1.0.0-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
-__all__ = ['table','parse','sparsemat','sparsedict','util','unittest','exception']
+__all__ = ['table','parse','csmat','sparsemat','sparsedict','util','unittest',
+           'exception']
 
 from sys import modules, stderr
 
@@ -50,10 +51,26 @@ def get_sparse_backend():
     """
     backend = biom_config['python_code_sparse_backend']
     if backend is None:
-        backend = 'SparseMat'
+        backend = 'CSMat'
 
     valid_backend = False
-    if backend == 'SparseMat':
+    if backend == 'CSMat':
+        try:
+            from biom.csmat import CSMat, to_csmat, dict_to_csmat, \
+                list_dict_to_csmat, list_nparray_to_csmat, nparray_to_csmat, \
+                list_list_to_csmat
+            SparseObj = CSMat
+            to_sparse = to_csmat
+            dict_to_sparseobj = dict_to_csmat
+            list_dict_to_sparseobj = list_dict_to_csmat
+            list_nparray_to_sparseobj = list_nparray_to_csmat
+            nparray_to_sparseobj = nparray_to_csmat
+            list_list_to_sparseobj = list_list_to_csmat
+            valid_backend = True
+
+        except ImportError:
+            valid_backend = False
+    elif backend == 'SparseMat':
         try:
             from biom.sparsemat import SparseMat, to_sparsemat, \
                 dict_to_sparsemat, list_dict_to_sparsemat, \
