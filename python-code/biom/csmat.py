@@ -480,22 +480,20 @@ class CSMat():
         pkd_ax = []
         pos = 0
         p_last = 0
+        expected_row_idx = 0
 
         # determine starting values idx for each row
         # sort values and columns within each row
-        rows_to_process = range(self.shape[0])
         for v in tmp_rows:
             if v != v_last:
                 pkd_ax.append(pos)
 
                 # Determine if we skipped any rows (i.e. we have empty rows).
                 # Copy the last row's index for all empty rows.
-                empty_rows = rows_to_process[:rows_to_process.index(v)]
-                if empty_rows:
-                    pkd_ax.extend([pkd_ax[-1]] * len(empty_rows))
-                    for r in empty_rows:
-                        rows_to_process.remove(r)
-                rows_to_process.remove(v)
+                num_empty_rows = v - expected_row_idx
+                if num_empty_rows > 0:
+                    pkd_ax.extend([pkd_ax[-1]] * num_empty_rows)
+                expected_row_idx = v + 1
 
                 col_order = argsort(unpkd_ax[p_last:pos])
                 unpkd_ax[p_last:pos] = unpkd_ax[p_last:pos].take(col_order)
@@ -510,8 +508,9 @@ class CSMat():
         
         pkd_ax.append(pos)
 
-        if rows_to_process:
-            pkd_ax.extend([pkd_ax[-1]] * len(rows_to_process))
+        num_trailing_rows = self.shape[0] - expected_row_idx
+        if num_trailing_rows > 0:
+            pkd_ax.extend([pkd_ax[-1]] * num_trailing_rows)
 
         pkd_ax = array(pkd_ax, dtype=uint32)
 
@@ -532,19 +531,17 @@ class CSMat():
         pkd_ax = []
         pos = 0
         p_last = 0
+        expected_col_idx = 0
 
         ### gotta be something in numpy that does this...
-        cols_to_process = range(self.shape[1])
         for v in tmp_cols:
             if v != v_last:
                 pkd_ax.append(pos)
 
-                empty_cols = cols_to_process[:cols_to_process.index(v)]
-                if empty_cols:
-                    pkd_ax.extend([pkd_ax[-1]] * len(empty_cols))
-                    for c in empty_cols:
-                        cols_to_process.remove(c)
-                cols_to_process.remove(v)
+                num_empty_cols = v - expected_col_idx
+                if num_empty_cols > 0:
+                    pkd_ax.extend([pkd_ax[-1]] * num_empty_cols)
+                expected_col_idx = v + 1
 
                 row_order = argsort(unpkd_ax[p_last:pos])
                 unpkd_ax[p_last:pos] = unpkd_ax[p_last:pos].take(row_order)
@@ -560,8 +557,9 @@ class CSMat():
 
         pkd_ax.append(pos)
 
-        if cols_to_process:
-            pkd_ax.extend([pkd_ax[-1]] * len(cols_to_process))
+        num_trailing_cols = self.shape[1] - expected_col_idx
+        if num_trailing_cols > 0:
+            pkd_ax.extend([pkd_ax[-1]] * num_trailing_cols)
 
         pkd_ax = array(pkd_ax, dtype=uint32)
 
