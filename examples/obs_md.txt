@@ -1,0 +1,9 @@
+#OTUID	taxonomy	confidence
+# Some optional
+# comment lines
+GG_OTU_0	Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__	0.980
+GG_OTU_1	Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae	0.665
+GG_OTU_2	Root;k__Bacteria	0.980
+GG_OTU_3	Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae	1.000
+GG_OTU_4	Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae	0.842
+GG_OTU_5	Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae	1.000
