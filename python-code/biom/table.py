@@ -1100,13 +1100,161 @@ class Table(object):
         
         return biom_format_obj
 
-    def getBiomFormatJsonString(self,generated_by):
+    def getBiomFormatJsonString(self,generated_by, direct_io=None):
         """Returns a JSON string representing the table in BIOM format.
 
         ``generated_by``: a string describing the software used to build the
         table
+
+        If direct_io is not None, the final output is written directly to
+        direct_io during processing.
         """
-        return dumps(self.getBiomFormatObject(generated_by))
+        if self._biom_type is None:
+            raise TableException, "Unknown biom type"
+
+        if (not isinstance(generated_by, str) and
+            not isinstance(generated_by, unicode)):
+            raise TableException, "Must specify a generated_by string"
+
+        # Fill in top-level metadata.
+        if direct_io:
+            direct_io.write('{')
+            direct_io.write('"id": "%s",' % str(self.TableId))
+            direct_io.write('"format": "%s",' % get_biom_format_version_string())
+            direct_io.write('"format_url": "%s",' % get_biom_format_url_string())
+            direct_io.write('"generated_by": "%s",' % generated_by)
+            direct_io.write('"date": "%s",' % datetime.now().isoformat())
+        else:
+            id_ = '"id": "%s",' % str(self.TableId)
+            format_ = '"format": "%s",' % get_biom_format_version_string()
+            format_url = '"format_url": "%s",' % get_biom_format_url_string()
+            generated_by = '"generated_by": "%s",' % generated_by
+            date = '"date": "%s",' % datetime.now().isoformat()
+        
+        # Determine if we have any data in the matrix, and what the shape of
+        # the matrix is.
+        try:
+            num_rows, num_cols = self._data.shape
+        except:
+            num_rows = num_cols = 0
+        hasData = True if num_rows > 0 and num_cols > 0 else False
+
+        # Default the matrix element type to test to be an integer in case we
+        # don't have any data in the matrix to test.
+        test_element = 0
+        if hasData:
+            test_element = self[0,0]
+
+        # Determine the type of elements the matrix is storing.
+        if isinstance(test_element, int):
+            dtype, matrix_element_type = int, "int"
+        elif isinstance(test_element, float):
+            dtype, matrix_element_type = float, "float"
+        elif isinstance(test_element, unicode):
+            dtype, matrix_element_type = unicode, "unicode"
+        else:
+            raise TableException("Unsupported matrix data type.")
+
+        # Fill in details about the matrix.
+        if direct_io:
+            direct_io.write('"type": "%s",' % self._biom_type)
+            direct_io.write('"matrix_type": "%s",' % self._biom_matrix_type)
+            direct_io.write('"matrix_element_type": "%s",' % matrix_element_type)
+            direct_io.write('"shape": [%d, %d],' % (num_rows, num_cols))
+        else:
+            type_ = '"type": "%s",' % self._biom_type
+            matrix_type = '"matrix_type": "%s",' % self._biom_matrix_type
+            matrix_element_type = '"matrix_element_type": "%s",' % matrix_element_type
+            shape = '"shape": [%d, %d],' % (num_rows, num_cols)
+
+        # Fill in details about the rows in the table and fill in the matrix's
+        # data.
+        if direct_io:
+            direct_io.write('"data": [')
+        else:
+            data = '"data": ['
+
+        max_row_idx = len(self.ObservationIds) - 1
+        max_col_idx = len(self.SampleIds) - 1
+        rows = '"rows": ['
+        have_written = False
+        for obs_index, obs in enumerate(self.iterObservations()):
+            # i'm crying on the inside
+            if obs_index != max_row_idx:
+                rows += '{"id": "%s", "metadata": %s},' % (obs[1], 
+                                                           dumps(obs[2]))
+            else:
+                rows += '{"id": "%s", "metadata": %s}],' % (obs[1], 
+                                                           dumps(obs[2]))
+
+            # If the matrix is dense, simply convert the numpy array to a list
+            # of data values. If the matrix is sparse, we need to store the
+            # data in sparse format, as it is given to us in a numpy array in
+            # dense format (i.e. includes zeroes) by iterObservations().
+            if self._biom_matrix_type == "dense":
+                if direct_io:
+                    # if we are not on the last row
+                    if obs_index != max_row_idx:
+                        direct_io.write("[%s]," % ','.join(map(str, obs[0])))
+                    else:
+                        direct_io.write("[%s]]," % ','.join(map(str, obs[0])))
+                else:
+                    # if we are not on the last row
+                    if obs_index != max_row_idx:
+                        data += "[%s]," % ','.join(map(str, obs[0]))
+                    else:
+                        data += "[%s]]," % ','.join(map(str, obs[0]))
+
+            elif self._biom_matrix_type == "sparse":
+                # turns out its a pain to figure out when to place commas. the
+                # simple work around, at the expense of a little memory 
+                # (bound by the number of samples) is to build of what will be
+                # written, and then add in the commas where necessary.
+                built_row = []
+                for col_index, val in enumerate(obs[0]):
+                    if float(val) != 0.0:
+                        built_row.append("[%d,%d,%d]" % (obs_index, col_index, 
+                                                         val))
+                if built_row:
+                    # if we have written a row already, its safe to add a comma
+                    if have_written:
+                        if direct_io:
+                            direct_io.write(',')
+                        else:
+                            data += ','
+                    if direct_io:
+                        direct_io.write(','.join(built_row))
+                    else:
+                        data += ','.join(built_row)
+
+                    have_written = True
+
+        # finalize the data block
+        if self._biom_matrix_type == 'sparse':
+            if direct_io:
+                direct_io.write("],")
+            else:
+                data += "],"
+
+        # Fill in details about the columns in the table.
+        columns = '"columns": ['
+        for samp_index, samp in enumerate(self.iterSamples()):
+            if samp_index != max_col_idx:
+                columns += '{"id": "%s", "metadata": %s},' % (samp[1], 
+                                                                dumps(samp[2]))
+            else:
+                columns += '{"id": "%s", "metadata": %s}]' % (samp[1], 
+                                                                dumps(samp[2]))
+
+        if direct_io:
+            direct_io.write(rows)
+            direct_io.write(columns); 
+            direct_io.write('}')
+        else:
+            return "{%s}" % ''.join([id_, format_, format_url, type_, 
+                                      generated_by, date, 
+                                      matrix_type, matrix_element_type, shape, 
+                                      data, rows, columns])
 
     def getBiomFormatPrettyPrint(self,generated_by):
         """Returns a 'pretty print' format of a BIOM file

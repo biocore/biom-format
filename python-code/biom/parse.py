@@ -735,12 +735,24 @@ def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None, \
 
     return samp_ids, obs_ids, asarray(data), metadata, md_name
 
-def parse_mapping(lines, strip_quotes=True, suppress_stripping=False):
-    """Parser for map file that relates samples to metadata.
+def parse_mapping(lines, 
+                  strip_quotes=True, 
+                  suppress_stripping=False,
+                  header = None,
+                  process_fns=None):
+    """Parser for map file that relates samples or observations to metadata.
     
     Format: header line with fields
             optionally other comment lines starting with #
             tab-delimited fields
+    
+    process_fns: a dictionary of functions to apply to metadata categories. 
+     the keys should be the column headings, and the values should be
+     functions which take a single value. For example, if the values in a 
+     column called "taxonomy" should be split on semi-colons before being 
+     added as metadata, and all other columns should be left as-is, 
+     process_fns should be:
+      {'taxonomy': lambda x: x.split(';')}
 
     Result: {first_column:{column_i:value}}, where i > 0
 
@@ -771,10 +783,15 @@ def parse_mapping(lines, strip_quotes=True, suppress_stripping=False):
         else:
             # remove spaces but not quotes
             strip_f = lambda x: x.strip()
+    
+    # if the user didn't provide process functions, initialize as 
+    # an empty dict
+    if process_fns == None:
+        process_fns = {}
 
     # Create lists to store the results
     mapping_data = []
-    header = []
+    header = header or []
     comments = []
 
     # Begin iterating over lines
@@ -808,7 +825,13 @@ def parse_mapping(lines, strip_quotes=True, suppress_stripping=False):
 
     mapping = {}
     for vals in mapping_data:
-        mapping[vals[0]] = dict([(k,v) for k,v in zip(header[1:], vals[1:])])
+        current_d = {}
+        for k,v in zip(header[1:], vals[1:]):
+            try:
+                current_d[k] = process_fns[k](v)
+            except KeyError:
+                current_d[k] = v
+        mapping[vals[0]] = current_d
 
     return mapping
 
