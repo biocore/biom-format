@@ -217,11 +217,11 @@ Processing metadata while adding
 
 There are some additional parameters you can pass to this script for more complex processing. 
 
-You can tell the script to process certain metadata column values as integers (``--int_fields``), floating point (i.e., decimal or real) numbers (``--float_fields``), or as hierarchical data (``--hierarchical_fields``).
+You can tell the script to process certain metadata column values as integers (``--int_fields``), floating point (i.e., decimal or real) numbers (``--float_fields``), or as hierarchical semicolon-delimited data (``--sc_separated``).
 
 ::
 
-	add_metadata.py -i min_sparse_otu_table.biom -o table.w_md.biom --observation_mapping_fp obs_md.txt --sample_mapping_fp sam_md.txt --int_fields DOB --hierarchical_fields taxonomy --float_fields confidence
+	add_metadata.py -i min_sparse_otu_table.biom -o table.w_md.biom --observation_mapping_fp obs_md.txt --sample_mapping_fp sam_md.txt --int_fields DOB --sc_separated taxonomy --float_fields confidence
 
 Here your resulting BIOM file will look like the following, where ``DOB`` values are now integers (compare to the above: they're not quoted now), ``confidence`` values are now floating point numbers (again, not quoted now), and ``taxonomy`` values are now lists where each entry is a taxonomy level, opposed to above where they appear as a single semi-colon-separated string.
 ::

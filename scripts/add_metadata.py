@@ -38,7 +38,7 @@ opt_options = [make_option('-m','--sample_mapping_fp',type="string",
                make_option('--observation_mapping_fp',type="string",
                     help='The observation mapping filepath (will add observation metadata '+ \
                             'to biom file, if provided) [default: %default]'),
-               make_option('--hierarchical_fields',type="string",
+               make_option('--sc_separated',type="string",
                     help=('comma-separated list of the metadata '
                           'fields to split on semi-colons. this is useful '
                           'for hierarchical data such as taxonomy or functional '
@@ -109,9 +109,9 @@ def main():
     
     ## define metadata processing functions, if any
     process_fns = {}
-    hierarchical_fields = opts.hierarchical_fields
-    if hierarchical_fields != None:
-        process_fns.update({}.fromkeys(hierarchical_fields.split(','),
+    sc_separated = opts.sc_separated
+    if sc_separated != None:
+        process_fns.update({}.fromkeys(sc_separated.split(','),
                                       split_on_semicolons))
     
     int_fields = opts.int_fields
