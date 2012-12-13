@@ -83,9 +83,11 @@ class CSMat():
 
     def bulkCOOUpdate(self, rows, cols, values):
         """Stages data in COO format. Expects 3 iterables aligned by index."""
-        self._coo_values.extend(values)
-        self._coo_rows.extend(rows)
-        self._coo_cols.extend(cols)
+        for r, c, v in zip(rows, cols, values):
+            if v != 0:
+                self._coo_values.append(v)
+                self._coo_rows.append(r)
+                self._coo_cols.append(c)
 
     def hasUpdates(self):
         """Returns true if it appears there are updates"""
