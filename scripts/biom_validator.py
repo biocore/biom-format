@@ -273,7 +273,7 @@ VERBOSE = False
 if cogent_cl_parsing:
     script_info = {}
     script_info['brief_description'] = "Test a biom file for adherence to the format specification."
-    script_info['script_description'] = "Test a biom file for adherence to the format specification. This specification is defined at http://www.qiime.org/..."
+    script_info['script_description'] = "Test a biom file for adherence to the format specification. This specification is defined at http://biom-format.org."
     script_info['script_usage'] = [("","Validate the my_data.biom file.","%prog -i my_data.biom")]
     script_info['output_description']= ""
     script_info['required_options'] = [
