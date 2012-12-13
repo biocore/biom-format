@@ -11,7 +11,7 @@ from biom.parse import parse_biom_table_str, \
         parse_mapping, pick_constructor, parse_biom_pathway_table,\
         parse_biom_function_table, parse_biom_ortholog_table, \
         parse_biom_gene_table, parse_biom_metabolite_table, \
-        parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_csmat, \
+        parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_sparse, \
         direct_parse_key, direct_slice_data, get_axis_indices, \
         _direct_slice_data_dense_obs, _direct_slice_data_dense_samp, \
         _direct_slice_data_sparse_obs, _direct_slice_data_sparse_samp, \
@@ -223,14 +223,14 @@ class ParseTests(TestCase):
         self.assertRaises(KeyError, get_axis_indices, biom_minimal_dense,
                          ['X'], 'samples')
 
-    def test_light_parse_biom_csmat(self):
+    def test_light_parse_biom_sparse(self):
         """Parse a table more direct"""
-        self.assertRaises(AttributeError, light_parse_biom_csmat, \
+        self.assertRaises(AttributeError, light_parse_biom_sparse, \
                           self.biom_minimal_dense, DenseOTUTable)
 
         from string import strip
         biomstr = ''.join(map(strip, self.biom_minimal_sparse.splitlines()))
-        t = light_parse_biom_csmat(biomstr,SparseOTUTable)
+        t = light_parse_biom_sparse(biomstr,SparseOTUTable)
         t2 = parse_biom_table_str(biomstr,SparseOTUTable)
         self.assertEqual(t,t2)
 
