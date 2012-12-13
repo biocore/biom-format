@@ -15,7 +15,7 @@ New Features
 Changes
 -------
 
-* parser and formatter updated to be more efficient (less memory consumption)
+* parser is more efficient for sparse tables and formatter is more efficient for both table types (less memory consumption)
 * biom.Table objects are now immutable (except that metadata can still be added via addSampleMetadata/addObservationMetadata). __setitem__ and setValueByIds have been removed and SampleIds, ObservationIds, SampleMetadata, and ObservationMetadata members are now tuples as a result
 * biom.Table object has a new method called getTableDensity()
 * performance testing framework has been added for Table objects
