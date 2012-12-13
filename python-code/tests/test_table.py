@@ -1056,8 +1056,8 @@ class DenseTableTests(TestCase):
         self.assertRaises(TableException, self.dt1.getBiomFormatObject, 'asd')
         self.assertRaises(TableException, self.dt_rich.getBiomFormatObject, 'asd')
 
-    def test_getBiomFormatJsonString_dense(self):
-        """Get a BIOM format string"""
+    def test_getBiomFormatJsonString_dense_int(self):
+        """Get a BIOM format string for a dense table of integers"""
         # check by round trip
         obs_ids = map(str, range(5))
         samp_ids = map(str, range(10))
@@ -1074,8 +1074,26 @@ class DenseTableTests(TestCase):
         # verify that the tables are the same
         self.assertEqual(t, t2)
 
-    def test_getBiomFormatJsonString_dense_directio(self):
-        """Get a BIOM format string"""
+    def test_getBiomFormatJsonString_dense_float(self):
+        """Get a BIOM format string for a dense table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo':i} for i in range(2)]
+        samp_md = [{'bar':i} for i in range(2)]
+        data = array([[0.01, 1.5], [0.0, 0.79]])
+       
+        # using OTUTable type to support parsing round trip
+        t = DenseOTUTable(data, samp_ids, obs_ids, samp_md, obs_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.getBiomFormatJsonString('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_getBiomFormatJsonString_dense_int_directio(self):
+        """Get a BIOM format string for a dense table of integers"""
         # check by round trip
         obs_ids = map(str, range(5))
         samp_ids = map(str, range(10))
@@ -1095,8 +1113,29 @@ class DenseTableTests(TestCase):
         # verify that the tables are the same
         self.assertEqual(t, t2)
 
-    def test_getBiomFormatJsonString_sparse(self):
-        """Get a BIOM format string"""
+    def test_getBiomFormatJsonString_dense_float_directio(self):
+        """Get a BIOM format string for a dense table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo':i} for i in range(2)]
+        samp_md = [{'bar':i} for i in range(2)]
+        data = array([[0.01, 1.5], [0.0, 0.79]])
+
+        # using OTUTable type to support parsing round trip
+        t = DenseOTUTable(data, samp_ids, obs_ids, samp_md, obs_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.getBiomFormatJsonString('asd',direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_getBiomFormatJsonString_sparse_int(self):
+        """Get a BIOM format string for a sparse table of integers"""
         # check by round trip
         obs_ids = map(str, range(5))
         samp_ids = map(str, range(10))
@@ -1115,8 +1154,27 @@ class DenseTableTests(TestCase):
         # verify that the tables are the same
         self.assertEqual(t, t2)
 
-    def test_getBiomFormatJsonString_sparse_directio(self):
-        """Get a BIOM format string"""
+    def test_getBiomFormatJsonString_sparse_float(self):
+        """Get a BIOM format string for a sparse table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo':i} for i in range(2)]
+        samp_md = [{'bar':i} for i in range(2)]
+        data = [[0,0,0.01], [0,1,1.5], [1,0,0.0], [1,1,0.79]]
+
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, samp_ids, obs_ids, samp_md, obs_md, 
+                            constructor=SparseOTUTable)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.getBiomFormatJsonString('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_getBiomFormatJsonString_sparse_int_directio(self):
+        """Get a BIOM format string for a sparse table of integers"""
         # check by round trip
         obs_ids = map(str, range(5))
         samp_ids = map(str, range(10))
@@ -1125,6 +1183,28 @@ class DenseTableTests(TestCase):
         data = [[0,0,10], [1,1,11], [2,2,12], [3,3,13], [4,4,14],
                 [3,5,15], [2,6,16], [1,7,18], [0,8,19], [1,9,20]]
         
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, samp_ids, obs_ids, samp_md, obs_md, 
+                            constructor=SparseOTUTable)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.getBiomFormatJsonString('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_getBiomFormatJsonString_sparse_float_directio(self):
+        """Get a BIOM format string for a sparse table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo':i} for i in range(2)]
+        samp_md = [{'bar':i} for i in range(2)]
+        data = [[0,0,0.01], [0,1,1.5], [1,0,0.0], [1,1,0.79]]
+
         # using OTUTable type to support parsing round trip
         t = table_factory(data, samp_ids, obs_ids, samp_md, obs_md, 
                             constructor=SparseOTUTable)
