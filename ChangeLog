@@ -11,6 +11,7 @@ New Features
 * new default sparse matrix backend CSMat (COO/CSR/CSC) more efficient than SparseDict and SparseMat (pure python + numpy)
 * support for biom config file, which allows specification of sparse backend to use. Currently supports CSMat (default), SparseMat, and SparseDict. Default can be found under support_files/biom_config, and can be copied to $HOME/.biom_config or located by setting $BIOM_CONFIG_FP
 * new script called add_metadata.py with accompanying tutorial that allows users to add arbitrary sample and/or observation metadata to biom files
+* new script called subset_biom.py that efficiently pulls out a subset of a biom table (either by samples or observations). Useful for very large tables where memory may be an issue
 
 Changes
 -------

@@ -26,7 +26,7 @@ The latest official version of the biom-format project is |release| and of the B
 Installing the biom-format project
 ==================================
 
-To install the ``biom-format`` project, you can download the release version `biom-format-1.0.0 <https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
+To install the ``biom-format`` project, you can download the release version `biom-format-1.1.0 <ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.1.0.tar.gz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
 
 The biom-format project has the following dependencies:
 	* Python 2 (2.6 or later)
@@ -38,11 +38,11 @@ We'll illustrate the install process in the ``$HOME/code`` directory. You can ei
 
 	cd $HOME/code
 
-To install the release version, download from `biom-format-1.0.0 <https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz>`_, uncompress the file, and change to the resulting directory::
+To install the release version, download from `biom-format-1.1.0 <ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.1.0.tar.gz>`_, uncompress the file, and change to the resulting directory::
 
-	wget https://github.com/downloads/biom-format/biom-format/biom-format-1.0.0.tgz
-	tar -xvzf biom-format-1.0.0.tgz
-	cd $HOME/code/biom-format-1.0.0
+	wget ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.1.0.tar.gz
+	tar -xvzf biom-format-1.1.0.tar.gz
+	cd $HOME/code/biom-format-1.1.0
 
 Alternatively, to install the development version, pull it from github, and change to the resulting directory::
 
