@@ -254,17 +254,14 @@ def get_axis_indices(biom_str, to_keep, axis):
 
     return idxs, json.dumps(subset)[1:-1] # trim off { and }
 
-def light_parse_biom_csmat(biom_str, constructor):
-    """Light-weight BIOM parser for CSMat-Sparse objects
+def light_parse_biom_sparse(biom_str, constructor):
+    """Light-weight BIOM parser for sparse objects
 
     Constructor must match the loaded table type
     """
     if constructor._biom_matrix_type != "sparse":
         raise AttributeError, "Constructor must be sparse!"
 
-    if not isinstance(SparseObj(1,1), CSMat):
-        raise AttributeError, "SparseObj is not CSMat!"
-    
     # is data: separated by a space?
     data_start = biom_str.find('"data":')
     if biom_str[data_start + 7] == " ":
@@ -272,8 +269,6 @@ def light_parse_biom_csmat(biom_str, constructor):
     else:
         start_idx = data_start + 7
 
-    #start_idx = biom_str.find('"data":') + 7 
-    #print biom_str[start_idx-10:start_idx+10]
     end_idx = biom_str[start_idx:].find(']]') + start_idx
     data = biom_str[start_idx:end_idx]
     new_s = biom_str[:start_idx]
@@ -284,20 +279,27 @@ def light_parse_biom_csmat(biom_str, constructor):
     start_idx = biom_str.find('"shape":') + 10
     end_idx = biom_str[start_idx:start_idx + 30].find('],') + start_idx
     row, col = map(int, biom_str[start_idx:end_idx].replace('[','').split(', '))
-    data_mat = CSMat(row,col)
-    
-    # if we knew in advance the number of nnz, we could preallocate
-    # for storage
-    for rec in data.replace('[','').split('],'):
-        try:
-            row,col,val = rec.split(',')
-        except:
-            raise TypeError, "Data do not appear sparse!"
+    data_mat = SparseObj(row, col)
 
-        data_mat._coo_rows.append(uint32(row))
-        data_mat._coo_cols.append(uint32(col))
-        data_mat._coo_values.append(float64(val))
-    
+    if SparseObj == CSMat:
+        for rec in data.replace('[','').split('],'):
+            try:
+                r,c,v = rec.split(',')
+            except:
+                raise TypeError, "Data do not appear sparse!"
+
+            data_mat._coo_rows.append(uint32(r))
+            data_mat._coo_cols.append(uint32(c))
+            data_mat._coo_values.append(float64(v))
+    else:
+        for rec in data.replace('[','').split('],'):
+            try:
+                r,c,v = rec.split(',')
+            except:
+                raise TypeError, "Data do not appear sparse!"
+            
+            data_mat[uint32(r),uint32(c)] = float64(v)
+
     t = parse_biom_table_str(new_s, constructor, data_pump=data_mat)
 
     return t
