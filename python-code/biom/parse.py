@@ -281,24 +281,13 @@ def light_parse_biom_sparse(biom_str, constructor):
     row, col = map(int, biom_str[start_idx:end_idx].replace('[','').split(', '))
     data_mat = SparseObj(row, col)
 
-    if SparseObj == CSMat:
-        for rec in data.replace('[','').split('],'):
-            try:
-                r,c,v = rec.split(',')
-            except:
-                raise TypeError, "Data do not appear sparse!"
-
-            data_mat._coo_rows.append(uint32(r))
-            data_mat._coo_cols.append(uint32(c))
-            data_mat._coo_values.append(float64(v))
-    else:
-        for rec in data.replace('[','').split('],'):
-            try:
-                r,c,v = rec.split(',')
-            except:
-                raise TypeError, "Data do not appear sparse!"
+    for rec in data.replace('[','').split('],'):
+        try:
+            r,c,v = rec.split(',')
+        except:
+            raise TypeError, "Data do not appear sparse!"
             
-            data_mat[uint32(r),uint32(c)] = float64(v)
+        data_mat[uint32(r),uint32(c)] = float64(v)
 
     t = parse_biom_table_str(new_s, constructor, data_pump=data_mat)
 
