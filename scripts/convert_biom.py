@@ -165,7 +165,7 @@ def main():
                         table.ObservationMetadata, table.TableId, 
                         constructor=conv_constructor)
 
-        output_f.write(table.getBiomFormatJsonString(generatedby()))
+        output_f.write(conv_table.getBiomFormatJsonString(generatedby()))
     else:
         if opts.biom_table_type is None:
             parser.error('Must specify the BIOM table type: %s' % \
