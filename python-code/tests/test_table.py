@@ -621,6 +621,10 @@ class TableTests(TestCase):
         self.assertTrue(self.t1.isEmpty())
         self.assertFalse(self.simple_derived.isEmpty())
 
+    def test_getTableDensity(self):
+        """Test raises an error since it isn't implemented here."""
+        self.assertRaises(NotImplementedError, self.t1.getTableDensity)
+
     def test_immutability(self):
         """Test Table object immutability."""
         # Try to set members to something completely different.
@@ -640,9 +644,12 @@ class DenseTableTests(TestCase):
         self.dt2 = DenseTable(array([[5,6],[7,8]]), ['a','b'],['1','2'])
         self.dt3 = DenseTable(array([[1,2],[3,4]]), ['b','c'],['2','3'])
         self.dt4 = DenseTable(array([[1,2],[3,4]]), ['c','d'],['3','4'])
+        self.dt5 = DenseTable(array([[0,2],[3,0]]), ['c','d'],['3','4'])
+        self.dt6 = DenseTable(array([[0,0],[0,0]]), ['c','d'],['3','4'])
         self.dt_rich = DenseTable(array([[5,6],[7,8]]), ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
+        self.empty_dt = DenseTable(array([]), [], [])
 
     def test_sum(self):
         """Test of sum!"""
@@ -1224,6 +1231,23 @@ class DenseTableTests(TestCase):
         self.assertEqual(obs_phy, [exp_phy1, exp_phy2])
         self.assertEqual(obs_bins, [('k__a','p__b'),('k__a','p__c')])
 
+    def test_getTableDensity(self):
+        """Test correctly computes density of table."""
+        # Perfectly dense tables.
+        self.assertFloatEqual(self.dt1.getTableDensity(), 1.0)
+        self.assertFloatEqual(self.dt3.getTableDensity(), 1.0)
+        self.assertFloatEqual(self.dt_rich.getTableDensity(), 1.0)
+
+        # Empty table (no dimensions).
+        self.assertFloatEqual(self.empty_dt.getTableDensity(), 0.0)
+
+        # Tables with some zeros.
+        self.assertFloatEqual(self.dt5.getTableDensity(), 0.5)
+
+        # Tables with all zeros (with dimensions).
+        self.assertFloatEqual(self.dt6.getTableDensity(), 0.0)
+
+
 class SparseTableTests(TestCase):
     def setUp(self):
         self.vals = {(0,0):5,(0,1):6,(1,0):7,(1,1):8}
@@ -1240,6 +1264,17 @@ class SparseTableTests(TestCase):
                 ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
+
+        self.empty_st = SparseTable(to_sparse([]), [], [])
+
+        self.vals5 = to_sparse({(0,1):2,(1,1):4})
+        self.st5 = SparseTable(self.vals5, ['a','b'],['5','6'])
+
+        self.vals6 = to_sparse({(0,0):0,(0,1):0,(1,0):0,(1,1):0})
+        self.st6 = SparseTable(self.vals6, ['a','b'],['5','6'])
+
+        self.vals7 = to_sparse({(0,0):5,(0,1):7,(1,0):8,(1,1):0})
+        self.st7 = SparseTable(self.vals7, ['a','b'],['5','6'])
 
     def test_sum(self):
         """Test of sum!"""
@@ -1805,6 +1840,26 @@ class SparseTableTests(TestCase):
         obs_bins, obs_phy = unzip(t.binObservationsByMetadata(func_phy))
         self.assertEqual(obs_phy, [exp_phy1, exp_phy2])
         self.assertEqual(obs_bins, [('k__a','p__b'),('k__a','p__c')])
+
+    def test_getTableDensity(self):
+        """Test correctly computes density of table."""
+        # Perfectly dense tables.
+        self.assertFloatEqual(self.st1.getTableDensity(), 1.0)
+        self.assertFloatEqual(self.st3.getTableDensity(), 1.0)
+        self.assertFloatEqual(self.st_rich.getTableDensity(), 1.0)
+
+        # Empty table (no dimensions).
+        self.assertFloatEqual(self.empty_st.getTableDensity(), 0.0)
+
+        # Tables with some zeros.
+        self.assertFloatEqual(self.st5.getTableDensity(), 0.5)
+
+        # Tables with all zeros (with dimensions).
+        self.assertFloatEqual(self.st6.getTableDensity(), 0.0)
+
+        # Tables with some zeros explicitly defined.
+        self.assertFloatEqual(self.st7.getTableDensity(), 0.75)
+
 
 class DenseSparseInteractionTests(TestCase):
     """Tests for working with tables of differing type"""

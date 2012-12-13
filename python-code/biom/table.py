@@ -336,6 +336,10 @@ class Table(object):
         else:
             return False
 
+    def getTableDensity(self):
+        """Defined by subclass"""
+        raise NotImplementedError
+
     def __iter__(self):
         """Defined by subclass"""
         raise NotImplementedError
@@ -778,7 +782,7 @@ class Table(object):
         return self.transformObservations(f)
 
     def nonzero(self):
-        """Returns locations of nonzero locations within the data matrix
+        """Returns locations of nonzero elements within the data matrix
 
         The values returned are ``(observation_id, sample_id)``
         """
@@ -1329,6 +1333,17 @@ class SparseTable(Table):
             #yield self._data[r,:]
             yield self._data.getRow(r)
 
+    def getTableDensity(self):
+        """Returns the fraction of nonzero elements in the table."""
+        density = 0.0
+
+        if not self.isEmpty():
+            density = (self._data.size / (len(self.SampleIds) *
+                                          len(self.ObservationIds)))
+
+        return density
+
+
 class DenseTable(Table):
     _biom_matrix_type = "dense"
     def __init__(self, *args, **kwargs):
@@ -1371,6 +1386,17 @@ class DenseTable(Table):
         """Return samples of data matrix in row vectors"""  
         for c in self._data.T:
             yield c
+
+    def getTableDensity(self):
+        """Returns the fraction of nonzero elements in the table."""
+        density = 0.0
+
+        if not self.isEmpty():
+            density = (len(self._data.nonzero()[0]) /
+                       (len(self.SampleIds) * len(self.ObservationIds)))
+
+        return density
+
 
 class OTUTable(object):
     """OTU table abstract class"""

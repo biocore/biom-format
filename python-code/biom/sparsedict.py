@@ -6,7 +6,7 @@ from biom.util import flatten
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Daniel McDonald", "Jai Rideout", "Greg Caporaso", 
+__credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso", 
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
@@ -152,6 +152,11 @@ class SparseDict(dict):
         new_self.update(dict([((c,r),v) for (r,c),v in self.iteritems()]))
         return new_self
     T = property(transpose)
+
+    def _get_size(self):
+        """Returns the number of nonzero elements stored"""
+        return len(self)
+    size = property(_get_size)
 
     def update(self, update_dict):
         """Update self"""
