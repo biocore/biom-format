@@ -13,7 +13,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 __all__ = ['table','parse','csmat','sparsemat','sparsedict','util','unittest',
            'exception']
 
-from sys import modules
+from sys import modules, stderr
 
 from biom.exception import InvalidSparseBackendException
 from biom.util import load_biom_config
@@ -44,31 +44,17 @@ def get_sparse_backend():
     """Returns the constructor and functions needed to use the current backend.
 
     Will look at whatever the current backend is in the loaded biom config
-    dict. If one isn't specified, will default to SparseDict (this one should
+    dict. If one isn't specified, will default to CSMat (this one should
     always work, regardless of the user's configuration). Will raise a
     ValueError if the current sparse backend isn't supported or cannot be used
     for whatever reason.
     """
     backend = biom_config['python_code_sparse_backend']
     if backend is None:
-        backend = 'SparseDict'
+        backend = 'CSMat'
 
-    valid_backend = True
-    if backend == 'CSMat':
-        try:
-            from biom.csmat import CSMat, to_csmat, dict_to_csmat, \
-                list_dict_to_csmat, list_nparray_to_csmat, nparray_to_csmat, \
-                list_list_to_csmat
-            SparseObj = CSMat
-            to_sparse = to_csmat
-            dict_to_sparseobj = dict_to_csmat
-            list_dict_to_sparseobj = list_dict_to_csmat
-            list_nparray_to_sparseobj = list_nparray_to_csmat
-            nparray_to_sparseobj = nparray_to_csmat
-            list_list_to_sparseobj = list_list_to_csmat
-        except ImportError:
-            valid_backend = False
-    elif backend == 'SparseMat':
+    valid_backend = False
+    if backend == 'SparseMat':
         try:
             from biom.sparsemat import SparseMat, to_sparsemat, \
                 dict_to_sparsemat, list_dict_to_sparsemat, \
@@ -81,9 +67,30 @@ def get_sparse_backend():
             list_nparray_to_sparseobj = list_nparray_to_sparsemat
             nparray_to_sparseobj = nparray_to_sparsemat
             list_list_to_sparseobj = list_list_to_sparsemat
+            valid_backend = True
         except ImportError:
             valid_backend = False
-    elif backend == 'SparseDict':
+            stderr.write("Cannot load Cython optimized SparseMat, using "\
+                         "CSMat\n")
+
+    if backend == 'CSMat' or (backend == 'SparseMat' and not valid_backend):
+        try:
+            from biom.csmat import CSMat, to_csmat, dict_to_csmat, \
+                list_dict_to_csmat, list_nparray_to_csmat, nparray_to_csmat, \
+                list_list_to_csmat
+            SparseObj = CSMat
+            to_sparse = to_csmat
+            dict_to_sparseobj = dict_to_csmat
+            list_dict_to_sparseobj = list_dict_to_csmat
+            list_nparray_to_sparseobj = list_nparray_to_csmat
+            nparray_to_sparseobj = nparray_to_csmat
+            list_list_to_sparseobj = list_list_to_csmat
+            valid_backend = True
+        except ImportError:
+            stderr.write('Cannot load CSMat\n')
+            valid_backend = False
+    
+    if backend == 'SparseDict' or valid_backend is False: 
         try:
             from biom.sparsedict import SparseDict, to_sparsedict, \
                 dict_to_sparsedict, list_dict_to_sparsedict, \
@@ -96,10 +103,9 @@ def get_sparse_backend():
             list_nparray_to_sparseobj = list_nparray_to_sparsedict
             nparray_to_sparseobj = nparray_to_sparsedict
             list_list_to_sparseobj = list_list_to_sparsedict
+            valid_backend = True
         except ImportError:
             valid_backend = False
-    else:
-        valid_backend = False
 
     if not valid_backend:
         raise InvalidSparseBackendException("The sparse matrix backend '%s' "
