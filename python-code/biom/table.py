@@ -1195,15 +1195,15 @@ class Table(object):
                 if direct_io:
                     # if we are not on the last row
                     if obs_index != max_row_idx:
-                        direct_io.write("[%s]," % ','.join(map(str, obs[0])))
+                        direct_io.write("[%s]," % ','.join(map(repr, obs[0])))
                     else:
-                        direct_io.write("[%s]]," % ','.join(map(str, obs[0])))
+                        direct_io.write("[%s]]," % ','.join(map(repr, obs[0])))
                 else:
                     # if we are not on the last row
                     if obs_index != max_row_idx:
-                        data += "[%s]," % ','.join(map(str, obs[0]))
+                        data += "[%s]," % ','.join(map(repr, obs[0]))
                     else:
-                        data += "[%s]]," % ','.join(map(str, obs[0]))
+                        data += "[%s]]," % ','.join(map(repr, obs[0]))
 
             elif self._biom_matrix_type == "sparse":
                 # turns out its a pain to figure out when to place commas. the
@@ -1213,7 +1213,7 @@ class Table(object):
                 built_row = []
                 for col_index, val in enumerate(obs[0]):
                     if float(val) != 0.0:
-                        built_row.append("[%d,%d,%d]" % (obs_index, col_index, 
+                        built_row.append("[%d,%d,%r]" % (obs_index, col_index,
                                                          val))
                 if built_row:
                     # if we have written a row already, its safe to add a comma

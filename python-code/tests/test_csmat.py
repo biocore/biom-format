@@ -530,6 +530,13 @@ class CSMatTests(TestCase):
         self.assertEqual(self.obj._coo_cols, [3,4])
         self.assertEqual(self.obj._coo_rows, [1,2])
 
+        # Make sure zeros are ignored.
+        self.empty_row_start.convert("csc")
+        self.empty_row_start.bulkCOOUpdate([0,2],[2,3],[42.0,0.00])
+        self.assertEqual(self.empty_row_start._coo_values, [42.0])
+        self.assertEqual(self.empty_row_start._coo_cols, [2])
+        self.assertEqual(self.empty_row_start._coo_rows, [0])
+
     def test_hasUpdates(self):
         """Do we have updates?"""
         self.obj.convert("csr")
