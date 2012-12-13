@@ -10,7 +10,7 @@ __copyright__ = "Copyright 2012, The BIOM-Format project"
 __credits__ = ["Greg Caporaso"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.0.0-dev"
+__version__ = "1.1.0"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
