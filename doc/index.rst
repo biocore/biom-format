@@ -16,6 +16,7 @@ Contents
    :maxdepth: 3
 
    ./documentation/index.rst
+   ./BIOM_LICENSE.rst
 
 BIOM version
 ============
