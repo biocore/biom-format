@@ -44,7 +44,7 @@ def get_sparse_backend():
     """Returns the constructor and functions needed to use the current backend.
 
     Will look at whatever the current backend is in the loaded biom config
-    dict. If one isn't specified, will default to SparseMat (this one should
+    dict. If one isn't specified, will default to CSMat (this one should
     always work, regardless of the user's configuration). Will raise a
     ValueError if the current sparse backend isn't supported or cannot be used
     for whatever reason.
@@ -90,7 +90,6 @@ def get_sparse_backend():
             stderr.write('Cannot load CSMat\n')
             valid_backend = False
     
-    #elif backend == 'SparseDict' or valid_backend == False: 
     if backend == 'SparseDict' or valid_backend is False: 
         try:
             from biom.sparsedict import SparseDict, to_sparsedict, \
@@ -107,7 +106,6 @@ def get_sparse_backend():
             valid_backend = True
         except ImportError:
             valid_backend = False
-            pass 
 
     if not valid_backend:
         raise InvalidSparseBackendException("The sparse matrix backend '%s' "

@@ -3,6 +3,5 @@
 # To overwrite defaults, copy this file to $HOME/.biom_config or a full path
 # specified by $BIOM_CONFIG_FP and edit that copy of the file.
 
-# Can be SparseDict, SparseMat, or CSMat. Defaults to SparseDict if not
-# present.
+# Can be SparseDict, SparseMat, or CSMat. Defaults to CSMat.
 python_code_sparse_backend	CSMat
