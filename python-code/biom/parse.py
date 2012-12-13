@@ -293,7 +293,7 @@ def light_parse_biom_sparse(biom_str, constructor):
 
     return t
 
-def parse_biom_table(json_fh,constructor=None):
+def parse_biom_table(json_fh,constructor=None, try_light_parse=True):
     """parses a biom format otu table into a rich otu table object
 
     input is an open filehandle or compatable object (e.g. list of lines)
@@ -302,8 +302,21 @@ def parse_biom_table(json_fh,constructor=None):
     either a SparseOTUTable or DenseOTUTable object will be returned
     note that sparse here refers to the compressed format of [row,col,count]
     dense refers to the full / standard matrix representations
+
+    If try_light_parse is True, the light_parse_biom_sparse call will be 
+    attempted. If that parse fails, the code will fall back to the regular
+    BIOM parser.
     """
-    return parse_biom_table_str(''.join(json_fh),constructor=constructor)
+    table_str = ''.join(json_fh)
+
+    if try_light_parse:
+        try:
+            t = light_parse_biom_sparse(table_str, constructor)
+        except:
+            t = parse_biom_table_str(table_str, constructor=constructor)
+    else: 
+        t = parse_biom_table_str(table_str, constructor=constructor)
+    return t
 
 def pick_constructor(mat_type, table_type, constructor, valid_constructors):
     """Make sure constructor is sane, attempt to pick one if not specified
