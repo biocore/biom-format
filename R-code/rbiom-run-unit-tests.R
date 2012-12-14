@@ -17,7 +17,7 @@ library("rbiom")
 
 # Testing package "testthat" is required for unit testing. It is in CRAN.
 # Just install it in the usual way if it is missing.
-if( !"rbiom" %in% .packages(TRUE) ){ 
+if( !"testthat" %in% .packages(TRUE) ){ 
 	install.packages("testthat")
 }
 library("testthat")

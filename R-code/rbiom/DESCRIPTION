@@ -1,6 +1,6 @@
 Package: rbiom
-Version: 0.1.1
-Date: 2012-06-21
+Version: 0.1.2
+Date: 2012-12-14
 Maintainer: Paul J. McMurdie <mcmurdie@stanford.edu>
 License: AGPL-3
 Title: This is an R package for interfacing with the BIOM
@@ -11,15 +11,15 @@ Author: Paul J. McMurdie <mcmurdie@stanford.edu> and
 Description: This is an R package for interfacing with the
     BIOM format.
 Imports:
-    plyr (>= 1.7),
+    plyr (>= 1.8),
     ape (>= 3.0),
-    RJSONIO (>= 0.98),
+    RJSONIO (>= 1.0),
     Matrix (>= 1.0)
 Depends:
-    R (>= 2.15.0),
+    R (>= 2.15.1),
     methods
 Suggests:
-    testthat (>= 0.6)
+    testthat (>= 0.7)
 Collate:
     'allClasses.R'
     'allPackage.R'

@@ -3,7 +3,7 @@
 # name according to the taxonomic rank
 #' @keywords internal
 parseGreenGenesPrefix <- function(char.vec){
-	# Define the meaning of each prefix according to GreenGenes (and RDP?) taxonomy
+	# Define the meaning of each prefix according to GreenGenes taxonomy
 	Tranks <- c(k="Kingdom", p="Phylum", c="Class", o="Order", f="Family", g="Genus", s="Species")
 	taxvec        <- substr(char.vec, 4, 1000)
 	names(taxvec) <- Tranks[substr(char.vec, 1, 1)]
