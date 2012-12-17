@@ -642,16 +642,18 @@ def nparray_to_csmat(data, dtype=float):
     if len(data.shape) == 1:
         mat = CSMat(1, data.shape[0], dtype=dtype)
         for col_idx, val in enumerate(data):
-            rows.append(0)
-            cols.append(col_idx)
-            vals.append(val)
+            if val != 0:
+                rows.append(0)
+                cols.append(col_idx)
+                vals.append(val)
     else:
         mat = CSMat(*data.shape, dtype=dtype)
         for row_idx, row in enumerate(data):
             for col_idx, value in enumerate(row):
-                rows.append(row_idx)
-                cols.append(col_idx)
-                vals.append(value)
+                if value != 0:
+                    rows.append(row_idx)
+                    cols.append(col_idx)
+                    vals.append(value)
     mat.bulkCOOUpdate(rows, cols, vals)
     return mat
 
