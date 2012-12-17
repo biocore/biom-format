@@ -635,15 +635,26 @@ def list_list_to_csmat(data, dtype=float, shape=None):
 
 def nparray_to_csmat(data, dtype=float):
     """Convert a numpy array to a CSMat"""
+    rows = []
+    cols = []
+    vals = []
+
     if len(data.shape) == 1:
         mat = CSMat(1, data.shape[0], dtype=dtype)
         for col_idx, val in enumerate(data):
-            mat[(0,col_idx)] = val
+            if val != 0:
+                rows.append(0)
+                cols.append(col_idx)
+                vals.append(val)
     else:
         mat = CSMat(*data.shape, dtype=dtype)
         for row_idx, row in enumerate(data):
             for col_idx, value in enumerate(row):
-                mat[(row_idx,col_idx)] = value
+                if value != 0:
+                    rows.append(row_idx)
+                    cols.append(col_idx)
+                    vals.append(value)
+    mat.bulkCOOUpdate(rows, cols, vals)
     return mat
 
 def list_nparray_to_csmat(data, dtype=float):
@@ -659,7 +670,10 @@ def list_nparray_to_csmat(data, dtype=float):
             raise TableException, "Row vector isn't the correct length!"
 
         for col_idx, val in enumerate(row):
-            mat[(row_idx, col_idx)] = val
+            rows.append(row_idx)
+            cols.append(col_idx)
+            values.append(val)
+    mat.bulkCOOUpdate(rows, cols, values)
     return mat
 
 def list_csmat_to_csmat(data, dtype=float):
@@ -685,14 +699,22 @@ def list_csmat_to_csmat(data, dtype=float):
             n_rows = len(data)
 
     mat = CSMat(n_rows, n_cols, dtype=dtype)
+    rows = []
+    cols = []
+    vals = []
+
     for row_idx,row in enumerate(data):
         for (foo,col_idx),val in row.items():
             if is_col:
                 # transpose
-                mat[(foo,row_idx)] = val
+                rows.append(foo)
+                cols.append(row_idx)
+                vals.append(val)
             else:
-                mat[(row_idx,col_idx)] = val
-    
+                rows.append(row_idx)
+                cols.append(col_idx)
+                vals.append(val)
+    mat.bulkCOOUpdate(rows, cols, vals) 
     return mat
     
 def list_dict_to_csmat(data, dtype=float):
@@ -718,14 +740,23 @@ def list_dict_to_csmat(data, dtype=float):
             n_rows = len(data)
 
     mat = CSMat(n_rows, n_cols, dtype=dtype)
+    rows = []
+    cols = []
+    vals = []
+
     for row_idx,row in enumerate(data):
         for (foo,col_idx),val in row.items():
             if is_col:
                 # transpose
-                mat[(foo,row_idx)] = val
+                rows.append(foo)
+                cols.append(row_idx)
+                vals.append(val)
             else:
-                mat[(row_idx, col_idx)] = val
+                rows.append(row_idx)
+                cols.append(col_idx)
+                vals.append(val)
     
+    mat.bulkCOOUpdate(rows, cols, vals)
     return mat
 
 def dict_to_csmat(data, dtype=float):
@@ -733,7 +764,14 @@ def dict_to_csmat(data, dtype=float):
     n_rows = max(data.keys(), key=itemgetter(0))[0] + 1
     n_cols = max(data.keys(), key=itemgetter(1))[1] + 1
     mat = CSMat(n_rows, n_cols,dtype=dtype)
+    rows = []
+    cols = []
+    vals = []
 
     for (r,c),v in data.items():
-        mat[(r,c)] = v
+        rows.append(r)
+        cols.append(c)
+        vals.append(v)
+
+    mat.bulkCOOUpdate(rows, cols, vals)
     return mat
