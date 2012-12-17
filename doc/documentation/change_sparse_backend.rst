@@ -1,6 +1,11 @@
 .. _change_sparse_backend:
 
-==========================================
+======================
+Sparse matrix backends
+======================
+
+As the BIOM project evolves, so do the underlying data structures, leading to potential runtime trade offs between implementations. Currently, there are three distinct sparse matrix backends to BIOM: the ``CSMat`` (default as of BIOM v1.1), the ``SparseMat`` and the ``SparseDict``. Specific differences are discussed below.
+
 How to check what sparse backend is in use
 ==========================================
 
@@ -26,11 +31,8 @@ To check what sparse backend is in use, simply execute ``print_biom_python_confi
 
 The last line indicates that the ``CSMat`` object is in use.
 
-===========================
 Changing the sparse backend
 ===========================
-
-As the BIOM project evolves, so do the underlying data structures, leading to potential runtime trade offs between implementations. Currently, there are three distinct sparse matrix backends to BIOM: the ``CSMat`` (default as of BIOM v1.1), the ``SparseMat`` and the ``SparseDict``. Specific differences are discussed below.
 
 There are two methods to change the backend that is used. The first method is by copying the ``biom_config`` file located under ``support_files/`` and placing it in your home directory as ``~/.biom_config. Then, edit ``~/.biom_config`` and replace the current backend type with the desired type.
 
@@ -40,9 +42,8 @@ The second method is to set the environment variable ``$BIOM_CONFIG_FP`` to a fi
 
 Where ``<BACKEND TYPE>`` is replaced by the specific backend implementation to use.
 
-======================
-Sparse matrix backends
-======================
+Sparse matrix backend descriptions
+==================================
 
 Different sparse matrix backends have different performance characteristics. As BIOM changes over time, additional methods may be added that address specific runtime concerns.
 
