@@ -2,14 +2,16 @@
 ChangeLog
 *********
 
-BIOM-Format 1.1.0-dev (changes since 1.1.0 go here)
-===================================================
+BIOM-Format 1.1.0 - 1.1.1
+=========================
 
 New Features
 ------------
 
 Changes
 -------
+
+* added documentation for how to switch sparse backends via BIOM config file
 
 Bug Fixes
 ---------
