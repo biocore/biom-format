@@ -14,6 +14,8 @@ Changes
 Bug Fixes
 ---------
 
+* performance issue on table creation with CSMat where an O(N) lookup was being performed
+
 BIOM-Format 1.0.0 - 1.1.0
 =========================
 
