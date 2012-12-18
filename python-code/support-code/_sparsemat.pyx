@@ -4,7 +4,7 @@
 #                        "Jose Clemente", "Justin Kuczynski"]
 # __license__ = "GPL"
 # __url__ = "http://biom-format.org"
-# __version__ = "1.1.1"
+# __version__ = "1.1.1-dev"
 # __maintainer__ = "Daniel McDonald"
 # __email__ = "daniel.mcdonald@colorado.edu"
 
