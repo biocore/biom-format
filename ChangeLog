@@ -8,6 +8,9 @@ BIOM-Format 1.1.1-dev (changes since 1.1.1 go here)
 New Features
 ------------
 
+* Table.collapseObservationsByMetadata and Table.collapseSamplesByMetadata now
+support one-to-many relationships on the metadata field to collapse on.
+
 Changes
 -------
 
