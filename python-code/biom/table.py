@@ -672,7 +672,7 @@ class Table(object):
                 collapsed_sample_md, self.ObservationMetadata, self.TableId)
 
     def collapseObservationsByMetadata(self, metadata_f, reduce_f=add, 
-            norm=True, min_group_size=2):
+            norm=True, min_group_size=2, one_to_many=False):
         """Collapse observations in a table by observation metadata
         
         Bin observations by metadata then collapse each bin into a single 
@@ -681,29 +681,102 @@ class Table(object):
         Metadata for the collapsed observations are retained and 
         can be referred to by the ``ObservationId`` from each observation 
         within the bin.
+
+        The remainder is only relevant to setting ``one_to_many`` to True.
+
+        If ``one_to_many`` is True, allow observations to fall into multiple 
+        bins. Supplied functions must allow for iteration support over the 
+        metadata key. The set metadata value for the corresponding collapsed
+        row by include more (or less) information about the collapsed data.
+        For example, if collapsing "KEGG Pathways", and there are observations
+        that span three pathways A, B, and C, such that observation 1 spans
+        A and B, observation 2 spans B and C and observation 3 spans A and C,
+        the resulting table will contain three collapsed observations:
+        
+        - A, containing original observation 1 and 3 
+        - B, containing original observation 1 and 2
+        - C, containing original observation 2 and 3
+
+        However, the "KEGG Pathways" metadata field associated with the 
+        collapsed observations is at this time is dependent in input data
+        order such that the metadata value for collapsed A could be "A; B" 
+        or "A; C". 
+
+        If a observation maps to the same bin multiple times, it will be 
+        counted multiple times.
+
+        A final note on space consumption. At present, the ``one_to_many``
+        functionality requires a temporary dense matrix representation. This 
+        was done so as it initially seems like true support requires rapid
+        ``__setitem__`` functionality on the ``SparseObj`` and at the time of
+        implementation, ``CSMat`` was O(N) to the number of nonzero elements.
+        This is a work around until either a better ``__setitem__`` 
+        implementation is in play on ``CSMat`` or a hybrid solution that allows
+        for multiple ``SparseObj`` types is used.
         """
         collapsed_data = []
         collapsed_obs_ids = []
         collapsed_obs_md = []
 
-        for bin, table in self.binObservationsByMetadata(metadata_f):
-            if len(table.ObservationIds) < min_group_size:
-                continue
-
-            redux_data = table.reduce(reduce_f, 'sample')
+        if one_to_many:
             if norm:
-                redux_data /= len(table.ObservationIds)
+                raise AttributeError, "norm and one_to_many are not supported together"
 
-            collapsed_data.append(self._conv_to_self_type(redux_data))
-            collapsed_obs_ids.append(bin)
+            # determine the number of new observations
+            new_obs_md = {}
+            for md in self.ObservationMetadata:
+                for x in metadata_f(md):
+                    new_obs_md[x] = md
+
+            n_obs = len(new_obs_md)
+            obs_idx = dict([(bin,i) for i,bin in enumerate(new_obs_md.keys())])
+            
+            # allocate new data. using a dense representation allows for a 
+            # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
+            # of collapsed observations is reasonable, then this doesn't suck
+            # to much.
+            new_data = zeros((n_obs, len(self.SampleIds)), dtype=self._dtype)
+       
+            # for each observation
+            # for each bin in the metadata
+            # for each value associated with the observation
+            for obs_v, obs_id, obs_md in self.iterObservations():
+                for bin in metadata_f(obs_md):
+                    for col_idx, v in enumerate(obs_v):
+                        new_data[obs_idx[bin], col_idx] += v
+            
+            # fetch the new collapsed metadata. It may actually be better to 
+            # disregard the metadata as it may be wholy inaccurate at this
+            # point.
+            collapsed_obs_md = [new_obs_md[k] for k,i in sorted(obs_idx.items(),
+                                                        key=itemgetter(1))]
+            
+            # get the new observation IDs
+            collapsed_obs_ids = [k for k,i in sorted(obs_idx.items(), 
+                                                        key=itemgetter(1))]
+
+            # convert back to self type
+            data = self._conv_to_self_type(new_data)
+        else:
+            for bin, table in self.binObservationsByMetadata(metadata_f):
+                if len(table.ObservationIds) < min_group_size:
+                    continue
+
+                redux_data = table.reduce(reduce_f, 'sample')
+                if norm:
+                    redux_data /= len(table.ObservationIds)
+
+                collapsed_data.append(self._conv_to_self_type(redux_data))
+                collapsed_obs_ids.append(bin)
    
-            # retain metadata but store by original sample id
-            tmp_md = {}
-            for id_, md in zip(table.ObservationIds, table.ObservationMetadata):
-                tmp_md[id_] = md
-            collapsed_obs_md.append(tmp_md)
+                # retain metadata but store by original sample id
+                tmp_md = {}
+                for id_, md in zip(table.ObservationIds, \
+                                    table.ObservationMetadata):
+                    tmp_md[id_] = md
+                collapsed_obs_md.append(tmp_md)
 
-        data = self._conv_to_self_type(collapsed_data)
+            data = self._conv_to_self_type(collapsed_data)
 
         # if the table is empty
         if 0 in data.shape:
