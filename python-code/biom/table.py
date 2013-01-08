@@ -695,15 +695,12 @@ class Table(object):
             # much.
             new_data = zeros((len(self.ObservationIds), n_s), dtype=self._dtype)
       
-            ### possible to iterate over self.nonzero? more efficient?
-            ### possible to add entire rows/cols and push more effort to numpy?
             # for each sample
             # for each bin in the metadata
             # for each value associated with the sample
             for s_v, s_id, s_md in self.iterSamples():
                 for bin in metadata_f(s_md):
-                    for row_idx, v in enumerate(s_v):
-                        new_data[row_idx, s_idx[bin]] += v
+                    new_data[:, s_idx[bin]] += s_v
             
             # fetch the new collapsed metadata. It may actually be better to 
             # disregard the metadata as it may be wholy inaccurate at this
@@ -818,8 +815,7 @@ class Table(object):
             # for each value associated with the observation
             for obs_v, obs_id, obs_md in self.iterObservations():
                 for bin in metadata_f(obs_md):
-                    for col_idx, v in enumerate(obs_v):
-                        new_data[obs_idx[bin], col_idx] += v
+                    new_data[obs_idx[bin], :] += obs_v
             
             # fetch the new collapsed metadata. It may actually be better to 
             # disregard the metadata as it may be wholy inaccurate at this
