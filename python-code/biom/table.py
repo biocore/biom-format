@@ -643,14 +643,15 @@ class Table(object):
         
         The remainder is only relevant to setting ``one_to_many`` to True.
 
-        If ``one_to_many`` is True, allow samples to fall into multiple bins. 
-        Supplied functions must allow for iteration support over the metadata 
-        key. The set metadata value for the corresponding collapsed column by 
-        include more (or less) information about the collapsed data. For 
-        example, if collapsing "FOO", and there are samples that span three 
-        associations A, B, and C, such that sample 1 spans A and B, sample 2 
-        spans B and C and sample 3 spans A and C, the resulting table will 
-        contain three collapsed samples:
+        If ``one_to_many`` is True, allow samples to collapse into multiple 
+        bins if the metadata describe a one-many relationship.Supplied 
+        functions must allow for iteration support over the metadata key. The 
+        set metadata value for the corresponding collapsed column by include 
+        more (or less) information about the collapsed data. For example, if 
+        collapsing "FOO", and there are samples that span three associations A,
+        B, and C, such that sample 1 spans A and B, sample 2 spans B and C and 
+        sample 3 spans A and C, the resulting table will contain three 
+        collapsed samples:
         
         - A, containing original sample 1 and 3 
         - B, containing original sample 1 and 2
@@ -662,6 +663,10 @@ class Table(object):
 
         If a sample maps to the same bin multiple times, it will be 
         counted multiple times.
+
+        ``one_to_many`` and ``norm`` are not supported together. 
+        
+        ``one_to_many`` and ``reduce_f`` are not supported together.
 
         A final note on space consumption. At present, the ``one_to_many``
         functionality requires a temporary dense matrix representation. This 
@@ -758,13 +763,14 @@ class Table(object):
         The remainder is only relevant to setting ``one_to_many`` to True.
 
         If ``one_to_many`` is True, allow observations to fall into multiple 
-        bins. Supplied functions must allow for iteration support over the 
-        metadata key. The set metadata value for the corresponding collapsed
-        row by include more (or less) information about the collapsed data.
-        For example, if collapsing "KEGG Pathways", and there are observations
-        that span three pathways A, B, and C, such that observation 1 spans
-        A and B, observation 2 spans B and C and observation 3 spans A and C,
-        the resulting table will contain three collapsed observations:
+        bins if the metadata describe a one-many relationship. Supplied 
+        functions must allow for iteration support over the metadata key. The 
+        set metadata value for the corresponding collapsed row by include more
+        (or less) information about the collapsed data. For example, if 
+        collapsing "KEGG Pathways", and there are observations that span three 
+        pathways A, B, and C, such that observation 1 spans A and B, 
+        observation 2 spans B and C and observation 3 spans A and C, the 
+        resulting table will contain three collapsed observations:
         
         - A, containing original observation 1 and 3 
         - B, containing original observation 1 and 2
@@ -777,6 +783,10 @@ class Table(object):
 
         If a observation maps to the same bin multiple times, it will be 
         counted multiple times.
+
+        ``one_to_many`` and ``norm`` are not supported together. 
+        
+        ``one_to_many`` and ``reduce_f`` are not supported together.
 
         A final note on space consumption. At present, the ``one_to_many``
         functionality requires a temporary dense matrix representation. This 
