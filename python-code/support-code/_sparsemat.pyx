@@ -151,10 +151,13 @@ cdef class PySparseMatFloat:
         """Return keys [(row,col)] similar to Python dict.keys()"""
         cdef items_float foo
         cdef Py_ssize_t i
+        cdef Py_ssize_t cur_length
+
+        cur_length = self.length()
         foo = self.thisptr.keys()
         
         results = []
-        for i in range(self.length()):
+        for i from 0 <= i < cur_length:
             results.append((foo.rows[i], foo.cols[i]))
                 
         return results
@@ -163,10 +166,13 @@ cdef class PySparseMatFloat:
         """Return items [((row,col),value)] similar to Python dict.items()"""
         cdef items_float foo
         cdef Py_ssize_t i
+        cdef Py_ssize_t cur_length
+
+        cur_length = self.length()
         foo = self.thisptr.items()
         
         results = []
-        for i in range(self.length()):
+        for i from 0 <= i < cur_length:
             results.append(((foo.rows[i], foo.cols[i]), foo.values[i]))
                 
         return results
@@ -275,11 +281,13 @@ cdef class PySparseMatInt:
         """Return keys [(row,col)] similar to Python dict.keys()"""
         cdef items_int foo
         cdef Py_ssize_t i
-        
+        cdef Py_ssize_t cur_length
+
+        cur_length = self.length()
         foo = self.thisptr.keys()
         
         results = []
-        for i in range(self.length()):
+        for i from 0 <= i < cur_length:
             results.append((foo.rows[i], foo.cols[i]))
                 
         return results
@@ -288,11 +296,13 @@ cdef class PySparseMatInt:
         """Return items [((row,col),value)] similar to Python dict.items()"""
         cdef items_int foo
         cdef Py_ssize_t i
+        cdef Py_ssize_t cur_length
         
+        cur_length = self.length()
         foo = self.thisptr.items()
         
         results = []
-        for i in range(self.length()):
+        for i from 0 <= i < cur_length:
             results.append(((foo.rows[i], foo.cols[i]), foo.values[i]))
                 
         return results
