@@ -1058,6 +1058,53 @@ class DenseTableTests(TestCase):
         self.assertRaises(TableException, dt_rich.collapseSamplesByMetadata,
                 bin_f, min_group_size=10)
 
+    def test_collapseSamplesByMetadata_one_to_many(self):
+        """Collapse samples by arbitary metadata"""
+        dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),
+                        ['XXa','XXb','XXc'],
+                        ['1','2','3'], 
+                        [{'foo':[['a','b'],['a','d']]},
+                         {'foo':[['a','b'],['a','c']]},
+                         {'foo':[['a','c']]}],
+                        [{'other':'aatt'},
+                         {'other':'ttgg'},
+                         {'other':'aatt'}])
+        exp_cat2 = DenseTable(array([[11,17,23],[13,19,25],[5,8,11]]).T, 
+                        ['b','c','d'],
+                        ['1','2','3'], 
+                        [{'foo':[['a','b'],['a','c']]},
+                         {'foo':[['a','c']]},
+                         {'foo':[['a','b'],['a','d']]}],
+                        [{'other':'aatt'},
+                                        {'other':'ttgg'},
+                                        {'other':'aatt'}])
+        def bin_f(x):
+            for foo in x['foo']:
+                yield foo[-1]
+        obs_cat2 = dt_rich.collapseSamplesByMetadata(bin_f, norm=False, 
+                     min_group_size=1, one_to_many=True).sortByObservationId()
+        self.assertEqual(obs_cat2, exp_cat2)
+
+        dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
+                        ['1','2','3'], [{'foo':[['a','b'],['a','d']]},
+                         {'foo':[['a','b'],['a','c']]},
+                         {'foo':[['a','c']]}],
+                        [{'other':'aatt'},
+                                        {'other':'ttgg'},
+                                        {'other':'aatt'}])
+        exp_cat1 = DenseTable(array([[29,44,59]]).T,
+                        ['a'],
+                        ['1','2','3'], [{'foo':[['a','c']]}],
+                        [{'other':'aatt'},
+                                        {'other':'ttgg'},
+                                        {'other':'aatt'}])
+        def bin_f(x):
+            for foo in x['foo']:
+                yield foo[0]
+        obs_cat1 = dt_rich.collapseSamplesByMetadata(bin_f, norm=False, 
+                     min_group_size=1, one_to_many=True).sortByObservationId()
+        self.assertEqual(obs_cat1, exp_cat1)
+
     def test_transformObservations(self):
         """Transform observations by arbitrary function"""
         def transform_f(v, id, md):
