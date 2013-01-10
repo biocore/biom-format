@@ -232,6 +232,12 @@ def to_sparsemat(values, transpose=False, dtype=float):
         else:
             mat = nparray_to_sparsemat(values, dtype)
         return mat
+    if isinstance(values, ndarray):
+        if transpose:
+            mat = nparray_to_sparsemat(values.T, dtype)
+        else:
+            mat = nparray_to_sparsemat(values, dtype)
+        return mat 
     # the empty list
     elif isinstance(values, list) and len(values) == 0:
         mat = SparseMat(0,0)
