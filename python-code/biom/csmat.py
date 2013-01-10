@@ -567,7 +567,6 @@ class CSMat():
 
         return (pkd_ax, unpkd_ax, values)
 
-
 def to_csmat(values, transpose=False, dtype=float):
     """Tries to returns a populated CSMat object
 
@@ -578,6 +577,12 @@ def to_csmat(values, transpose=False, dtype=float):
     if isinstance(values, ndarray) and len(values.shape) == 1:
         if transpose:
             mat = nparray_to_csmat(values[:,newaxis], dtype)
+        else:
+            mat = nparray_to_csmat(values, dtype)
+        return mat
+    if isinstance(values, ndarray):
+        if transpose:
+            mat = nparray_to_csmat(values.T, dtype)
         else:
             mat = nparray_to_csmat(values, dtype)
         return mat
