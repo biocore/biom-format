@@ -192,6 +192,12 @@ def to_sparsedict(values, transpose=False, dtype=float):
         else:
             mat = nparray_to_sparsedict(values, dtype)
         return mat
+    if isinstance(values, ndarray):
+        if transpose:
+            mat = nparray_to_sparsedict(values.T, dtype)
+        else:
+            mat = nparray_to_sparsedict(values, dtype)
+        return mat 
     # the empty list
     elif isinstance(values, list) and len(values) == 0:
         mat = SparseDict(0,0)
