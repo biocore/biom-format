@@ -874,21 +874,14 @@ class Table(object):
         id, and a sample metadata entry, and return a single value (int or 
         float) that replaces the provided sample value
         """
-        dtype = float
-        new_m = get_zerod_matrix(self._data, dtype)
-
-        i = 0
+        new_m = []
+        
         for s_v, s_id, s_md in self.iterSamples():
-            s_v = f(s_v, s_id, s_md)
+            new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
             
-            for j,v in enumerate(s_v):
-                if v:
-                    # force transpose
-                    new_m[j,i] = v
-            i += 1
-
-        return self.__class__(new_m, self.SampleIds[:], self.ObservationIds[:],
-                self.SampleMetadata, self.ObservationMetadata, self.TableId)
+        return self.__class__(self._conv_to_self_type(new_m, transpose=True),
+                self.SampleIds[:], self.ObservationIds[:], self.SampleMetadata, 
+                self.ObservationMetadata, self.TableId)
 
     def transformObservations(self, f):
         """Iterate over observations, applying a function ``f`` to each value
@@ -898,19 +891,12 @@ class Table(object):
         value (int or float) that replaces the provided observation value
 
         """
-        dtype = float
-        new_obs_v = get_zerod_matrix(self._data, dtype)
+        new_m = []
 
-        i = 0
         for obs_v, obs_id, obs_md in self.iterObservations():
-            obs_v = f(obs_v, obs_id, obs_md)
+            new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
 
-            for j,v in enumerate(obs_v):
-                if v:
-                    new_obs_v[i,j] = v
-            i += 1
-
-        return self.__class__(new_obs_v, self.SampleIds[:], 
+        return self.__class__(self._conv_to_self_type(new_m), self.SampleIds[:], 
                 self.ObservationIds[:], self.SampleMetadata, 
                 self.ObservationMetadata, self.TableId)
 
