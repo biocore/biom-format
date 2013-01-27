@@ -4,6 +4,7 @@ from collections import defaultdict
 from os import getenv
 from os.path import abspath, dirname, exists
 import re
+from numpy import mean, median, min, max
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
@@ -184,3 +185,26 @@ def parse_biom_config_file(biom_config_file):
         param_value = ' '.join(fields[1:]) or None
         result[param_id] = param_value
     return result
+
+def compute_counts_per_sample_stats(table, observation_counts=False):
+    """Return summary statistics on per-sample observation counts
+    
+        table: a BIOM table object
+    
+    """
+    if observation_counts:
+        sample_counts = {}
+        for count_vector, sample_id, metadata in table.iterSamples():
+            sample_counts[sample_id] = len([x for x in count_vector if x != 0])
+        counts = sample_counts.values()
+    else:
+        sample_counts = {}
+        for count_vector, sample_id, metadata in table.iterSamples():
+            sample_counts[sample_id] = count_vector.sum()
+        counts = sample_counts.values()
+    
+    return (min(counts),
+            max(counts),
+            median(counts),
+            mean(counts),
+            sample_counts)
