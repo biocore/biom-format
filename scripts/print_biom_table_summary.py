@@ -47,7 +47,7 @@ def main():
     table = parse_biom_table(open(input_fp,'U'))
     min_counts, max_counts, median_counts, mean_counts, counts_per_sample =\
      compute_counts_per_sample_stats(table, opts.num_observations)
-    num_otus = len(table.ObservationIds)
+    num_observations = len(table.ObservationIds)
     
     counts_per_sample_values = counts_per_sample.values()
     
@@ -62,18 +62,18 @@ def main():
     
     num_samples = len(counts_per_sample)
     print 'Num samples: %s' % str(num_samples)
-    print 'Num otus: %s' % str(num_otus)
+    print 'Num observations: %s' % str(num_observations)
     if not opts.num_observations:
-        num_observations = sum(counts_per_sample_values)
-        print 'Num observations (sequences): %s' % str(num_observations)
+        total_count = sum(counts_per_sample_values)
+        print 'Total count: %s' % str(total_count)
         print 'Table density (fraction of non-zero values): %1.4f' % \
               table.getTableDensity()
     print
 
     if opts.num_observations:
-        print 'OTUs/sample summary:'
+        print 'Observations/sample summary:'
     else:
-        print 'Seqs/sample summary:' 
+        print 'Counts/sample summary:' 
     print ' Min: %s' % str(min_counts)
     print ' Max: %s' % str(max_counts)
     print ' Median: %s' % str(median_counts)
@@ -84,14 +84,12 @@ def main():
      
     print ''
     if opts.num_observations:
-        print 'OTUs/sample detail:'
+        print 'Observations/sample detail:'
     else:
-        print 'Seqs/sample detail:'
+        print 'Counts/sample detail:'
     sorted_counts_per_sample = [(v,k) for k,v in counts_per_sample.items()]
     sorted_counts_per_sample.sort()
-    total_count = 0
     for v,k in sorted_counts_per_sample:
-        total_count += v
         print ' %s: %s' % (k,str(v))
 
 if __name__ == "__main__":
