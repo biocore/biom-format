@@ -959,15 +959,15 @@ class DenseTableTests(TestCase):
                         ['1','2','3'], [{'barcode':'aatt'},
                                         {'barcode':'ttgg'},
                                         {'barcode':'aatt'}],
-                        [{'pathways':[['a','b'],['a','d']]},
-                         {'pathways':[['a','b'],['a','c']]},
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c']]},
                          {'pathways':[['a','c']]}])
         exp_cat2 = DenseTable(array([[13,15,17],[19,21,23],[5,6,7]]), 
                         ['a','b','c'],
-                        ['b','c','d'], [{'barcode':'aatt'},
+                        ['bx','c','d'], [{'barcode':'aatt'},
                                         {'barcode':'ttgg'},
                                         {'barcode':'aatt'}],
-                        [{'Path':['a','b']},
+                        [{'Path':['a','bx']},
                          {'Path':['a','c']},
                          {'Path':['a','d']}])
         def bin_f(x):
