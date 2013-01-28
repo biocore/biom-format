@@ -19,7 +19,7 @@ from biom.util import (compute_counts_per_sample_stats,
                        biom_open)
 from biom.parse import parse_biom_table
 
-usage = "usage: Detailed usage examples can be found here: http://biom-format.org/documentation/print_biom_table_summary.html"
+usage = "usage: Detailed usage examples can be found here: http://biom-format.org/documentation/summarizing_biom_tables.html"
 desc = "Script to summarize sample or observation data in BIOM-formatted files."
 
 parser = OptionParser(usage=usage, description=desc, version=__version__)
@@ -48,6 +48,11 @@ parser.add_option_group(opt_group)
 
 def main():
     opts,args = parser.parse_args()
+
+    if opts.input_fp is None:
+        parser.print_help()
+        parser.error('Must specify an input file!')
+        
     input_fp = opts.input_fp
     output_fp = opts.output_fp
     table = parse_biom_table(biom_open(input_fp,'U'))
