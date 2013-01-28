@@ -959,20 +959,20 @@ class DenseTableTests(TestCase):
                         ['1','2','3'], [{'barcode':'aatt'},
                                         {'barcode':'ttgg'},
                                         {'barcode':'aatt'}],
-                        [{'pathways':[['a','b'],['a','d']]},
-                         {'pathways':[['a','b'],['a','c']]},
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c']]},
                          {'pathways':[['a','c']]}])
         exp_cat2 = DenseTable(array([[13,15,17],[19,21,23],[5,6,7]]), 
                         ['a','b','c'],
-                        ['b','c','d'], [{'barcode':'aatt'},
+                        ['bx','c','d'], [{'barcode':'aatt'},
                                         {'barcode':'ttgg'},
                                         {'barcode':'aatt'}],
-                        [{'pathways':[['a','b'],['a','c']]},
-                         {'pathways':[['a','c']]},
-                         {'pathways':[['a','b'],['a','d']]}])
+                        [{'Path':['a','bx']},
+                         {'Path':['a','c']},
+                         {'Path':['a','d']}])
         def bin_f(x):
             for foo in x['pathways']:
-                yield foo[-1]
+                yield (foo, foo[-1])
         obs_cat2 = dt_rich.collapseObservationsByMetadata(bin_f, norm=False, 
                      min_group_size=1, one_to_many=True).sortByObservationId()
         self.assertEqual(obs_cat2, exp_cat2)
@@ -989,10 +989,10 @@ class DenseTableTests(TestCase):
                         ['a'], [{'barcode':'aatt'},
                                         {'barcode':'ttgg'},
                                         {'barcode':'aatt'}],
-                        [{'pathways':[['a','c']]}])
+                        [{'Path':['a']}])
         def bin_f(x):
             for foo in x['pathways']:
-                yield foo[0]
+                yield (foo[:1], foo[0])
         obs_cat1 = dt_rich.collapseObservationsByMetadata(bin_f, norm=False, 
                      min_group_size=1, one_to_many=True).sortByObservationId()
         
@@ -1072,15 +1072,15 @@ class DenseTableTests(TestCase):
         exp_cat2 = DenseTable(array([[11,17,23],[13,19,25],[5,8,11]]).T, 
                         ['b','c','d'],
                         ['1','2','3'], 
-                        [{'foo':[['a','b'],['a','c']]},
-                         {'foo':[['a','c']]},
-                         {'foo':[['a','b'],['a','d']]}],
+                        [{'Path':['a','b']},
+                         {'Path':['a','c']},
+                         {'Path':['a','d']}],
                         [{'other':'aatt'},
                                         {'other':'ttgg'},
                                         {'other':'aatt'}])
         def bin_f(x):
             for foo in x['foo']:
-                yield foo[-1]
+                yield (foo, foo[-1])
         obs_cat2 = dt_rich.collapseSamplesByMetadata(bin_f, norm=False, 
                      min_group_size=1, one_to_many=True).sortByObservationId()
         self.assertEqual(obs_cat2, exp_cat2)
@@ -1094,13 +1094,13 @@ class DenseTableTests(TestCase):
                                         {'other':'aatt'}])
         exp_cat1 = DenseTable(array([[29,44,59]]).T,
                         ['a'],
-                        ['1','2','3'], [{'foo':[['a','c']]}],
+                        ['1','2','3'], [{'Path':['a']}],
                         [{'other':'aatt'},
                                         {'other':'ttgg'},
                                         {'other':'aatt'}])
         def bin_f(x):
             for foo in x['foo']:
-                yield foo[0]
+                yield (foo[:1], foo[0])
         obs_cat1 = dt_rich.collapseSamplesByMetadata(bin_f, norm=False, 
                      min_group_size=1, one_to_many=True).sortByObservationId()
         self.assertEqual(obs_cat1, exp_cat1)
