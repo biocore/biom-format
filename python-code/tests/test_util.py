@@ -1,11 +1,12 @@
 #!/usr/bin/env python
 
 from os.path import abspath, dirname, exists
+from tempfile import NamedTemporaryFile
 from biom.parse import parse_biom_table
 from biom.unit_test import TestCase, main
 from biom.util import (natsort, _natsort_key, flatten, unzip,
                        get_biom_project_dir, parse_biom_config_files,
-                       compute_counts_per_sample_stats)
+                       compute_counts_per_sample_stats, safe_md5)
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
@@ -166,6 +167,20 @@ class UtilTests(TestCase):
         self.assertEqual(actual[3],2.5)
         self.assertEqual(actual[4],{'Sample1':2,'Sample2':3,'Sample3':4,
                                     'Sample4':2,'Sample5':1,'Sample6':3})
+
+    def test_safe_md5(self):
+        """Make sure we have the expected md5
+        
+        Modified from PyCogent (www.pycogent.org).
+        """
+        exp = 'd3b07384d113edec49eaa6238ad5ff00'
+
+        tmp_f = NamedTemporaryFile(mode='w',prefix='test_safe_md5', suffix='txt')
+        tmp_f.write('foo\n')
+        tmp_f.flush()
+
+        obs = safe_md5(open(tmp_f.name, 'U'))
+        self.assertEqual(obs,exp)
 
 biom_otu_table1_w_tax = """{
      "id":null,

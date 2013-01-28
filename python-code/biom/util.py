@@ -220,7 +220,7 @@ def safe_md5(open_file, block_size=2**20):
     This method is based on the answers given in:
     http://stackoverflow.com/questions/1131220/get-md5-hash-of-a-files-without-open-it-in-python
     
-    This code was pulled from PyCogent (www.pycogent.org).
+    Modified from PyCogent (www.pycogent.org).
     """
     result = md5()
     data = True
