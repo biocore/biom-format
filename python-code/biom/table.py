@@ -633,7 +633,8 @@ class Table(object):
                     obs_md, self.TableId)
 
     def collapseSamplesByMetadata(self, metadata_f, reduce_f=add, norm=True, 
-            min_group_size=2, one_to_many=False, one_to_many_md_key='Path'):
+            min_group_size=2, one_to_many=False, one_to_many_md_key='Path',
+            strict=False):
         """Collapse samples in a table by sample metadata
         
         Bin samples by metadata then collapse each bin into a single sample. 
@@ -669,6 +670,9 @@ class Table(object):
         key that describes the collapsed path. If a value is not specified,
         then it defaults to 'Path'.
 
+        If ``strict`` is specified, then all metadata pathways operated on
+        must be indexable by ``metadata_f``. 
+        
         ``one_to_many`` and ``norm`` are not supported together. 
         
         ``one_to_many`` and ``reduce_f`` are not supported together.
@@ -693,8 +697,24 @@ class Table(object):
             # determine the collapsed pathway
             # we drop all other associated metadata
             new_s_md = {}
-            for md in self.SampleMetadata:
-                for pathway, bin in metadata_f(md):
+            for id_, md in zip(self.SampleIds, self.SampleMetadata):
+                md_iter = metadata_f(md)
+                while True:
+                    try:
+                        pathway, bin = md_iter.next()
+                    except IndexError:
+                        # if a pathway is incomplete
+                        if strict:
+                            # bail if strict
+                            err = "Incomplete pathway, ID: %s, metadata: %s" %\
+                                  (id_,md)
+                            raise IndexError, err
+                        else:
+                            # otherwise ignore
+                            continue
+                    except StopIteration:
+                        break
+                    
                     new_s_md[bin] = pathway 
 
             n_s = len(new_s_md)
@@ -710,9 +730,30 @@ class Table(object):
             # for each bin in the metadata
             # for each value associated with the sample
             for s_v, s_id, s_md in self.iterSamples():
-                for path, bin in metadata_f(s_md):
+                md_iter = metadata_f(s_md)
+                while True:
+                    try:
+                        pathway, bin = md_iter.next()
+                    except IndexError:
+                        # if a pathway is incomplete
+                        if strict:
+                            # bail if strict, should never get here...
+                            err = "Incomplete pathway, ID: %s, metadata: %s" %\
+                                  (id_,md)
+                            raise IndexError, err
+                        else:
+                            # otherwise ignore
+                            continue
+                    except StopIteration:
+                        break
+
                     new_data[:, s_idx[bin]] += s_v
             
+            # reassociate pathway information
+            collapsed_s_md = []
+            for k,i in sorted(s_idx.items(), key=itemgetter(1)):
+                collapsed_s_md.append({one_to_many_md_key:new_s_md[k]})
+ 
             # get the new sample IDs
             collapsed_s_ids = [k for k,i in sorted(s_idx.items(), 
                                                       key=itemgetter(1))]
@@ -755,7 +796,7 @@ class Table(object):
 
     def collapseObservationsByMetadata(self, metadata_f, reduce_f=add, 
             norm=True, min_group_size=2, one_to_many=False, 
-            one_to_many_md_key='Path'):
+            one_to_many_md_key='Path', strict=False):
         """Collapse observations in a table by observation metadata
         
         Bin observations by metadata then collapse each bin into a single 
@@ -793,6 +834,9 @@ class Table(object):
         key that describes the collapsed path. If a value is not specified,
         then it defaults to 'Path'.
         
+        If ``strict`` is specified, then all metadata pathways operated on
+        must be indexable by ``metadata_f``. 
+
         ``one_to_many`` and ``norm`` are not supported together. 
         
         ``one_to_many`` and ``reduce_f`` are not supported together.
@@ -817,8 +861,24 @@ class Table(object):
             # determine the collapsed pathway
             # we drop all other associated metadata
             new_obs_md = {}
-            for md in self.ObservationMetadata:
-                for pathway, bin in metadata_f(md):
+            for id_,md in zip(self.ObservationIds, self.ObservationMetadata):
+                md_iter = metadata_f(md)
+                while True:
+                    try:
+                        pathway, bin = md_iter.next()
+                    except IndexError:
+                        # if a pathway is incomplete
+                        if strict:
+                            # bail if strict
+                            err = "Incomplete pathway, ID: %s, metadata: %s" %\
+                                  (id_,md)
+                            raise IndexError, err
+                        else:
+                            # otherwise ignore
+                            continue
+                    except StopIteration:
+                        break
+                    
                     new_obs_md[bin] = pathway # keyed by last field in hierarchy
 
             n_obs = len(new_obs_md)
@@ -834,8 +894,29 @@ class Table(object):
             # for each bin in the metadata
             # for each value associated with the observation
             for obs_v, obs_id, obs_md in self.iterObservations():
-                for path,bin in metadata_f(obs_md):
+                md_iter = metadata_f(obs_md)
+                while True:
+                    try:
+                        pathway, bin = md_iter.next()
+                    except IndexError:
+                        # if a pathway is incomplete
+                        if strict:
+                            # bail if strict, should never get here...
+                            err = "Incomplete pathway, ID: %s, metadata: %s" %\
+                                  (id_,md)
+                            raise IndexError, err
+                        else:
+                            # otherwise ignore
+                            continue
+                    except StopIteration:
+                        break
+
                     new_data[obs_idx[bin], :] += obs_v
+    
+            # associate the pathways back
+            collapsed_obs_md = []
+            for k,i in sorted(obs_idx.items(), key=itemgetter(1)):
+                collapsed_obs_md.append({one_to_many_md_key:new_obs_md[k]})
            
             # get the new observation IDs
             collapsed_obs_ids = [k for k,i in sorted(obs_idx.items(), 
