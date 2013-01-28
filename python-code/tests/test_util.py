@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 from os.path import abspath, dirname, exists
-
+from biom.parse import parse_biom_table
 from biom.unit_test import TestCase, main
 from biom.util import (natsort, _natsort_key, flatten, unzip,
-                       get_biom_project_dir, parse_biom_config_files)
+                       get_biom_project_dir, parse_biom_config_files,
+                       compute_counts_per_sample_stats)
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
@@ -18,6 +19,11 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
 class UtilTests(TestCase):
+    
+    def setUp(self):
+        self.biom_otu_table1_w_tax = \
+         parse_biom_table(biom_otu_table1_w_tax.split('\n'))
+    
     def test_natsort(self):
         """natsort should perform numeric comparisons on strings
 
@@ -137,6 +143,85 @@ class UtilTests(TestCase):
 
         # Empty dict on empty input.
         self.assertEqual(parse_biom_config_files([]), {})
+    
+    def test_compute_counts_per_sample_stats(self):
+        """compute_counts_per_sample_stats functions as expected
+        """
+        actual = compute_counts_per_sample_stats(self.biom_otu_table1_w_tax)
+        self.assertEqual(actual[0],3)
+        self.assertEqual(actual[1],7)
+        self.assertEqual(actual[2],4)
+        self.assertEqual(actual[3],4.5)
+        self.assertEqual(actual[4],{'Sample1':7,'Sample2':3,'Sample3':4,
+                                    'Sample4':6,'Sample5':3,'Sample6':4})
+
+biom_otu_table1_w_tax = """{
+     "id":null,
+     "format": "Biological Observation Matrix 1.0.0-dev",
+     "format_url": "http://biom-format.org",
+     "type": "OTU table",
+     "generated_by": "QIIME revision XYZ",
+     "date": "2011-12-19T19:00:00",
+     "rows":[
+        {"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
+        {"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria", "p__Cyanobacteria", "c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichospermum", "s__"]}},
+        {"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea", "p__Euryarchaeota", "c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae", "g__Methanosarcina", "s__"]}},
+        {"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria", "p__Firmicutes", "c__Clostridia", "o__Halanaerobiales", "f__Halanaerobiaceae", "g__Halanaerobium", "s__Halanaerobiumsaccharolyticum"]}},
+        {"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}}
+        ],
+     "columns":[
+        {"id":"Sample1", "metadata":{
+                                 "BarcodeSequence":"CGCTTATCGAGA",
+                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                 "BODY_SITE":"gut",
+                                 "Description":"human gut"}},
+        {"id":"Sample2", "metadata":{
+                                 "BarcodeSequence":"CATACCAGTAGC",
+                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                 "BODY_SITE":"gut",
+                                 "Description":"human gut"}},
+        {"id":"Sample3", "metadata":{
+                                 "BarcodeSequence":"CTCTCTACCTGT",
+                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                 "BODY_SITE":"gut",
+                                 "Description":"human gut"}},
+        {"id":"Sample4", "metadata":{
+                                 "BarcodeSequence":"CTCTCGGCCTGT",
+                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                 "BODY_SITE":"skin",
+                                 "Description":"human skin"}},
+        {"id":"Sample5", "metadata":{
+                                 "BarcodeSequence":"CTCTCTACCAAT",
+                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                 "BODY_SITE":"skin",
+                                 "Description":"human skin"}},
+        {"id":"Sample6", "metadata":{
+                                 "BarcodeSequence":"CTAACTACCAAT",
+                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                 "BODY_SITE":"skin",
+                                 "Description":"human skin"}}
+        ],
+     "matrix_type": "sparse",
+     "matrix_element_type": "int",
+     "shape": [5, 6], 
+     "data":[[0,2,1],
+             [1,0,5],
+             [1,1,1],
+             [1,3,2],
+             [1,4,3],
+             [1,5,1],
+             [2,2,1],
+             [2,3,4],
+             [2,5,2],
+             [3,0,2],
+             [3,1,1],
+             [3,2,1],
+             [3,5,1],
+             [4,1,1],
+             [4,2,1]
+            ]
+    }
+"""
 
 
 if __name__ == '__main__':
