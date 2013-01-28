@@ -155,6 +155,18 @@ class UtilTests(TestCase):
         self.assertEqual(actual[4],{'Sample1':7,'Sample2':3,'Sample3':4,
                                     'Sample4':6,'Sample5':3,'Sample6':4})
 
+    def test_compute_counts_per_sample_stats_obs_counts(self):
+        """compute_counts_per_sample_stats functions as expected
+        """
+        actual = compute_counts_per_sample_stats(self.biom_otu_table1_w_tax,
+                                                 binary_counts=True)
+        self.assertEqual(actual[0],1)
+        self.assertEqual(actual[1],4)
+        self.assertEqual(actual[2],2.5)
+        self.assertEqual(actual[3],2.5)
+        self.assertEqual(actual[4],{'Sample1':2,'Sample2':3,'Sample3':4,
+                                    'Sample4':2,'Sample5':1,'Sample6':3})
+
 biom_otu_table1_w_tax = """{
      "id":null,
      "format": "Biological Observation Matrix 1.0.0-dev",

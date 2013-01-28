@@ -186,13 +186,16 @@ def parse_biom_config_file(biom_config_file):
         result[param_id] = param_value
     return result
 
-def compute_counts_per_sample_stats(table, observation_counts=False):
+def compute_counts_per_sample_stats(table, binary_counts=False):
     """Return summary statistics on per-sample observation counts
     
         table: a BIOM table object
+        binary_counts: count the number of unique observations per
+         sample, rather than the sum of the total counts (i.e., counts
+         are qualitative rather than quantitative)
     
     """
-    if observation_counts:
+    if binary_counts:
         sample_counts = {}
         for count_vector, sample_id, metadata in table.iterSamples():
             sample_counts[sample_id] = len([x for x in count_vector if x != 0])
