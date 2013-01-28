@@ -12,7 +12,7 @@ __credits__ = ["Jose Carlos Clemente Litran", "Daniel McDonald",
                "Greg Caporaso", "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.1.1-dev"
+__version__ = "1.1.2"
 __maintainer__ = "Jose Carlos Clemente Litran"
 __email__ = "jose.clemente@gmail.com"
 
