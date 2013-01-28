@@ -14,7 +14,9 @@ __email__ = "gregcaporaso@gmail.com"
 
 from optparse import make_option, OptionParser, OptionGroup
 from numpy import std
-from biom.util import compute_counts_per_sample_stats
+from biom.util import (compute_counts_per_sample_stats, 
+                       safe_md5,
+                       biom_open)
 from biom.parse import parse_biom_table
 
 usage = "usage: Detailed usage examples can be found here: http://biom-format.org/documentation/print_biom_table_summary.html"
@@ -29,13 +31,16 @@ req_group.add_options(req_options)
 parser.add_option_group(req_group)
 
 opt_group = OptionGroup(parser, 'Optional Options')
-opt_options = [make_option('-m','--sample_mapping_fp',type="string",
-                    help='The sample mapping filepath (will add sample metadata to '+\
-                    'biom file, if provided) [default: %default]'),
+opt_options = [make_option('-o','--output_fp',type="string",default=None,
+                    help='Path to write output summary [default: write to stdout]'),
                make_option('--num_observations',action='store_true',
                    help=('Counts are presented as number of unique observation ids '
                          'per sample, rather than counts of observations per '
                          'sample [default: %default]'),default=False),
+               make_option('--suppress_md5',action='store_true',
+                   help=('Do not include the md5sum of the table in the output' 
+                   ' (can be useful if you\'re concerned about runtime of this script)'
+                   ' [default: %default]'),default=False),
                ]
 opt_group.add_options(opt_options)
 parser.add_option_group(opt_group)
@@ -44,10 +49,12 @@ parser.add_option_group(opt_group)
 def main():
     opts,args = parser.parse_args()
     input_fp = opts.input_fp
-    table = parse_biom_table(open(input_fp,'U'))
+    output_fp = opts.output_fp
+    table = parse_biom_table(biom_open(input_fp,'U'))
     min_counts, max_counts, median_counts, mean_counts, counts_per_sample =\
      compute_counts_per_sample_stats(table, opts.num_observations)
     num_observations = len(table.ObservationIds)
+    suppress_md5 = opts.suppress_md5
     
     counts_per_sample_values = counts_per_sample.values()
     
@@ -60,37 +67,46 @@ def main():
     except TypeError:
         observation_md_keys = ["None provided"]
     
+    lines = []
+    
     num_samples = len(counts_per_sample)
-    print 'Num samples: %s' % str(num_samples)
-    print 'Num observations: %s' % str(num_observations)
+    lines.append('Num samples: %s' % str(num_samples))
+    lines.append('Num observations: %s' % str(num_observations))
     if not opts.num_observations:
         total_count = sum(counts_per_sample_values)
-        print 'Total count: %s' % str(total_count)
-        print 'Table density (fraction of non-zero values): %1.4f' % \
-              table.getTableDensity()
-    print
+        lines.append('Total count: %s' % str(total_count))
+        lines.append('Table density (fraction of non-zero values): %1.4f' % \
+              table.getTableDensity())
+    if not suppress_md5:
+        lines.append('Table md5 (unzipped): %s' % safe_md5(biom_open(input_fp,'U')))
+    lines.append('')
 
     if opts.num_observations:
-        print 'Observations/sample summary:'
+        lines.append('Observations/sample summary:')
     else:
-        print 'Counts/sample summary:' 
-    print ' Min: %s' % str(min_counts)
-    print ' Max: %s' % str(max_counts)
-    print ' Median: %s' % str(median_counts)
-    print ' Mean: %s' % str(mean_counts)
-    print ' Std. dev.: %s' % (str(std(counts_per_sample_values)))
-    print ' Sample Metadata Categories: %s' % '; '.join(sample_md_keys)
-    print ' Observation Metadata Categories: %s' % '; '.join(observation_md_keys)
+        lines.append('Counts/sample summary:')
+    lines.append(' Min: %s' % str(min_counts))
+    lines.append(' Max: %s' % str(max_counts))
+    lines.append(' Median: %s' % str(median_counts))
+    lines.append(' Mean: %s' % str(mean_counts))
+    lines.append(' Std. dev.: %s' % (str(std(counts_per_sample_values))))
+    lines.append(' Sample Metadata Categories: %s' % '; '.join(sample_md_keys))
+    lines.append(' Observation Metadata Categories: %s' % '; '.join(observation_md_keys))
      
-    print ''
+    lines.append('')
     if opts.num_observations:
-        print 'Observations/sample detail:'
+        lines.append('Observations/sample detail:')
     else:
-        print 'Counts/sample detail:'
+        lines.append('Counts/sample detail:')
     sorted_counts_per_sample = [(v,k) for k,v in counts_per_sample.items()]
     sorted_counts_per_sample.sort()
     for v,k in sorted_counts_per_sample:
-        print ' %s: %s' % (k,str(v))
+        lines.append(' %s: %s' % (k,str(v)))
+    
+    if output_fp != None:
+        open(output_fp,'w').write('\n'.join(lines))
+    else:
+        print '\n'.join(lines)
 
 if __name__ == "__main__":
     main()
