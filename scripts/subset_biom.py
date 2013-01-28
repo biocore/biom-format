@@ -7,7 +7,7 @@ __copyright__ = "Copyright 2012, The BIOM-Format Project"
 __credits__ = ["Daniel McDonald"]
 __url__ = "http://biom-format.org"
 __license__ = "GPL"
-__version__ = "1.1.1-dev"
+__version__ = "1.1.2"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 

@@ -2,8 +2,8 @@
 ChangeLog
 *********
 
-BIOM-Format 1.1.1-dev (changes since 1.1.1 go here)
-===================================================
+BIOM-Format 1.1.1 - 1.1.2
+=========================
 
 New Features
 ------------
@@ -11,11 +11,17 @@ New Features
 * Table.collapseObservationsByMetadata and Table.collapseSamplesByMetadata now
 support one-to-many relationships on the metadata field to collapse on.
 
+* added new script called print_biom_table_summary.py (and accompanying tutorial) that prints summary statistics of the input BIOM table as a whole and on a per-sample basis
+
 Changes
 -------
 
+* SparseMat now uses cython for loops more efficiently
+
 Bug Fixes
 ---------
+
+* fixed serious performance issue with Table.transformSamples/Observations when using CSMat as the sparse backend
 
 BIOM-Format 1.1.0 - 1.1.1
 =========================
