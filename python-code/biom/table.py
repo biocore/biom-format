@@ -747,12 +747,11 @@ class Table(object):
 
                     new_data[:, s_idx[bin]] += s_v
             
-            # fetch the new collapsed metadata. It may actually be better to 
-            # disregard the metadata as it may be wholy inaccurate at this
-            # point.
-            collapsed_s_md = [new_s_md[k] for k,i in sorted(s_idx.items(),
-                                                        key=itemgetter(1))]
-            
+            # reassociate pathway information
+            collapsed_s_md = []
+            for k,i in sorted(s_idx.items(), key=itemgetter(1)):
+                collapsed_s_md.append({one_to_many_md_key:new_s_md[k]})
+ 
             # get the new sample IDs
             collapsed_s_ids = [k for k,i in sorted(s_idx.items(), 
                                                       key=itemgetter(1))]
@@ -906,14 +905,12 @@ class Table(object):
                         break
 
                     new_data[obs_idx[bin], :] += obs_v
-            
-            # fetch the new collapsed metadata. It may actually be better to 
-            # disregard the metadata as it may be wholy inaccurate at this
-            # point.
-            collapsed_obs_md = [new_obs_md[k] for k,i in sorted(obs_idx.items(),
-                                                        key=itemgetter(1))]
-            
-            # get the new observation IDs
+    
+            # associate the pathways back
+            collapsed_obs_md = []
+            for k,i in sorted(obs_idx.items(), key=itemgetter(1)):
+                collapsed_obs_md.append({one_to_many_md_key:new_obs_md[k]})
+ 
             collapsed_obs_ids = [k for k,i in sorted(obs_idx.items(), 
                                                         key=itemgetter(1))]
 
