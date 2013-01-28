@@ -4,6 +4,9 @@ from collections import defaultdict
 from os import getenv
 from os.path import abspath, dirname, exists
 import re
+from hashlib import md5
+from gzip import open as gzip_open
+from numpy import mean, median, min, max
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
@@ -184,3 +187,74 @@ def parse_biom_config_file(biom_config_file):
         param_value = ' '.join(fields[1:]) or None
         result[param_id] = param_value
     return result
+
+def compute_counts_per_sample_stats(table, binary_counts=False):
+    """Return summary statistics on per-sample observation counts
+    
+        table: a BIOM table object
+        binary_counts: count the number of unique observations per
+         sample, rather than the sum of the total counts (i.e., counts
+         are qualitative rather than quantitative)
+    
+    """
+    if binary_counts:
+        sample_counts = {}
+        for count_vector, sample_id, metadata in table.iterSamples():
+            sample_counts[sample_id] = len([x for x in count_vector if x != 0])
+        counts = sample_counts.values()
+    else:
+        sample_counts = {}
+        for count_vector, sample_id, metadata in table.iterSamples():
+            sample_counts[sample_id] = count_vector.sum()
+        counts = sample_counts.values()
+    
+    return (min(counts),
+            max(counts),
+            median(counts),
+            mean(counts),
+            sample_counts)
+
+def safe_md5(open_file, block_size=2**20):
+    """Computes an md5 sum without loading the file into memory
+    
+    This method is based on the answers given in:
+    http://stackoverflow.com/questions/1131220/get-md5-hash-of-a-files-without-open-it-in-python
+    
+    Modified from PyCogent (www.pycogent.org).
+    """
+    result = md5()
+    data = True
+    while data:
+        data = open_file.read(block_size)
+        if data:
+            result.update(data)
+    return result.hexdigest()
+
+def is_gzip(fp):
+    """Checks the first two bytes of the file for the gzip magic number
+
+    If the first two bytes of the file are 1f 8b (the "magic number" of a 
+    gzip file), return True; otherwise, return false.
+    
+    This code was copied from QIIME (www.qiime.org).
+    """
+    return open(fp, 'rb').read(2) == '\x1f\x8b'
+
+def biom_open(fp, permission='U'):
+    """Wrapper to allow opening of gzipped or non-compressed files
+    
+    Read or write the contents of a file
+
+    file_fp : file path
+    permission : either 'r','w','a'
+
+    If the file is binary, be sure to pass in a binary mode (append 'b' to
+    the mode); opening a binary file in text mode (e.g., in default mode 'U')
+    will have unpredictable results.
+    
+    This code was copied from QIIME (www.qiime.org).
+    """
+    if is_gzip(fp):
+        return gzip_open(fp,'rb')
+    else:
+        return open(fp, permission)
