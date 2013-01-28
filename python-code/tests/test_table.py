@@ -953,6 +953,38 @@ class DenseTableTests(TestCase):
         self.assertRaises(TableException, self.dt_rich.filterObservations, \
                           lambda x,y,z: False)
 
+    def test_collapseObservationsByMetadata_one_to_many_strict(self):
+        """Collapse observations by arbitary metadata"""
+        dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
+                        ['1','2','3'], [{'barcode':'aatt'},
+                                        {'barcode':'ttgg'},
+                                        {'barcode':'aatt'}],
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c']]},
+                         {'pathways':[['a']]}])
+        exp_cat2 = DenseTable(array([[13,15,17],[8,9,10],[5,6,7]]), 
+                        ['a','b','c'],
+                        ['bx','c','d'], [{'barcode':'aatt'},
+                                        {'barcode':'ttgg'},
+                                        {'barcode':'aatt'}],
+                        [{'Path':['a','bx']},
+                         {'Path':['a','c']},
+                         {'Path':['a','d']}])
+        def bin_f(x):
+            for foo in x['pathways']:
+                yield (foo, foo[1])
+
+        obs_cat2 = dt_rich.collapseObservationsByMetadata(bin_f, norm=False, 
+                     min_group_size=1, one_to_many=True, 
+                     strict=False).sortByObservationId()
+
+        self.assertEqual(obs_cat2, exp_cat2)
+
+        self.assertRaises(IndexError, dt_rich.collapseObservationsByMetadata,
+                     bin_f, norm=False, min_group_size=1, one_to_many=True, 
+                     strict=True)
+
+
     def test_collapseObservationsByMetadata_one_to_many(self):
         """Collapse observations by arbitary metadata"""
         dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
@@ -995,7 +1027,6 @@ class DenseTableTests(TestCase):
                 yield (foo[:1], foo[0])
         obs_cat1 = dt_rich.collapseObservationsByMetadata(bin_f, norm=False, 
                      min_group_size=1, one_to_many=True).sortByObservationId()
-        
         self.assertEqual(obs_cat1, exp_cat1)
 
     def test_collapseObservationsByMetadata(self):
@@ -1057,6 +1088,38 @@ class DenseTableTests(TestCase):
 
         self.assertRaises(TableException, dt_rich.collapseSamplesByMetadata,
                 bin_f, min_group_size=10)
+
+    def test_collapseSamplesByMetadata_one_to_many_strict(self):
+        """Collapse samples by arbitary metadata"""
+        dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),
+                        ['XXa','XXb','XXc'],
+                        ['1','2','3'], 
+                        [{'foo':[['a','b'],['a','d']]},
+                         {'foo':[['a','b'],['a','c']]},
+                         {'foo':[['a']]}],
+                        [{'other':'aatt'},
+                         {'other':'ttgg'},
+                         {'other':'aatt'}])
+        exp_cat2 = DenseTable(array([[11,17,23],[6,9,12],[5,8,11]]).T, 
+                        ['b','c','d'],
+                        ['1','2','3'], 
+                        [{'Path':['a','b']},
+                         {'Path':['a','c']},
+                         {'Path':['a','d']}],
+                        [{'other':'aatt'},
+                                        {'other':'ttgg'},
+                                        {'other':'aatt'}])
+        def bin_f(x):
+            for foo in x['foo']:
+                yield (foo, foo[1])
+        obs_cat2 = dt_rich.collapseSamplesByMetadata(bin_f, norm=False, 
+                     min_group_size=1, one_to_many=True, 
+                     strict=False).sortByObservationId()
+        self.assertEqual(obs_cat2, exp_cat2)
+
+        self.assertRaises(IndexError, dt_rich.collapseSamplesByMetadata, bin_f,
+                     norm=False, min_group_size=1, one_to_many=True, 
+                     strict=True)
 
     def test_collapseSamplesByMetadata_one_to_many(self):
         """Collapse samples by arbitary metadata"""
