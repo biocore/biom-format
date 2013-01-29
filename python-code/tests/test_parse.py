@@ -25,7 +25,7 @@ __copyright__ = "Copyright 2012, BIOM-Format Project"
 __credits__ = ["Justin Kuczynski","Daniel McDonald"] #remember to add yourself
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.1.2"
+__version__ = "1.1.2-dev"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 
