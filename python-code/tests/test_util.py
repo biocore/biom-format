@@ -15,7 +15,7 @@ __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
                "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.1.2"
+__version__ = "1.1.2-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
