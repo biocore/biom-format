@@ -22,6 +22,14 @@ __version__ = "1.1.2-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
+_SPARSE_TABLE_LOOKUP = {("sparse","OTU table"):SparseOTUTable,
+                        ("sparse","Pathway table"):SparsePathwayTable,
+                        ("sparse","Function table"):SparseFunctionTable,
+                        ("sparse","Ortholog table"):SparseOrthologTable,
+                        ("sparse","Gene table"):SparseGeneTable,
+                        ("sparse","Metabolite table"):SparseMetaboliteTable,
+                        ("sparse","Taxon table"):SparseTaxonTable}
+
 MATRIX_ELEMENT_TYPE = {'int':int,'float':float,'unicode':unicode,
                       u'int':int,u'float':float,u'unicode':unicode}
 
@@ -309,7 +317,13 @@ def parse_biom_table(json_fh,constructor=None, try_light_parse=True):
     """
     table_str = ''.join(json_fh)
 
-    if try_light_parse:
+    # see if we have a sparse table, special case for try_light_parse
+    if constructor is None:   
+        mat_type = direct_parse_key(table_str, "matrix_type")
+        table_type = direct_parse_key(table_str, "type")
+        constructors = _SPARSE_TABLE_LOOKUP.get((mat_type,table_type),None)
+
+    if constructor is not None and try_light_parse:
         try:
             t = light_parse_biom_sparse(table_str, constructor)
         except:
