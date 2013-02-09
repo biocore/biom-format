@@ -22,13 +22,20 @@ __version__ = "1.1.2-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
-_SPARSE_TABLE_LOOKUP = {("sparse","OTU table"):SparseOTUTable,
-                        ("sparse","Pathway table"):SparsePathwayTable,
-                        ("sparse","Function table"):SparseFunctionTable,
-                        ("sparse","Ortholog table"):SparseOrthologTable,
-                        ("sparse","Gene table"):SparseGeneTable,
-                        ("sparse","Metabolite table"):SparseMetaboliteTable,
-                        ("sparse","Taxon table"):SparseTaxonTable}
+_TABLE_LOOKUP = {("sparse","OTU table"):SparseOTUTable,
+                 ("sparse","Pathway table"):SparsePathwayTable,
+                 ("sparse","Function table"):SparseFunctionTable,
+                 ("sparse","Ortholog table"):SparseOrthologTable,
+                 ("sparse","Gene table"):SparseGeneTable,
+                 ("sparse","Metabolite table"):SparseMetaboliteTable,
+                 ("sparse","Taxon table"):SparseTaxonTable,
+                 ("dense","OTU table"):DenseOTUTable,
+                 ("dense","Pathway table"):DensePathwayTable,
+                 ("dense","Function table"):DenseFunctionTable,
+                 ("dense","Ortholog table"):DenseOrthologTable,
+                 ("dense","Gene table"):DenseGeneTable,
+                 ("dense","Metabolite table"):DenseMetaboliteTable,
+                 ("dense","Taxon table"):DenseTaxonTable}
 
 MATRIX_ELEMENT_TYPE = {'int':int,'float':float,'unicode':unicode,
                       u'int':int,u'float':float,u'unicode':unicode}
@@ -321,7 +328,7 @@ def parse_biom_table(json_fh,constructor=None, try_light_parse=True):
     if constructor is None:   
         mat_type = direct_parse_key(table_str, "matrix_type")
         table_type = direct_parse_key(table_str, "type")
-        constructors = _SPARSE_TABLE_LOOKUP.get((mat_type,table_type),None)
+        constructors = _TABLE_LOOKUP.get((mat_type,table_type),None)
 
     if constructor is not None and try_light_parse:
         try:
