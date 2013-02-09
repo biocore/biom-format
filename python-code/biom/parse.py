@@ -8,10 +8,10 @@ from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
         DenseGeneTable, SparseMetaboliteTable, DenseMetaboliteTable,\
         SparseTaxonTable, DenseTaxonTable, table_factory, to_sparse,\
         nparray_to_sparseobj, SparseObj
-from biom.csmat import CSMat
 import json
 from numpy import zeros, asarray, uint32, float64
 from string import strip
+from biom.csmat import CSMat
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
@@ -296,13 +296,28 @@ def light_parse_biom_sparse(biom_str, constructor):
     row, col = map(int, biom_str[start_idx:end_idx].replace('[','').split(', '))
     data_mat = SparseObj(row, col)
 
-    for rec in data.replace('[','').split('],'):
-        try:
-            r,c,v = rec.split(',')
-        except:
-            raise TypeError, "Data do not appear sparse!"
+    rows = []; cols = []; vals = []
+    if isinstance(data_mat, CSMat):
+        for rec in data.replace('[','').split('],'):
+            try:
+                r,c,v = rec.split(',')
+            except:
+                raise TypeError, "Data do not appear sparse!"
+
+            rows.append(uint32(r))
+            cols.append(uint32(c))
+            vals.append(float64(v))
+        data_mat._coo_rows = rows
+        data_mat._coo_cols = cols
+        data_mat._coo_values = vals
+    else:
+        for rec in data.replace('[','').split('],'):
+            try:
+                r,c,v = rec.split(',')
+            except:
+                raise TypeError, "Data do not appear sparse!"
             
-        data_mat[uint32(r),uint32(c)] = float64(v)
+            data_mat[uint32(r),uint32(c)] = float64(v)
 
     t = parse_biom_table_str(new_s, constructor, data_pump=data_mat)
 
@@ -328,8 +343,11 @@ def parse_biom_table(json_fh,constructor=None, try_light_parse=True):
     if constructor is None:   
         mat_type = direct_parse_key(table_str, "matrix_type")
         table_type = direct_parse_key(table_str, "type")
-        constructors = _TABLE_LOOKUP.get((mat_type,table_type),None)
 
+        mat_type = mat_type.split(':')[-1].strip(' "')
+        table_type = table_type.split(':')[-1].strip(' "')
+        constructor = _TABLE_LOOKUP.get((mat_type,table_type),None)
+    
     if constructor is not None and try_light_parse:
         try:
             t = light_parse_biom_sparse(table_str, constructor)
