@@ -6,11 +6,13 @@
 #' This is different than reading a biom file into R.
 #' If you are instead interested in importing a biom file into R,
 #' you should use the \code{\link{read_biom}} function. 
-#' It is probably worth noting that \code{\link{read_biom}} uses this function
-#' to construct its \code{\link{biom-class}} instance after parsing the raw
-#' data from the biom file into R. 
-#' This function is made available (exported) so that other users/developers
+#' This function is made available (exported) so that 
+#' advanced-users/developers
 #' can easily represent analogous data in this structure if needed.
+#' However, most users are expected to instead rely on the
+#' \code{\link{read_biom}} function for data import, followed by 
+#' \code{\link{accessors}} (accessor functions) that extract R-friendly
+#'  subsets of the data stored in the biom-format derived list.
 #'
 #' \code{biom()} is a constructor method. This is the main method
 #' suggested for constructing an experiment-level (\code{\link{biom-class}})
@@ -18,24 +20,11 @@
 #'
 #' @usage biom(abundance, header=list(), taxonomy=NULL, sampleData=NULL, tree=NULL)
 #'
-#' @param abundance (REQUIRED). A \code{\link{Matrix}}-class object of abundance values.
-#'  By convention, rows should represent taxa and columns different samples.
-#'
-#' @param header (OPTIONAL). A list or \code{NULL}. The header information describing
-#'  this biom file, it's format, and other meta-data.
-#'  Basically all the elements above \code{"rows"} in the biom format description.
-#'  \url{http://biom-format.org/documentation/format_versions/biom-1.0.html}.
-#'  Default is \code{NULL}.
-#'
-#' @param taxonomy (OPTIONAL). A (usually character-based) \code{link{matrix}} of
-#'  taxonomic ranks as columns and taxa as rows, or \code{NULL}.
-#'  Default is \code{NULL}.
-#'
-#' @param sampleData (OPTIONAL). A \code{link{data.frame}} representing Sample Data, or \code{NULL}.
-#'  Default is \code{NULL}
-#'
-#' @param tree (OPTIONAL). A \code{\link[ape]{phylo}}-class phylogenetic tree, or \code{NULL}.
-#'  Default is \code{NULL}
+#' @param x (REQUIRED). A named list conforming to conventions arising from 
+#'  the \code{\link{fromJSON}} function reading a biom-format file with 
+#'  default settings. See \code{\link{read_biom}} for more details, and 
+#'  \code{\link{accessors}} (accessor functions) that extract R-friendly
+#'  subsets of the data stored in the biom-format derived list.
 #'
 #' @return An instance of the \code{\link{biom-class}}. 
 #'
@@ -46,7 +35,7 @@
 #'
 #' @export
 #' @examples #
-#' # # # import with default parameters, specify a file
+#' # import with default parameters, specify a file
 #' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
 #' x <- read_biom(biom_file)
 #' show(x)
@@ -55,18 +44,11 @@
 #' abundance(x)
 #' taxonomy(x)
 #' sampleData(x)
-#' tree(x, FALSE)
-biom <- function(abundance, header=list(), taxonomy=NULL, sampleData=NULL, tree=NULL){
+biom <- function(x){
 	
-	# # Some instantiation checks should go here...
-	# # Some can also be wrapped into validity methods.
-	biom <- new("biom",
-		header     = header,
-		abundance  = abundance,
-		taxonomy   = taxonomy,
-		sampleData = sampleData,
-		tree       = tree
-	)
+	# Some instantiation checks chould go here, or wrap them in validity methods.
+	# Depends on how strict the check should be.
+	biom <- new("biom", x)
 	
 	return(biom)
 }
@@ -88,7 +70,6 @@ biom <- function(abundance, header=list(), taxonomy=NULL, sampleData=NULL, tree=
 #' (x <- read_biom(biom_file) )
 #' show(x)
 setMethod("show", "biom", function(object){
-	# cat("biom-class experiment-level object", fill=TRUE)
 	# print header
 	for( i in names(header(object)) ){
 		# Only show non-null elements
@@ -97,77 +78,8 @@ setMethod("show", "biom", function(object){
 		}
 	}
 
-	# print otuTable (always there).
-	cat(paste("OTU Table:          [", nrow(abundance(object)), " taxa by ", 
-        ncol(abundance(object)), " samples]", sep = ""), fill = TRUE
-	)	
-
-	# print Sample Data if there
-	if(!is.null(sampleData(object, FALSE))){
-        cat(paste("Sample Data:         [", dim(sampleData(object))[1], " samples by ", 
-	        dim(sampleData(object))[2], 
-            " sample variables]:", sep = ""), fill = TRUE)
-	}
-
-	# print taxonomy if present
-	if(!is.null(taxonomy(object, FALSE))){
-        cat(paste("Taxa Data:     [", dim(taxonomy(object))[1], " taxa by ", 
-	        dim(taxonomy(object))[2], 
-            " taxa variables]:", sep = ""), fill = TRUE)
-	}
-	
-	# print tree if there
-	if(!is.null(tree(object, FALSE))){
-        cat(paste("Phylogenetic Tree:  [", length(tree(object)$tip.label), " tips and ", 
-	        tree(object)$Nnode,
-            " internal nodes]", sep = ""),
-        	fill = TRUE
-        )
-		if( is.rooted(tree(object)) ){
-			cat("                     rooted", fill=TRUE)
-		} else {
-			cat("                     unrooted", fill=TRUE)
-		}        
-	}
 })
 ################################################################################
-################################################################################
-#' Universal slot accessor for the \code{\link{biom-class}}.
-#'
-#' This function is used by slot-specific accessors. 
-#'
-#' @usage access(biom, slot, errorIfNULL=FALSE) 
-#'
-#' @param biom (Required). \code{\link{biom-class}}.
-#'
-#' @param slot (Required). A character string indicating the slot (not data class)
-#'  of the component data type that is desired.
-#'
-#' @param errorIfNULL (Optional). Logical. Should the accessor stop with 
-#'  an error if the slot is empty (\code{NULL})? Default \code{FALSE}. 
-#'
-#' @return Returns the component object specified by the argument \code{slot}. 
-#'  Returns NULL if slot does not exist. Returns \code{biom} as-is 
-#'  if it is a component class that already matches the slot name.
-#'
-#' @keywords internal
-access <- function(biom, slot, errorIfNULL=FALSE){
-	
-	slots <- getSlots("biom")
-	
-	# Check that slot is actually a slot in this class.
-	 if(!slot %in% slotNames(biom) ){
-		out <- NULL
-	} else {
-		out <- eval(parse(text=paste("biom@", slot, sep=""))) 
-	}
-	
-	# Test if you should error upon the emptiness of the slot being accessed
-	if( errorIfNULL & is.null(out) ){
-		stop(slot, " slot is empty.")
-	}
-	return(out)
-}
 ################################################################################
 #' Accessors for the \code{\link{biom-class}}. 
 #' 
@@ -185,59 +97,107 @@ access <- function(biom, slot, errorIfNULL=FALSE){
 #' Internally these acessors wrap the not-exported \code{\link{access}} function.
 #' This helps ensure consistent behavior from accessors.
 #'
-#' @usage header(biom, errorIfNULL=TRUE)
-#' @usage abundance(biom, errorIfNULL=TRUE)
-#' @usage taxonomy(biom, errorIfNULL=TRUE)
-#' @usage sampleData(biom, errorIfNULL=TRUE)
-#' @usage tree(biom, errorIfNULL=TRUE)
+#' @usage header(x)
+#' @usage abundance(x, parallel=FALSE)
+#' @usage taxonomy(x, parallel=FALSE)
+#' @usage sampleData(x, parallel=FALSE)
 #'
-#' @param biom (Required). \code{\link{biom-class}}.
-#'
-#' @param errorIfNULL (Optional). Logical. Should the accessor stop with 
-#'  an error if the slot is empty (\code{NULL})? Default \code{FALSE}. 
+#' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @param parallel (Optional). Logical. Whether to perform the accession parsing
+#'  using a parallel-computing backend supported by the \code{\link{plyr-package}}
+#'  via the \code{\link{foreach-package}}. Note: At the moment, the header
+#'  accessor does not need nor does it support parallel-computed parsing.
 #'
 #' @aliases accessors
 #' @aliases header
 #' @aliases taxonomy
 #' @aliases sampleData
-#' @aliases tree
 #' @rdname accessor-functions
 #' @export
 #' @examples
-#' ## Examples here.
-header <- function(biom, errorIfNULL=TRUE){
-	access(biom, "header", errorIfNULL)
+#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' x <- read_biom(biom_file)
+#' header(x)
+#' abundance(x)
+#' taxonomy(x)
+#' sampleData(x)
+header <- function(x){
+	# Store header as everything up to the "rows" key.
+	# Protect against missing header keys causing an error
+	header <- list() # Initialize header
+	try(header <- x[1:(charmatch("rows", names(x)) - 1)], TRUE)
+	if( identical(header, list()) ){
+		warning("Header information missing from this file.")
+	}
 }
 ################################################################################
 #' @export
 #' @aliases header
 #' @aliases abundance
 #' @rdname accessor-functions
-abundance <- function(biom, errorIfNULL=TRUE){
-	access(biom, "abundance", errorIfNULL)
+#' @importFrom plyr laply
+abundance <- function(x, parallel=FALSE){
+	# Check if sparse. Must parse differently than dense
+	if( x$matrix_type == "sparse" ){
+		otumat <- Matrix(0, nrow=x$shape[1], ncol=x$shape[2])
+		# Loop through each sparse line and assign to relevant position in otumat.
+		for( i in x$data ){
+			otumat[(i[1]+1), (i[2]+1)] <- i[3]
+		}
+	} else if( x$matrix_type == "dense" ){ 
+		# parse the dense matrix instead using plyr's laply
+		otumat <- laply(x$data, function(i) i, .parallel=parallel)
+	} 
+	
+	# Get row (OTU) and col (sample) names
+	rownames(otumat) <- sapply(x$rows, function(i) i$id )
+	colnames(otumat) <- sapply(x$columns, function(i) i$id )
+	
+	# Instantiates a "Matrix" daughter class, usually sparse,
+	# but precise daughter class is chosen dynamically based
+	# on properties of the data (if actually dense, it stays dense).
+	return(Matrix(otumat))
 }
 ################################################################################
 #' @export
 #' @aliases header
 #' @aliases taxonomy
 #' @rdname accessor-functions
-taxonomy <- function(biom, errorIfNULL=TRUE){
-	access(biom, "taxonomy", errorIfNULL)
+#' @importFrom plyr ldply
+taxonomy <- function(x, parallel=FALSE){
+	# Need to check if taxonomy information is empty (minimal biom file)
+	if(  all( sapply(sapply(x$rows, function(i) i$metadata), is.null) )  ){
+		taxdf <- NULL
+	} else {
+		taxdf <- ldply(x$rows, function(i) i$metadata$taxonomy, .parallel=parallel)
+		# Add rownames to taxonomy data.frame.
+		rownames(taxdf) <- sapply(x$rows, function(i) i$id )
+	}
+	return(taxdf)
 }
 ################################################################################
 #' @export
 #' @aliases header
 #' @aliases sampleData
 #' @rdname accessor-functions
-sampleData <- function(biom, errorIfNULL=TRUE){
-	access(biom, "sampleData", errorIfNULL)
+#' @importFrom plyr ldply
+sampleData <- function(x, parallel=FALSE){
+	# Sample Data ("columns" in biom)
+	if(  all( sapply(sapply(x$columns, function(i) i$metadata), is.null) )  ){
+		# If there is no metadata (all NULL),
+		# then set samdata to NULL, representing empty.
+		samdata <- NULL
+	} else {
+		# Otherwise, parse it.
+		samdata <- ldply(x$columns, function(i){
+			if( class(i$metadata) == "list"){
+				return(i$metadata[[1]])
+			} else {
+				return(i$metadata)				
+			}
+		}, .parallel=parallel)
+		rownames(samdata) <- sapply(x$columns, function(i) i$id)
+	}
 }
 ################################################################################
-#' @export
-#' @aliases header
-#' @aliases tree
-#' @rdname accessor-functions
-tree <- function(biom, errorIfNULL=TRUE){
-	access(biom, "tree", errorIfNULL)
-}
 ################################################################################
