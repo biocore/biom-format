@@ -12,8 +12,7 @@
 #' @seealso
 #' The constructor, \code{\link{biom}}
 #' 
-#' The accessors, \code{\link{header}}, \code{\link{abundance}},
-#'  \code{\link{taxonomy}}, \code{\link{sampleData}}, \code{\link{tree}}.
+#' Accessor functions: \code{\link{accessors}}.
 #' 
 #' @name biom-class
 #' @rdname biom-class
@@ -26,8 +25,8 @@
 #' show(x)
 #' print(x)
 #' header(x)
-#' abundance(x)
-#' taxonomy(x)
-#' sampleData(x)
+#' biom_table(x)
+#' observ_meta(x)
+#' sample_meta(x)
 setClass("biom", contains="list")
 ################################################################################

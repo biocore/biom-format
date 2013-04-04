@@ -9,8 +9,8 @@
 }
 \examples{
 # # # import with default parameters, specify a file
-biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
-(x <- read_biom(biom_file) )
+biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+(x = read_biom(biom_file) )
 show(x)
 }
 \seealso{

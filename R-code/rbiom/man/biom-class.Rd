@@ -1,16 +1,11 @@
 \name{biom-class}
 \alias{biom-class}
-\title{A native R-representation of the biom format.}
+\title{A native R-representation of the biom-format.}
 \description{
-  For documentation of the text file format see
-  \url{http://biom-format.org/}.
-}
-\details{
-  slots: \describe{ \item{otuTable}{a single object of
-  class otuTable.} \item{samData}{ a single object of class
-  sampleData.} \item{taxTab}{ a single object of class
-  taxonomyTable.} \item{tre}{ a single object of class
-  phylo, from the package ape} }
+  This class inherits from the \code{\link{list-class}},
+  with validity checks specific to the definition to the
+  biom-format. For documentation of the text file format
+  see \url{http://biom-format.org/}.
 }
 \examples{
 #
@@ -20,16 +15,13 @@ x <- read_biom(biom_file)
 show(x)
 print(x)
 header(x)
-abundance(x)
-taxonomy(x)
-sampleData(x)
-tree(x, FALSE)
+biom_table(x)
+observ_meta(x)
+sample_meta(x)
 }
 \seealso{
   The constructor, \code{\link{biom}}
 
-  The accessors, \code{\link{header}},
-  \code{\link{abundance}}, \code{\link{taxonomy}},
-  \code{\link{sampleData}}, \code{\link{tree}}.
+  Accessor functions: \code{\link{accessors}}.
 }
 

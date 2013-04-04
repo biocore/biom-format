@@ -36,20 +36,18 @@
 #' @export
 #' @examples #
 #' # import with default parameters, specify a file
-#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
-#' x <- read_biom(biom_file)
+#' biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' x = read_biom(biom_file)
 #' show(x)
 #' print(x)
 #' header(x)
 #' biom_table(x)
 #' observ_meta(x)
 #' sample_meta(x)
-biom <- function(x){
-	
+biom = function(x){
 	# Some instantiation checks chould go here, or wrap them in validity methods.
 	# Depends on how strict the check should be.
-	biom <- new("biom", x)
-	
+	biom = new("biom", x)
 	return(biom)
 }
 ################################################################################
@@ -66,8 +64,8 @@ biom <- function(x){
 #' @rdname show-methods
 #' @examples
 #' # # # import with default parameters, specify a file
-#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
-#' (x <- read_biom(biom_file) )
+#' biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' (x = read_biom(biom_file) )
 #' show(x)
 setMethod("show", "biom", function(object){
 	# print header
@@ -77,7 +75,6 @@ setMethod("show", "biom", function(object){
 			cat(paste(i, header(object)[[i]][[1]], sep=": "), fill=TRUE)
 		}
 	}
-
 })
 ################################################################################
 ################################################################################
@@ -86,21 +83,16 @@ setMethod("show", "biom", function(object){
 #' Convenience functions for accessing particular components of
 #' the \code{\link{biom-class}}. 
 #'
-#' Some features of the biom-format can be essentially empty, and are 
-#' represented as \code{NULL} in R once imported. 
-#' By default, these accessors will throw an error if
-#' a \code{NULL} is encountered, under the assumption that you
-#' are using this accessor because you expect the component to be non-empty.
-#' Simply setting the second argument to \code{FALSE} relieves this and allows
-#' \code{NULL} to be returned silently.
-#'
-#' Internally these acessors wrap the not-exported \code{\link{access}} function.
-#' This helps ensure consistent behavior from accessors.
+#' Some features of the biom-format can be essentially empty,
+#' represented by the string \code{"null"} in the file.
+#' These fields are returned as \code{NULL} when accessed 
+#' by an accessor function.
 #'
 #' @usage header(x)
 #' @usage biom_table(x, parallel=FALSE)
 #' @usage observ_meta(x, parallel=FALSE)
 #' @usage sample_meta(x, parallel=FALSE)
+#' @usage biomnull()
 #'
 #' @param x (Required). An instance of the \code{\link{biom-class}}.
 #' @param key (Optional). Character string. The key for the metadata type
@@ -109,30 +101,74 @@ setMethod("show", "biom", function(object){
 #'  metadat accessors.
 #' @param parallel (Optional). Logical. Whether to perform the accession parsing
 #'  using a parallel-computing backend supported by the \code{\link{plyr-package}}
-#'  via the \code{\link{foreach-package}}. Note: At the moment, the header
+#'  via the \code{\link[foreach]{foreach-package}}. Note: At the moment, the header
 #'  accessor does not need nor does it support parallel-computed parsing.
 #'
 #' @aliases accessors
 #' @aliases header
+#' @aliases biomnull
+#' @aliases biomclass
+#' @aliases biomshape
+#' @aliases biom_table
 #' @aliases observ_meta
 #' @aliases sample_meta
 #' @rdname accessor-functions
 #' @export
 #' @examples
-#' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
-#' x <- read_biom(biom_file)
+#' biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' x = read_biom(biom_file)
 #' header(x)
+#' biomshape(x)
+#' biomclass(x)
 #' biom_table(x)
 #' observ_meta(x)
 #' sample_meta(x)
-header <- function(x){
+#' biomnull()
+header = function(x){
 	# Store header as everything up to the "rows" key.
 	# Protect against missing header keys causing an error
-	header <- list() # Initialize header
-	try(header <- x[1:(charmatch("rows", names(x)) - 1)], TRUE)
-	if( identical(header, list()) ){
-		warning("Header information missing from this file.")
+	biomheader = list() # Initialize biomheader
+	try(biomheader <- x[1:(charmatch("rows", names(x)) - 1)], TRUE)
+	if( identical(biomheader, list()) ){
+		stop("biom header information missing")
 	}
+  return(header)
+}
+################################################################################
+#' @export
+#' @aliases header
+#' @aliases biomnull
+#' @rdname accessor-functions
+biomnull = function(){
+  # No-argument function that defines the NULL/missing value string in biom-format
+  return("null")
+}
+################################################################################
+#' @export
+#' @aliases header
+#' @aliases biomshape
+#' @rdname accessor-functions
+biomshape = function(x){
+  bsv = as.integer(c(nrow=x$shape[1], ncol=x$shape[2]))
+  if(!inherits(bsv, "integer")){stop("problem with biom shape value type")}
+  if(!identical(length(bsv), 2L)){stop("problem with biom shape value length")}
+  if(any(bsv < 0)){stop("problem with biom shape value: negative value")}
+  return(bsv)
+}
+################################################################################
+#' @export
+#' @aliases header
+#' @aliases biomclass
+#' @rdname accessor-functions
+biomclass = function(x){
+  bcl = x$matrix_element_type
+  if(!identical(length(bcl), 1L)){
+    stop("biom matrix_element_type field should have only 1 element")
+  }
+  if( !bcl %in% c("int", "float", "unicode") ){
+    stop("biom matrix_element_type value is unsupported.")
+  }
+  return(bcl)
 }
 ################################################################################
 #' @export
@@ -140,27 +176,42 @@ header <- function(x){
 #' @aliases biom_table
 #' @rdname accessor-functions
 #' @importFrom plyr laply
-biom_table <- function(x, parallel=FALSE){
-	# Check if sparse. Must parse differently than dense
+#' @import Matrix
+biom_table = function(x, parallel=FALSE){
 	if( x$matrix_type == "sparse" ){
-		otumat <- Matrix(0, nrow=x$shape[1], ncol=x$shape[2])
+	  # If sparse, must parse accordingly. Dense below.
+    biomshape = biomshape(x)
+    if(biomclass(x) %in% c("int", "float")){
+      # If data is numeric, initialize with Matrix (numeric data only)
+      otumat = Matrix(0, nrow=biomshape["nrow"], ncol=biomshape["ncol"]) 
+    } else {
+      # Else, biomclass must be "unicode" for a unicode string.
+      # Use a standard R character matrix
+      otumat = matrix(NA_character_, nrow=biomshape["nrow"], ncol=biomshape["ncol"]) 
+    }
 		# Loop through each sparse line and assign to relevant position in otumat.
 		for( i in x$data ){
 			otumat[(i[1]+1), (i[2]+1)] <- i[3]
 		}
 	} else if( x$matrix_type == "dense" ){ 
 		# parse the dense matrix instead using plyr's laply
-		otumat <- laply(x$data, function(i) i, .parallel=parallel)
+		otumat = laply(x$data, function(i) i, .parallel=parallel)
+		if(biomclass(x) %in% c("int", "float")){
+		  # If data is numeric, attempt to coerce to Matrix-inherited class
+      # Mainly because it might still be sparse and this is a good way
+      # to handle it in R. 
+		  otumat = Matrix(otumat)
+		} else if(!inherits(otumat, "matrix")){
+      # Else, check that results of laply above are in fact a matrix
+      stop("biom: problem parsing dense character matrix")
+		}
 	} 
 	
-	# Get row (OTU) and col (sample) names
+	# Define row and col indices
 	rownames(otumat) <- sapply(x$rows, function(i) i$id )
 	colnames(otumat) <- sapply(x$columns, function(i) i$id )
 	
-	# Instantiates a "Matrix" daughter class, usually sparse,
-	# but precise daughter class is chosen dynamically based
-	# on properties of the data (if actually dense, it stays dense).
-	return(Matrix(otumat))
+	return(otumat)
 }
 ################################################################################
 #' @export
@@ -168,16 +219,17 @@ biom_table <- function(x, parallel=FALSE){
 #' @aliases observ_meta
 #' @rdname accessor-functions
 #' @importFrom plyr ldply
-observ_meta <- function(x, key="taxonomy", parallel=FALSE){
+observ_meta = function(x, key="taxonomy", parallel=FALSE){
 	# Need to check if observ_meta data is empty (minimal biom file)
 	if(  all( sapply(sapply(x$rows, function(i) i$metadata), is.null) )  ){
-		taxdf <- NULL
+		obsmetadf = NULL
 	} else {
-		taxdf <- ldply(x$rows, function(i) i$metadata[[key]], .parallel=parallel)
+		obsmetadf = ldply(x$rows, function(i, key) i$metadata[[key]],
+                       key=key, .parallel=parallel)
 		# Add rownames to observ_meta data.frame.
-		rownames(taxdf) <- sapply(x$rows, function(i) i$id )
+		rownames(obsmetadf) <- sapply(x$rows, function(i) i$id )
 	}
-	return(taxdf)
+	return(obsmetadf)
 }
 ################################################################################
 #' @export
@@ -185,15 +237,15 @@ observ_meta <- function(x, key="taxonomy", parallel=FALSE){
 #' @aliases sample_meta
 #' @rdname accessor-functions
 #' @importFrom plyr ldply
-sample_meta <- function(x, parallel=FALSE){
+sample_meta = function(x, parallel=FALSE){
 	# Sample Data ("columns" in biom)
 	if(  all( sapply(sapply(x$columns, function(i) i$metadata), is.null) )  ){
 		# If there is no metadata (all NULL),
 		# then set samdata to NULL, representing empty.
-		samdata <- NULL
+		samdata = NULL
 	} else {
 		# Otherwise, parse it.
-		samdata <- ldply(x$columns, function(i){
+		samdata = ldply(x$columns, function(i){
 			if( class(i$metadata) == "list"){
 				return(i$metadata[[1]])
 			} else {
