@@ -18,7 +18,7 @@
 #' suggested for constructing an experiment-level (\code{\link{biom-class}})
 #' object from its component data.
 #'
-#' @usage biom(abundance, header=list(), taxonomy=NULL, sampleData=NULL, tree=NULL)
+#' @usage biom(x)
 #'
 #' @param x (REQUIRED). A named list conforming to conventions arising from 
 #'  the \code{\link{fromJSON}} function reading a biom-format file with 
@@ -41,9 +41,9 @@
 #' show(x)
 #' print(x)
 #' header(x)
-#' abundance(x)
-#' taxonomy(x)
-#' sampleData(x)
+#' biom_table(x)
+#' observ_meta(x)
+#' sample_meta(x)
 biom <- function(x){
 	
 	# Some instantiation checks chould go here, or wrap them in validity methods.
@@ -98,11 +98,15 @@ setMethod("show", "biom", function(object){
 #' This helps ensure consistent behavior from accessors.
 #'
 #' @usage header(x)
-#' @usage abundance(x, parallel=FALSE)
-#' @usage taxonomy(x, parallel=FALSE)
-#' @usage sampleData(x, parallel=FALSE)
+#' @usage biom_table(x, parallel=FALSE)
+#' @usage observ_meta(x, parallel=FALSE)
+#' @usage sample_meta(x, parallel=FALSE)
 #'
 #' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @param key (Optional). Character string. The key for the metadata type
+#'  that you are attempting to access. Default value depends upon whether
+#'  observation or sample metadata. This argument only applies to 
+#'  metadat accessors.
 #' @param parallel (Optional). Logical. Whether to perform the accession parsing
 #'  using a parallel-computing backend supported by the \code{\link{plyr-package}}
 #'  via the \code{\link{foreach-package}}. Note: At the moment, the header
@@ -110,17 +114,17 @@ setMethod("show", "biom", function(object){
 #'
 #' @aliases accessors
 #' @aliases header
-#' @aliases taxonomy
-#' @aliases sampleData
+#' @aliases observ_meta
+#' @aliases sample_meta
 #' @rdname accessor-functions
 #' @export
 #' @examples
 #' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
 #' x <- read_biom(biom_file)
 #' header(x)
-#' abundance(x)
-#' taxonomy(x)
-#' sampleData(x)
+#' biom_table(x)
+#' observ_meta(x)
+#' sample_meta(x)
 header <- function(x){
 	# Store header as everything up to the "rows" key.
 	# Protect against missing header keys causing an error
@@ -133,10 +137,10 @@ header <- function(x){
 ################################################################################
 #' @export
 #' @aliases header
-#' @aliases abundance
+#' @aliases biom_table
 #' @rdname accessor-functions
 #' @importFrom plyr laply
-abundance <- function(x, parallel=FALSE){
+biom_table <- function(x, parallel=FALSE){
 	# Check if sparse. Must parse differently than dense
 	if( x$matrix_type == "sparse" ){
 		otumat <- Matrix(0, nrow=x$shape[1], ncol=x$shape[2])
@@ -161,16 +165,16 @@ abundance <- function(x, parallel=FALSE){
 ################################################################################
 #' @export
 #' @aliases header
-#' @aliases taxonomy
+#' @aliases observ_meta
 #' @rdname accessor-functions
 #' @importFrom plyr ldply
-taxonomy <- function(x, parallel=FALSE){
-	# Need to check if taxonomy information is empty (minimal biom file)
+observ_meta <- function(x, key="taxonomy", parallel=FALSE){
+	# Need to check if observ_meta data is empty (minimal biom file)
 	if(  all( sapply(sapply(x$rows, function(i) i$metadata), is.null) )  ){
 		taxdf <- NULL
 	} else {
-		taxdf <- ldply(x$rows, function(i) i$metadata$taxonomy, .parallel=parallel)
-		# Add rownames to taxonomy data.frame.
+		taxdf <- ldply(x$rows, function(i) i$metadata[[key]], .parallel=parallel)
+		# Add rownames to observ_meta data.frame.
 		rownames(taxdf) <- sapply(x$rows, function(i) i$id )
 	}
 	return(taxdf)
@@ -178,10 +182,10 @@ taxonomy <- function(x, parallel=FALSE){
 ################################################################################
 #' @export
 #' @aliases header
-#' @aliases sampleData
+#' @aliases sample_meta
 #' @rdname accessor-functions
 #' @importFrom plyr ldply
-sampleData <- function(x, parallel=FALSE){
+sample_meta <- function(x, parallel=FALSE){
 	# Sample Data ("columns" in biom)
 	if(  all( sapply(sapply(x$columns, function(i) i$metadata), is.null) )  ){
 		# If there is no metadata (all NULL),
