@@ -68,13 +68,10 @@ biom = function(x){
 #' (x = read_biom(biom_file) )
 #' show(x)
 setMethod("show", "biom", function(object){
-	# print header
-	for( i in names(header(object)) ){
-		# Only show non-null elements
-		if( !is.null(header(object)[[i]]) ){
-			cat(paste(i, header(object)[[i]][[1]], sep=": "), fill=TRUE)
-		}
-	}
+	cat("biom object. \n")
+	cat("type:", object$type, "\n")
+	cat("matrix_type:", object$matrix_type, "\n")
+	cat(biomshape(object)[1], "rows and", biomshape(object)[2], "columns \n")
 })
 ################################################################################
 ################################################################################
@@ -92,7 +89,6 @@ setMethod("show", "biom", function(object){
 #' @usage biom_table(x, parallel=FALSE)
 #' @usage observ_meta(x, parallel=FALSE)
 #' @usage sample_meta(x, parallel=FALSE)
-#' @usage biomnull()
 #'
 #' @param x (Required). An instance of the \code{\link{biom-class}}.
 #' @param key (Optional). Character string. The key for the metadata type
@@ -106,7 +102,6 @@ setMethod("show", "biom", function(object){
 #'
 #' @aliases accessors
 #' @aliases header
-#' @aliases biomnull
 #' @aliases biomclass
 #' @aliases biomshape
 #' @aliases biom_table
@@ -123,25 +118,10 @@ setMethod("show", "biom", function(object){
 #' biom_table(x)
 #' observ_meta(x)
 #' sample_meta(x)
-#' biomnull()
 header = function(x){
-	# Store header as everything up to the "rows" key.
-	# Protect against missing header keys causing an error
-	biomheader = list() # Initialize biomheader
-	try(biomheader <- x[1:(charmatch("rows", names(x)) - 1)], TRUE)
-	if( identical(biomheader, list()) ){
-		stop("biom header information missing")
-	}
-  return(header)
-}
-################################################################################
-#' @export
-#' @aliases header
-#' @aliases biomnull
-#' @rdname accessor-functions
-biomnull = function(){
-  # No-argument function that defines the NULL/missing value string in biom-format
-  return("null")
+	biomheadkeys = c("id", "format", "format_url", "type", "generated_by", "date",
+									 "matrix_type", "matrix_element_type", "shape")
+  return(x[biomheadkeys])
 }
 ################################################################################
 #' @export
@@ -149,7 +129,7 @@ biomnull = function(){
 #' @aliases biomshape
 #' @rdname accessor-functions
 biomshape = function(x){
-  bsv = as.integer(c(nrow=x$shape[1], ncol=x$shape[2]))
+  bsv = as(c(nrow=x$shape[1], ncol=x$shape[2]), "integer")
   if(!inherits(bsv, "integer")){stop("problem with biom shape value type")}
   if(!identical(length(bsv), 2L)){stop("problem with biom shape value length")}
   if(any(bsv < 0)){stop("problem with biom shape value: negative value")}
@@ -239,21 +219,16 @@ observ_meta = function(x, key="taxonomy", parallel=FALSE){
 #' @importFrom plyr ldply
 sample_meta = function(x, parallel=FALSE){
 	# Sample Data ("columns" in biom)
-	if(  all( sapply(sapply(x$columns, function(i) i$metadata), is.null) )  ){
+	if( all(sapply(sapply(x$columns, function(i) i$metadata), is.null)) ){
 		# If there is no metadata (all NULL),
 		# then set samdata to NULL, representing empty.
 		samdata = NULL
 	} else {
 		# Otherwise, parse it.
-		samdata = ldply(x$columns, function(i){
-			if( class(i$metadata) == "list"){
-				return(i$metadata[[1]])
-			} else {
-				return(i$metadata)				
-			}
-		}, .parallel=parallel)
+		samdata = ldply(x$columns, function(i) i$metadata, .parallel=parallel)
 		rownames(samdata) <- sapply(x$columns, function(i) i$id)
 	}
+	return(samdata)
 }
 ################################################################################
 ################################################################################

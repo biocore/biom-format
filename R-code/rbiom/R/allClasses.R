@@ -1,13 +1,12 @@
 ################################################################################
-# Eventually, class definitions should go here. Most expected is a class
-# definition for the "biom" class that represents generally the biom format
-# structure within R.
-################################################################################
-#' A native R-representation of the biom-format.
+#' The biom format data class.
 #'
 #' This class inherits from the \code{\link{list-class}},
 #' with validity checks specific to the definition to the biom-format.
-#' For documentation of the text file format see \url{http://biom-format.org/}. 
+#' Effectively this means the list must have certain index names,
+#' some elements of which must have a specific structure or value.
+#' For further details see
+#' \href{http://biom-format.org/documentation/biom_format.html}{the biom-format definition}. 
 #' 
 #' @seealso
 #' The constructor, \code{\link{biom}}
@@ -18,8 +17,7 @@
 #' @rdname biom-class
 #' @exportClass biom
 #'
-#' @examples #
-#' # # # import with default parameters, specify a file
+#' @examples 
 #' biom_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
 #' x <- read_biom(biom_file)
 #' show(x)

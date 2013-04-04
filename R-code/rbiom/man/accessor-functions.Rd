@@ -2,7 +2,6 @@
 \alias{accessors}
 \alias{biom_table}
 \alias{biomclass}
-\alias{biomnull}
 \alias{biomshape}
 \alias{header}
 \alias{observ_meta}
@@ -57,6 +56,5 @@ biomclass(x)
 biom_table(x)
 observ_meta(x)
 sample_meta(x)
-biomnull()
 }
 

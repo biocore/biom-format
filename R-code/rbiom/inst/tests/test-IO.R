@@ -1,4 +1,8 @@
+################################################################################
 # Use testthat to test file import and resulting class (and values)
+################################################################################
+library("rbiom"); library("testthat")
+# # # # TESTS!
 min_dense_file   <- system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
 min_sparse_file  <- system.file("extdata", "min_sparse_otu_table.biom", package = "rbiom")
 rich_dense_file  <- system.file("extdata", "rich_dense_otu_table.biom", package = "rbiom")
@@ -21,27 +25,26 @@ test_that("Classes are all biom", {
 	expect_that(x4, is_a("biom"))
 })
 
-test_that("min/rich files have same abundances", {
-	expect_that(abundance(x2), is_identical_to(abundance(x4)))
-	expect_that(abundance(x1), is_identical_to(abundance(x3)))
+test_that("min/rich files have same biom_tables", {
+	expect_that(biom_table(x2), is_identical_to(biom_table(x4)))
+	expect_that(biom_table(x1), is_identical_to(biom_table(x3)))
 })
 
-test_that("abundances can be manipulated mathematically", {
-	expect_that(2*abundance(x2), is_identical_to(4*abundance(x4)/2))
-	expect_that(2*abundance(x1)-abundance(x1), is_identical_to(abundance(x3)))
+test_that("biom_tables can be manipulated mathematically", {
+	expect_that(2*biom_table(x2), is_identical_to(4*biom_table(x4)/2))
+	expect_that(2*biom_table(x1)-biom_table(x1), is_identical_to(biom_table(x3)))
 })
 
 test_that("empty stuff is NULL", {
-	expect_that(taxonomy(x1, FALSE), is_a("NULL"))
-	expect_that(sampleData(x1, FALSE), is_a("NULL"))
-	expect_that(tree(x1, FALSE), is_a("NULL"))
+	expect_that(observ_meta(x1, FALSE), is_a("NULL"))
+	expect_that(sample_meta(x1, FALSE), is_a("NULL"))
 })
 
 test_that("Expected classes of non-empty components", {
-	expect_that(taxonomy(x3, FALSE), is_a("data.frame"))
-	expect_that(sampleData(x3, FALSE), is_a("data.frame"))	
-	expect_that(abundance(x3, FALSE), is_a("Matrix"))
-	expect_that(header(x3, FALSE), is_a("list"))
+	expect_that(observ_meta(x3), is_a("data.frame"))
+	expect_that(sample_meta(x3), is_a("data.frame"))	
+	expect_that(biom_table(x3), is_a("Matrix"))
+	expect_that(header(x3), is_a("list"))
 })
 
 test_that("imported biom files are S4", {
@@ -52,8 +55,8 @@ test_that("imported biom files are S4", {
 })
 
 test_that("show method output tests",{
-	expect_that(x1, prints_text("format: Biological Observation Matrix 1.0.0-dev"))
-	expect_that(x4, prints_text("format: Biological Observation Matrix 1.0.0-dev"))
+	expect_output(x1, "biom object. type:")
+	expect_output(x4, "biom object. type:")
 })
 
 
