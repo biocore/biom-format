@@ -1,6 +1,6 @@
 Package: rbiom
-Version: 0.2.3
-Date: 2013-04-04
+Version: 0.2.4
+Date: 2013-04-05
 Maintainer: Paul J. McMurdie <mcmurdie@stanford.edu>
 License: GPL-2 + file LICENSE
 Title: This is an R package for interfacing with the BIOM
@@ -18,7 +18,9 @@ Depends:
     R (>= 2.15.2),
     methods
 Suggests:
-    testthat (>= 0.7)
+    testthat (>= 0.7),
+    knitr (>= 1.1)
+VignetteBuilder: knitr (>= 1.1)
 Collate:
     'allClasses.R'
     'allPackage.R'
