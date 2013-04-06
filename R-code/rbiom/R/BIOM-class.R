@@ -74,7 +74,6 @@ setMethod("show", "biom", function(object){
 	cat(biomshape(object)[1], "rows and", biomshape(object)[2], "columns \n")
 })
 ################################################################################
-################################################################################
 #' Accessors for the \code{\link{biom-class}}. 
 #' 
 #' Convenience functions for accessing particular components of
@@ -151,48 +150,89 @@ biomclass = function(x){
   return(bcl)
 }
 ################################################################################
+# NEED SPECIAL DOCUMENTATION FOR THIS ONE
+# AND NEED TO ADD ROXYGEN HEADERS TO THE METHODS BELOW
+# ALSO NEED TO ADD TESTS FOR PROPER BEHAVIOR OF THIS NEW S4 Generic accessor, biom_table
 #' @export
 #' @aliases header
 #' @aliases biom_table
 #' @rdname accessor-functions
 #' @importFrom plyr laply
 #' @import Matrix
-biom_table = function(x, parallel=FALSE){
-	if( x$matrix_type == "sparse" ){
-	  # If sparse, must parse accordingly. Dense below.
+setGeneric("biom_table", function(x, rows, columns, parallel=FALSE){
+  standardGeneric("biom_table")
+})
+# All methods funnel toward signature biom,numeric,numeric
+setMethod("biom_table", c("biom", "missing", "missing"), function(x, rows, columns, parallel){
+  # Dispatch with full rows and cols
+  biom_table(x, 1:biomshape(x)["nrow"], 1:biomshape(x)["ncol"], parallel)
+})
+setMethod("biom_table", c("biom", "character", "ANY"), function(x, rows, columns, parallel){
+  rows = which(sapply(x$rows, function(s) s$id) %in% rows)
+  # Dispatch with specified numeric rows and pass cols
+  biom_table(x, rows, columns)
+})
+setMethod("biom_table", c("biom", "ANY", "character"), function(x, rows, columns, parallel){
+  columns = which(sapply(x$columns, function(s) s$id) %in% columns)
+  # Dispatch with specified numeric columns and pass rows
+  biom_table(x, rows, columns)
+})
+setMethod("biom_table", c("biom", "numeric", "missing"), function(x, rows, columns, parallel){
+  # Dispatch with specified rows and full cols
+  biom_table(x, rows, 1:biomshape(x)["ncol"], parallel)
+})
+setMethod("biom_table", c("biom", "missing", "numeric"), function(x, rows, columns, parallel){
+  # Dispatch with full rows and specified cols
+  biom_table(x, 1:biomshape(x)["nrow"], columns, parallel)
+})
+setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, columns, parallel){
+  if( identical(x$matrix_type, "dense") ){
+    # Begin dense section
+    # If matrix is stored as dense, create "vanilla" R matrix, m
+    m = laply(x$data[rows], function(i) i[columns], .parallel=parallel)
+    if(biomclass(x) %in% c("int", "float")){
+      # If data is numeric, attempt to coerce to Matrix-inherited class
+      # Mainly because it might still be sparse and this is a good way
+      # to handle it in R. 
+      m = Matrix(m)
+    } else if(!inherits(m, "matrix")){
+      # Else, check that results of laply above are in fact a matrix
+      stop("biom: problem parsing dense character matrix")
+    }    
+  } else {
+    # Begin sparse section
+    ## Initialize sparse matrix as either Matrix or matrix, depending on data class
     biomshape = biomshape(x)
     if(biomclass(x) %in% c("int", "float")){
       # If data is numeric, initialize with Matrix (numeric data only)
-      otumat = Matrix(0, nrow=biomshape["nrow"], ncol=biomshape["ncol"]) 
+      m = Matrix(0, nrow=biomshape["nrow"], ncol=biomshape["ncol"]) 
     } else {
       # Else, biomclass must be "unicode" for a unicode string.
       # Use a standard R character matrix
-      otumat = matrix(NA_character_, nrow=biomshape["nrow"], ncol=biomshape["ncol"]) 
+      m = matrix(NA_character_, nrow=biomshape["nrow"], ncol=biomshape["ncol"]) 
     }
-		# Loop through each sparse line and assign to relevant position in otumat.
-		for( i in x$data ){
-			otumat[(i[1]+1), (i[2]+1)] <- i[3]
-		}
-	} else if( x$matrix_type == "dense" ){ 
-		# parse the dense matrix instead using plyr's laply
-		otumat = laply(x$data, function(i) i, .parallel=parallel)
-		if(biomclass(x) %in% c("int", "float")){
-		  # If data is numeric, attempt to coerce to Matrix-inherited class
-      # Mainly because it might still be sparse and this is a good way
-      # to handle it in R. 
-		  otumat = Matrix(otumat)
-		} else if(!inherits(otumat, "matrix")){
-      # Else, check that results of laply above are in fact a matrix
-      stop("biom: problem parsing dense character matrix")
-		}
-	} 
-	
-	# Define row and col indices
-	rownames(otumat) <- sapply(x$rows, function(i) i$id )
-	colnames(otumat) <- sapply(x$columns, function(i) i$id )
-	
-	return(otumat)
-}
+    # Create an assignment data.frame
+    adf = ldply(x$data, function(x){
+      data.frame(r=x[[1]], c=x[[2]], data=x[[3]], stringsAsFactors=FALSE)
+    })
+    # indices start at 0 in biom sparse format
+    adf$r <- adf$r + 1L
+    adf$c <- adf$c + 1L
+    # Subset to just indices that are in both arguments `rows` and `columns`
+    adf = subset(adf, r %in% rows & c %in% columns)
+    # Add dummy index for plyr .variable and
+    # iterate and assign to matrix with double-arrow, m[r, c] <<-
+    adf$iter <- 1:nrow(adf)
+    d_ply(adf, "iter", function(x) m[x$r, x$c] <<- x$data)
+    # Subset this biggest-size m to just `rows` and `columns`
+    m = m[rows, columns]
+  # End sparse section
+  }   
+  # Add row and column names
+  rownames(m) <- sapply(x$rows[rows], function(i) i$id )
+  colnames(m) <- sapply(x$columns[columns], function(i) i$id )
+  return(m)
+})
 ################################################################################
 #' @export
 #' @aliases header

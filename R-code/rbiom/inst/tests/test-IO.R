@@ -3,16 +3,20 @@
 ################################################################################
 library("rbiom"); library("testthat")
 # # # # TESTS!
-min_dense_file   <- system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
-min_sparse_file  <- system.file("extdata", "min_sparse_otu_table.biom", package = "rbiom")
-rich_dense_file  <- system.file("extdata", "rich_dense_otu_table.biom", package = "rbiom")
-rich_sparse_file <- system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
-
-# Test read_biom
-x1 <- read_biom(min_dense_file)
-x2 <- read_biom(min_sparse_file)
-x3 <- read_biom(rich_dense_file)
-x4 <- read_biom(rich_sparse_file)
+min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
+min_sparse_file  = system.file("extdata", "min_sparse_otu_table.biom", package = "rbiom")
+rich_dense_file  = system.file("extdata", "rich_dense_otu_table.biom", package = "rbiom")
+rich_sparse_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
+rich_dense_char  = system.file("extdata", "rich_dense_char.biom", package = "rbiom")
+rich_sparse_char  = system.file("extdata", "rich_sparse_char.biom", package = "rbiom")
+# Test read biom
+x1 = read_biom(min_dense_file)
+x2 = read_biom(min_sparse_file)
+x3 = read_biom(rich_dense_file)
+x4 = read_biom(rich_sparse_file)
+x5 = read_biom(rich_dense_char)
+x6 = read_biom(rich_sparse_char)
 
 
 
