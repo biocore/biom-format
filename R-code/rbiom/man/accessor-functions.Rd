@@ -1,11 +1,8 @@
 \name{header}
 \alias{accessors}
-\alias{biom_table}
 \alias{biomclass}
 \alias{biomshape}
 \alias{header}
-\alias{observ_meta}
-\alias{sample_meta}
 \title{Accessors for the \code{\link{biom-class}}.}
 \usage{
   header(x)
@@ -13,29 +10,22 @@
   biomshape(x)
 
   biomclass(x)
-
-  biom_table(x, parallel = FALSE)
-
-  observ_meta(x, key = "taxonomy", parallel = FALSE)
-
-  sample_meta(x, parallel = FALSE)
 }
 \arguments{
   \item{x}{(Required). An instance of the
   \code{\link{biom-class}}.}
-
-  \item{key}{(Optional). Character string. The key for the
-  metadata type that you are attempting to access. Default
-  value depends upon whether observation or sample
-  metadata. This argument only applies to metadat
-  accessors.}
-
-  \item{parallel}{(Optional). Logical. Whether to perform
-  the accession parsing using a parallel-computing backend
-  supported by the \code{\link{plyr-package}} via the
-  \code{\link[foreach]{foreach-package}}. Note: At the
-  moment, the header accessor does not need nor does it
-  support parallel-computed parsing.}
+}
+\value{
+  A list or vector appropriate to the type of data being
+  accessed. \code{header(x)} - returns a list with all the
+  required elements that are not the main data or index
+  metadata; \code{biomclass(x)} - returns a character
+  string indicating the class of the data stored in the
+  main observation matrix, with expected values
+  \code{"int"}, \code{"float"}, \code{"unicode"};
+  \code{biomshape(x)} - a two-element numeric vector
+  indicating the respective row and column dimensions of
+  the observation matrix.
 }
 \description{
   Convenience functions for accessing particular components

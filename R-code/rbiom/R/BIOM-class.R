@@ -85,27 +85,24 @@ setMethod("show", "biom", function(object){
 #' by an accessor function.
 #'
 #' @usage header(x)
-#' @usage biom_table(x, parallel=FALSE)
-#' @usage observ_meta(x, parallel=FALSE)
-#' @usage sample_meta(x, parallel=FALSE)
+#' @usage biomclass(x)
+#' @usage biomshape(x)
 #'
 #' @param x (Required). An instance of the \code{\link{biom-class}}.
-#' @param key (Optional). Character string. The key for the metadata type
-#'  that you are attempting to access. Default value depends upon whether
-#'  observation or sample metadata. This argument only applies to 
-#'  metadat accessors.
-#' @param parallel (Optional). Logical. Whether to perform the accession parsing
-#'  using a parallel-computing backend supported by the \code{\link{plyr-package}}
-#'  via the \code{\link[foreach]{foreach-package}}. Note: At the moment, the header
-#'  accessor does not need nor does it support parallel-computed parsing.
+#'
+#' @return A list or vector appropriate to the type of data being accessed.
+#' \code{header(x)} - returns a list with all the required elements that are
+#' not the main data or index metadata;
+#' \code{biomclass(x)} - returns a character string indicating the class of the
+#' data stored in the main observation matrix, with expected values
+#' \code{"int"}, \code{"float"}, \code{"unicode"};
+#' \code{biomshape(x)} - a two-element numeric vector indicating the respective
+#' row and column dimensions of the observation matrix.
 #'
 #' @aliases accessors
 #' @aliases header
 #' @aliases biomclass
 #' @aliases biomshape
-#' @aliases biom_table
-#' @aliases observ_meta
-#' @aliases sample_meta
 #' @rdname accessor-functions
 #' @export
 #' @examples
@@ -122,7 +119,6 @@ header = function(x){
 									 "matrix_type", "matrix_element_type", "shape")
   return(x[biomheadkeys])
 }
-################################################################################
 #' @export
 #' @aliases header
 #' @aliases biomshape
@@ -134,7 +130,6 @@ biomshape = function(x){
   if(any(bsv < 0)){stop("problem with biom shape value: negative value")}
   return(bsv)
 }
-################################################################################
 #' @export
 #' @aliases header
 #' @aliases biomclass
@@ -150,41 +145,107 @@ biomclass = function(x){
   return(bcl)
 }
 ################################################################################
-# NEED SPECIAL DOCUMENTATION FOR THIS ONE
-# AND NEED TO ADD ROXYGEN HEADERS TO THE METHODS BELOW
-# ALSO NEED TO ADD TESTS FOR PROPER BEHAVIOR OF THIS NEW S4 Generic accessor, biom_table
-#' @export
-#' @aliases header
+#' Access main data observation matrix data from \code{\link{biom-class}}. 
+#' 
+#' Retrieve and organize main data from \code{\link{biom-class}},
+#' represented as a matrix with index names.
+#'
+#' @usage biom_table(x, rows, columns, parallel=FALSE)
+#'
+#' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @param rows (Optional). The subset of row indices described in the
+#'  returned object. For large datasets, specifying the row subset here,
+#'  rather than after creating the whole matrix first,
+#'  can improve speed/efficiency.
+#'  Can be vector of index numbers (\code{\link{numeric-class}}) or 
+#'  index names (\code{\link{character-class}}).
+#' @param columns (Optional). The subset of column indices described in the
+#'  returned object. For large datasets, specifying the column subset here,
+#'  rather than after creating the whole matrix first,
+#'  can improve speed/efficiency.
+#'  Can be vector of index numbers (\code{\link{numeric-class}}) or 
+#'  index names (\code{\link{character-class}}).
+#' @param parallel (Optional). Logical. Whether to perform the accession parsing
+#'  using a parallel-computing backend supported by the \code{\link{plyr-package}}
+#'  via the \code{\link[foreach]{foreach-package}}. Note: At the moment, the header
+#'  accessor does not need nor does it support parallel-computed parsing.
+#'  
+#'  @return A matrix containing the main observation data, with index names.
+#'   The type of data (numeric or character) 
+#'   will depend on the results of \code{\link{biomclass}(x)}.
+#'   The class of the matrix returned will depend on the sparsity of the data,
+#'   and whether it has numeric or character data.
+#'   For now, only numeric data can be stored in a \code{\link{Matrix-class}},
+#'   which will be stored sparsely, if possible.
+#'   Character data will be returned as a vanilla \code{\link{matrix-class}}.
+#'  
 #' @aliases biom_table
-#' @rdname accessor-functions
-#' @importFrom plyr laply
-#' @import Matrix
+#' @rdname biom_table-methods
+#' @export
+#' @examples 
+#' min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
+#' min_sparse_file  = system.file("extdata", "min_sparse_otu_table.biom", package = "rbiom")
+#' rich_dense_file  = system.file("extdata", "rich_dense_otu_table.biom", package = "rbiom")
+#' rich_sparse_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
+#' rich_dense_char  = system.file("extdata", "rich_dense_char.biom", package = "rbiom")
+#' rich_sparse_char  = system.file("extdata", "rich_sparse_char.biom", package = "rbiom")
+#' # Read the biom-format files
+#' x1 = read_biom(min_dense_file)
+#' x2 = read_biom(min_sparse_file)
+#' x3 = read_biom(rich_dense_file)
+#' x4 = read_biom(rich_sparse_file)
+#' x5 = read_biom(rich_dense_char)
+#' x6 = read_biom(rich_sparse_char)
+#' # Extract the data matrices
+#' biom_table(x1)
+#' biom_table(x2)
+#' biom_table(x3)
+#' biom_table(x4)
+#' biom_table(x5)
+#' biom_table(x6)
 setGeneric("biom_table", function(x, rows, columns, parallel=FALSE){
   standardGeneric("biom_table")
 })
 # All methods funnel toward signature biom,numeric,numeric
+#' @aliases biom_table,biom,missing,missing-method
+#' @rdname biom_table-methods
 setMethod("biom_table", c("biom", "missing", "missing"), function(x, rows, columns, parallel){
   # Dispatch with full rows and cols
   biom_table(x, 1:biomshape(x)["nrow"], 1:biomshape(x)["ncol"], parallel)
 })
+#' @aliases biom_table,biom,character,ANY-method
+#' @rdname biom_table-methods
 setMethod("biom_table", c("biom", "character", "ANY"), function(x, rows, columns, parallel){
   rows = which(sapply(x$rows, function(s) s$id) %in% rows)
   # Dispatch with specified numeric rows and pass cols
   biom_table(x, rows, columns)
 })
+#' @aliases biom_table,biom,ANY,character-method
+#' @rdname biom_table-methods
 setMethod("biom_table", c("biom", "ANY", "character"), function(x, rows, columns, parallel){
   columns = which(sapply(x$columns, function(s) s$id) %in% columns)
   # Dispatch with specified numeric columns and pass rows
   biom_table(x, rows, columns)
 })
+#' @aliases biom_table,biom,numeric,missing-method
+#' @rdname biom_table-methods
 setMethod("biom_table", c("biom", "numeric", "missing"), function(x, rows, columns, parallel){
   # Dispatch with specified rows and full cols
   biom_table(x, rows, 1:biomshape(x)["ncol"], parallel)
 })
+#' @aliases biom_table,biom,missing,numeric-method
+#' @rdname biom_table-methods
 setMethod("biom_table", c("biom", "missing", "numeric"), function(x, rows, columns, parallel){
   # Dispatch with full rows and specified cols
   biom_table(x, 1:biomshape(x)["nrow"], columns, parallel)
 })
+#' @aliases biom_table,biom,numeric,numeric-method
+#' @rdname biom_table-methods
+#' @import Matrix
+#' @importFrom plyr d_ply
+#' @importFrom plyr ldply
+#' @importFrom plyr laply
 setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, columns, parallel){
   if( identical(x$matrix_type, "dense") ){
     # Begin dense section
@@ -234,12 +295,72 @@ setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, colum
   return(m)
 })
 ################################################################################
-#' @export
-#' @aliases header
-#' @aliases observ_meta
-#' @rdname accessor-functions
+#' Access meta data from \code{\link{biom-class}}. 
+#' 
+#' Retrieve and organize meta data from \code{\link{biom-class}},
+#' represented as a \code{\link{data.frame}} with index names.
+#'
+#' @usage observ_meta(x, rows, key="taxonomy", parallel=FALSE)
+#' @usage sample_meta(x, columns, parallel=FALSE)
+#'
+#' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @param rows (Optional). The subset of row indices described in the
+#'  returned object. For large datasets, specifying the row subset here,
+#'  rather than after creating the whole matrix first,
+#'  can improve speed/efficiency.
+#'  Can be vector of index numbers (\code{\link{numeric-class}}) or 
+#'  index names (\code{\link{character-class}}).
+#' @param columns (Optional). The subset of column indices described in the
+#'  returned object. For large datasets, specifying the column subset here,
+#'  rather than after creating the whole matrix first,
+#'  can improve speed/efficiency.
+#'  Can be vector of index numbers (\code{\link{numeric-class}}) or 
+#'  index names (\code{\link{character-class}}).
+#' @param key (Optional). Character string. The key for the metadata type
+#'  that you are attempting to access. Default value depends upon whether
+#'  observation or sample metadata. This argument only applies to 
+#'  sample metadata.
+#' @param parallel (Optional). Logical. Whether to perform the accession parsing
+#'  using a parallel-computing backend supported by the \code{\link{plyr-package}}
+#'  via the \code{\link[foreach]{foreach-package}}. Note: At the moment, the header
+#'  accessor does not need nor does it support parallel-computed parsing.
+#'  
+#' @return A \code{data.frame} containing the meta data, with index names.
+#'  
 #' @importFrom plyr ldply
-observ_meta = function(x, key="taxonomy", parallel=FALSE){
+#' @aliases sample_meta
+#' @aliases observ_meta
+#' @rdname metadata-access
+#' @export
+#' @examples 
+#' min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
+#' min_sparse_file  = system.file("extdata", "min_sparse_otu_table.biom", package = "rbiom")
+#' rich_dense_file  = system.file("extdata", "rich_dense_otu_table.biom", package = "rbiom")
+#' rich_sparse_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
+#' rich_dense_char  = system.file("extdata", "rich_dense_char.biom", package = "rbiom")
+#' rich_sparse_char  = system.file("extdata", "rich_sparse_char.biom", package = "rbiom")
+#' # Read the biom-format files
+#' x1 = read_biom(min_dense_file)
+#' x2 = read_biom(min_sparse_file)
+#' x3 = read_biom(rich_dense_file)
+#' x4 = read_biom(rich_sparse_file)
+#' x5 = read_biom(rich_dense_char)
+#' x6 = read_biom(rich_sparse_char)
+#' # Extract metadata
+#' observ_meta(x1)
+#' observ_meta(x2)
+#' observ_meta(x3)
+#' observ_meta(x4)
+#' observ_meta(x5)
+#' observ_meta(x6)
+#' sample_meta(x1)
+#' sample_meta(x2)
+#' sample_meta(x3)
+#' sample_meta(x4)
+#' sample_meta(x5)
+#' sample_meta(x6)
+observ_meta = function(x, rows, key="taxonomy", parallel=FALSE){
 	# Need to check if observ_meta data is empty (minimal biom file)
 	if(  all( sapply(sapply(x$rows, function(i) i$metadata), is.null) )  ){
 		obsmetadf = NULL
@@ -253,18 +374,17 @@ observ_meta = function(x, key="taxonomy", parallel=FALSE){
 }
 ################################################################################
 #' @export
-#' @aliases header
 #' @aliases sample_meta
-#' @rdname accessor-functions
+#' @rdname metadata-access
 #' @importFrom plyr ldply
-sample_meta = function(x, parallel=FALSE){
+sample_meta = function(x, columns, parallel=FALSE){
 	# Sample Data ("columns" in biom)
 	if( all(sapply(sapply(x$columns, function(i) i$metadata), is.null)) ){
 		# If there is no metadata (all NULL),
 		# then set samdata to NULL, representing empty.
 		samdata = NULL
 	} else {
-		# Otherwise, parse it.
+		# Otherwise, parse it with ldply, return a data.frame with rownames
 		samdata = ldply(x$columns, function(i) i$metadata, .parallel=parallel)
 		rownames(samdata) <- sapply(x$columns, function(i) i$id)
 	}

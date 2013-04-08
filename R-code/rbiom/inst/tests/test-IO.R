@@ -2,6 +2,7 @@
 # Use testthat to test file import and resulting class (and values)
 ################################################################################
 library("rbiom"); library("testthat")
+packageVersion("rbiom")
 # # # # TESTS!
 min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
 min_sparse_file  = system.file("extdata", "min_sparse_otu_table.biom", package = "rbiom")
@@ -23,10 +24,12 @@ x6 = read_biom(rich_sparse_char)
 # # # # TESTS!
 
 test_that("Classes are all biom", {
-	expect_that(x1, is_a("biom"))
-	expect_that(x2, is_a("biom"))
-	expect_that(x3, is_a("biom"))
-	expect_that(x4, is_a("biom"))
+	expect_is(x1, "biom")
+	expect_is(x2, "biom")
+	expect_is(x3, "biom")
+  expect_is(x4, "biom")
+	expect_is(x5, "biom")
+	expect_is(x6, "biom")
 })
 
 test_that("min/rich files have same biom_tables", {
