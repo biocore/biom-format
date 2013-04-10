@@ -1,6 +1,6 @@
 Package: rbiom
-Version: 0.2.6
-Date: 2013-04-08
+Version: 0.3.0
+Date: 2013-04-10
 Maintainer: Paul J. McMurdie <mcmurdie@stanford.edu>
 License: GPL-2 + file LICENSE
 Title: This is an R package for interfacing with the BIOM
@@ -15,10 +15,10 @@ Imports:
     RJSONIO (>= 1.0.3),
     Matrix (>= 1.0.12)
 Depends:
-    R (>= 2.15.2),
+    R (>= 3.0.0),
     methods
 Suggests:
-    testthat (>= 0.7),
+    testthat (>= 0.7.1),
     knitr (>= 1.1)
 VignetteBuilder: knitr (>= 1.1)
 Collate:
