@@ -39,9 +39,13 @@ test_that("Test that the results of biom_table are matrix classes", {
 })
 
 test_that("Some arbitrary test values match expected", {
-  expect_equal(T1[3, 4], 4L)
   expect_equal(T1[5, 1], 0L)
+  expect_equal(T1[3, 4], 4L)
   expect_equal(T2[3, 4], 4L)
+  expect_equal(T3[3, 4], 4L)
+  expect_equal(T4[3, 4], 4L)
+  expect_equal(T5[3, 4], "4")
+  expect_equal(T6[3, 4], "4")
   expect_equal(T2[5, 1], 0L)
   expect_equal(T3[4, 6], 1L)
   expect_equal(T3[2, 3], 0L)  
@@ -64,20 +68,29 @@ test_that("Test pre-access biom_table subsetting", {
   expect_equal(T4[1:3, 3:6], biom_table(x4, 1:3, 3:6), label="multiple rows and cols")
   expect_equal(T5[1:3, 3:6], biom_table(x5, 1:3, 3:6), label="multiple rows and cols")
   expect_equal(T6[1:3, 3:6], biom_table(x6, 1:3, 3:6), label="multiple rows and cols")
-#   # single value... Doesn't work yet!
-#   expect_equivalent(T1[3, 4], biom_table(x1, 3, 4), label="single row and col")
-#   expect_equal(T2[1:3, 3:6], biom_table(x2, 1:3, 3:6), label="multiple rows and cols")
-#   expect_equal(T3[1:3, 3:6], biom_table(x3, 1:3, 3:6), label="multiple rows and cols")
-#   expect_equal(T4[1:3, 3:6], biom_table(x4, 1:3, 3:6), label="multiple rows and cols")
-#   expect_equal(T5[1:3, 3:6], biom_table(x5, 1:3, 3:6), label="multiple rows and cols")
-#   expect_equal(T6[1:3, 3:6], biom_table(x6, 1:3, 3:6), label="multiple rows and cols")
-#   # 1 row, multiple cols... Also doesn't work yet!
-#   label = "single rows and multiple cols"
-#   expect_equal(T1[1, 3:6], biom_table(x1, 1, 3:6), label=label)
-#   expect_equal(T2[1, 3:6], biom_table(x2, 1, 3:6), label=label)
-#   expect_equal(T3[1, 3:6], biom_table(x3, 1, 3:6), label=label)
-#   expect_equal(T4[1, 3:6], biom_table(x4, 1, 3:6), label=label)
-#   expect_equal(T5[1, 3:6], biom_table(x5, 1, 3:6), label=label)
-#   expect_equal(T6[1, 3:6], biom_table(x6, 1, 3:6), label=label)
+  # single value
+  label = "single row and column"
+  expect_equivalent(T1[3, 4], biom_table(x1, 3, 4), label=label)
+  expect_equivalent(T2[3, 4], biom_table(x2, 3, 4), label=label)
+  expect_equivalent(T3[3, 4], biom_table(x3, 3, 4), label=label)
+  expect_equivalent(T4[3, 4], biom_table(x4, 3, 4), label=label)
+  expect_equivalent(T5[3, 4], biom_table(x5, 3, 4), label=label)
+  expect_equivalent(T6[3, 4], biom_table(x6, 3, 4), label=label)
+  # 1 row, multiple cols
+  label = "single rows and multiple cols"
+  expect_equal(T1[1, 3:6], biom_table(x1, 1, 3:6), label=label)
+  expect_equal(T2[1, 3:6], biom_table(x2, 1, 3:6), label=label)
+  expect_equal(T3[1, 3:6], biom_table(x3, 1, 3:6), label=label)
+  expect_equal(T4[1, 3:6], biom_table(x4, 1, 3:6), label=label)
+  expect_equal(T5[1, 3:6], biom_table(x5, 1, 3:6), label=label)
+  expect_equal(T6[1, 3:6], biom_table(x6, 1, 3:6), label=label)
+  # 1 column, multiple rows
+  label = "single column and multiple rows"
+  expect_equal(T1[2:5, 3], biom_table(x1, 2:5, 3), label=label)
+  expect_equal(T2[2:5, 3], biom_table(x2, 2:5, 3), label=label)
+  expect_equal(T3[2:5, 3], biom_table(x3, 2:5, 3), label=label)
+  expect_equal(T4[2:5, 3], biom_table(x4, 2:5, 3), label=label)
+  expect_equal(T5[2:5, 3], biom_table(x5, 2:5, 3), label=label)
+  expect_equal(T6[2:5, 3], biom_table(x6, 2:5, 3), label=label)
 })
 

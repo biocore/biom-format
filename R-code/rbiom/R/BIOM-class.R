@@ -247,19 +247,26 @@ setMethod("biom_table", c("biom", "missing", "numeric"), function(x, rows, colum
 #' @importFrom plyr ldply
 #' @importFrom plyr laply
 setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, columns, parallel){
+  if( identical(length(rows), 0) ){
+    stop("argument `rows` must have non-zero length.")
+  }
+  if( identical(length(columns), 0) ){
+    stop("argument `columns` must have non-zero length.")
+  }    
+  # Begin matrix section
   if( identical(x$matrix_type, "dense") ){
     # Begin dense section
     # If matrix is stored as dense, create "vanilla" R matrix, m
-    m = laply(x$data[rows], function(i) i[columns], .parallel=parallel)
-    if(biomclass(x) %in% c("int", "float")){
-      # If data is numeric, attempt to coerce to Matrix-inherited class
+    m = laply(x$data[rows], function(i) i[columns], .parallel=parallel) 
+    if( length(rows) > 1L & length(columns) > 1L & biomclass(x) %in% c("int", "float")){
+      # If either dimension is length-one, don't call coerce to "Matrix"
+      # Note that laply() does still work in this case.
+      # If both dimension lengths > 1 & data is numeric, 
+      # attempt to coerce to Matrix-inherited class,
       # Mainly because it might still be sparse and this is a good way
       # to handle it in R. 
       m = Matrix(m)
-    } else if(!inherits(m, "matrix")){
-      # Else, check that results of laply above are in fact a matrix
-      stop("biom: problem parsing dense character matrix")
-    }    
+    }   
   } else {
     # Begin sparse section
     ## Initialize sparse matrix as either Matrix or matrix, depending on data class
@@ -290,8 +297,20 @@ setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, colum
   # End sparse section
   }   
   # Add row and column names
-  rownames(m) <- sapply(x$rows[rows], function(i) i$id )
-  colnames(m) <- sapply(x$columns[columns], function(i) i$id )
+  if( identical(length(rows), 1L) | identical(length(columns), 1L) ){
+    # If either dimension is length-one
+    # Try naming by colnames first, then rownames
+    if( identical(length(rows), 1L) ){
+      names(m) <- sapply(x$columns[columns], function(i) i$id )
+    } else {
+      names(m) <- sapply(x$rows[rows], function(i) i$id )
+    }
+  } else {
+    # Else, both dimensions are longer than 1,
+    # can assume is a matrix and assign names to both dimensions
+    rownames(m) <- sapply(x$rows[rows], function(i) i$id )
+    colnames(m) <- sapply(x$columns[columns], function(i) i$id )
+  }
   return(m)
 })
 ################################################################################
