@@ -27,3 +27,7 @@ Icon?
 ehthumbs.db
 Thumbs.db
 .Rproj.user
+
+R-code/rbiom/.Rbuildignore
+
+R-code/rbiom/rbiom.Rproj
