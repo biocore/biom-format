@@ -1,6 +1,6 @@
 Package: rbiom
-Version: 0.3.1
-Date: 2013-04-12
+Version: 0.3.2
+Date: 2013-04-15
 Maintainer: Paul J. McMurdie <mcmurdie@stanford.edu>
 License: GPL-2
 Title: This is an R package for interfacing with the BIOM

@@ -116,7 +116,7 @@ setMethod("show", "biom", function(object){
 #' sample_meta(x)
 header = function(x){
 	biomheadkeys = c("id", "format", "format_url", "type", "generated_by", "date",
-									 "matrix_type", "matrix_element_type", "shape")
+				 "matrix_type", "matrix_element_type", "shape")
   return(x[biomheadkeys])
 }
 #' @export
@@ -317,39 +317,111 @@ setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, colum
 #' Access meta data from \code{\link{biom-class}}. 
 #' 
 #' Retrieve and organize meta data from \code{\link{biom-class}},
-#' represented as a \code{\link{data.frame}} with index names.
+#' represented as a \code{\link{data.frame}} (if possible, or a list) 
+#' with proper index names.
 #'
-#' @usage observ_meta(x, rows, key="taxonomy", parallel=FALSE)
 #' @usage sample_meta(x, columns, parallel=FALSE)
 #'
 #' @param x (Required). An instance of the \code{\link{biom-class}}.
-#' @param rows (Optional). The subset of row indices described in the
-#'  returned object. For large datasets, specifying the row subset here,
-#'  rather than after creating the whole matrix first,
-#'  can improve speed/efficiency.
-#'  Can be vector of index numbers (\code{\link{numeric-class}}) or 
-#'  index names (\code{\link{character-class}}).
 #' @param columns (Optional). The subset of column indices described in the
 #'  returned object. For large datasets, specifying the column subset here,
 #'  rather than after creating the whole matrix first,
 #'  can improve speed/efficiency.
 #'  Can be vector of index numbers (\code{\link{numeric-class}}) or 
 #'  index names (\code{\link{character-class}}).
-#' @param key (Optional). Character string. The key for the metadata type
-#'  that you are attempting to access. Default value depends upon whether
-#'  observation or sample metadata. This argument only applies to 
-#'  sample metadata.
 #' @param parallel (Optional). Logical. Whether to perform the accession parsing
 #'  using a parallel-computing backend supported by the \code{\link{plyr-package}}
-#'  via the \code{\link[foreach]{foreach-package}}. Note: At the moment, the header
-#'  accessor does not need nor does it support parallel-computed parsing.
+#'  via the \code{\link[foreach]{foreach-package}}. 
 #'  
-#' @return A \code{data.frame} containing the meta data, with index names.
+#' @return A \code{\link{data.frame}} or \code{\link{list}} containing 
+#'  the meta data, with index names. The precise form of the object returned
+#'  depends on the metadata stored in \code{x}. A \code{data.frame} is
+#'  created if possible.
 #'  
-#' @importFrom plyr ldply
 #' @aliases sample_meta
+#' @rdname sample_meta-methods
+#' @export
+#' @examples 
+#' min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
+#' min_sparse_file  = system.file("extdata", "min_sparse_otu_table.biom", package = "rbiom")
+#' rich_dense_file  = system.file("extdata", "rich_dense_otu_table.biom", package = "rbiom")
+#' rich_sparse_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
+#' rich_dense_char  = system.file("extdata", "rich_dense_char.biom", package = "rbiom")
+#' rich_sparse_char  = system.file("extdata", "rich_sparse_char.biom", package = "rbiom")
+#' # Read the biom-format files
+#' x1 = read_biom(min_dense_file)
+#' x2 = read_biom(min_sparse_file)
+#' x3 = read_biom(rich_dense_file)
+#' x4 = read_biom(rich_sparse_file)
+#' x5 = read_biom(rich_dense_char)
+#' x6 = read_biom(rich_sparse_char)
+#' # Extract metadata
+#' sample_meta(x1)
+#' sample_meta(x2)
+#' sample_meta(x3)
+#' sample_meta(x3, 1:4)
+#' sample_meta(x4)
+#' sample_meta(x5)
+#' sample_meta(x6)
+setGeneric("sample_meta", function(x, columns, parallel=FALSE){
+	standardGeneric("sample_meta")
+})
+# All methods funnel toward signature biom,numeric
+#' @aliases sample_meta,biom,missing-method
+#' @rdname sample_meta-methods
+setMethod("sample_meta", c("biom", "missing"), function(x, columns, parallel=FALSE){
+	# Dispatch with full rows and cols
+	sample_meta(x, 1:biomshape(x)["ncol"], parallel)
+})
+#' @aliases sample_meta,biom,character-method
+#' @rdname sample_meta-methods
+setMethod("sample_meta", c("biom", "character"), function(x, columns, parallel=FALSE){
+	columns = which(sapply(x$columns, function(j) j$id) %in% columns)
+	if( length(columns)==0 ){
+		stop("The column ID names you provided do not match the column IDs in x")
+	}
+	# Dispatch with specified numeric columns
+	sample_meta(x, columns, parallel)
+})
+#' @rdname sample_meta-methods
+#' @aliases sample_meta,biom,numeric-method
+setMethod("sample_meta", c("biom", "numeric"), function(x, columns, parallel=FALSE){
+	if( any(columns > biomshape(x)["ncol"]) ){
+		warning(paste0("column indices ",
+									 paste0(columns[columns > biomshape(x)["ncol"]], collapse=" "),
+									 " are greater than available columns in data. They were ignored."))
+		columns = columns[columns <= biomshape(x)["ncol"]]
+	}
+	return(extract_metadata(x, "columns", columns, parallel))
+})
+################################################################################
+#' Access observation (row) meta data from \code{\link{biom-class}}. 
+#' 
+#' Retrieve and organize meta data from \code{\link{biom-class}},
+#' represented as a \code{\link{data.frame}} (if possible)
+#' or a list, with proper index names.
+#'
+#' @usage observ_meta(x, rows, parallel=FALSE)
+#'
+#' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @param rows (Optional). The subset of row indices described in the
+#'  returned object. For large datasets, specifying the row subset here,
+#'  -- rather than first creating the complete data object --
+#'  can improve speed/efficiency.
+#'  This parameter can be vector of index numbers (\code{\link{numeric-class}}) or 
+#'  index names (\code{\link{character-class}}).
+#' @param parallel (Optional). Logical. Whether to perform the accession parsing
+#'  using a parallel-computing backend supported by the \code{\link{plyr-package}}
+#'  via the \code{\link[foreach]{foreach-package}}. 
+#'  
+#' @return A \code{\link{data.frame}} or \code{\link{list}} containing 
+#'  the meta data, with index names. The precise form of the object returned
+#'  depends on the metadata stored in \code{x}. A \code{data.frame} is
+#'  created if possible.
+#'  
 #' @aliases observ_meta
-#' @rdname metadata-access
+#' @rdname observ_meta-methods
 #' @export
 #' @examples 
 #' min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
@@ -370,44 +442,74 @@ setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, colum
 #' observ_meta(x1)
 #' observ_meta(x2)
 #' observ_meta(x3)
+#' observ_meta(x3, 2:4)
+#' observ_meta(x3, 2)
+#' observ_meta(x3, c("GG_OTU_3", "GG_OTU_4", "whoops"))
 #' observ_meta(x4)
 #' observ_meta(x5)
 #' observ_meta(x6)
-#' sample_meta(x1)
-#' sample_meta(x2)
-#' sample_meta(x3)
-#' sample_meta(x4)
-#' sample_meta(x5)
-#' sample_meta(x6)
-observ_meta = function(x, rows, key="taxonomy", parallel=FALSE){
-	# Need to check if observ_meta data is empty (minimal biom file)
-	if(  all( sapply(sapply(x$rows, function(i) i$metadata), is.null) )  ){
-		obsmetadf = NULL
-	} else {
-		obsmetadf = ldply(x$rows, function(i, key) i$metadata[[key]],
-                       key=key, .parallel=parallel)
-		# Add rownames to observ_meta data.frame.
-		rownames(obsmetadf) <- sapply(x$rows, function(i) i$id )
+setGeneric("observ_meta", function(x, rows, parallel=FALSE){
+	standardGeneric("observ_meta")
+})
+# All methods funnel toward signature biom,numeric
+#' @aliases observ_meta,biom,missing-method
+#' @rdname observ_meta-methods
+setMethod("observ_meta", c("biom", "missing"), function(x, rows, parallel=FALSE){
+	# Dispatch with full rows and cols
+	observ_meta(x, 1:biomshape(x)["nrow"], parallel)
+})
+#' @aliases observ_meta,biom,character-method
+#' @rdname observ_meta-methods
+setMethod("observ_meta", c("biom", "character"), function(x, rows, parallel=FALSE){
+	rows = which(sapply(x$rows, function(j) j$id) %in% rows)
+	if( length(rows)==0 ){
+		stop("The row ID names you provided do not match the row IDs in x")
 	}
-	return(obsmetadf)
-}
+	# Dispatch with specified numeric rows
+	observ_meta(x, rows, parallel)
+})
+#' @rdname observ_meta-methods
+#' @aliases observ_meta,biom,numeric-method
+setMethod("observ_meta", c("biom", "numeric"), function(x, rows, parallel=FALSE){
+	if( any(rows > biomshape(x)["nrow"]) ){
+		warning(paste0("Row indices ",
+									 paste0(rows[rows > biomshape(x)["nrow"]], collapse=" "),
+									 " are greater than available rows in data. They were ignored."))
+		rows = rows[rows <= biomshape(x)["nrow"]]
+	}
+	return(extract_metadata(x, "rows", rows, parallel))
+})
 ################################################################################
-#' @export
-#' @aliases sample_meta
-#' @rdname metadata-access
+# Generic internal function for extracting metadata from either rows or columns
 #' @importFrom plyr ldply
-sample_meta = function(x, columns, parallel=FALSE){
-	# Sample Data ("columns" in biom)
-	if( all(sapply(sapply(x$columns, function(i) i$metadata), is.null)) ){
+#' @importFrom plyr llply
+#' @keywords internal
+extract_metadata = function(x, indextype, indices, parallel=FALSE){
+	# Immediately extract just those index indicated by `index` argument
+	metalist = x[[indextype]][indices]
+	# Extract metadata elements as a list, for checking dimensions, NULL, etc.
+	rx = llply(metalist, function(i) unlist(i$metadata), .parallel=parallel)
+	if( all(sapply(rx, is.null)) ){
 		# If there is no metadata (all NULL),
-		# then set samdata to NULL, representing empty.
-		samdata = NULL
+		# then set metadata to NULL, representing empty.
+		metadata = NULL
 	} else {
-		# Otherwise, parse it with ldply, return a data.frame with rownames
-		samdata = ldply(x$columns, function(i) i$metadata, .parallel=parallel)
-		rownames(samdata) <- sapply(x$columns, function(i) i$id)
+		# Else, extract names and metadata (both required)
+		# Extract names
+		metaids = sapply(metalist, function(i) i$id)
+		# Test if length of metadata entries is same for all indices.
+		rxlengths = sapply(rx, length)
+		if( all( rxlengths == rxlengths[1]) ){
+			# If so, can parse it as data.frame with ldply
+			# return a data.frame with colnames
+			metadata = ldply(rx, .parallel=parallel)
+			rownames(metadata) <- metaids
+		} else {
+			# Else, should keep it as a list. But should name the entries
+			metadata = rx
+			names(metadata) <- metaids
+		}
 	}
-	return(samdata)
+	return(metadata)
 }
-################################################################################
 ################################################################################
