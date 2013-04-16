@@ -306,7 +306,7 @@ class SupportTests(TestCase):
         exp[(1,0)] = 5
         exp[(8,10)] = -1.23
         obs = to_sparsemat(input, transpose=True)
-        self.assertEqual(obs.items(), exp.items())
+        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
 
         # passing a list of dicts, transpose
         exp = SparseMat(3,2)
