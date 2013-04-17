@@ -413,7 +413,8 @@ class TableTests(TestCase):
         self.assertEqual(t.ObservationMetadata[2]['a'],7)
         obs_md = {1:{'taxonomy':['A','B']},
                   2:{'taxonomy':['B','C']},
-                  3:{'taxonomy':['E','D','F']}}
+                  3:{'taxonomy':['E','D','F']},
+                  4:{'taxonomy':['this','is','ignored']}}
         t.addObservationMetadata(obs_md)
         self.assertEqual(t.ObservationMetadata[0]['a'],9)
         self.assertEqual(t.ObservationMetadata[1]['a'],8)
@@ -474,7 +475,8 @@ class TableTests(TestCase):
         samp_md = {4:{'barcode':'TTTT'},
                    6:{'barcode':'AAAA'},
                    5:{'barcode':'GGGG'},
-                   7:{'barcode':'CCCC'}}
+                   7:{'barcode':'CCCC'},
+                   10:{'ignore':'me'}}
         t.addSampleMetadata(samp_md)
         self.assertEqual(t.SampleMetadata[0]['Treatment'],'Control')
         self.assertEqual(t.SampleMetadata[1]['Treatment'],'Fasting')

@@ -183,7 +183,8 @@ class Table(object):
         """
         if self.ObservationMetadata != None:
             for id_, md_entry in md.items():
-                self.ObservationMetadata[self.getObservationIndex(id_)].update(md_entry)
+                if self.observationExists(id_):
+                    self.ObservationMetadata[self.getObservationIndex(id_)].update(md_entry)
         else:
             super(Table, self).__setattr__('ObservationMetadata',
                     tuple([md[id_] for id_ in self.ObservationIds]))
@@ -196,7 +197,8 @@ class Table(object):
         """
         if self.SampleMetadata != None:
             for id_, md_entry in md.items():
-                self.SampleMetadata[self.getSampleIndex(id_)].update(md_entry)
+                if self.sampleExists(id_):
+                    self.SampleMetadata[self.getSampleIndex(id_)].update(md_entry)
         else:
             super(Table, self).__setattr__('SampleMetadata',
                     tuple([md[id_] for id_ in self.SampleIds]))
