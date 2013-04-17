@@ -2,7 +2,8 @@
 #
 # First check that rbiom is available. 
 # If not, attempt to install
-if( !"rbiom" %in% .packages(TRUE) ){ # if( !"rbiom" %in% installed.packages()[, "Package"] ){
+if( !"rbiom" %in% .packages(TRUE) ){
+	# if( !"rbiom" %in% installed.packages()[, "Package"] ){
 	system("R CMD INSTALL rbiom")	
 }
 # If still not available, throw error
@@ -10,7 +11,6 @@ if( !"rbiom" %in% .packages(TRUE) ){
 	stop("Attempt to install rbiom-package prior to tests failed.\n
 	 Please install package manually prior to testing.")
 }
-# # # # # # try(test <- require("rbiom", warn.conflicts=FALSE, quietly=TRUE), TRUE)
 
 # Load rbiom package
 library("rbiom")
