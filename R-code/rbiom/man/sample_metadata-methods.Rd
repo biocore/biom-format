@@ -1,11 +1,11 @@
-\name{sample_meta}
-\alias{sample_meta}
-\alias{sample_meta,biom,character-method}
-\alias{sample_meta,biom,missing-method}
-\alias{sample_meta,biom,numeric-method}
+\name{sample_metadata}
+\alias{sample_metadata}
+\alias{sample_metadata,biom,character-method}
+\alias{sample_metadata,biom,missing-method}
+\alias{sample_metadata,biom,numeric-method}
 \title{Access meta data from \code{\link{biom-class}}.}
 \usage{
-  sample_meta(x, columns, parallel=FALSE)
+  sample_metadata(x, columns, parallel=FALSE)
 }
 \arguments{
   \item{x}{(Required). An instance of the
@@ -53,12 +53,12 @@ x4 = read_biom(rich_sparse_file)
 x5 = read_biom(rich_dense_char)
 x6 = read_biom(rich_sparse_char)
 # Extract metadata
-sample_meta(x1)
-sample_meta(x2)
-sample_meta(x3)
-sample_meta(x3, 1:4)
-sample_meta(x4)
-sample_meta(x5)
-sample_meta(x6)
+sample_metadata(x1)
+sample_metadata(x2)
+sample_metadata(x3)
+sample_metadata(x3, 1:4)
+sample_metadata(x4)
+sample_metadata(x5)
+sample_metadata(x6)
 }
 

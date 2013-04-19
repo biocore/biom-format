@@ -17,11 +17,30 @@ validbiom = function(object){
 					sep="\n")
 		return(missingkeysmessage)
 	}
+
+	met = matrix_element_type(object)
+	if(!identical(length(met), 1L)){
+		return("biom matrix_element_type field should have only 1 element")
+	}
+	if( !met %in% c("int", "float", "unicode") ){
+		return("biom matrix_element_type value is unsupported.")
+	}
+	
+	# Basic biom_shape value validity.
+	bshape = biom_shape(object)
+	if(!inherits(bshape, "integer")){
+		return("problem with biom shape value type")
+	}
+	if(!identical(length(bshape), 2L)){
+		return("problem with biom shape value length")
+	}
+	if(any(bshape < 0)){
+		return("problem with biom shape value: negative value")
+	}
 	
 	# Matrix shape and number of row/col elements matches
-	bshape = biomshape(object)
 	if( bshape["ncol"] > length(object$columns) ){
-		return("shape specifies more cols than are present in metadata")
+		return("shape field specifies more cols than are present in metadata")
 	}
 	if( bshape["nrow"] > length(object$rows) ){
 		return("shape field specifies more rows than are present in metadata")
@@ -92,6 +111,6 @@ validbiom = function(object){
 	return(TRUE)
 }
 ################################################################################
-## assign the function as the validity method for the otuTable class
+## assign the function as the validity method for the biom-class
 setValidity("biom", validbiom)
 ################################################################################

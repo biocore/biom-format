@@ -1,5 +1,7 @@
+\docType{methods}
 \name{biom}
 \alias{biom}
+\alias{biom,list-method}
 \title{Build and return an instance of the biom-class.}
 \usage{
   biom(x)
@@ -8,10 +10,10 @@
   \item{x}{(REQUIRED). A named list conforming to
   conventions arising from the \code{\link{fromJSON}}
   function reading a biom-format file with default
-  settings. See \code{\link{read_biom}} for more details,
-  and \code{\link{accessors}} (accessor functions) that
-  extract R-friendly subsets of the data stored in the
-  biom-format derived list.}
+  settings. See \code{\link{read_biom}} for more details
+  about data import and \code{\link{biom-class}} for more
+  details about accessor functions that extract R-friendly
+  subsets of the data and metadata stored in \code{x}.}
 }
 \value{
   An instance of the \code{\link{biom-class}}.
@@ -27,9 +29,9 @@
   can easily represent analogous data in this structure if
   needed. However, most users are expected to instead rely
   on the \code{\link{read_biom}} function for data import,
-  followed by \code{\link{accessors}} (accessor functions)
-  that extract R-friendly subsets of the data stored in the
-  biom-format derived list.
+  followed by accessor functions that extract R-friendly
+  subsets of the data stored in the biom-format derived
+  list.
 }
 \details{
   \code{biom()} is a constructor method. This is the main
@@ -46,8 +48,11 @@ show(x)
 print(x)
 header(x)
 biom_table(x)
-observ_meta(x)
-sample_meta(x)
+biom_shape(x)
+nrow(x)
+ncol(x)
+observation_metadata(x)
+sample_metadata(x)
 }
 \seealso{
   The \code{\link{read_biom}} import function.

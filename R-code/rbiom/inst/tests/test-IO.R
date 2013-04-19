@@ -43,17 +43,17 @@ test_that("biom_tables can be manipulated mathematically", {
 })
 
 test_that("empty stuff is NULL", {
-	expect_is(sample_meta(x1), "NULL")
-	expect_is(sample_meta(x1, 2:4), "NULL")
-	expect_is(observ_meta(x1), "NULL")
+	expect_is(sample_metadata(x1), "NULL")
+	expect_is(sample_metadata(x1, 2:4), "NULL")
+	expect_is(observation_metadata(x1), "NULL")
 })
 
 test_that("Expected classes of non-empty components", {
-	expect_is(observ_meta(x3), "data.frame")
-	expect_is(observ_meta(x3, 2:4), "data.frame")
-	expect_is(observ_meta(x3, 3), "data.frame")
-	expect_is(observ_meta(x1), "NULL")
-	expect_that(sample_meta(x3), is_a("data.frame"))	
+	expect_is(observation_metadata(x3), "data.frame")
+	expect_is(observation_metadata(x3, 2:4), "data.frame")
+	expect_is(observation_metadata(x3, 3), "data.frame")
+	expect_is(observation_metadata(x1), "NULL")
+	expect_that(sample_metadata(x3), is_a("data.frame"))	
 	expect_that(biom_table(x3), is_a("Matrix"))
 	expect_that(header(x3), is_a("list"))
 })

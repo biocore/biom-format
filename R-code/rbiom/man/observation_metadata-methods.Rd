@@ -1,11 +1,11 @@
-\name{observ_meta}
-\alias{observ_meta}
-\alias{observ_meta,biom,character-method}
-\alias{observ_meta,biom,missing-method}
-\alias{observ_meta,biom,numeric-method}
+\name{observation_metadata}
+\alias{observation_metadata}
+\alias{observation_metadata,biom,character-method}
+\alias{observation_metadata,biom,missing-method}
+\alias{observation_metadata,biom,numeric-method}
 \title{Access observation (row) meta data from \code{\link{biom-class}}.}
 \usage{
-  observ_meta(x, rows, parallel=FALSE)
+  observation_metadata(x, rows, parallel=FALSE)
 }
 \arguments{
   \item{x}{(Required). An instance of the
@@ -53,14 +53,14 @@ x4 = read_biom(rich_sparse_file)
 x5 = read_biom(rich_dense_char)
 x6 = read_biom(rich_sparse_char)
 # Extract metadata
-observ_meta(x1)
-observ_meta(x2)
-observ_meta(x3)
-observ_meta(x3, 2:4)
-observ_meta(x3, 2)
-observ_meta(x3, c("GG_OTU_3", "GG_OTU_4", "whoops"))
-observ_meta(x4)
-observ_meta(x5)
-observ_meta(x6)
+observation_metadata(x1)
+observation_metadata(x2)
+observation_metadata(x3)
+observation_metadata(x3, 2:4)
+observation_metadata(x3, 2)
+observation_metadata(x3, c("GG_OTU_3", "GG_OTU_4", "whoops"))
+observation_metadata(x4)
+observation_metadata(x5)
+observation_metadata(x6)
 }
 

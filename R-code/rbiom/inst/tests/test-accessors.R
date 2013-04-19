@@ -96,30 +96,30 @@ test_that("Test pre-access biom_table subsetting", {
 
 
 test_that("Test observation metadata extraction", {
-	expect_equal(as(observ_meta(x3, 1)[1:3], "character"),
+	expect_equal(as(observation_metadata(x3, 1)[1:3], "character"),
 			c("k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria"))
-	expect_equal(as(observ_meta(x3, 2)[3:5], "character"),
+	expect_equal(as(observation_metadata(x3, 2)[3:5], "character"),
 							 c("c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae"))
-	expect_equal(as(observ_meta(x4, 5)[4], "character"), "o__Enterobacteriales")
+	expect_equal(as(observation_metadata(x4, 5)[4], "character"), "o__Enterobacteriales")
 })
 
 
 test_that("Test sample metadata extraction", {
-	expect_equal(sample_meta(x3, 1)$Description, "human gut")
-	expect_equal(sample_meta(x3, 2)$BODY_SITE, "gut")
-	expect_equal(sample_meta(x3, 4)$BODY_SITE, "skin")	
-	expect_equal(sample_meta(x4, 4)$BODY_SITE, "skin")	
+	expect_equal(sample_metadata(x3, 1)$Description, "human gut")
+	expect_equal(sample_metadata(x3, 2)$BODY_SITE, "gut")
+	expect_equal(sample_metadata(x3, 4)$BODY_SITE, "skin")	
+	expect_equal(sample_metadata(x4, 4)$BODY_SITE, "skin")	
 })
 
 
 test_that("Test metadata bad-index warnings", {
-	expect_warning(out<-sample_meta(x3, 2:8))
-	label = "sample_meta() output after corrected index has incorrect dimensions"
+	expect_warning(out<-sample_metadata(x3, 2:8))
+	label = "sample_metadata() output after corrected index has incorrect dimensions"
 	expect_equal(dim(out), c(5, 4), label=label)
-	expect_warning(out<-observ_meta(x3, 2:8))
-	label = "observ_meta() output after corrected index has incorrect dimensions"
+	expect_warning(out<-observation_metadata(x3, 2:8))
+	label = "observation_metadata() output after corrected index has incorrect dimensions"
 	expect_equal(dim(out), c(4, 7), label=label)
-	expect_warning(out<-observ_meta(x3, 8:10))
-	expect_error(out<-observ_meta(x3, c("non-id", "also-not-there")))
-	expect_error(out<-sample_meta(x3, c("non-id", "also-not-there")))
+	expect_warning(out<-observation_metadata(x3, 8:10))
+	expect_error(out<-observation_metadata(x3, c("non-id", "also-not-there")))
+	expect_error(out<-sample_metadata(x3, c("non-id", "also-not-there")))
 })

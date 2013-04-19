@@ -11,8 +11,8 @@
 #' can easily represent analogous data in this structure if needed.
 #' However, most users are expected to instead rely on the
 #' \code{\link{read_biom}} function for data import, followed by 
-#' \code{\link{accessors}} (accessor functions) that extract R-friendly
-#'  subsets of the data stored in the biom-format derived list.
+#' accessor functions that extract R-friendly
+#' subsets of the data stored in the biom-format derived list.
 #'
 #' \code{biom()} is a constructor method. This is the main method
 #' suggested for constructing an experiment-level (\code{\link{biom-class}})
@@ -22,9 +22,11 @@
 #'
 #' @param x (REQUIRED). A named list conforming to conventions arising from 
 #'  the \code{\link{fromJSON}} function reading a biom-format file with 
-#'  default settings. See \code{\link{read_biom}} for more details, and 
-#'  \code{\link{accessors}} (accessor functions) that extract R-friendly
-#'  subsets of the data stored in the biom-format derived list.
+#'  default settings. See \code{\link{read_biom}} for more details about
+#'  data import and 
+#'  \code{\link{biom-class}} for more details about accessor functions
+#'  that extract R-friendly
+#'  subsets of the data and metadata stored in \code{x}.
 #'
 #' @return An instance of the \code{\link{biom-class}}. 
 #'
@@ -33,6 +35,9 @@
 #'
 #' Accessor functions like \code{\link{header}}.
 #'
+#' @docType methods
+#' @aliases biom
+#' @rdname biom-methods
 #' @export
 #' @examples #
 #' # import with default parameters, specify a file
@@ -42,14 +47,20 @@
 #' print(x)
 #' header(x)
 #' biom_table(x)
-#' observ_meta(x)
-#' sample_meta(x)
-biom = function(x){
+#' biom_shape(x)
+#' nrow(x)
+#' ncol(x)
+#' observation_metadata(x)
+#' sample_metadata(x)
+setGeneric("biom", function(x) standardGeneric("biom"))
+#' @aliases biom,list-method
+#' @rdname biom-methods
+setMethod("biom", c("list"), function(x){
 	# Some instantiation checks chould go here, or wrap them in validity methods.
 	# Depends on how strict the check should be.
 	biom = new("biom", x)
 	return(biom)
-}
+})
 ################################################################################
 #' Method extensions to show for biom objects.
 #'
@@ -71,79 +82,217 @@ setMethod("show", "biom", function(object){
 	cat("biom object. \n")
 	cat("type:", object$type, "\n")
 	cat("matrix_type:", object$matrix_type, "\n")
-	cat(biomshape(object)[1], "rows and", biomshape(object)[2], "columns \n")
+	cat(biom_shape(object)[1], "rows and", biom_shape(object)[2], "columns \n")
 })
 ################################################################################
-#' Accessors for the \code{\link{biom-class}}. 
-#' 
-#' Convenience functions for accessing particular components of
-#' the \code{\link{biom-class}}. 
-#'
-#' Some features of the biom-format can be essentially empty,
-#' represented by the string \code{"null"} in the file.
-#' These fields are returned as \code{NULL} when accessed 
-#' by an accessor function.
+#' Extract the header from a \code{\link{biom-class}} object as a list. 
 #'
 #' @usage header(x)
-#' @usage biomclass(x)
-#' @usage biomshape(x)
 #'
 #' @param x (Required). An instance of the \code{\link{biom-class}}.
 #'
-#' @return A list or vector appropriate to the type of data being accessed.
-#' \code{header(x)} - returns a list with all the required elements that are
-#' not the main data or index metadata;
-#' \code{biomclass(x)} - returns a character string indicating the class of the
-#' data stored in the main observation matrix, with expected values
-#' \code{"int"}, \code{"float"}, \code{"unicode"};
-#' \code{biomshape(x)} - a two-element numeric vector indicating the respective
-#' row and column dimensions of the observation matrix.
-#'
-#' @aliases accessors
+#' @return A list containing the header data.
+#'  That is, all the required elements that are not
+#'  the main data or index metadata.
+#'  
 #' @aliases header
-#' @aliases biomclass
-#' @aliases biomshape
-#' @rdname accessor-functions
+#' @docType methods
+#' @rdname header-methods
 #' @export
 #' @examples
 #' biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
 #' x = read_biom(biom_file)
 #' header(x)
-#' biomshape(x)
-#' biomclass(x)
-#' biom_table(x)
-#' observ_meta(x)
-#' sample_meta(x)
-header = function(x){
+setGeneric("header", function(x) standardGeneric("header"))
+#' @aliases header,biom-method
+#' @rdname header-methods
+setMethod("header", c("biom"), function(x){
 	biomheadkeys = c("id", "format", "format_url", "type", "generated_by", "date",
-				 "matrix_type", "matrix_element_type", "shape")
-  return(x[biomheadkeys])
-}
+									 "matrix_type", "matrix_element_type", "shape")
+	return(x[biomheadkeys])	
+})
+################################################################################
+#' The matrix dimensions
+#' of a \code{\link{biom-class}} object.
+#'
+#' @usage biom_shape(x)
+#' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @return A length two \code{\link{integer-class}} vector
+#'  indicating the \code{\link{nrow}} and \code{\link{ncol}} 
+#'  of the main data matrix stored in \code{x}.
+#'
+#' @seealso 
+#' 
+#' \code{\link{biom-class}}
+#' 
 #' @export
-#' @aliases header
-#' @aliases biomshape
-#' @rdname accessor-functions
-biomshape = function(x){
-  bsv = as(c(nrow=x$shape[1], ncol=x$shape[2]), "integer")
-  if(!inherits(bsv, "integer")){stop("problem with biom shape value type")}
-  if(!identical(length(bsv), 2L)){stop("problem with biom shape value length")}
-  if(any(bsv < 0)){stop("problem with biom shape value: negative value")}
-  return(bsv)
-}
+#' @docType methods
+#' @rdname biom_shape-methods
+#' @examples
+#' # # # import with default parameters, specify a file
+#' biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' (x = read_biom(biom_file) )
+#' biom_shape(x)
+setGeneric("biom_shape", function(x) standardGeneric("biom_shape"))
+#' @aliases biom_shape,biom-method
+#' @rdname biom_shape-methods
+setMethod("biom_shape", c("biom"), function(x){
+	return(as(c(nrow=x$shape[1], ncol=x$shape[2]), "integer"))
+})
+################################################################################
+#' Access class of data in the matrix elements
+#' of a \code{\link{biom-class}} object
+#'
+#' @usage matrix_element_type(x)
+#' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @return A \code{\link{character-class}} string indicating 
+#' the class of the data stored in the main observation matrix of \code{x}, 
+#' with expected values \code{"int"}, \code{"float"}, \code{"unicode"}.
+#'
+#' @seealso 
+#' 
+#' \code{\link{biom-class}}
+#' 
 #' @export
-#' @aliases header
-#' @aliases biomclass
-#' @rdname accessor-functions
-biomclass = function(x){
-  bcl = x$matrix_element_type
-  if(!identical(length(bcl), 1L)){
-    stop("biom matrix_element_type field should have only 1 element")
-  }
-  if( !bcl %in% c("int", "float", "unicode") ){
-    stop("biom matrix_element_type value is unsupported.")
-  }
-  return(bcl)
-}
+#' @docType methods
+#' @rdname matrix_element_type-methods
+#' @examples
+#' # # # import with default parameters, specify a file
+#' biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' (x = read_biom(biom_file) )
+#' matrix_element_type(x)
+setGeneric("matrix_element_type", function(x) standardGeneric("matrix_element_type"))
+#' @aliases matrix_element_type,biom-method
+#' @rdname matrix_element_type-methods
+setMethod("matrix_element_type", c("biom"), function(x){
+	return(x$matrix_element_type)
+})
+################################################################################
+#' Method extensions to \code{\link[base]{nrow}}
+#' for \code{\link{biom-class}} objects.
+#'
+#' See the general documentation of \code{\link[base]{nrow}} method for
+#' expected behavior. 
+#'
+#' @usage nrow(x)
+#' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @return The number of rows in \code{x}.
+#'  A length 1 \code{\link{integer-class}}.
+#'
+#' @seealso 
+#' 
+#' \code{\link{ncol}}
+#' 
+#' \code{\link[base]{nrow}}
+#' 
+#' \code{\link{biom_shape}}
+#' 
+#' @export
+#' @aliases nrow,biom-method
+#' @docType methods
+#' @rdname nrow-methods
+#' @examples
+#' # # # import with default parameters, specify a file
+#' biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' (x = read_biom(biom_file) )
+#' nrow(x)
+setMethod("nrow", c("biom"), function(x){
+	return( biom_shape(x)["nrow"] )
+})
+################################################################################
+#' Method extensions to \code{\link[base]{ncol}}
+#' for \code{\link{biom-class}} objects.
+#'
+#' See the general documentation of \code{\link[base]{ncol}} method for
+#' expected behavior. 
+#' 
+#' @usage ncol(x)
+#' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @return The number of columns in \code{x}.
+#'  A length 1 \code{\link{integer-class}}.
+#'
+#' @seealso 
+#' 
+#' \code{\link{nrow}}
+#' 
+#' \code{\link[base]{ncol}}
+#' 
+#' \code{\link{biom_shape}}
+#' 
+#' @export
+#' @aliases ncol,biom-method
+#' @docType methods
+#' @rdname ncol-methods
+#' @examples
+#' # # # import with default parameters, specify a file
+#' biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' (x = read_biom(biom_file) )
+#' ncol(x)
+setMethod("ncol", c("biom"), function(x){
+	return( biom_shape(x)["ncol"] )
+})
+################################################################################
+#' Method extensions to \code{\link[base]{rownames}}
+#' for \code{\link{biom-class}} objects.
+#'
+#' See the general documentation of \code{\link[base]{rownames}} method for
+#' expected behavior. 
+#' 
+#' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @return The number of columns in \code{x}.
+#'  A length 1 \code{\link{integer-class}}.
+#'
+#' @seealso 
+#' 
+#' \code{\link{nrow}}
+#' 
+#' \code{\link[base]{rownames}}
+#' 
+#' \code{\link{biom_shape}}
+#' 
+#' @export
+#' @aliases rownames,biom-method
+#' @docType methods
+#' @rdname rownames-methods
+#' @examples
+#' # # # import with default parameters, specify a file
+#' biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' (x = read_biom(biom_file) )
+#' rownames(x)
+setMethod("rownames", c("biom"), function(x){
+	sapply(x$rows, function(i) i$id)
+})
+################################################################################
+#' Method extensions to \code{\link[base]{colnames}}
+#' for \code{\link{biom-class}} objects.
+#'
+#' See the general documentation of \code{\link[base]{colnames}} method for
+#' expected behavior. 
+#' 
+#' @param x (Required). An instance of the \code{\link{biom-class}}.
+#' @return The number of columns in \code{x}.
+#'  A length 1 \code{\link{integer-class}}.
+#'
+#' @seealso 
+#' 
+#' \code{\link{nrow}}
+#' 
+#' \code{\link[base]{colnames}}
+#' 
+#' \code{\link{biom_shape}}
+#' 
+#' @export
+#' @aliases colnames,biom-method
+#' @docType methods
+#' @rdname colnames-methods
+#' @examples
+#' # # # import with default parameters, specify a file
+#' biom_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
+#' (x = read_biom(biom_file) )
+#' colnames(x)
+setMethod("colnames", c("biom"), function(x){
+	sapply(x$columns, function(i) i$id)
+})
 ################################################################################
 #' Access main data observation matrix data from \code{\link{biom-class}}. 
 #' 
@@ -172,7 +321,7 @@ biomclass = function(x){
 #'  
 #'  @return A matrix containing the main observation data, with index names.
 #'   The type of data (numeric or character) 
-#'   will depend on the results of \code{\link{biomclass}(x)}.
+#'   will depend on the results of \code{\link{matrix_element_type}(x)}.
 #'   The class of the matrix returned will depend on the sparsity of the data,
 #'   and whether it has numeric or character data.
 #'   For now, only numeric data can be stored in a \code{\link{Matrix-class}},
@@ -212,19 +361,19 @@ setGeneric("biom_table", function(x, rows, columns, parallel=FALSE){
 #' @rdname biom_table-methods
 setMethod("biom_table", c("biom", "missing", "missing"), function(x, rows, columns, parallel){
   # Dispatch with full rows and cols
-  biom_table(x, 1:biomshape(x)["nrow"], 1:biomshape(x)["ncol"], parallel)
+  biom_table(x, 1:nrow(x), 1:ncol(x), parallel)
 })
 #' @aliases biom_table,biom,character,ANY-method
 #' @rdname biom_table-methods
 setMethod("biom_table", c("biom", "character", "ANY"), function(x, rows, columns, parallel){
-  rows = which(sapply(x$rows, function(s) s$id) %in% rows)
+  rows = which(rownames(x) %in% rows)
   # Dispatch with specified numeric rows and pass cols
   biom_table(x, rows, columns)
 })
 #' @aliases biom_table,biom,ANY,character-method
 #' @rdname biom_table-methods
 setMethod("biom_table", c("biom", "ANY", "character"), function(x, rows, columns, parallel){
-  columns = which(sapply(x$columns, function(s) s$id) %in% columns)
+  columns = which(colnames(x) %in% columns)
   # Dispatch with specified numeric columns and pass rows
   biom_table(x, rows, columns)
 })
@@ -232,13 +381,13 @@ setMethod("biom_table", c("biom", "ANY", "character"), function(x, rows, columns
 #' @rdname biom_table-methods
 setMethod("biom_table", c("biom", "numeric", "missing"), function(x, rows, columns, parallel){
   # Dispatch with specified rows and full cols
-  biom_table(x, rows, 1:biomshape(x)["ncol"], parallel)
+  biom_table(x, rows, 1:ncol(x), parallel)
 })
 #' @aliases biom_table,biom,missing,numeric-method
 #' @rdname biom_table-methods
 setMethod("biom_table", c("biom", "missing", "numeric"), function(x, rows, columns, parallel){
   # Dispatch with full rows and specified cols
-  biom_table(x, 1:biomshape(x)["nrow"], columns, parallel)
+  biom_table(x, 1:nrow(x), columns, parallel)
 })
 #' @aliases biom_table,biom,numeric,numeric-method
 #' @rdname biom_table-methods
@@ -258,7 +407,10 @@ setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, colum
     # Begin dense section
     # If matrix is stored as dense, create "vanilla" R matrix, m
     m = laply(x$data[rows], function(i) i[columns], .parallel=parallel) 
-    if( length(rows) > 1L & length(columns) > 1L & biomclass(x) %in% c("int", "float")){
+    if( length(rows) > 1L &
+    		length(columns) > 1L &
+    		matrix_element_type(x) %in% c("int", "float")
+    	){
       # If either dimension is length-one, don't call coerce to "Matrix"
       # Note that laply() does still work in this case.
       # If both dimension lengths > 1 & data is numeric, 
@@ -266,18 +418,18 @@ setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, colum
       # Mainly because it might still be sparse and this is a good way
       # to handle it in R. 
       m = Matrix(m)
-    }   
+    }
   } else {
     # Begin sparse section
     ## Initialize sparse matrix as either Matrix or matrix, depending on data class
-    biomshape = biomshape(x)
-    if(biomclass(x) %in% c("int", "float")){
+    biom_shape = biom_shape(x)
+    if(matrix_element_type(x) %in% c("int", "float")){
       # If data is numeric, initialize with Matrix (numeric data only)
-      m = Matrix(0, nrow=biomshape["nrow"], ncol=biomshape["ncol"]) 
+      m = Matrix(0, nrow=biom_shape["nrow"], ncol=biom_shape["ncol"]) 
     } else {
-      # Else, biomclass must be "unicode" for a unicode string.
+      # Else, matrix_element_type must be "unicode" for a unicode string.
       # Use a standard R character matrix
-      m = matrix(NA_character_, nrow=biomshape["nrow"], ncol=biomshape["ncol"]) 
+      m = matrix(NA_character_, nrow=biom_shape["nrow"], ncol=biom_shape["ncol"]) 
     }
     # Create an assignment data.frame
     adf = ldply(x$data, function(x){
@@ -320,7 +472,7 @@ setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, colum
 #' represented as a \code{\link{data.frame}} (if possible, or a list) 
 #' with proper index names.
 #'
-#' @usage sample_meta(x, columns, parallel=FALSE)
+#' @usage sample_metadata(x, columns, parallel=FALSE)
 #'
 #' @param x (Required). An instance of the \code{\link{biom-class}}.
 #' @param columns (Optional). The subset of column indices described in the
@@ -338,8 +490,8 @@ setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, colum
 #'  depends on the metadata stored in \code{x}. A \code{data.frame} is
 #'  created if possible.
 #'  
-#' @aliases sample_meta
-#' @rdname sample_meta-methods
+#' @aliases sample_metadata
+#' @rdname sample_metadata-methods
 #' @export
 #' @examples 
 #' min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
@@ -357,41 +509,41 @@ setMethod("biom_table", c("biom", "numeric", "numeric"), function(x, rows, colum
 #' x5 = read_biom(rich_dense_char)
 #' x6 = read_biom(rich_sparse_char)
 #' # Extract metadata
-#' sample_meta(x1)
-#' sample_meta(x2)
-#' sample_meta(x3)
-#' sample_meta(x3, 1:4)
-#' sample_meta(x4)
-#' sample_meta(x5)
-#' sample_meta(x6)
-setGeneric("sample_meta", function(x, columns, parallel=FALSE){
-	standardGeneric("sample_meta")
+#' sample_metadata(x1)
+#' sample_metadata(x2)
+#' sample_metadata(x3)
+#' sample_metadata(x3, 1:4)
+#' sample_metadata(x4)
+#' sample_metadata(x5)
+#' sample_metadata(x6)
+setGeneric("sample_metadata", function(x, columns, parallel=FALSE){
+	standardGeneric("sample_metadata")
 })
 # All methods funnel toward signature biom,numeric
-#' @aliases sample_meta,biom,missing-method
-#' @rdname sample_meta-methods
-setMethod("sample_meta", c("biom", "missing"), function(x, columns, parallel=FALSE){
+#' @aliases sample_metadata,biom,missing-method
+#' @rdname sample_metadata-methods
+setMethod("sample_metadata", c("biom", "missing"), function(x, columns, parallel=FALSE){
 	# Dispatch with full rows and cols
-	sample_meta(x, 1:biomshape(x)["ncol"], parallel)
+	sample_metadata(x, 1:ncol(x), parallel)
 })
-#' @aliases sample_meta,biom,character-method
-#' @rdname sample_meta-methods
-setMethod("sample_meta", c("biom", "character"), function(x, columns, parallel=FALSE){
+#' @aliases sample_metadata,biom,character-method
+#' @rdname sample_metadata-methods
+setMethod("sample_metadata", c("biom", "character"), function(x, columns, parallel=FALSE){
 	columns = which(sapply(x$columns, function(j) j$id) %in% columns)
 	if( length(columns)==0 ){
 		stop("The column ID names you provided do not match the column IDs in x")
 	}
 	# Dispatch with specified numeric columns
-	sample_meta(x, columns, parallel)
+	sample_metadata(x, columns, parallel)
 })
-#' @rdname sample_meta-methods
-#' @aliases sample_meta,biom,numeric-method
-setMethod("sample_meta", c("biom", "numeric"), function(x, columns, parallel=FALSE){
-	if( any(columns > biomshape(x)["ncol"]) ){
+#' @rdname sample_metadata-methods
+#' @aliases sample_metadata,biom,numeric-method
+setMethod("sample_metadata", c("biom", "numeric"), function(x, columns, parallel=FALSE){
+	if( any(columns > ncol(x)) ){
 		warning(paste0("column indices ",
-									 paste0(columns[columns > biomshape(x)["ncol"]], collapse=" "),
+									 paste0(columns[columns > ncol(x)], collapse=" "),
 									 " are greater than available columns in data. They were ignored."))
-		columns = columns[columns <= biomshape(x)["ncol"]]
+		columns = columns[columns <= ncol(x)]
 	}
 	return(extract_metadata(x, "columns", columns, parallel))
 })
@@ -402,7 +554,7 @@ setMethod("sample_meta", c("biom", "numeric"), function(x, columns, parallel=FAL
 #' represented as a \code{\link{data.frame}} (if possible)
 #' or a list, with proper index names.
 #'
-#' @usage observ_meta(x, rows, parallel=FALSE)
+#' @usage observation_metadata(x, rows, parallel=FALSE)
 #'
 #' @param x (Required). An instance of the \code{\link{biom-class}}.
 #' @param rows (Optional). The subset of row indices described in the
@@ -420,8 +572,8 @@ setMethod("sample_meta", c("biom", "numeric"), function(x, columns, parallel=FAL
 #'  depends on the metadata stored in \code{x}. A \code{data.frame} is
 #'  created if possible.
 #'  
-#' @aliases observ_meta
-#' @rdname observ_meta-methods
+#' @aliases observation_metadata
+#' @rdname observation_metadata-methods
 #' @export
 #' @examples 
 #' min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
@@ -439,43 +591,43 @@ setMethod("sample_meta", c("biom", "numeric"), function(x, columns, parallel=FAL
 #' x5 = read_biom(rich_dense_char)
 #' x6 = read_biom(rich_sparse_char)
 #' # Extract metadata
-#' observ_meta(x1)
-#' observ_meta(x2)
-#' observ_meta(x3)
-#' observ_meta(x3, 2:4)
-#' observ_meta(x3, 2)
-#' observ_meta(x3, c("GG_OTU_3", "GG_OTU_4", "whoops"))
-#' observ_meta(x4)
-#' observ_meta(x5)
-#' observ_meta(x6)
-setGeneric("observ_meta", function(x, rows, parallel=FALSE){
-	standardGeneric("observ_meta")
+#' observation_metadata(x1)
+#' observation_metadata(x2)
+#' observation_metadata(x3)
+#' observation_metadata(x3, 2:4)
+#' observation_metadata(x3, 2)
+#' observation_metadata(x3, c("GG_OTU_3", "GG_OTU_4", "whoops"))
+#' observation_metadata(x4)
+#' observation_metadata(x5)
+#' observation_metadata(x6)
+setGeneric("observation_metadata", function(x, rows, parallel=FALSE){
+	standardGeneric("observation_metadata")
 })
 # All methods funnel toward signature biom,numeric
-#' @aliases observ_meta,biom,missing-method
-#' @rdname observ_meta-methods
-setMethod("observ_meta", c("biom", "missing"), function(x, rows, parallel=FALSE){
+#' @aliases observation_metadata,biom,missing-method
+#' @rdname observation_metadata-methods
+setMethod("observation_metadata", c("biom", "missing"), function(x, rows, parallel=FALSE){
 	# Dispatch with full rows and cols
-	observ_meta(x, 1:biomshape(x)["nrow"], parallel)
+	observation_metadata(x, 1:nrow(x), parallel)
 })
-#' @aliases observ_meta,biom,character-method
-#' @rdname observ_meta-methods
-setMethod("observ_meta", c("biom", "character"), function(x, rows, parallel=FALSE){
+#' @aliases observation_metadata,biom,character-method
+#' @rdname observation_metadata-methods
+setMethod("observation_metadata", c("biom", "character"), function(x, rows, parallel=FALSE){
 	rows = which(sapply(x$rows, function(j) j$id) %in% rows)
 	if( length(rows)==0 ){
 		stop("The row ID names you provided do not match the row IDs in x")
 	}
 	# Dispatch with specified numeric rows
-	observ_meta(x, rows, parallel)
+	observation_metadata(x, rows, parallel)
 })
-#' @rdname observ_meta-methods
-#' @aliases observ_meta,biom,numeric-method
-setMethod("observ_meta", c("biom", "numeric"), function(x, rows, parallel=FALSE){
-	if( any(rows > biomshape(x)["nrow"]) ){
+#' @rdname observation_metadata-methods
+#' @aliases observation_metadata,biom,numeric-method
+setMethod("observation_metadata", c("biom", "numeric"), function(x, rows, parallel=FALSE){
+	if( any(rows > nrow(x)) ){
 		warning(paste0("Row indices ",
-									 paste0(rows[rows > biomshape(x)["nrow"]], collapse=" "),
+									 paste0(rows[rows > nrow(x)], collapse=" "),
 									 " are greater than available rows in data. They were ignored."))
-		rows = rows[rows <= biomshape(x)["nrow"]]
+		rows = rows[rows <= nrow(x)]
 	}
 	return(extract_metadata(x, "rows", rows, parallel))
 })

@@ -40,10 +40,11 @@
 \value{
   A matrix containing the main observation data, with index
   names. The type of data (numeric or character) will
-  depend on the results of \code{\link{biomclass}(x)}. The
-  class of the matrix returned will depend on the sparsity
-  of the data, and whether it has numeric or character
-  data. For now, only numeric data can be stored in a
+  depend on the results of
+  \code{\link{matrix_element_type}(x)}. The class of the
+  matrix returned will depend on the sparsity of the data,
+  and whether it has numeric or character data. For now,
+  only numeric data can be stored in a
   \code{\link{Matrix-class}}, which will be stored
   sparsely, if possible. Character data will be returned as
   a vanilla \code{\link{matrix-class}}.
