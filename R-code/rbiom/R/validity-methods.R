@@ -10,6 +10,7 @@ validbiom = function(object){
 	# All the required top-level keys are present
 	biomreqdkeys = c("id", "format", "format_url", "type", "generated_by", "date",
 									 "rows", "columns", "matrix_type", "matrix_element_type", "shape", "data")
+  
 	if( !all(biomreqdkeys %in% names(object)) ){
 		missingkeysmessage = paste("", 
 					"Not all required top-level keys are present in biom-object.",
@@ -39,16 +40,16 @@ validbiom = function(object){
 	}
 	
 	# Matrix shape and number of row/col elements matches
-	if( bshape["ncol"] > length(object$columns) ){
+	if( ncol(object) > length(object$columns) ){
 		return("shape field specifies more cols than are present in metadata")
 	}
-	if( bshape["nrow"] > length(object$rows) ){
+	if( nrow(object) > length(object$rows) ){
 		return("shape field specifies more rows than are present in metadata")
 	}
-	if( bshape["ncol"] < length(object$columns) ){
+	if( ncol(object) < length(object$columns) ){
 		return("more metadata cols than specified by shape field")
 	}
-	if( bshape["nrow"] < length(object$rows) ){
+	if( nrow(object) < length(object$rows) ){
 		return("more metadata rows than specified by shape field")
 	}	
 	
@@ -79,30 +80,28 @@ validbiom = function(object){
 	
 	# If sparse, all data fields should have length of 3 (row, col, val)
 	if( identical(object$matrix_type, "sparse") ){
-		if( !all(sapply(object$data, length)==3) ){
+		if( !all(sapply(object$data, length)==3L) ){
 			return("Some data fields for this sparse biom format do not have 3 elements")
 		}
 	}
-	# If dense, data fields should have length equal to
+	# If dense, data fields should have length equal to ncol
 	if( identical(object$matrix_type, "dense") ){
-		if( !all(sapply(object$data, length)==bshape["ncol"]) ){
+		if( !all(sapply(object$data, length)==ncol(object)) ){
 			return(paste("Some data fields for this dense biom format", 
-									 "do not have the expected number columns:", bshape["ncol"], sep=" "))
+									 "do not have the expected number columns:", ncol(object), sep=" "))
 		}
 	}	
 	
 	# metadata ids -- rownames and colnames -- must be unique
-	row_names = sapply(object$rows, function(i) i$id)
-	dupr = duplicated(row_names)
-	col_names = sapply(object$columns, function(i) i$id)
-	dupc = duplicated(col_names)
+	dupr = duplicated(rownames(object))
+	dupc = duplicated(colnames(object))
 	if( any(dupr) ){
 		return(paste("The following row ids were duplicated: \n",
-					paste0(row_names[dupr], collapse="\n"), sep=""))
+					paste0(rownames(object)[dupr], collapse="\n"), sep=""))
 	}
 	if( any(dupc) ){
 		return(paste("The following col ids were duplicated: \n",
-								 paste0(col_names[dupc], collapse="\n"), sep=""))
+					paste0(colnames(object)[dupc], collapse="\n"), sep=""))
 	}	
 	
 	# If we get all the way here without returning a string,

@@ -11,6 +11,7 @@ rich_sparse_file = system.file("extdata", "rich_sparse_otu_table.biom", package 
 min_dense_file   = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
 rich_dense_char  = system.file("extdata", "rich_dense_char.biom", package = "rbiom")
 rich_sparse_char  = system.file("extdata", "rich_sparse_char.biom", package = "rbiom")
+
 # Test read biom
 x1 = read_biom(min_dense_file)
 x2 = read_biom(min_sparse_file)
@@ -18,6 +19,38 @@ x3 = read_biom(rich_dense_file)
 x4 = read_biom(rich_sparse_file)
 x5 = read_biom(rich_dense_char)
 x6 = read_biom(rich_sparse_char)
+
+# Test ncol, nrow, colnames, rownames
+test_that("Test that ncol, nrow, colnames, rownames, all work as expected", {
+  expect_equivalent(ncol(x1), 6L)
+  expect_equivalent(ncol(x2), 6L)
+  expect_equivalent(ncol(x3), 6L)
+  expect_equivalent(ncol(x4), 6L)
+  expect_equivalent(ncol(x5), 6L)
+  expect_equivalent(ncol(x6), 6L)
+  
+  expect_equivalent(nrow(x1), 5L)
+  expect_equivalent(nrow(x2), 5L)
+  expect_equivalent(nrow(x3), 5L)
+  expect_equivalent(nrow(x4), 5L)
+  expect_equivalent(nrow(x5), 5L)
+  expect_equivalent(nrow(x6), 5L)
+  
+  expect_equivalent(colnames(x1), c("Sample1", "Sample2", "Sample3", "Sample4", "Sample5", "Sample6"))
+  expect_equivalent(colnames(x2), c("Sample1", "Sample2", "Sample3", "Sample4", "Sample5", "Sample6"))
+  expect_equivalent(colnames(x3), c("Sample1", "Sample2", "Sample3", "Sample4", "Sample5", "Sample6"))
+  expect_equivalent(colnames(x4), c("Sample1", "Sample2", "Sample3", "Sample4", "Sample5", "Sample6"))
+  expect_equivalent(colnames(x5), c("Sample1", "Sample2", "Sample3", "Sample4", "Sample5", "Sample6"))
+  expect_equivalent(colnames(x6), c("Sample1", "Sample2", "Sample3", "Sample4", "Sample5", "Sample6"))
+  
+  expect_equivalent(rownames(x1), c("GG_OTU_1", "GG_OTU_2", "GG_OTU_3", "GG_OTU_4", "GG_OTU_5"))
+  expect_equivalent(rownames(x2), c("GG_OTU_1", "GG_OTU_2", "GG_OTU_3", "GG_OTU_4", "GG_OTU_5"))
+  expect_equivalent(rownames(x3), c("GG_OTU_1", "GG_OTU_2", "GG_OTU_3", "GG_OTU_4", "GG_OTU_5"))
+  expect_equivalent(rownames(x4), c("GG_OTU_1", "GG_OTU_2", "GG_OTU_3", "GG_OTU_4", "GG_OTU_5"))
+  expect_equivalent(rownames(x5), c("GG_OTU_1", "GG_OTU_2", "GG_OTU_3", "GG_OTU_4", "GG_OTU_5"))
+  expect_equivalent(rownames(x6), c("GG_OTU_1", "GG_OTU_2", "GG_OTU_3", "GG_OTU_4", "GG_OTU_5"))
+  
+})
 
 # Read tables
 T1 = biom_table(x1)
@@ -61,22 +94,22 @@ test_that("Some arbitrary test values match expected", {
 
 
 test_that("Test pre-access biom_table subsetting", {
-  # multiple values
-  expect_equal(T1[1:3, 3:6], biom_table(x1, 1:3, 3:6), label="multiple rows and cols")
-  expect_equal(T2[1:3, 3:6], biom_table(x2, 1:3, 3:6), label="multiple rows and cols")
-  expect_equal(T3[1:3, 3:6], biom_table(x3, 1:3, 3:6), label="multiple rows and cols")
-  expect_equal(T4[1:3, 3:6], biom_table(x4, 1:3, 3:6), label="multiple rows and cols")
-  expect_equal(T5[1:3, 3:6], biom_table(x5, 1:3, 3:6), label="multiple rows and cols")
-  expect_equal(T6[1:3, 3:6], biom_table(x6, 1:3, 3:6), label="multiple rows and cols")
-  # single value
-  label = "single row and column"
+  label = "multiple rows and multiple columns"
+  expect_equal(T1[1:3, 3:6], biom_table(x1, 1:3, 3:6), label=label)
+  expect_equal(T2[1:3, 3:6], biom_table(x2, 1:3, 3:6), label=label)
+  expect_equal(T3[1:3, 3:6], biom_table(x3, 1:3, 3:6), label=label)
+  expect_equal(T4[1:3, 3:6], biom_table(x4, 1:3, 3:6), label=label)
+  expect_equal(T5[1:3, 3:6], biom_table(x5, 1:3, 3:6), label=label)
+  expect_equal(T6[1:3, 3:6], biom_table(x6, 1:3, 3:6), label=label)
+
+  label = "single row and column (single value)"
   expect_equivalent(T1[3, 4], biom_table(x1, 3, 4), label=label)
   expect_equivalent(T2[3, 4], biom_table(x2, 3, 4), label=label)
   expect_equivalent(T3[3, 4], biom_table(x3, 3, 4), label=label)
   expect_equivalent(T4[3, 4], biom_table(x4, 3, 4), label=label)
   expect_equivalent(T5[3, 4], biom_table(x5, 3, 4), label=label)
   expect_equivalent(T6[3, 4], biom_table(x6, 3, 4), label=label)
-  # 1 row, multiple cols
+
   label = "single rows and multiple cols"
   expect_equal(T1[1, 3:6], biom_table(x1, 1, 3:6), label=label)
   expect_equal(T2[1, 3:6], biom_table(x2, 1, 3:6), label=label)
@@ -84,7 +117,7 @@ test_that("Test pre-access biom_table subsetting", {
   expect_equal(T4[1, 3:6], biom_table(x4, 1, 3:6), label=label)
   expect_equal(T5[1, 3:6], biom_table(x5, 1, 3:6), label=label)
   expect_equal(T6[1, 3:6], biom_table(x6, 1, 3:6), label=label)
-  # 1 column, multiple rows
+
   label = "single column and multiple rows"
   expect_equal(T1[2:5, 3], biom_table(x1, 2:5, 3), label=label)
   expect_equal(T2[2:5, 3], biom_table(x2, 2:5, 3), label=label)
