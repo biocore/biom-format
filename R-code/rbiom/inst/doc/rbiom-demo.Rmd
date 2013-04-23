@@ -17,6 +17,7 @@ This demo is designed to provide an overview of the rbiom package to get you sta
 ```{r packages}
 library("rbiom")
 packageVersion("rbiom")
+library("rbiom"); packageVersion("rbiom")
 ```
 
 ---

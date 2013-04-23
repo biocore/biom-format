@@ -1,3 +1,7 @@
+<!--
+%\VignetteEngine{knitr}
+%\VignetteIndexEntry{BIOM support in R main vignette}
+-->
 
 <link href="http://joey711.github.com/phyloseq/markdown.css" rel="stylesheet"></link>
 
@@ -9,7 +13,7 @@ The BIOM file format (canonically pronounced "biome") is designed to be a genera
 
 This demo is designed to provide an overview of the rbiom package to get you started using it quickly. The rbiom package itself is intended to be a utility package that will be depended-upon by other packages in the future. It provides I/O functionality, and functions to make it easier to with data from biom-format files. It does not (and probably should not) provide statistical analysis functions. However, it does provide tools to access data from BIOM format files in ways that are extremely common in R (such as `"data.frame"`, `"matrix"`, and `"Matrix"` classes).
 
-**Package versions** at the time (Thu Apr  4 18:48:44 2013) of this build:
+**Package versions** at the time (Mon Apr 22 19:53:01 2013) of this build:
 
 ```r
 library("rbiom")
@@ -17,14 +21,14 @@ packageVersion("rbiom")
 ```
 
 ```
-## [1] '0.2.3'
+## [1] '0.3.5'
 ```
 
 
 ---
 
 # Read BIOM format
-Here is an example importing a BIOM format file into R using the `read_biom` function.
+Here is an example importing BIOM formats of different types into R using the `read_biom` function. The resulting data objects in R are given names beginning with `x`.
 
 
 ```r
@@ -32,18 +36,15 @@ min_dense_file = system.file("extdata", "min_dense_otu_table.biom", package = "r
 min_sparse_file = system.file("extdata", "min_sparse_otu_table.biom", package = "rbiom")
 rich_dense_file = system.file("extdata", "rich_dense_otu_table.biom", package = "rbiom")
 rich_sparse_file = system.file("extdata", "rich_sparse_otu_table.biom", package = "rbiom")
-min_dense_file
-```
-
-```
-## [1] "/Library/Frameworks/R.framework/Versions/2.15/Resources/library/rbiom/extdata/min_dense_otu_table.biom"
-```
-
-```r
+min_dense_file = system.file("extdata", "min_dense_otu_table.biom", package = "rbiom")
+rich_dense_char = system.file("extdata", "rich_dense_char.biom", package = "rbiom")
+rich_sparse_char = system.file("extdata", "rich_sparse_char.biom", package = "rbiom")
 x1 = read_biom(min_dense_file)
 x2 = read_biom(min_sparse_file)
 x3 = read_biom(rich_dense_file)
 x4 = read_biom(rich_sparse_file)
+x5 = read_biom(rich_dense_char)
+x6 = read_biom(rich_sparse_char)
 x1
 ```
 
@@ -122,7 +123,7 @@ observ_meta(x1)
 ```
 
 ```
-## NULL
+## Error: could not find function "observ_meta"
 ```
 
 ```r
@@ -130,7 +131,7 @@ observ_meta(x2)
 ```
 
 ```
-## NULL
+## Error: could not find function "observ_meta"
 ```
 
 ```r
@@ -138,24 +139,7 @@ observ_meta(x3)
 ```
 
 ```
-##                   V1                V2                     V3
-## GG_OTU_1 k__Bacteria p__Proteobacteria c__Gammaproteobacteria
-## GG_OTU_2 k__Bacteria  p__Cyanobacteria    c__Nostocophycideae
-## GG_OTU_3  k__Archaea  p__Euryarchaeota     c__Methanomicrobia
-## GG_OTU_4 k__Bacteria     p__Firmicutes          c__Clostridia
-## GG_OTU_5 k__Bacteria p__Proteobacteria c__Gammaproteobacteria
-##                            V4                    V5                V6
-## GG_OTU_1 o__Enterobacteriales f__Enterobacteriaceae    g__Escherichia
-## GG_OTU_2        o__Nostocales        f__Nostocaceae g__Dolichospermum
-## GG_OTU_3 o__Methanosarcinales f__Methanosarcinaceae g__Methanosarcina
-## GG_OTU_4   o__Halanaerobiales   f__Halanaerobiaceae  g__Halanaerobium
-## GG_OTU_5 o__Enterobacteriales f__Enterobacteriaceae    g__Escherichia
-##                                       V7
-## GG_OTU_1                             s__
-## GG_OTU_2                             s__
-## GG_OTU_3                             s__
-## GG_OTU_4 s__Halanaerobiumsaccharolyticum
-## GG_OTU_5                             s__
+## Error: could not find function "observ_meta"
 ```
 
 ```r
@@ -163,9 +147,7 @@ observ_meta(x4)[1:2, 1:3]
 ```
 
 ```
-##                   V1                V2                     V3
-## GG_OTU_1 k__Bacteria p__Proteobacteria c__Gammaproteobacteria
-## GG_OTU_2 k__Bacteria  p__Cyanobacteria    c__Nostocophycideae
+## Error: could not find function "observ_meta"
 ```
 
 ```r
@@ -173,7 +155,7 @@ class(observ_meta(x4))
 ```
 
 ```
-## [1] "data.frame"
+## Error: could not find function "observ_meta"
 ```
 
 
@@ -186,7 +168,7 @@ sample_meta(x1)
 ```
 
 ```
-## NULL
+## Error: could not find function "sample_meta"
 ```
 
 ```r
@@ -194,7 +176,7 @@ sample_meta(x2)
 ```
 
 ```
-## NULL
+## Error: could not find function "sample_meta"
 ```
 
 ```r
@@ -202,13 +184,7 @@ sample_meta(x3)
 ```
 
 ```
-##         BarcodeSequence  LinkerPrimerSequence BODY_SITE Description
-## Sample1    CGCTTATCGAGA CATGCTGCCTCCCGTAGGAGT       gut   human gut
-## Sample2    CATACCAGTAGC CATGCTGCCTCCCGTAGGAGT       gut   human gut
-## Sample3    CTCTCTACCTGT CATGCTGCCTCCCGTAGGAGT       gut   human gut
-## Sample4    CTCTCGGCCTGT CATGCTGCCTCCCGTAGGAGT      skin  human skin
-## Sample5    CTCTCTACCAAT CATGCTGCCTCCCGTAGGAGT      skin  human skin
-## Sample6    CTAACTACCAAT CATGCTGCCTCCCGTAGGAGT      skin  human skin
+## Error: could not find function "sample_meta"
 ```
 
 ```r
@@ -216,9 +192,7 @@ sample_meta(x4)[1:2, 1:3]
 ```
 
 ```
-##         BarcodeSequence  LinkerPrimerSequence BODY_SITE
-## Sample1    CGCTTATCGAGA CATGCTGCCTCCCGTAGGAGT       gut
-## Sample2    CATACCAGTAGC CATGCTGCCTCCCGTAGGAGT       gut
+## Error: could not find function "sample_meta"
 ```
 
 ```r
@@ -226,7 +200,7 @@ class(sample_meta(x4))
 ```
 
 ```
-## [1] "data.frame"
+## Error: could not find function "sample_meta"
 ```
 
 
@@ -252,12 +226,18 @@ boxplot(as(biom_table(x4), "vector"))
 
 ![plot of chunk plot](figure/plot3.png) 
 
+```r
+heatmap(as(biom_table(x4), "matrix"))
+```
+
+![plot of chunk plot](figure/plot4.png) 
+
 
 
 ---
 
 # Write BIOM format
-The biom objects in R can be written to a file/connection using the `write_biom` function. If you modified the biom object, this may still work as well, but no guarantees about this as we are still working on internal checks. The following example writes `x4` to a temporary file, then reads it back using `read_biom` and stores it as variable `y`. The exact comparison of these two objects using the `identical` function shows that they are exactly the same.
+The biom objects in R can be written to a file/connection using the `write_biom` function. If you modified the biom object, this may still work as well, but no guarantees about this as we are still working on internal checks. The following example writes `x4` to a temporary file, then reads it back using `read_biom` and stores it as variable `y`. The exact comparison of these two objects using the `identical` function shows that they are exactly the same in R.
 
 ```r
 outfile = tempfile()
@@ -268,6 +248,17 @@ identical(x4, y)
 
 ```
 ## [1] TRUE
+```
+
+
+Furthermore, it is possible to invoke standard operating system commands through the R `system` function -- in this case to invoke the `diff` command available on Unix-like systems or the `FC` command on Windows -- in order to compare the original and temporary files directly. Note that this is shown here for convenience, but not automatically run with the rest of the script because of the OS-dependence. During development, though, this same command is tested privately and no differences are reported between the files.
+
+
+```r
+# On Unix OSes
+system(paste0("diff ", rich_sparse_file, outfile))
+# On windows
+system(paste0("FC ", rich_sparse_file, outfile))
 ```
 
 
