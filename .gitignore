@@ -31,3 +31,7 @@ Thumbs.db
 R-code/rbiom/.Rbuildignore
 
 R-code/rbiom/rbiom.Rproj
+
+R-code/biom/.Rbuildignore
+
+*.Rproj
