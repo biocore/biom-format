@@ -24,3 +24,11 @@ Thumbs.db
 
 # For vim swap files
 .*.swp
+
+# R stuff
+######################
+.Rhistory
+.Rapp.history
+.Rproj.user
+*.Rbuildignore
+*.Rproj
