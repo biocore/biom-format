@@ -3,8 +3,7 @@ Version: 0.3.7
 Date: 2013-04-25
 Maintainer: Paul J. McMurdie <mcmurdie@stanford.edu>
 License: GPL-2 | file LICENSE
-Title: This is an R package for interfacing with the BIOM
-    format.
+Title: An interface package (beta) for the BIOM file format.
 Type: Package
 Author: Paul J. McMurdie <mcmurdie@stanford.edu> and
     the biom-format team http://biom-format.org/
