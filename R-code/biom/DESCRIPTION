@@ -1,15 +1,26 @@
 Package: biom
-Version: 0.3.6
-Date: 2013-04-23
+Version: 0.3.8
+Date: 2013-04-26
 Maintainer: Paul J. McMurdie <mcmurdie@stanford.edu>
-License: GPL-2
-Title: This is an R package for interfacing with the BIOM
-    format.
+License: GPL-2 | file LICENSE
+Title: An interface package (beta) for the BIOM file format.
 Type: Package
 Author: Paul J. McMurdie <mcmurdie@stanford.edu> and
-    biom-format team http://biom-format.org/
+    the biom-format team http://biom-format.org/
+BugReports: https://github.com/biom-format/biom-format/issues
+URL: http://biom-format.org/, https://github.com/biom-format/biom-format
 Description: This is an R package for interfacing with the
-    BIOM format.
+    BIOM format. Currently in beta form, this package
+    includes basic tools for reading biom-format files,
+    accessing and subsetting data tables from a biom object
+    (which is more complex than a single table),
+    as well as limited support for writing a biom-object
+    back to a biom-format file. The design of this API is
+    intended to match the python API and other tools
+    included with the biom-format project, but with a
+    decidedly "R flavor" that should be familiar to 
+    R users. This includes S4 classes and methods, as well as
+    extensions of common core functions/methods.
 Imports:
     plyr (>= 1.8),
     RJSONIO (>= 1.0.3),

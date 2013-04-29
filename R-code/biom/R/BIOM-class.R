@@ -439,7 +439,7 @@ setMethod("biom_data", c("biom", "numeric", "numeric"), function(x, rows, column
     adf$r <- adf$r + 1L
     adf$c <- adf$c + 1L
     # Subset to just indices that are in both arguments `rows` and `columns`
-    adf = subset(adf, r %in% rows & c %in% columns)
+    adf = adf[adf$r %in% rows & adf$c %in% columns, ]
     # Add dummy index for plyr .variable and
     # iterate and assign to matrix with double-arrow, m[r, c] <<-
     adf$iter <- 1:nrow(adf)
