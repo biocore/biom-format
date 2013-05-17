@@ -32,3 +32,5 @@ Thumbs.db
 .Rproj.user
 *.Rbuildignore
 *.Rproj
+
+R-code/biom.Rcheck*

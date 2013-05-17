@@ -1,0 +1,13 @@
+News and details about version changes to the biom package in R
+============
+
+
+biom 0.3.9 - speed improvement for sparse matrices
+============
+The `biom_data` parsing function now uses a vectorized (matrix-indexed)
+assignment while parsing sparse matrices.
+Unofficial benchmarks estimate a few 100X speedup.
+
+biom 0.3.8 - first release version
+============
+released on CRAN
