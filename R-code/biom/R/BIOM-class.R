@@ -425,25 +425,29 @@ setMethod("biom_data", c("biom", "numeric", "numeric"), function(x, rows, column
     biom_shape = biom_shape(x)
     if(matrix_element_type(x) %in% c("int", "float")){
       # If data is numeric, initialize with Matrix (numeric data only)
-      m = Matrix(0, nrow=biom_shape["nrow"], ncol=biom_shape["ncol"]) 
+      m = Matrix(0, nrow=nrow(x), ncol=ncol(x), sparse=TRUE)
+      # Create an assignment data.frame
+      adf = ldply(x$data)
     } else {
       # Else, matrix_element_type must be "unicode" for a unicode string.
       # Use a standard R character matrix
-      m = matrix(NA_character_, nrow=biom_shape["nrow"], ncol=biom_shape["ncol"]) 
+      m = matrix(NA_character_, nrow(x), ncol(x))
+      # Create an assignment data.frame.
+      # Is slightly more complicated for sparse JSON w/ character values
+      adf = ldply(x$data, function(x){
+                data.frame(r=x[[1]], c=x[[2]], data=x[[3]], stringsAsFactors=FALSE)
+            })
     }
-    # Create an assignment data.frame
-    adf = ldply(x$data, function(x){
-      data.frame(r=x[[1]], c=x[[2]], data=x[[3]], stringsAsFactors=FALSE)
-    })
-    # indices start at 0 in biom sparse format
-    adf$r <- adf$r + 1L
-    adf$c <- adf$c + 1L
+    colnames(adf) <- c("r", "c", "data")
+    # indices start at 0 in biom sparse format, 
+    # and are first two columns
+    adf[, 1:2] <- adf[, 1:2] + 1
     # Subset to just indices that are in both arguments `rows` and `columns`
-    adf = adf[adf$r %in% rows & adf$c %in% columns, ]
-    # Add dummy index for plyr .variable and
-    # iterate and assign to matrix with double-arrow, m[r, c] <<-
-    adf$iter <- 1:nrow(adf)
-    d_ply(adf, "iter", function(x) m[x$r, x$c] <<- x$data)
+    adf = adf[(adf$r %in% rows & adf$c %in% columns), ]
+    # Fill in data values in matrix, m.
+    # Vectorized for speed using matrix indexing.
+    # See help("Extract") for details about matrix indexing. Diff than 2-vec index.
+    m[as(adf[, 1:2], "matrix")] <- adf[, 3]
     # Subset this biggest-size m to just `rows` and `columns`
     m = m[rows, columns]
   # End sparse section
