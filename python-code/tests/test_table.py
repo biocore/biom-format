@@ -2121,6 +2121,34 @@ class DenseSparseInteractionTests(TestCase):
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
 
+    def test_descriptiveEquality(self):
+        """tests for descriptive equality"""
+        st1 = self.st1
+        dt1 = self.dt1
+        st2 = table_factory(st1._data, ['b','c'], ['1','2'])
+        st3 = table_factory(st1._data, ['a','b'], ['3','2'])
+        dt2 = table_factory(dt1._data, ['a','b'], ['1','2'], 
+                            [{'foo':'bar'}, {'bar':'foo'}])
+        dt3 = table_factory(dt1._data, ['a','b'], ['1','2'], None, 
+                            [{'foo':'bar'}, {'bar':'foo'}])
+        dt4 = table_factory(array([[3,2],[2,1]]), ['a','b'], ['1','2'], None, 
+                            [{'foo':'bar'}, {'bar':'foo'}])
+
+        self.assertEqual(st1.descriptiveEquality(st1), "Tables appear equal")
+        self.assertEqual(st1.descriptiveEquality(dt1), "Tables appear equal")
+
+        self.assertEqual(st1.descriptiveEquality(st2), 
+                         "Sample IDs are not the same")
+        self.assertEqual(st1.descriptiveEquality(st3), 
+                         "Observation IDs are not the same")
+
+        self.assertEqual(st1.descriptiveEquality(dt2), 
+                         "Sample metadata are not the same")
+        self.assertEqual(dt2.descriptiveEquality(dt3), 
+                         "Observation metadata are not the same")
+        self.assertEqual(dt3.descriptiveEquality(dt4),
+                         "Data elements are not the same")
+
     def test_data_equality(self):
         """Test equality between table types"""
         self.assertTrue(self.dt1 == self.st1)

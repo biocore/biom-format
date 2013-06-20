@@ -354,6 +354,21 @@ class Table(object):
         """Defined by subclass"""
         raise NotImplementedError
 
+    def descriptiveEquality(self, other):
+        """For use in testing, describe how the tables are not equal"""
+        if self.ObservationIds != other.ObservationIds:
+            return "Observation IDs are not the same"
+        if self.SampleIds != other.SampleIds:
+            return "Sample IDs are not the same"
+        if self.ObservationMetadata != other.ObservationMetadata:
+            return "Observation metadata are not the same"
+        if self.SampleMetadata != other.SampleMetadata:
+            return "Sample metadata are not the same"
+        if not self._data_equality(other):
+            return "Data elements are not the same"
+
+        return "Tables appear equal"
+
     def __eq__(self, other):
         """Equality is determined by the data matrix, metadata, and IDs"""
         if self.ObservationIds != other.ObservationIds:
