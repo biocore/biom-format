@@ -92,7 +92,7 @@ def float_(x):
         return x
 
 def split_on_semicolons_and_pipes(x):
-    return [y.split(';') for y in x.split('|')]
+    return [[e.strip() for e in y.split(';')] for y in x.split('|')]
 
 def main():
     opts,args = parser.parse_args()
