@@ -768,6 +768,13 @@ class DenseTableTests(TestCase):
          metadata_formatter=lambda s: '; '.join(s))
         self.assertEqual(obs,exp)
 
+        # Test observation_column_name.
+        exp = '\n'.join(["# Constructed from biom file","Taxon\ta\tb\tFOO","1\t5\t6\tk__a; p__b","2\t7\t8\tk__a; p__c"])
+        obs = self.dt_rich.delimitedSelf(header_key='taxonomy',
+                header_value='FOO', metadata_formatter=lambda s: '; '.join(s),
+                observation_column_name='Taxon')
+        self.assertEqual(obs,exp)
+
     def test_conv_to_np(self):
         """Correctly convert to a numpy type"""
         input = array([1,2,3,4,5])
@@ -1725,11 +1732,6 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
         self.assertRaises(UnknownID, self.dt1.observationData, 'asdsad')
 
-    def test_delimitedSelf(self):
-        """Print out self in a delimited form"""
-        exp = '\n'.join(["#OTU IDs\ta\tb","1\t5\t6","2\t7\t8"])
-        obs = self.dt1.delimitedSelf()
-        self.assertEqual(obs,exp)
     def test_sampleData(self):
         """tested in derived class"""
         exp = array([5,7])
@@ -1748,6 +1750,11 @@ class SparseTableTests(TestCase):
         """Print out self in a delimited form"""
         exp = '\n'.join(["# Constructed from biom file","#OTU ID\ta\tb","1\t5.0\t6.0","2\t7.0\t8.0"])
         obs = self.st1.delimitedSelf()
+        self.assertEqual(obs,exp)
+
+        # Test observation_column_name.
+        exp = '\n'.join(["# Constructed from biom file","Taxon\ta\tb","1\t5.0\t6.0","2\t7.0\t8.0"])
+        obs = self.st1.delimitedSelf(observation_column_name='Taxon')
         self.assertEqual(obs,exp)
 
     def test_conv_to_np(self):

@@ -282,8 +282,9 @@ class Table(object):
         """Returns True if observation ``id_`` exists, False otherwise"""
         return id_ in self._obs_index
 
-    def delimitedSelf(self, delim='\t', header_key=None, header_value=None, 
-        metadata_formatter=str):
+    def delimitedSelf(self, delim='\t', header_key=None, header_value=None,
+                      metadata_formatter=str,
+                      observation_column_name='#OTU ID'):
         """Return self as a string in a delimited form
         
         Default str output for the Table is just row/col ids and table data
@@ -298,6 +299,15 @@ class Table(object):
         
         ``metadata_formatter``: a function which takes a metadata entry and 
         returns a formatted version that should be written to file
+
+        ``observation_column_name``: the name of the first column in the output
+        table, corresponding to the observation IDs. For example, the default
+        will look something like:
+
+            #OTU ID\tSample1\tSample2
+            OTU1\t10\t2
+            OTU2\t4\t8
+
         """
         if self.isEmpty():
             raise TableException, "Cannot delimit self if I don't have data..."
@@ -313,11 +323,12 @@ class Table(object):
                 raise TableException, "You need to specify both header_key and header_value"
 
         if header_value:
-            output = ['# Constructed from biom file','#OTU ID%s%s\t%s' % (delim, 
-                samp_ids,header_value)]
+            output = ['# Constructed from biom file',
+                      '%s%s%s\t%s' % (observation_column_name, delim, samp_ids,
+                                      header_value)]
         else:
-            output = ['# Constructed from biom file','#OTU ID%s%s' % (delim, 
-                samp_ids)]
+            output = ['# Constructed from biom file',
+                      '%s%s%s' % (observation_column_name, delim, samp_ids)]
 
         for obs_id, obs_values in zip(self.ObservationIds, self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._conv_to_np(obs_values)))
