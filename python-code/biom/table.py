@@ -4,6 +4,7 @@
 
 from __future__ import division
 
+from copy import deepcopy
 from datetime import datetime
 from json import dumps
 from types import NoneType
@@ -244,6 +245,19 @@ class Table(object):
             return self.reduce(add, 'observation')
         else:
             raise TableException, "Unknown axis %s" % axis
+
+    def transpose(self):
+        """Return a new table that is the transpose of this table.
+
+        The returned table will be an entirely new table, including copies of
+        the (transposed) data, sample/observation IDs and metadata.
+        """
+        sample_md_copy = deepcopy(self.SampleMetadata)
+        obs_md_copy = deepcopy(self.ObservationMetadata)
+
+        return self.__class__(self._data.T, self.ObservationIds[:],
+                              self.SampleIds[:], obs_md_copy, sample_md_copy,
+                              self.TableId)
 
     def getSampleIndex(self, samp_id):
         """Returns the sample index for sample ``samp_id``"""

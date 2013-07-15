@@ -275,6 +275,15 @@ class TableTests(TestCase):
         self.assertRaises(TableException, self.t1.reduce, lambda x,y: x+y,
                           'sample')
 
+    def test_transpose(self):
+        """Should transpose a table"""
+        obs = self.t1.transpose()
+        self.assertTrue(obs.isEmpty())
+
+        obs = self.simple_derived.transpose()
+        self.assertEqual(obs.SampleIds, self.simple_derived.ObservationIds)
+        self.assertEqual(obs.ObservationIds, self.simple_derived.SampleIds)
+
     def test_getSampleIndex(self):
         """returns the sample index"""
         self.assertEqual(0, self.simple_derived.getSampleIndex(1))
@@ -664,7 +673,29 @@ class DenseTableTests(TestCase):
         f = lambda x,y: x*2 + y
         self.assertEqual(self.dt1.reduce(f, 'sample'), array([17,20]))
         self.assertEqual(self.dt1.reduce(f, 'observation'), array([16,22]))
-        
+
+    def test_transpose(self):
+        """Should transpose a dense table"""
+        obs = self.dt5.transpose()
+
+        self.assertEqual(obs.SampleIds, self.dt5.ObservationIds)
+        self.assertEqual(obs.ObservationIds, self.dt5.SampleIds)
+        self.assertEqual(obs.sampleData('3'), self.dt5.observationData('3'))
+        self.assertEqual(obs.sampleData('4'), self.dt5.observationData('4'))
+        self.assertEqual(obs.transpose(), self.dt5)
+
+        obs = self.dt_rich.transpose()
+
+        self.assertEqual(obs.SampleIds, self.dt_rich.ObservationIds)
+        self.assertEqual(obs.ObservationIds, self.dt_rich.SampleIds)
+        self.assertEqual(obs.SampleMetadata, self.dt_rich.ObservationMetadata)
+        self.assertEqual(obs.ObservationMetadata, self.dt_rich.SampleMetadata)
+        self.assertEqual(obs.sampleData('1'),
+                         self.dt_rich.observationData('1'))
+        self.assertEqual(obs.sampleData('2'),
+                         self.dt_rich.observationData('2'))
+        self.assertEqual(obs.transpose(), self.dt_rich)
+
     def test_nonzero(self):
         """Return a list of nonzero positions"""
         dt = DenseTable(array([[5,6,0,2],[0,7,0,8],[1,-1,0,0]]), 
@@ -1580,6 +1611,28 @@ class SparseTableTests(TestCase):
         f = lambda x,y: x*2 + y
         self.assertEqual(self.st1.reduce(f, 'sample'), array([17,20]))
         self.assertEqual(self.st1.reduce(f, 'observation'), array([16,22]))
+
+    def test_transpose(self):
+        """Should transpose a sparse table"""
+        obs = self.st1.transpose()
+
+        self.assertEqual(obs.SampleIds, self.st1.ObservationIds)
+        self.assertEqual(obs.ObservationIds, self.st1.SampleIds)
+        self.assertEqual(obs.sampleData('1'), self.st1.observationData('1'))
+        self.assertEqual(obs.sampleData('2'), self.st1.observationData('2'))
+        self.assertEqual(obs.transpose(), self.st1)
+
+        obs = self.st_rich.transpose()
+
+        self.assertEqual(obs.SampleIds, self.st_rich.ObservationIds)
+        self.assertEqual(obs.ObservationIds, self.st_rich.SampleIds)
+        self.assertEqual(obs.SampleMetadata, self.st_rich.ObservationMetadata)
+        self.assertEqual(obs.ObservationMetadata, self.st_rich.SampleMetadata)
+        self.assertEqual(obs.sampleData('1'),
+                         self.st_rich.observationData('1'))
+        self.assertEqual(obs.sampleData('2'),
+                         self.st_rich.observationData('2'))
+        self.assertEqual(obs.transpose(), self.st_rich)
 
     def test_sortObservationOrder(self):
         """sort by observations arbitrary order"""
