@@ -1031,6 +1031,17 @@ class DenseTableTests(TestCase):
                      min_group_size=1, one_to_many=True).sortByObservationId()
         self.assertEqual(obs_cat1, exp_cat1)
 
+        # Test out include_collapsed_metadata=False.
+        exp = DenseTable(array([[37,42,47]]), 
+                         ['a','b','c'],
+                         ['a'], [{'barcode':'aatt'},
+                                 {'barcode':'ttgg'},
+                                 {'barcode':'aatt'}])
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                min_group_size=1, one_to_many=True,
+                include_collapsed_metadata=False).sortByObservationId()
+        self.assertEqual(obs, exp)
+
     def test_collapseObservationsByMetadata(self):
         """Collapse observations by arbitrary metadata"""
         dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
@@ -1067,6 +1078,17 @@ class DenseTableTests(TestCase):
         self.assertRaises(TableException, dt_rich.collapseObservationsByMetadata,
                 bin_f, min_group_size=10)
 
+        # Test out include_collapsed_metadata=False.
+        exp = DenseTable(array([[24,27,30]]),
+                         ['a','b','c'],
+                         ['k__a'],
+                         [{'barcode':'aatt'},
+                          {'barcode':'ttgg'},
+                          {'barcode':'aatt'}])
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                include_collapsed_metadata=False)
+        self.assertEqual(obs, exp)
+
     def test_collapseSamplesByMetadata(self):
         """Collapse samples by arbitrary metadata"""
         dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
@@ -1090,6 +1112,20 @@ class DenseTableTests(TestCase):
 
         self.assertRaises(TableException, dt_rich.collapseSamplesByMetadata,
                 bin_f, min_group_size=10)
+
+        # Test out include_collapsed_metadata=False.
+        exp = DenseTable(array([[12,6],[18,9],[24,12]]),
+                         ['aatt','ttgg'],
+                         ['1','2','3'],
+                         None,
+                         [{'taxonomy':['k__a','p__b']},
+                          {'taxonomy':['k__a','p__c']},
+                          {'taxonomy':['k__a','p__c']}])
+
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                min_group_size=1,
+                include_collapsed_metadata=False).sortBySampleId()
+        self.assertEqual(obs, exp)
 
     def test_collapseSamplesByMetadata_one_to_many_strict(self):
         """Collapse samples by arbitary metadata"""
@@ -1169,6 +1205,19 @@ class DenseTableTests(TestCase):
         obs_cat1 = dt_rich.collapseSamplesByMetadata(bin_f, norm=False, 
                      min_group_size=1, one_to_many=True).sortByObservationId()
         self.assertEqual(obs_cat1, exp_cat1)
+
+        # Test out include_collapsed_metadata=False.
+        exp = DenseTable(array([[29,44,59]]).T,
+                         ['a'],
+                         ['1','2','3'],
+                         None,
+                         [{'other':'aatt'},
+                          {'other':'ttgg'},
+                          {'other':'aatt'}])
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False, 
+                     min_group_size=1, one_to_many=True,
+                     include_collapsed_metadata=False).sortByObservationId()
+        self.assertEqual(obs, exp)
 
     def test_transformObservations(self):
         """Transform observations by arbitrary function"""

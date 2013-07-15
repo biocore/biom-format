@@ -521,7 +521,7 @@ class Table(object):
     def filterSamples(self, f, invert=False):
         """Filter samples from self based on ``f``
         
-        ``f`` must accept three variables, the sample values, sample IDs and 
+        ``f`` must accept three variables, the sample values, sample ID and 
         sample metadata. The function must only return ``True`` or ``False``, 
         where ``True`` indicates that a sample should be retained.
         
@@ -561,7 +561,7 @@ class Table(object):
         """Filter observations from self based on ``f``
         
         ``f`` must accept three variables, the observation values, observation
-        IDs and observation metadata. The function must only return ``True`` or
+        ID and observation metadata. The function must only return ``True`` or
         ``False``, where ``True`` indicates that an observation should be
         retained.
         
@@ -650,15 +650,16 @@ class Table(object):
                     obs_md, self.TableId)
 
     def collapseSamplesByMetadata(self, metadata_f, reduce_f=add, norm=True, 
-            min_group_size=2, one_to_many=False, one_to_many_md_key='Path',
-            strict=False):
+            min_group_size=2, include_collapsed_metadata=True,
+            one_to_many=False, one_to_many_md_key='Path', strict=False):
         """Collapse samples in a table by sample metadata
-        
+
         Bin samples by metadata then collapse each bin into a single sample. 
-        
-        Metadata for the collapsed samples are retained and can be referred to
-        by the ``SampleId`` from each sample within the bin.
-        
+
+        If ``include_collapsed_metadata`` is True, metadata for the collapsed
+        samples are retained and can be referred to by the ``SampleId`` from
+        each sample within the bin.
+
         The remainder is only relevant to setting ``one_to_many`` to True.
 
         If ``one_to_many`` is True, allow samples to collapse into multiple 
@@ -705,7 +706,11 @@ class Table(object):
         """
         collapsed_data = []
         collapsed_sample_ids = []
-        collapsed_sample_md = []
+
+        if include_collapsed_metadata:
+            collapsed_sample_md = []
+        else:
+            collapsed_sample_md = None
 
         if one_to_many:
             if norm:
@@ -766,23 +771,17 @@ class Table(object):
 
                     new_data[:, s_idx[bin]] += s_v
             
-            # reassociate pathway information
-            collapsed_s_md = []
-            for k,i in sorted(s_idx.items(), key=itemgetter(1)):
-                collapsed_s_md.append({one_to_many_md_key:new_s_md[k]})
+            if include_collapsed_metadata:
+                # reassociate pathway information
+                for k,i in sorted(s_idx.items(), key=itemgetter(1)):
+                    collapsed_sample_md.append(
+                            {one_to_many_md_key:new_s_md[k]})
  
             # get the new sample IDs
-            collapsed_s_ids = [k for k,i in sorted(s_idx.items(), 
-                                                      key=itemgetter(1))]
+            collapsed_sample_ids = [k for k,i in sorted(s_idx.items(),
+                                                        key=itemgetter(1))]
 
-            # reassociate pathway information
-            collapsed_s_md = []
-            for k,i in sorted(s_idx.items(), key=itemgetter(1)):
-                collapsed_s_md.append({one_to_many_md_key:new_s_md[k]})
-            
             # convert back to self type
-            collapsed_sample_ids = collapsed_s_ids
-            collapsed_sample_md = collapsed_s_md
             data = self._conv_to_self_type(new_data)
         else:
             for bin, table in self.binSamplesByMetadata(metadata_f):
@@ -796,11 +795,12 @@ class Table(object):
                 collapsed_data.append(self._conv_to_self_type(redux_data))
                 collapsed_sample_ids.append(bin)
             
-                # retain metadata but store by original sample id
-                tmp_md = {}
-                for id_, md in zip(table.SampleIds, table.SampleMetadata):
-                    tmp_md[id_] = md
-                collapsed_sample_md.append(tmp_md)
+                if include_collapsed_metadata:
+                    # retain metadata but store by original sample id
+                    tmp_md = {}
+                    for id_, md in zip(table.SampleIds, table.SampleMetadata):
+                        tmp_md[id_] = md
+                    collapsed_sample_md.append(tmp_md)
 
             data = self._conv_to_self_type(collapsed_data, transpose=True)
 
@@ -812,16 +812,16 @@ class Table(object):
                 collapsed_sample_md, self.ObservationMetadata, self.TableId)
 
     def collapseObservationsByMetadata(self, metadata_f, reduce_f=add, 
-            norm=True, min_group_size=2, one_to_many=False, 
-            one_to_many_md_key='Path', strict=False):
+            norm=True, min_group_size=2, include_collapsed_metadata=True,
+            one_to_many=False, one_to_many_md_key='Path', strict=False):
         """Collapse observations in a table by observation metadata
         
         Bin observations by metadata then collapse each bin into a single 
         observation. 
         
-        Metadata for the collapsed observations are retained and 
-        can be referred to by the ``ObservationId`` from each observation 
-        within the bin.
+        If ``include_collapsed_metadata`` is True, metadata for the collapsed
+        observations are retained and can be referred to by the
+        ``ObservationId`` from each observation within the bin.
 
         The remainder is only relevant to setting ``one_to_many`` to True.
 
@@ -869,7 +869,11 @@ class Table(object):
         """
         collapsed_data = []
         collapsed_obs_ids = []
-        collapsed_obs_md = []
+
+        if include_collapsed_metadata:
+            collapsed_obs_md = []
+        else:
+            collapsed_obs_md = None
 
         if one_to_many:
             if norm:
@@ -929,21 +933,16 @@ class Table(object):
                         break
 
                     new_data[obs_idx[bin], :] += obs_v
-    
-            # associate the pathways back
-            collapsed_obs_md = []
-            for k,i in sorted(obs_idx.items(), key=itemgetter(1)):
-                collapsed_obs_md.append({one_to_many_md_key:new_obs_md[k]})
-           
+
+            if include_collapsed_metadata:
+                # associate the pathways back
+                for k,i in sorted(obs_idx.items(), key=itemgetter(1)):
+                    collapsed_obs_md.append({one_to_many_md_key:new_obs_md[k]})
+
             # get the new observation IDs
             collapsed_obs_ids = [k for k,i in sorted(obs_idx.items(), 
-                                                        key=itemgetter(1))]
+                                                     key=itemgetter(1))]
 
-            # associate the pathways back
-            collapsed_obs_md = []
-            for k,i in sorted(obs_idx.items(), key=itemgetter(1)):
-                collapsed_obs_md.append({one_to_many_md_key:new_obs_md[k]})
-            
             # convert back to self type
             data = self._conv_to_self_type(new_data)
         else:
@@ -957,13 +956,14 @@ class Table(object):
 
                 collapsed_data.append(self._conv_to_self_type(redux_data))
                 collapsed_obs_ids.append(bin)
-   
-                # retain metadata but store by original sample id
-                tmp_md = {}
-                for id_, md in zip(table.ObservationIds, \
-                                    table.ObservationMetadata):
-                    tmp_md[id_] = md
-                collapsed_obs_md.append(tmp_md)
+
+                if include_collapsed_metadata:
+                    # retain metadata but store by original observation id
+                    tmp_md = {}
+                    for id_, md in zip(table.ObservationIds,
+                                       table.ObservationMetadata):
+                        tmp_md[id_] = md
+                    collapsed_obs_md.append(tmp_md)
 
             data = self._conv_to_self_type(collapsed_data)
 
