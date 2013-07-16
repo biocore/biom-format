@@ -9,6 +9,7 @@ New Features
 ------------
 
 * Table.collapseObservationsByMetadata and Table.collapseSamplesByMetadata now have an additional argument, include_collapsed_metadata, which allows the user to either include or exclude collapsed metadata in the collapsed table.
+* Table.binObservationsByMetadata, Table.binSamplesByMetadata, Table.collapseObservationsByMetadata, and Table.collapseSamplesByMetadata now have an additional argument, constructor, which allows the user to choose the return type of the binned/collapsed table(s).
 * Table.delimitedSelf now has an additional argument, observation_column_name, which allows the user to specify the name of the first column in the output table (e.g. 'OTU ID', 'Taxon', etc.).
 * Added new Table.transpose method.
 

@@ -618,12 +618,19 @@ class Table(object):
         return self.__class__(self._conv_to_self_type(obs_vals),self.SampleIds[:],
                 obs_ids[:], self.SampleMetadata, obs_metadata, self.TableId)
 
-    def binSamplesByMetadata(self, f):
+    def binSamplesByMetadata(self, f, constructor=None):
         """Yields tables by metadata
         
         ``f`` is given the sample metadata by row and must return what "bin" 
         the sample is part of.
+
+        ``constructor``: the type of binned tables to create, e.g.
+        SparseTaxonTable. If None, the binned tables will be the same type as
+        this table.
         """
+        if constructor is None:
+            constructor = self.__class__
+
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
@@ -643,15 +650,23 @@ class Table(object):
 
         for bin, (samp_ids, samp_values, samp_md) in bins.iteritems():
             data = self._conv_to_self_type(samp_values, transpose=True)
-            yield bin, self.__class__(data, samp_ids[:], self.ObservationIds[:], 
-                    samp_md, self.ObservationMetadata, self.TableId)
+            yield bin, table_factory(data, samp_ids[:], self.ObservationIds[:], 
+                    samp_md, self.ObservationMetadata, self.TableId,
+                    constructor=constructor)
 
-    def binObservationsByMetadata(self, f):
+    def binObservationsByMetadata(self, f, constructor=None):
         """Yields tables by metadata
         
         ``f`` is given the observation metadata by row and must return what 
         "bin" the observation is part of.
+
+        ``constructor``: the type of binned tables to create, e.g.
+        SparseTaxonTable. If None, the binned tables will be the same type as
+        this table.
         """
+        if constructor is None:
+            constructor = self.__class__
+
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
@@ -670,13 +685,14 @@ class Table(object):
             bins[bin][2].append(obs_md)
 
         for bin, (obs_ids, obs_values, obs_md) in bins.iteritems():
-            yield bin, self.__class__(self._conv_to_self_type(obs_values), 
+            yield bin, table_factory(self._conv_to_self_type(obs_values), 
                     self.SampleIds[:], obs_ids[:], self.SampleMetadata,
-                    obs_md, self.TableId)
+                    obs_md, self.TableId, constructor=constructor)
 
     def collapseSamplesByMetadata(self, metadata_f, reduce_f=add, norm=True, 
             min_group_size=2, include_collapsed_metadata=True,
-            one_to_many=False, one_to_many_md_key='Path', strict=False):
+            constructor=None, one_to_many=False, one_to_many_md_key='Path',
+            strict=False):
         """Collapse samples in a table by sample metadata
 
         Bin samples by metadata then collapse each bin into a single sample. 
@@ -684,6 +700,10 @@ class Table(object):
         If ``include_collapsed_metadata`` is True, metadata for the collapsed
         samples are retained and can be referred to by the ``SampleId`` from
         each sample within the bin.
+
+        ``constructor``: the type of collapsed table to create, e.g.
+        SparseTaxonTable. If None, the collapsed table will be the same type as
+        this table.
 
         The remainder is only relevant to setting ``one_to_many`` to True.
 
@@ -729,6 +749,9 @@ class Table(object):
         implementation is in play on ``CSMat`` or a hybrid solution that allows
         for multiple ``SparseObj`` types is used.
         """
+        if constructor is None:
+            constructor = self.__class__
+
         collapsed_data = []
         collapsed_sample_ids = []
 
@@ -833,12 +856,15 @@ class Table(object):
         if 0 in data.shape:
             raise TableException, "Collapsed table is empty!"
 
-        return self.__class__(data, collapsed_sample_ids, self.ObservationIds[:],
-                collapsed_sample_md, self.ObservationMetadata, self.TableId)
+        return table_factory(data, collapsed_sample_ids,
+                             self.ObservationIds[:], collapsed_sample_md,
+                             self.ObservationMetadata, self.TableId,
+                             constructor=constructor)
 
     def collapseObservationsByMetadata(self, metadata_f, reduce_f=add, 
             norm=True, min_group_size=2, include_collapsed_metadata=True,
-            one_to_many=False, one_to_many_md_key='Path', strict=False):
+            constructor=None, one_to_many=False, one_to_many_md_key='Path',
+            strict=False):
         """Collapse observations in a table by observation metadata
         
         Bin observations by metadata then collapse each bin into a single 
@@ -847,6 +873,10 @@ class Table(object):
         If ``include_collapsed_metadata`` is True, metadata for the collapsed
         observations are retained and can be referred to by the
         ``ObservationId`` from each observation within the bin.
+
+        ``constructor``: the type of collapsed table to create, e.g.
+        SparseTaxonTable. If None, the collapsed table will be the same type as
+        this table.
 
         The remainder is only relevant to setting ``one_to_many`` to True.
 
@@ -892,6 +922,9 @@ class Table(object):
         implementation is in play on ``CSMat`` or a hybrid solution that allows
         for multiple ``SparseObj`` types is used.
         """
+        if constructor is None:
+            constructor = self.__class__
+
         collapsed_data = []
         collapsed_obs_ids = []
 
@@ -996,8 +1029,9 @@ class Table(object):
         if 0 in data.shape:
             raise TableException, "Collapsed table is empty!"
 
-        return self.__class__(data, self.SampleIds[:], collapsed_obs_ids,
-                self.SampleMetadata, collapsed_obs_md, self.TableId)
+        return table_factory(data, self.SampleIds[:], collapsed_obs_ids,
+                self.SampleMetadata, collapsed_obs_md, self.TableId,
+                constructor=constructor)
 
     def transformSamples(self, f):
         """Iterate over samples, applying a function ``f`` to each value

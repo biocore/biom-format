@@ -1080,6 +1080,14 @@ class DenseTableTests(TestCase):
                 include_collapsed_metadata=False).sortByObservationId()
         self.assertEqual(obs, exp)
 
+        # Test out constructor.
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                min_group_size=1, one_to_many=True,
+                include_collapsed_metadata=False,
+                constructor=SparseTable).sortByObservationId()
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), SparseTable)
+
     def test_collapseObservationsByMetadata(self):
         """Collapse observations by arbitrary metadata"""
         dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
@@ -1127,6 +1135,13 @@ class DenseTableTests(TestCase):
                 include_collapsed_metadata=False)
         self.assertEqual(obs, exp)
 
+        # Test out constructor.
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                include_collapsed_metadata=False,
+                constructor=SparseTable)
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), SparseTable)
+
     def test_collapseSamplesByMetadata(self):
         """Collapse samples by arbitrary metadata"""
         dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
@@ -1164,6 +1179,13 @@ class DenseTableTests(TestCase):
                 min_group_size=1,
                 include_collapsed_metadata=False).sortBySampleId()
         self.assertEqual(obs, exp)
+
+        # Test out constructor.
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                min_group_size=1, include_collapsed_metadata=False,
+                constructor=SparseTable).sortBySampleId()
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), SparseTable)
 
     def test_collapseSamplesByMetadata_one_to_many_strict(self):
         """Collapse samples by arbitary metadata"""
@@ -1256,6 +1278,14 @@ class DenseTableTests(TestCase):
                      min_group_size=1, one_to_many=True,
                      include_collapsed_metadata=False).sortByObservationId()
         self.assertEqual(obs, exp)
+
+        # Test out constructor.
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                min_group_size=1, one_to_many=True,
+                include_collapsed_metadata=False,
+                constructor=SparseTable).sortByObservationId()
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), SparseTable)
 
     def test_transformObservations(self):
         """Transform observations by arbitrary function"""
@@ -1506,7 +1536,28 @@ class DenseTableTests(TestCase):
                     obs_tables[exp3_idx])
 
         self.assertEqual(obs_sort, exp_tables)
-        
+
+        # We should get the same table type back.
+        exp_types = (DenseTable, DenseTable, DenseTable)
+        obs_sort = (type(obs_tables[exp1_idx]), type(obs_tables[exp2_idx]),
+                    type(obs_tables[exp3_idx]))
+        self.assertEqual(obs_sort, exp_types)
+
+        # Test passing a different constructor. We should get the same data
+        # equality, but different table types.
+        obs_bins, obs_tables = unzip(t.binSamplesByMetadata(f,
+                constructor=SparseTable))
+
+        obs_sort = (obs_bins[exp1_idx], obs_bins[exp2_idx], obs_bins[exp3_idx])
+        self.assertEqual(obs_sort, exp_bins)
+        obs_sort = (obs_tables[exp1_idx], obs_tables[exp2_idx], 
+                    obs_tables[exp3_idx])
+        self.assertEqual(obs_sort, exp_tables)
+        exp_types = (SparseTable, SparseTable, SparseTable)
+        obs_sort = (type(obs_tables[exp1_idx]), type(obs_tables[exp2_idx]),
+                    type(obs_tables[exp3_idx]))
+        self.assertEqual(obs_sort, exp_types)
+
     def test_binObservationsByMetadata(self):
         """Yield tables binned by observation metadata"""
         def make_level_f(level):
@@ -1536,6 +1587,13 @@ class DenseTableTests(TestCase):
         obs_bins, obs_king = unzip(t.binObservationsByMetadata(func_king))
         self.assertEqual(obs_king, [exp_king])
         self.assertEqual(obs_bins, [tuple(['k__a'])])
+        self.assertEqual(type(obs_king[0]), type(exp_king))
+
+        obs_bins, obs_king = unzip(t.binObservationsByMetadata(func_king,
+                constructor=SparseTable))
+        self.assertEqual(obs_king, [exp_king])
+        self.assertEqual(obs_bins, [tuple(['k__a'])])
+        self.assertEqual(type(obs_king[0]), SparseTable)
 
         exp_phy1_obs_ids = ['a','b']
         exp_phy1_samp_ids = [1,2,3]
@@ -2131,7 +2189,28 @@ class SparseTableTests(TestCase):
                     obs_tables[exp3_idx])
 
         self.assertEqual(obs_sort, exp_tables)
-        
+
+        # We should get the same table type back.
+        exp_types = (SparseTable, SparseTable, SparseTable)
+        obs_sort = (type(obs_tables[exp1_idx]), type(obs_tables[exp2_idx]),
+                    type(obs_tables[exp3_idx]))
+        self.assertEqual(obs_sort, exp_types)
+
+        # Test passing a different constructor. We should get the same data
+        # equality, but different table types.
+        obs_bins, obs_tables = unzip(t.binSamplesByMetadata(f,
+                constructor=SparseOTUTable))
+
+        obs_sort = (obs_bins[exp1_idx], obs_bins[exp2_idx], obs_bins[exp3_idx])
+        self.assertEqual(obs_sort, exp_bins)
+        obs_sort = (obs_tables[exp1_idx], obs_tables[exp2_idx], 
+                    obs_tables[exp3_idx])
+        self.assertEqual(obs_sort, exp_tables)
+        exp_types = (SparseOTUTable, SparseOTUTable, SparseOTUTable)
+        obs_sort = (type(obs_tables[exp1_idx]), type(obs_tables[exp2_idx]),
+                    type(obs_tables[exp3_idx]))
+        self.assertEqual(obs_sort, exp_types)
+
     def test_binObservationsByMetadata(self):
         """Yield tables binned by observation metadata"""
         def make_level_f(level):
@@ -2166,6 +2245,13 @@ class SparseTableTests(TestCase):
 
         self.assertEqual(obs_king, [exp_king])
         self.assertEqual(obs_bins, [tuple(['k__a'])])
+        self.assertEqual(type(obs_king[0]), type(exp_king))
+
+        obs_bins, obs_king = unzip(t.binObservationsByMetadata(func_king,
+                constructor=SparseOTUTable))
+        self.assertEqual(obs_king, [exp_king])
+        self.assertEqual(obs_bins, [tuple(['k__a'])])
+        self.assertEqual(type(obs_king[0]), SparseOTUTable)
 
         exp_phy1_obs_ids = ['a','b']
         exp_phy1_samp_ids = [1,2,3]
