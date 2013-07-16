@@ -573,7 +573,7 @@ class Table(object):
         # create an inconsistancy in which there are observation ids but no
         # matrix data in the resulting table
         if not samp_ids:
-            raise TableException, "All samples filtered out!"
+            raise TableException, "All samples were filtered out!"
 
         # the additional call to _conv_to_self_type is to convert a list of 
         # vectors to a matrix
@@ -613,7 +613,7 @@ class Table(object):
         # create an inconsistancy in which there are sample ids but no
         # matrix data in the resulting table
         if not obs_vals:
-            raise TableException, "All obs filtered out!"
+            raise TableException, "All observations were filtered out!"
 
         return self.__class__(self._conv_to_self_type(obs_vals),self.SampleIds[:],
                 obs_ids[:], self.SampleMetadata, obs_metadata, self.TableId)
