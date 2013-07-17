@@ -7,7 +7,7 @@ from biom.parse import parse_biom_table, parse_mapping, generatedby
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2012, The BIOM-Format project"
-__credits__ = ["Greg Caporaso"]
+__credits__ = ["Greg Caporaso","Morgan Langille"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
 __version__ = "1.1.2-dev"
@@ -39,6 +39,12 @@ opt_options = [make_option('-m','--sample_mapping_fp',type="string",
                           'fields to split on semi-colons. this is useful '
                           'for hierarchical data such as taxonomy or functional '
                           'category [default: %default]'),
+                          default=None),
+               make_option('--sc_pipe_separated',type="string",
+                    help=('comma-separated list of the metadata '
+                          'fields to split on semi-colons and pipes "|". This is useful '
+                          'for hierarchical data such as functional '
+                          'category with one to many mappings (e.g. x;y;z|x;y;w) [default: %default]'),
                           default=None),
                make_option('--int_fields',type="string",
                     help=('comma-separated list of the metadata '
@@ -85,6 +91,9 @@ def float_(x):
     except ValueError:
         return x
 
+def split_on_semicolons_and_pipes(x):
+    return [[e.strip() for e in y.split(';')] for y in x.split('|')]
+
 def main():
     opts,args = parser.parse_args()
 
@@ -119,6 +128,11 @@ def main():
     if float_fields != None:
         process_fns.update({}.fromkeys(float_fields.split(','),
                                       float_))
+
+    sc_pipe_separated=opts.sc_pipe_separated
+    if sc_pipe_separated != None:
+        process_fns.update({}.fromkeys(sc_pipe_separated.split(','),
+                                       split_on_semicolons_and_pipes))
 
     ## parse mapping files
     sample_mapping_fp = opts.sample_mapping_fp
