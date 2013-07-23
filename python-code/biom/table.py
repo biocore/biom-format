@@ -691,8 +691,8 @@ class Table(object):
 
     def collapseSamplesByMetadata(self, metadata_f, reduce_f=add, norm=True, 
             min_group_size=2, include_collapsed_metadata=True,
-            constructor=None, one_to_many=False, one_to_many_md_key='Path',
-            strict=False):
+            constructor=None, one_to_many=False, one_to_many_mode='add',
+            one_to_many_md_key='Path', strict=False):
         """Collapse samples in a table by sample metadata
 
         Bin samples by metadata then collapse each bin into a single sample. 
@@ -729,6 +729,14 @@ class Table(object):
         If a sample maps to the same bin multiple times, it will be 
         counted multiple times.
 
+        There are two supported modes for handling one-to-many relationships
+        via ``one_to_many_mode``: ``add`` and ``divide``. ``add`` will add the
+        sample counts to each bin that the sample maps to, which may increase
+        the total number of counts in the output table. ``divide`` will divide
+        a sample's counts by the number of metadata that the sample has before
+        adding the counts to each bin. This will not increase the total number
+        of counts in the output table.
+
         If ``one_to_many_md_key`` is specified, that becomes the metadata
         key that describes the collapsed path. If a value is not specified,
         then it defaults to 'Path'.
@@ -739,6 +747,8 @@ class Table(object):
         ``one_to_many`` and ``norm`` are not supported together. 
         
         ``one_to_many`` and ``reduce_f`` are not supported together.
+
+        ``one_to_many`` and ``min_group_size`` are not supported together.
 
         A final note on space consumption. At present, the ``one_to_many``
         functionality requires a temporary dense matrix representation. This 
@@ -760,6 +770,10 @@ class Table(object):
         else:
             collapsed_sample_md = None
 
+        if one_to_many_mode not in ['add', 'divide']:
+            raise ValueError("Unrecognized one-to-many mode '%s'. Must be "
+                             "either 'add' or 'divide'." % one_to_many_mode)
+
         if one_to_many:
             if norm:
                 raise AttributeError, "norm and one_to_many are not supported together"
@@ -767,8 +781,10 @@ class Table(object):
             # determine the collapsed pathway
             # we drop all other associated metadata
             new_s_md = {}
+            s_md_count = {}
             for id_, md in zip(self.SampleIds, self.SampleMetadata):
                 md_iter = metadata_f(md)
+                num_md = 0
                 while True:
                     try:
                         pathway, bin = md_iter.next()
@@ -786,16 +802,26 @@ class Table(object):
                         break
                     
                     new_s_md[bin] = pathway 
+                    num_md += 1
+
+                s_md_count[id_] = num_md
 
             n_s = len(new_s_md)
             s_idx = dict([(bin,i) for i,bin in enumerate(sorted(new_s_md))])
-            
+
+            # We need to store floats, not ints, as things won't always divide
+            # evenly.
+            if one_to_many_mode == 'divide':
+                dtype = float
+            else:
+                dtype = self._dtype
+
             # allocate new data. using a dense representation allows for a 
             # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
-            # of collapsed samples is reasonable, then this doesn't suck to 
+            # of collapsed samples is reasonable, then this doesn't suck too
             # much.
-            new_data = zeros((len(self.ObservationIds), n_s), dtype=self._dtype)
-      
+            new_data = zeros((len(self.ObservationIds), n_s), dtype=dtype)
+
             # for each sample
             # for each bin in the metadata
             # for each value associated with the sample
@@ -817,8 +843,16 @@ class Table(object):
                     except StopIteration:
                         break
 
-                    new_data[:, s_idx[bin]] += s_v
-            
+                    if one_to_many_mode == 'add':
+                        new_data[:, s_idx[bin]] += s_v
+                    elif one_to_many_mode == 'divide':
+                        new_data[:, s_idx[bin]] += s_v / s_md_count[s_id]
+                    else:
+                        # Should never get here.
+                        raise ValueError("Unrecognized one-to-many mode '%s'. "
+                                         "Must be either 'add' or 'divide'." %
+                                         one_to_many_mode)
+
             if include_collapsed_metadata:
                 # reassociate pathway information
                 for k,i in sorted(s_idx.items(), key=itemgetter(1)):
@@ -863,8 +897,8 @@ class Table(object):
 
     def collapseObservationsByMetadata(self, metadata_f, reduce_f=add, 
             norm=True, min_group_size=2, include_collapsed_metadata=True,
-            constructor=None, one_to_many=False, one_to_many_md_key='Path',
-            strict=False):
+            constructor=None, one_to_many=False, one_to_many_mode='add',
+            one_to_many_md_key='Path', strict=False):
         """Collapse observations in a table by observation metadata
         
         Bin observations by metadata then collapse each bin into a single 
@@ -899,8 +933,16 @@ class Table(object):
         - B, containing original observation 1 and 2
         - C, containing original observation 2 and 3
 
-        If a observation maps to the same bin multiple times, it will be 
+        If an observation maps to the same bin multiple times, it will be
         counted multiple times.
+
+        There are two supported modes for handling one-to-many relationships
+        via ``one_to_many_mode``: ``add`` and ``divide``. ``add`` will add the
+        observation counts to each bin that the observation maps to, which may
+        increase the total number of counts in the output table. ``divide``
+        will divide an observation's counts by the number of metadata that the
+        observation has before adding the counts to each bin. This will not
+        increase the total number of counts in the output table.
 
         If ``one_to_many_md_key`` is specified, that becomes the metadata
         key that describes the collapsed path. If a value is not specified,
@@ -912,6 +954,8 @@ class Table(object):
         ``one_to_many`` and ``norm`` are not supported together. 
         
         ``one_to_many`` and ``reduce_f`` are not supported together.
+
+        ``one_to_many`` and ``min_group_size`` are not supported together.
 
         A final note on space consumption. At present, the ``one_to_many``
         functionality requires a temporary dense matrix representation. This 
@@ -933,6 +977,10 @@ class Table(object):
         else:
             collapsed_obs_md = None
 
+        if one_to_many_mode not in ['add', 'divide']:
+            raise ValueError("Unrecognized one-to-many mode '%s'. Must be "
+                             "either 'add' or 'divide'." % one_to_many_mode)
+
         if one_to_many:
             if norm:
                 raise AttributeError, "norm and one_to_many are not supported together"
@@ -940,8 +988,10 @@ class Table(object):
             # determine the collapsed pathway
             # we drop all other associated metadata
             new_obs_md = {}
+            obs_md_count = {}
             for id_,md in zip(self.ObservationIds, self.ObservationMetadata):
                 md_iter = metadata_f(md)
+                num_md = 0
                 while True:
                     try:
                         pathway, bin = md_iter.next()
@@ -959,16 +1009,26 @@ class Table(object):
                         break
                     
                     new_obs_md[bin] = pathway # keyed by last field in hierarchy
+                    num_md += 1
+
+                obs_md_count[id_] = num_md
 
             n_obs = len(new_obs_md)
             obs_idx = dict([(bin,i) for i,bin in enumerate(sorted(new_obs_md))])
-            
+
+            # We need to store floats, not ints, as things won't always divide
+            # evenly.
+            if one_to_many_mode == 'divide':
+                dtype = float
+            else:
+                dtype = self._dtype
+
             # allocate new data. using a dense representation allows for a 
             # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
             # of collapsed observations is reasonable, then this doesn't suck
-            # to much.
-            new_data = zeros((n_obs, len(self.SampleIds)), dtype=self._dtype)
-       
+            # too much.
+            new_data = zeros((n_obs, len(self.SampleIds)), dtype=dtype)
+
             # for each observation
             # for each bin in the metadata
             # for each value associated with the observation
@@ -990,7 +1050,16 @@ class Table(object):
                     except StopIteration:
                         break
 
-                    new_data[obs_idx[bin], :] += obs_v
+                    if one_to_many_mode == 'add':
+                        new_data[obs_idx[bin], :] += obs_v
+                    elif one_to_many_mode == 'divide':
+                        new_data[obs_idx[bin], :] += \
+                                obs_v / obs_md_count[obs_id]
+                    else:
+                        # Should never get here.
+                        raise ValueError("Unrecognized one-to-many mode '%s'. "
+                                         "Must be either 'add' or 'divide'." %
+                                         one_to_many_mode)
 
             if include_collapsed_metadata:
                 # associate the pathways back

@@ -1088,6 +1088,75 @@ class DenseTableTests(TestCase):
         self.assertEqual(obs, exp)
         self.assertEqual(type(obs), SparseTable)
 
+    def test_collapseObservationsByMetadata_one_to_many_divide(self):
+        """Collapse observations by 1-M metadata using divide mode"""
+        dt_rich = DenseTable(array([[1,6,7],[8,0,10],[11,12,13]]),
+                        ['a','b','c'],
+                        ['1','2','3'],
+                        [{'barcode':'aatt'},
+                         {'barcode':'ttgg'},
+                         {'barcode':'aatt'}],
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c']]},
+                         {'pathways':[['a','c']]}])
+        exp = DenseTable(array([[4.5,3,8.5],[15,12,18],[0.5,3,3.5]]),
+                         ['a','b','c'],
+                         ['bx','c','d'],
+                         [{'barcode':'aatt'},
+                          {'barcode':'ttgg'},
+                          {'barcode':'aatt'}],
+                         [{'Path':['a','bx']},
+                          {'Path':['a','c']},
+                          {'Path':['a','d']}])
+        def bin_f(x):
+            for foo in x['pathways']:
+                yield (foo, foo[-1])
+
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                one_to_many=True,
+                one_to_many_mode='divide').sortByObservationId()
+        self.assertEqual(obs, exp)
+
+        # Test skipping some observation metadata (strict=False).
+        dt_rich = DenseTable(array([[5.0,6.0,7],[8,9,10],[11,12,13.0]]),
+                        ['a','b','c'],
+                        ['1','2','3'], [{'barcode':'aatt'},
+                                        {'barcode':'ttgg'},
+                                        {'barcode':'aatt'}],
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c'], ['z']]},
+                         {'pathways':[['a']]}])
+        exp = DenseTable(array([[6.5,7.5,8.5],[4,4.5,5],[2.5,3,3.5]]),
+                        ['a','b','c'],
+                        ['bx','c','d'], [{'barcode':'aatt'},
+                                        {'barcode':'ttgg'},
+                                        {'barcode':'aatt'}],
+                        [{'Path':['a','bx']},
+                         {'Path':['a','c']},
+                         {'Path':['a','d']}])
+
+        def bin_f(x):
+            for foo in x['pathways']:
+                yield (foo, foo[1])
+
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                one_to_many=True,
+                one_to_many_mode='divide', strict=False).sortByObservationId()
+
+        self.assertEqual(obs, exp)
+
+        with self.assertRaises(IndexError):
+            dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                                                   one_to_many=True, 
+                                                   one_to_many_mode='divide',
+                                                   strict=True)
+
+        # Invalid one_to_many_mode.
+        with self.assertRaises(ValueError):
+            dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                                                   one_to_many=True,
+                                                   one_to_many_mode='foo')
+
     def test_collapseObservationsByMetadata(self):
         """Collapse observations by arbitrary metadata"""
         dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
@@ -1218,6 +1287,76 @@ class DenseTableTests(TestCase):
         self.assertRaises(IndexError, dt_rich.collapseSamplesByMetadata, bin_f,
                      norm=False, min_group_size=1, one_to_many=True, 
                      strict=True)
+
+    def test_collapseSamplesByMetadata_one_to_many_divide(self):
+        """Collapse samples by 1-M metadata using divide mode"""
+        dt_rich = DenseTable(array([[1,8,11],[6,0,12],[7,10,13]]),
+                        ['1','2','3'],
+                        ['a','b','c'],
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c']]},
+                         {'pathways':[['a','c']]}],
+                        [{'barcode':'aatt'},
+                         {'barcode':'ttgg'},
+                         {'barcode':'aatt'}])
+        exp = DenseTable(array([[4.5,15,0.5],[3,12,3],[8.5,18,3.5]]),
+                         ['bx','c','d'],
+                         ['a','b','c'],
+                         [{'Path':['a','bx']},
+                          {'Path':['a','c']},
+                          {'Path':['a','d']}],
+                         [{'barcode':'aatt'},
+                          {'barcode':'ttgg'},
+                          {'barcode':'aatt'}])
+        def bin_f(x):
+            for foo in x['pathways']:
+                yield (foo, foo[-1])
+
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                one_to_many=True, one_to_many_mode='divide').sortBySampleId()
+        self.assertEqual(obs, exp)
+
+        # Test skipping some sample metadata (strict=False).
+        dt_rich = DenseTable(array([[5.0,8,11],[6.0,9,12],[7,10,13.0]]),
+                        ['1','2','3'],
+                        ['a','b','c'],
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c'], ['z']]},
+                         {'pathways':[['a']]}],
+                        [{'barcode':'aatt'},
+                                        {'barcode':'ttgg'},
+                                        {'barcode':'aatt'}])
+        exp = DenseTable(array([[6.5,4,2.5],[7.5,4.5,3],[8.5,5,3.5]]),
+                        ['bx','c','d'],
+                        ['a','b','c'],
+                        [{'Path':['a','bx']},
+                         {'Path':['a','c']},
+                         {'Path':['a','d']}],
+                        [{'barcode':'aatt'},
+                         {'barcode':'ttgg'},
+                         {'barcode':'aatt'}])
+
+        def bin_f(x):
+            for foo in x['pathways']:
+                yield (foo, foo[1])
+
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                one_to_many=True,
+                one_to_many_mode='divide', strict=False).sortBySampleId()
+
+        self.assertEqual(obs, exp)
+
+        with self.assertRaises(IndexError):
+            dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                                              one_to_many=True, 
+                                              one_to_many_mode='divide',
+                                              strict=True)
+
+        # Invalid one_to_many_mode.
+        with self.assertRaises(ValueError):
+            dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                                              one_to_many=True,
+                                              one_to_many_mode='foo')
 
     def test_collapseSamplesByMetadata_one_to_many(self):
         """Collapse samples by arbitary metadata"""
