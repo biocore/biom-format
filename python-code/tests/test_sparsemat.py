@@ -299,7 +299,7 @@ class SupportTests(TestCase):
         exp[(0,1)] = 5
         exp[(10,8)] = -1.23
         obs = to_sparsemat(input)
-        self.assertEqual(obs.items(), exp.items())
+        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
 
         # test transpose
         exp = SparseMat(9,11)
@@ -338,7 +338,7 @@ class SupportTests(TestCase):
         row2[(0,1)] = 9
         row2[(0,2)] = 10
         obs = to_sparsemat([row1, row2])
-        self.assertEqual(obs.items(), exp.items()) 
+        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
 
         # test empty set
         exp = SparseMat(0,0)
