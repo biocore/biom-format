@@ -4,6 +4,7 @@
 
 from __future__ import division
 
+from copy import deepcopy
 from datetime import datetime
 from json import dumps
 from types import NoneType
@@ -245,6 +246,19 @@ class Table(object):
         else:
             raise TableException, "Unknown axis %s" % axis
 
+    def transpose(self):
+        """Return a new table that is the transpose of this table.
+
+        The returned table will be an entirely new table, including copies of
+        the (transposed) data, sample/observation IDs and metadata.
+        """
+        sample_md_copy = deepcopy(self.SampleMetadata)
+        obs_md_copy = deepcopy(self.ObservationMetadata)
+
+        return self.__class__(self._data.T, self.ObservationIds[:],
+                              self.SampleIds[:], obs_md_copy, sample_md_copy,
+                              self.TableId)
+
     def getSampleIndex(self, samp_id):
         """Returns the sample index for sample ``samp_id``"""
         if samp_id not in self._sample_index:
@@ -282,8 +296,9 @@ class Table(object):
         """Returns True if observation ``id_`` exists, False otherwise"""
         return id_ in self._obs_index
 
-    def delimitedSelf(self, delim='\t', header_key=None, header_value=None, 
-        metadata_formatter=str):
+    def delimitedSelf(self, delim='\t', header_key=None, header_value=None,
+                      metadata_formatter=str,
+                      observation_column_name='#OTU ID'):
         """Return self as a string in a delimited form
         
         Default str output for the Table is just row/col ids and table data
@@ -298,6 +313,15 @@ class Table(object):
         
         ``metadata_formatter``: a function which takes a metadata entry and 
         returns a formatted version that should be written to file
+
+        ``observation_column_name``: the name of the first column in the output
+        table, corresponding to the observation IDs. For example, the default
+        will look something like:
+
+            #OTU ID\tSample1\tSample2
+            OTU1\t10\t2
+            OTU2\t4\t8
+
         """
         if self.isEmpty():
             raise TableException, "Cannot delimit self if I don't have data..."
@@ -313,11 +337,12 @@ class Table(object):
                 raise TableException, "You need to specify both header_key and header_value"
 
         if header_value:
-            output = ['# Constructed from biom file','#OTU ID%s%s\t%s' % (delim, 
-                samp_ids,header_value)]
+            output = ['# Constructed from biom file',
+                      '%s%s%s\t%s' % (observation_column_name, delim, samp_ids,
+                                      header_value)]
         else:
-            output = ['# Constructed from biom file','#OTU ID%s%s' % (delim, 
-                samp_ids)]
+            output = ['# Constructed from biom file',
+                      '%s%s%s' % (observation_column_name, delim, samp_ids)]
 
         for obs_id, obs_values in zip(self.ObservationIds, self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._conv_to_np(obs_values)))
@@ -521,7 +546,7 @@ class Table(object):
     def filterSamples(self, f, invert=False):
         """Filter samples from self based on ``f``
         
-        ``f`` must accept three variables, the sample values, sample IDs and 
+        ``f`` must accept three variables, the sample values, sample ID and 
         sample metadata. The function must only return ``True`` or ``False``, 
         where ``True`` indicates that a sample should be retained.
         
@@ -548,7 +573,7 @@ class Table(object):
         # create an inconsistancy in which there are observation ids but no
         # matrix data in the resulting table
         if not samp_ids:
-            raise TableException, "All samples filtered out!"
+            raise TableException, "All samples were filtered out!"
 
         # the additional call to _conv_to_self_type is to convert a list of 
         # vectors to a matrix
@@ -561,7 +586,7 @@ class Table(object):
         """Filter observations from self based on ``f``
         
         ``f`` must accept three variables, the observation values, observation
-        IDs and observation metadata. The function must only return ``True`` or
+        ID and observation metadata. The function must only return ``True`` or
         ``False``, where ``True`` indicates that an observation should be
         retained.
         
@@ -588,17 +613,24 @@ class Table(object):
         # create an inconsistancy in which there are sample ids but no
         # matrix data in the resulting table
         if not obs_vals:
-            raise TableException, "All obs filtered out!"
+            raise TableException, "All observations were filtered out!"
 
         return self.__class__(self._conv_to_self_type(obs_vals),self.SampleIds[:],
                 obs_ids[:], self.SampleMetadata, obs_metadata, self.TableId)
 
-    def binSamplesByMetadata(self, f):
+    def binSamplesByMetadata(self, f, constructor=None):
         """Yields tables by metadata
         
         ``f`` is given the sample metadata by row and must return what "bin" 
         the sample is part of.
+
+        ``constructor``: the type of binned tables to create, e.g.
+        SparseTaxonTable. If None, the binned tables will be the same type as
+        this table.
         """
+        if constructor is None:
+            constructor = self.__class__
+
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
@@ -618,15 +650,23 @@ class Table(object):
 
         for bin, (samp_ids, samp_values, samp_md) in bins.iteritems():
             data = self._conv_to_self_type(samp_values, transpose=True)
-            yield bin, self.__class__(data, samp_ids[:], self.ObservationIds[:], 
-                    samp_md, self.ObservationMetadata, self.TableId)
+            yield bin, table_factory(data, samp_ids[:], self.ObservationIds[:], 
+                    samp_md, self.ObservationMetadata, self.TableId,
+                    constructor=constructor)
 
-    def binObservationsByMetadata(self, f):
+    def binObservationsByMetadata(self, f, constructor=None):
         """Yields tables by metadata
         
         ``f`` is given the observation metadata by row and must return what 
         "bin" the observation is part of.
+
+        ``constructor``: the type of binned tables to create, e.g.
+        SparseTaxonTable. If None, the binned tables will be the same type as
+        this table.
         """
+        if constructor is None:
+            constructor = self.__class__
+
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
@@ -645,20 +685,26 @@ class Table(object):
             bins[bin][2].append(obs_md)
 
         for bin, (obs_ids, obs_values, obs_md) in bins.iteritems():
-            yield bin, self.__class__(self._conv_to_self_type(obs_values), 
+            yield bin, table_factory(self._conv_to_self_type(obs_values), 
                     self.SampleIds[:], obs_ids[:], self.SampleMetadata,
-                    obs_md, self.TableId)
+                    obs_md, self.TableId, constructor=constructor)
 
     def collapseSamplesByMetadata(self, metadata_f, reduce_f=add, norm=True, 
-            min_group_size=2, one_to_many=False, one_to_many_md_key='Path',
-            strict=False):
+            min_group_size=2, include_collapsed_metadata=True,
+            constructor=None, one_to_many=False, one_to_many_mode='add',
+            one_to_many_md_key='Path', strict=False):
         """Collapse samples in a table by sample metadata
-        
+
         Bin samples by metadata then collapse each bin into a single sample. 
-        
-        Metadata for the collapsed samples are retained and can be referred to
-        by the ``SampleId`` from each sample within the bin.
-        
+
+        If ``include_collapsed_metadata`` is True, metadata for the collapsed
+        samples are retained and can be referred to by the ``SampleId`` from
+        each sample within the bin.
+
+        ``constructor``: the type of collapsed table to create, e.g.
+        SparseTaxonTable. If None, the collapsed table will be the same type as
+        this table.
+
         The remainder is only relevant to setting ``one_to_many`` to True.
 
         If ``one_to_many`` is True, allow samples to collapse into multiple 
@@ -683,6 +729,14 @@ class Table(object):
         If a sample maps to the same bin multiple times, it will be 
         counted multiple times.
 
+        There are two supported modes for handling one-to-many relationships
+        via ``one_to_many_mode``: ``add`` and ``divide``. ``add`` will add the
+        sample counts to each bin that the sample maps to, which may increase
+        the total number of counts in the output table. ``divide`` will divide
+        a sample's counts by the number of metadata that the sample has before
+        adding the counts to each bin. This will not increase the total number
+        of counts in the output table.
+
         If ``one_to_many_md_key`` is specified, that becomes the metadata
         key that describes the collapsed path. If a value is not specified,
         then it defaults to 'Path'.
@@ -694,6 +748,8 @@ class Table(object):
         
         ``one_to_many`` and ``reduce_f`` are not supported together.
 
+        ``one_to_many`` and ``min_group_size`` are not supported together.
+
         A final note on space consumption. At present, the ``one_to_many``
         functionality requires a temporary dense matrix representation. This 
         was done so as it initially seems like true support requires rapid
@@ -703,9 +759,20 @@ class Table(object):
         implementation is in play on ``CSMat`` or a hybrid solution that allows
         for multiple ``SparseObj`` types is used.
         """
+        if constructor is None:
+            constructor = self.__class__
+
         collapsed_data = []
         collapsed_sample_ids = []
-        collapsed_sample_md = []
+
+        if include_collapsed_metadata:
+            collapsed_sample_md = []
+        else:
+            collapsed_sample_md = None
+
+        if one_to_many_mode not in ['add', 'divide']:
+            raise ValueError("Unrecognized one-to-many mode '%s'. Must be "
+                             "either 'add' or 'divide'." % one_to_many_mode)
 
         if one_to_many:
             if norm:
@@ -714,8 +781,10 @@ class Table(object):
             # determine the collapsed pathway
             # we drop all other associated metadata
             new_s_md = {}
+            s_md_count = {}
             for id_, md in zip(self.SampleIds, self.SampleMetadata):
                 md_iter = metadata_f(md)
+                num_md = 0
                 while True:
                     try:
                         pathway, bin = md_iter.next()
@@ -733,16 +802,26 @@ class Table(object):
                         break
                     
                     new_s_md[bin] = pathway 
+                    num_md += 1
+
+                s_md_count[id_] = num_md
 
             n_s = len(new_s_md)
             s_idx = dict([(bin,i) for i,bin in enumerate(sorted(new_s_md))])
-            
+
+            # We need to store floats, not ints, as things won't always divide
+            # evenly.
+            if one_to_many_mode == 'divide':
+                dtype = float
+            else:
+                dtype = self._dtype
+
             # allocate new data. using a dense representation allows for a 
             # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
-            # of collapsed samples is reasonable, then this doesn't suck to 
+            # of collapsed samples is reasonable, then this doesn't suck too
             # much.
-            new_data = zeros((len(self.ObservationIds), n_s), dtype=self._dtype)
-      
+            new_data = zeros((len(self.ObservationIds), n_s), dtype=dtype)
+
             # for each sample
             # for each bin in the metadata
             # for each value associated with the sample
@@ -764,25 +843,27 @@ class Table(object):
                     except StopIteration:
                         break
 
-                    new_data[:, s_idx[bin]] += s_v
-            
-            # reassociate pathway information
-            collapsed_s_md = []
-            for k,i in sorted(s_idx.items(), key=itemgetter(1)):
-                collapsed_s_md.append({one_to_many_md_key:new_s_md[k]})
+                    if one_to_many_mode == 'add':
+                        new_data[:, s_idx[bin]] += s_v
+                    elif one_to_many_mode == 'divide':
+                        new_data[:, s_idx[bin]] += s_v / s_md_count[s_id]
+                    else:
+                        # Should never get here.
+                        raise ValueError("Unrecognized one-to-many mode '%s'. "
+                                         "Must be either 'add' or 'divide'." %
+                                         one_to_many_mode)
+
+            if include_collapsed_metadata:
+                # reassociate pathway information
+                for k,i in sorted(s_idx.items(), key=itemgetter(1)):
+                    collapsed_sample_md.append(
+                            {one_to_many_md_key:new_s_md[k]})
  
             # get the new sample IDs
-            collapsed_s_ids = [k for k,i in sorted(s_idx.items(), 
-                                                      key=itemgetter(1))]
+            collapsed_sample_ids = [k for k,i in sorted(s_idx.items(),
+                                                        key=itemgetter(1))]
 
-            # reassociate pathway information
-            collapsed_s_md = []
-            for k,i in sorted(s_idx.items(), key=itemgetter(1)):
-                collapsed_s_md.append({one_to_many_md_key:new_s_md[k]})
-            
             # convert back to self type
-            collapsed_sample_ids = collapsed_s_ids
-            collapsed_sample_md = collapsed_s_md
             data = self._conv_to_self_type(new_data)
         else:
             for bin, table in self.binSamplesByMetadata(metadata_f):
@@ -796,11 +877,12 @@ class Table(object):
                 collapsed_data.append(self._conv_to_self_type(redux_data))
                 collapsed_sample_ids.append(bin)
             
-                # retain metadata but store by original sample id
-                tmp_md = {}
-                for id_, md in zip(table.SampleIds, table.SampleMetadata):
-                    tmp_md[id_] = md
-                collapsed_sample_md.append(tmp_md)
+                if include_collapsed_metadata:
+                    # retain metadata but store by original sample id
+                    tmp_md = {}
+                    for id_, md in zip(table.SampleIds, table.SampleMetadata):
+                        tmp_md[id_] = md
+                    collapsed_sample_md.append(tmp_md)
 
             data = self._conv_to_self_type(collapsed_data, transpose=True)
 
@@ -808,20 +890,27 @@ class Table(object):
         if 0 in data.shape:
             raise TableException, "Collapsed table is empty!"
 
-        return self.__class__(data, collapsed_sample_ids, self.ObservationIds[:],
-                collapsed_sample_md, self.ObservationMetadata, self.TableId)
+        return table_factory(data, collapsed_sample_ids,
+                             self.ObservationIds[:], collapsed_sample_md,
+                             self.ObservationMetadata, self.TableId,
+                             constructor=constructor)
 
     def collapseObservationsByMetadata(self, metadata_f, reduce_f=add, 
-            norm=True, min_group_size=2, one_to_many=False, 
+            norm=True, min_group_size=2, include_collapsed_metadata=True,
+            constructor=None, one_to_many=False, one_to_many_mode='add',
             one_to_many_md_key='Path', strict=False):
         """Collapse observations in a table by observation metadata
         
         Bin observations by metadata then collapse each bin into a single 
         observation. 
         
-        Metadata for the collapsed observations are retained and 
-        can be referred to by the ``ObservationId`` from each observation 
-        within the bin.
+        If ``include_collapsed_metadata`` is True, metadata for the collapsed
+        observations are retained and can be referred to by the
+        ``ObservationId`` from each observation within the bin.
+
+        ``constructor``: the type of collapsed table to create, e.g.
+        SparseTaxonTable. If None, the collapsed table will be the same type as
+        this table.
 
         The remainder is only relevant to setting ``one_to_many`` to True.
 
@@ -844,8 +933,16 @@ class Table(object):
         - B, containing original observation 1 and 2
         - C, containing original observation 2 and 3
 
-        If a observation maps to the same bin multiple times, it will be 
+        If an observation maps to the same bin multiple times, it will be
         counted multiple times.
+
+        There are two supported modes for handling one-to-many relationships
+        via ``one_to_many_mode``: ``add`` and ``divide``. ``add`` will add the
+        observation counts to each bin that the observation maps to, which may
+        increase the total number of counts in the output table. ``divide``
+        will divide an observation's counts by the number of metadata that the
+        observation has before adding the counts to each bin. This will not
+        increase the total number of counts in the output table.
 
         If ``one_to_many_md_key`` is specified, that becomes the metadata
         key that describes the collapsed path. If a value is not specified,
@@ -858,6 +955,8 @@ class Table(object):
         
         ``one_to_many`` and ``reduce_f`` are not supported together.
 
+        ``one_to_many`` and ``min_group_size`` are not supported together.
+
         A final note on space consumption. At present, the ``one_to_many``
         functionality requires a temporary dense matrix representation. This 
         was done so as it initially seems like true support requires rapid
@@ -867,9 +966,20 @@ class Table(object):
         implementation is in play on ``CSMat`` or a hybrid solution that allows
         for multiple ``SparseObj`` types is used.
         """
+        if constructor is None:
+            constructor = self.__class__
+
         collapsed_data = []
         collapsed_obs_ids = []
-        collapsed_obs_md = []
+
+        if include_collapsed_metadata:
+            collapsed_obs_md = []
+        else:
+            collapsed_obs_md = None
+
+        if one_to_many_mode not in ['add', 'divide']:
+            raise ValueError("Unrecognized one-to-many mode '%s'. Must be "
+                             "either 'add' or 'divide'." % one_to_many_mode)
 
         if one_to_many:
             if norm:
@@ -878,8 +988,10 @@ class Table(object):
             # determine the collapsed pathway
             # we drop all other associated metadata
             new_obs_md = {}
+            obs_md_count = {}
             for id_,md in zip(self.ObservationIds, self.ObservationMetadata):
                 md_iter = metadata_f(md)
+                num_md = 0
                 while True:
                     try:
                         pathway, bin = md_iter.next()
@@ -897,16 +1009,26 @@ class Table(object):
                         break
                     
                     new_obs_md[bin] = pathway # keyed by last field in hierarchy
+                    num_md += 1
+
+                obs_md_count[id_] = num_md
 
             n_obs = len(new_obs_md)
             obs_idx = dict([(bin,i) for i,bin in enumerate(sorted(new_obs_md))])
-            
+
+            # We need to store floats, not ints, as things won't always divide
+            # evenly.
+            if one_to_many_mode == 'divide':
+                dtype = float
+            else:
+                dtype = self._dtype
+
             # allocate new data. using a dense representation allows for a 
             # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
             # of collapsed observations is reasonable, then this doesn't suck
-            # to much.
-            new_data = zeros((n_obs, len(self.SampleIds)), dtype=self._dtype)
-       
+            # too much.
+            new_data = zeros((n_obs, len(self.SampleIds)), dtype=dtype)
+
             # for each observation
             # for each bin in the metadata
             # for each value associated with the observation
@@ -928,22 +1050,26 @@ class Table(object):
                     except StopIteration:
                         break
 
-                    new_data[obs_idx[bin], :] += obs_v
-    
-            # associate the pathways back
-            collapsed_obs_md = []
-            for k,i in sorted(obs_idx.items(), key=itemgetter(1)):
-                collapsed_obs_md.append({one_to_many_md_key:new_obs_md[k]})
-           
+                    if one_to_many_mode == 'add':
+                        new_data[obs_idx[bin], :] += obs_v
+                    elif one_to_many_mode == 'divide':
+                        new_data[obs_idx[bin], :] += \
+                                obs_v / obs_md_count[obs_id]
+                    else:
+                        # Should never get here.
+                        raise ValueError("Unrecognized one-to-many mode '%s'. "
+                                         "Must be either 'add' or 'divide'." %
+                                         one_to_many_mode)
+
+            if include_collapsed_metadata:
+                # associate the pathways back
+                for k,i in sorted(obs_idx.items(), key=itemgetter(1)):
+                    collapsed_obs_md.append({one_to_many_md_key:new_obs_md[k]})
+
             # get the new observation IDs
             collapsed_obs_ids = [k for k,i in sorted(obs_idx.items(), 
-                                                        key=itemgetter(1))]
+                                                     key=itemgetter(1))]
 
-            # associate the pathways back
-            collapsed_obs_md = []
-            for k,i in sorted(obs_idx.items(), key=itemgetter(1)):
-                collapsed_obs_md.append({one_to_many_md_key:new_obs_md[k]})
-            
             # convert back to self type
             data = self._conv_to_self_type(new_data)
         else:
@@ -957,13 +1083,14 @@ class Table(object):
 
                 collapsed_data.append(self._conv_to_self_type(redux_data))
                 collapsed_obs_ids.append(bin)
-   
-                # retain metadata but store by original sample id
-                tmp_md = {}
-                for id_, md in zip(table.ObservationIds, \
-                                    table.ObservationMetadata):
-                    tmp_md[id_] = md
-                collapsed_obs_md.append(tmp_md)
+
+                if include_collapsed_metadata:
+                    # retain metadata but store by original observation id
+                    tmp_md = {}
+                    for id_, md in zip(table.ObservationIds,
+                                       table.ObservationMetadata):
+                        tmp_md[id_] = md
+                    collapsed_obs_md.append(tmp_md)
 
             data = self._conv_to_self_type(collapsed_data)
 
@@ -971,8 +1098,9 @@ class Table(object):
         if 0 in data.shape:
             raise TableException, "Collapsed table is empty!"
 
-        return self.__class__(data, self.SampleIds[:], collapsed_obs_ids,
-                self.SampleMetadata, collapsed_obs_md, self.TableId)
+        return table_factory(data, self.SampleIds[:], collapsed_obs_ids,
+                self.SampleMetadata, collapsed_obs_md, self.TableId,
+                constructor=constructor)
 
     def transformSamples(self, f):
         """Iterate over samples, applying a function ``f`` to each value

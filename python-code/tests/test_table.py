@@ -275,6 +275,15 @@ class TableTests(TestCase):
         self.assertRaises(TableException, self.t1.reduce, lambda x,y: x+y,
                           'sample')
 
+    def test_transpose(self):
+        """Should transpose a table"""
+        obs = self.t1.transpose()
+        self.assertTrue(obs.isEmpty())
+
+        obs = self.simple_derived.transpose()
+        self.assertEqual(obs.SampleIds, self.simple_derived.ObservationIds)
+        self.assertEqual(obs.ObservationIds, self.simple_derived.SampleIds)
+
     def test_getSampleIndex(self):
         """returns the sample index"""
         self.assertEqual(0, self.simple_derived.getSampleIndex(1))
@@ -664,7 +673,29 @@ class DenseTableTests(TestCase):
         f = lambda x,y: x*2 + y
         self.assertEqual(self.dt1.reduce(f, 'sample'), array([17,20]))
         self.assertEqual(self.dt1.reduce(f, 'observation'), array([16,22]))
-        
+
+    def test_transpose(self):
+        """Should transpose a dense table"""
+        obs = self.dt5.transpose()
+
+        self.assertEqual(obs.SampleIds, self.dt5.ObservationIds)
+        self.assertEqual(obs.ObservationIds, self.dt5.SampleIds)
+        self.assertEqual(obs.sampleData('3'), self.dt5.observationData('3'))
+        self.assertEqual(obs.sampleData('4'), self.dt5.observationData('4'))
+        self.assertEqual(obs.transpose(), self.dt5)
+
+        obs = self.dt_rich.transpose()
+
+        self.assertEqual(obs.SampleIds, self.dt_rich.ObservationIds)
+        self.assertEqual(obs.ObservationIds, self.dt_rich.SampleIds)
+        self.assertEqual(obs.SampleMetadata, self.dt_rich.ObservationMetadata)
+        self.assertEqual(obs.ObservationMetadata, self.dt_rich.SampleMetadata)
+        self.assertEqual(obs.sampleData('1'),
+                         self.dt_rich.observationData('1'))
+        self.assertEqual(obs.sampleData('2'),
+                         self.dt_rich.observationData('2'))
+        self.assertEqual(obs.transpose(), self.dt_rich)
+
     def test_nonzero(self):
         """Return a list of nonzero positions"""
         dt = DenseTable(array([[5,6,0,2],[0,7,0,8],[1,-1,0,0]]), 
@@ -766,6 +797,13 @@ class DenseTableTests(TestCase):
         exp = '\n'.join(["# Constructed from biom file","#OTU ID\ta\tb\tFOO","1\t5\t6\tk__a; p__b","2\t7\t8\tk__a; p__c"])
         obs = self.dt_rich.delimitedSelf(header_key='taxonomy', header_value='FOO', 
          metadata_formatter=lambda s: '; '.join(s))
+        self.assertEqual(obs,exp)
+
+        # Test observation_column_name.
+        exp = '\n'.join(["# Constructed from biom file","Taxon\ta\tb\tFOO","1\t5\t6\tk__a; p__b","2\t7\t8\tk__a; p__c"])
+        obs = self.dt_rich.delimitedSelf(header_key='taxonomy',
+                header_value='FOO', metadata_formatter=lambda s: '; '.join(s),
+                observation_column_name='Taxon')
         self.assertEqual(obs,exp)
 
     def test_conv_to_np(self):
@@ -1031,6 +1069,94 @@ class DenseTableTests(TestCase):
                      min_group_size=1, one_to_many=True).sortByObservationId()
         self.assertEqual(obs_cat1, exp_cat1)
 
+        # Test out include_collapsed_metadata=False.
+        exp = DenseTable(array([[37,42,47]]), 
+                         ['a','b','c'],
+                         ['a'], [{'barcode':'aatt'},
+                                 {'barcode':'ttgg'},
+                                 {'barcode':'aatt'}])
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                min_group_size=1, one_to_many=True,
+                include_collapsed_metadata=False).sortByObservationId()
+        self.assertEqual(obs, exp)
+
+        # Test out constructor.
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                min_group_size=1, one_to_many=True,
+                include_collapsed_metadata=False,
+                constructor=SparseTable).sortByObservationId()
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), SparseTable)
+
+    def test_collapseObservationsByMetadata_one_to_many_divide(self):
+        """Collapse observations by 1-M metadata using divide mode"""
+        dt_rich = DenseTable(array([[1,6,7],[8,0,10],[11,12,13]]),
+                        ['a','b','c'],
+                        ['1','2','3'],
+                        [{'barcode':'aatt'},
+                         {'barcode':'ttgg'},
+                         {'barcode':'aatt'}],
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c']]},
+                         {'pathways':[['a','c']]}])
+        exp = DenseTable(array([[4.5,3,8.5],[15,12,18],[0.5,3,3.5]]),
+                         ['a','b','c'],
+                         ['bx','c','d'],
+                         [{'barcode':'aatt'},
+                          {'barcode':'ttgg'},
+                          {'barcode':'aatt'}],
+                         [{'Path':['a','bx']},
+                          {'Path':['a','c']},
+                          {'Path':['a','d']}])
+        def bin_f(x):
+            for foo in x['pathways']:
+                yield (foo, foo[-1])
+
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                one_to_many=True,
+                one_to_many_mode='divide').sortByObservationId()
+        self.assertEqual(obs, exp)
+
+        # Test skipping some observation metadata (strict=False).
+        dt_rich = DenseTable(array([[5.0,6.0,7],[8,9,10],[11,12,13.0]]),
+                        ['a','b','c'],
+                        ['1','2','3'], [{'barcode':'aatt'},
+                                        {'barcode':'ttgg'},
+                                        {'barcode':'aatt'}],
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c'], ['z']]},
+                         {'pathways':[['a']]}])
+        exp = DenseTable(array([[6.5,7.5,8.5],[4,4.5,5],[2.5,3,3.5]]),
+                        ['a','b','c'],
+                        ['bx','c','d'], [{'barcode':'aatt'},
+                                        {'barcode':'ttgg'},
+                                        {'barcode':'aatt'}],
+                        [{'Path':['a','bx']},
+                         {'Path':['a','c']},
+                         {'Path':['a','d']}])
+
+        def bin_f(x):
+            for foo in x['pathways']:
+                yield (foo, foo[1])
+
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                one_to_many=True,
+                one_to_many_mode='divide', strict=False).sortByObservationId()
+
+        self.assertEqual(obs, exp)
+
+        with self.assertRaises(IndexError):
+            dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                                                   one_to_many=True, 
+                                                   one_to_many_mode='divide',
+                                                   strict=True)
+
+        # Invalid one_to_many_mode.
+        with self.assertRaises(ValueError):
+            dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                                                   one_to_many=True,
+                                                   one_to_many_mode='foo')
+
     def test_collapseObservationsByMetadata(self):
         """Collapse observations by arbitrary metadata"""
         dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
@@ -1067,6 +1193,24 @@ class DenseTableTests(TestCase):
         self.assertRaises(TableException, dt_rich.collapseObservationsByMetadata,
                 bin_f, min_group_size=10)
 
+        # Test out include_collapsed_metadata=False.
+        exp = DenseTable(array([[24,27,30]]),
+                         ['a','b','c'],
+                         ['k__a'],
+                         [{'barcode':'aatt'},
+                          {'barcode':'ttgg'},
+                          {'barcode':'aatt'}])
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                include_collapsed_metadata=False)
+        self.assertEqual(obs, exp)
+
+        # Test out constructor.
+        obs = dt_rich.collapseObservationsByMetadata(bin_f, norm=False,
+                include_collapsed_metadata=False,
+                constructor=SparseTable)
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), SparseTable)
+
     def test_collapseSamplesByMetadata(self):
         """Collapse samples by arbitrary metadata"""
         dt_rich = DenseTable(array([[5,6,7],[8,9,10],[11,12,13]]),['a','b','c'],
@@ -1090,6 +1234,27 @@ class DenseTableTests(TestCase):
 
         self.assertRaises(TableException, dt_rich.collapseSamplesByMetadata,
                 bin_f, min_group_size=10)
+
+        # Test out include_collapsed_metadata=False.
+        exp = DenseTable(array([[12,6],[18,9],[24,12]]),
+                         ['aatt','ttgg'],
+                         ['1','2','3'],
+                         None,
+                         [{'taxonomy':['k__a','p__b']},
+                          {'taxonomy':['k__a','p__c']},
+                          {'taxonomy':['k__a','p__c']}])
+
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                min_group_size=1,
+                include_collapsed_metadata=False).sortBySampleId()
+        self.assertEqual(obs, exp)
+
+        # Test out constructor.
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                min_group_size=1, include_collapsed_metadata=False,
+                constructor=SparseTable).sortBySampleId()
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), SparseTable)
 
     def test_collapseSamplesByMetadata_one_to_many_strict(self):
         """Collapse samples by arbitary metadata"""
@@ -1122,6 +1287,76 @@ class DenseTableTests(TestCase):
         self.assertRaises(IndexError, dt_rich.collapseSamplesByMetadata, bin_f,
                      norm=False, min_group_size=1, one_to_many=True, 
                      strict=True)
+
+    def test_collapseSamplesByMetadata_one_to_many_divide(self):
+        """Collapse samples by 1-M metadata using divide mode"""
+        dt_rich = DenseTable(array([[1,8,11],[6,0,12],[7,10,13]]),
+                        ['1','2','3'],
+                        ['a','b','c'],
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c']]},
+                         {'pathways':[['a','c']]}],
+                        [{'barcode':'aatt'},
+                         {'barcode':'ttgg'},
+                         {'barcode':'aatt'}])
+        exp = DenseTable(array([[4.5,15,0.5],[3,12,3],[8.5,18,3.5]]),
+                         ['bx','c','d'],
+                         ['a','b','c'],
+                         [{'Path':['a','bx']},
+                          {'Path':['a','c']},
+                          {'Path':['a','d']}],
+                         [{'barcode':'aatt'},
+                          {'barcode':'ttgg'},
+                          {'barcode':'aatt'}])
+        def bin_f(x):
+            for foo in x['pathways']:
+                yield (foo, foo[-1])
+
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                one_to_many=True, one_to_many_mode='divide').sortBySampleId()
+        self.assertEqual(obs, exp)
+
+        # Test skipping some sample metadata (strict=False).
+        dt_rich = DenseTable(array([[5.0,8,11],[6.0,9,12],[7,10,13.0]]),
+                        ['1','2','3'],
+                        ['a','b','c'],
+                        [{'pathways':[['a','bx'],['a','d']]},
+                         {'pathways':[['a','bx'],['a','c'], ['z']]},
+                         {'pathways':[['a']]}],
+                        [{'barcode':'aatt'},
+                                        {'barcode':'ttgg'},
+                                        {'barcode':'aatt'}])
+        exp = DenseTable(array([[6.5,4,2.5],[7.5,4.5,3],[8.5,5,3.5]]),
+                        ['bx','c','d'],
+                        ['a','b','c'],
+                        [{'Path':['a','bx']},
+                         {'Path':['a','c']},
+                         {'Path':['a','d']}],
+                        [{'barcode':'aatt'},
+                         {'barcode':'ttgg'},
+                         {'barcode':'aatt'}])
+
+        def bin_f(x):
+            for foo in x['pathways']:
+                yield (foo, foo[1])
+
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                one_to_many=True,
+                one_to_many_mode='divide', strict=False).sortBySampleId()
+
+        self.assertEqual(obs, exp)
+
+        with self.assertRaises(IndexError):
+            dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                                              one_to_many=True, 
+                                              one_to_many_mode='divide',
+                                              strict=True)
+
+        # Invalid one_to_many_mode.
+        with self.assertRaises(ValueError):
+            dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                                              one_to_many=True,
+                                              one_to_many_mode='foo')
 
     def test_collapseSamplesByMetadata_one_to_many(self):
         """Collapse samples by arbitary metadata"""
@@ -1169,6 +1404,27 @@ class DenseTableTests(TestCase):
         obs_cat1 = dt_rich.collapseSamplesByMetadata(bin_f, norm=False, 
                      min_group_size=1, one_to_many=True).sortByObservationId()
         self.assertEqual(obs_cat1, exp_cat1)
+
+        # Test out include_collapsed_metadata=False.
+        exp = DenseTable(array([[29,44,59]]).T,
+                         ['a'],
+                         ['1','2','3'],
+                         None,
+                         [{'other':'aatt'},
+                          {'other':'ttgg'},
+                          {'other':'aatt'}])
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False, 
+                     min_group_size=1, one_to_many=True,
+                     include_collapsed_metadata=False).sortByObservationId()
+        self.assertEqual(obs, exp)
+
+        # Test out constructor.
+        obs = dt_rich.collapseSamplesByMetadata(bin_f, norm=False,
+                min_group_size=1, one_to_many=True,
+                include_collapsed_metadata=False,
+                constructor=SparseTable).sortByObservationId()
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), SparseTable)
 
     def test_transformObservations(self):
         """Transform observations by arbitrary function"""
@@ -1419,7 +1675,28 @@ class DenseTableTests(TestCase):
                     obs_tables[exp3_idx])
 
         self.assertEqual(obs_sort, exp_tables)
-        
+
+        # We should get the same table type back.
+        exp_types = (DenseTable, DenseTable, DenseTable)
+        obs_sort = (type(obs_tables[exp1_idx]), type(obs_tables[exp2_idx]),
+                    type(obs_tables[exp3_idx]))
+        self.assertEqual(obs_sort, exp_types)
+
+        # Test passing a different constructor. We should get the same data
+        # equality, but different table types.
+        obs_bins, obs_tables = unzip(t.binSamplesByMetadata(f,
+                constructor=SparseTable))
+
+        obs_sort = (obs_bins[exp1_idx], obs_bins[exp2_idx], obs_bins[exp3_idx])
+        self.assertEqual(obs_sort, exp_bins)
+        obs_sort = (obs_tables[exp1_idx], obs_tables[exp2_idx], 
+                    obs_tables[exp3_idx])
+        self.assertEqual(obs_sort, exp_tables)
+        exp_types = (SparseTable, SparseTable, SparseTable)
+        obs_sort = (type(obs_tables[exp1_idx]), type(obs_tables[exp2_idx]),
+                    type(obs_tables[exp3_idx]))
+        self.assertEqual(obs_sort, exp_types)
+
     def test_binObservationsByMetadata(self):
         """Yield tables binned by observation metadata"""
         def make_level_f(level):
@@ -1449,6 +1726,13 @@ class DenseTableTests(TestCase):
         obs_bins, obs_king = unzip(t.binObservationsByMetadata(func_king))
         self.assertEqual(obs_king, [exp_king])
         self.assertEqual(obs_bins, [tuple(['k__a'])])
+        self.assertEqual(type(obs_king[0]), type(exp_king))
+
+        obs_bins, obs_king = unzip(t.binObservationsByMetadata(func_king,
+                constructor=SparseTable))
+        self.assertEqual(obs_king, [exp_king])
+        self.assertEqual(obs_bins, [tuple(['k__a'])])
+        self.assertEqual(type(obs_king[0]), SparseTable)
 
         exp_phy1_obs_ids = ['a','b']
         exp_phy1_samp_ids = [1,2,3]
@@ -1524,6 +1808,28 @@ class SparseTableTests(TestCase):
         f = lambda x,y: x*2 + y
         self.assertEqual(self.st1.reduce(f, 'sample'), array([17,20]))
         self.assertEqual(self.st1.reduce(f, 'observation'), array([16,22]))
+
+    def test_transpose(self):
+        """Should transpose a sparse table"""
+        obs = self.st1.transpose()
+
+        self.assertEqual(obs.SampleIds, self.st1.ObservationIds)
+        self.assertEqual(obs.ObservationIds, self.st1.SampleIds)
+        self.assertEqual(obs.sampleData('1'), self.st1.observationData('1'))
+        self.assertEqual(obs.sampleData('2'), self.st1.observationData('2'))
+        self.assertEqual(obs.transpose(), self.st1)
+
+        obs = self.st_rich.transpose()
+
+        self.assertEqual(obs.SampleIds, self.st_rich.ObservationIds)
+        self.assertEqual(obs.ObservationIds, self.st_rich.SampleIds)
+        self.assertEqual(obs.SampleMetadata, self.st_rich.ObservationMetadata)
+        self.assertEqual(obs.ObservationMetadata, self.st_rich.SampleMetadata)
+        self.assertEqual(obs.sampleData('1'),
+                         self.st_rich.observationData('1'))
+        self.assertEqual(obs.sampleData('2'),
+                         self.st_rich.observationData('2'))
+        self.assertEqual(obs.transpose(), self.st_rich)
 
     def test_sortObservationOrder(self):
         """sort by observations arbitrary order"""
@@ -1676,11 +1982,6 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
         self.assertRaises(UnknownID, self.dt1.observationData, 'asdsad')
 
-    def test_delimitedSelf(self):
-        """Print out self in a delimited form"""
-        exp = '\n'.join(["#OTU IDs\ta\tb","1\t5\t6","2\t7\t8"])
-        obs = self.dt1.delimitedSelf()
-        self.assertEqual(obs,exp)
     def test_sampleData(self):
         """tested in derived class"""
         exp = array([5,7])
@@ -1699,6 +2000,11 @@ class SparseTableTests(TestCase):
         """Print out self in a delimited form"""
         exp = '\n'.join(["# Constructed from biom file","#OTU ID\ta\tb","1\t5.0\t6.0","2\t7.0\t8.0"])
         obs = self.st1.delimitedSelf()
+        self.assertEqual(obs,exp)
+
+        # Test observation_column_name.
+        exp = '\n'.join(["# Constructed from biom file","Taxon\ta\tb","1\t5.0\t6.0","2\t7.0\t8.0"])
+        obs = self.st1.delimitedSelf(observation_column_name='Taxon')
         self.assertEqual(obs,exp)
 
     def test_conv_to_np(self):
@@ -2022,7 +2328,28 @@ class SparseTableTests(TestCase):
                     obs_tables[exp3_idx])
 
         self.assertEqual(obs_sort, exp_tables)
-        
+
+        # We should get the same table type back.
+        exp_types = (SparseTable, SparseTable, SparseTable)
+        obs_sort = (type(obs_tables[exp1_idx]), type(obs_tables[exp2_idx]),
+                    type(obs_tables[exp3_idx]))
+        self.assertEqual(obs_sort, exp_types)
+
+        # Test passing a different constructor. We should get the same data
+        # equality, but different table types.
+        obs_bins, obs_tables = unzip(t.binSamplesByMetadata(f,
+                constructor=SparseOTUTable))
+
+        obs_sort = (obs_bins[exp1_idx], obs_bins[exp2_idx], obs_bins[exp3_idx])
+        self.assertEqual(obs_sort, exp_bins)
+        obs_sort = (obs_tables[exp1_idx], obs_tables[exp2_idx], 
+                    obs_tables[exp3_idx])
+        self.assertEqual(obs_sort, exp_tables)
+        exp_types = (SparseOTUTable, SparseOTUTable, SparseOTUTable)
+        obs_sort = (type(obs_tables[exp1_idx]), type(obs_tables[exp2_idx]),
+                    type(obs_tables[exp3_idx]))
+        self.assertEqual(obs_sort, exp_types)
+
     def test_binObservationsByMetadata(self):
         """Yield tables binned by observation metadata"""
         def make_level_f(level):
@@ -2057,6 +2384,13 @@ class SparseTableTests(TestCase):
 
         self.assertEqual(obs_king, [exp_king])
         self.assertEqual(obs_bins, [tuple(['k__a'])])
+        self.assertEqual(type(obs_king[0]), type(exp_king))
+
+        obs_bins, obs_king = unzip(t.binObservationsByMetadata(func_king,
+                constructor=SparseOTUTable))
+        self.assertEqual(obs_king, [exp_king])
+        self.assertEqual(obs_bins, [tuple(['k__a'])])
+        self.assertEqual(type(obs_king[0]), SparseOTUTable)
 
         exp_phy1_obs_ids = ['a','b']
         exp_phy1_samp_ids = [1,2,3]
