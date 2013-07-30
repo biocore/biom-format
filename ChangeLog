@@ -20,6 +20,8 @@ Changes
 Bug Fixes
 ---------
 
+* Fixed performance issue with formatting BIOM tables for writing to a file.
+
 BIOM-Format 1.1.1 - 1.1.2
 =========================
 
