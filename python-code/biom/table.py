@@ -1548,20 +1548,20 @@ class Table(object):
         if direct_io:
             direct_io.write('"data": [')
         else:
-            data = '"data": ['
+            data = ['"data": [']
 
         max_row_idx = len(self.ObservationIds) - 1
         max_col_idx = len(self.SampleIds) - 1
-        rows = '"rows": ['
+        rows = ['"rows": [']
         have_written = False
         for obs_index, obs in enumerate(self.iterObservations()):
             # i'm crying on the inside
             if obs_index != max_row_idx:
-                rows += '{"id": "%s", "metadata": %s},' % (obs[1], 
-                                                           dumps(obs[2]))
+                rows.append('{"id": "%s", "metadata": %s},' % (obs[1],
+                                                               dumps(obs[2])))
             else:
-                rows += '{"id": "%s", "metadata": %s}],' % (obs[1], 
-                                                           dumps(obs[2]))
+                rows.append('{"id": "%s", "metadata": %s}],' % (obs[1],
+                                                                dumps(obs[2])))
 
             # If the matrix is dense, simply convert the numpy array to a list
             # of data values. If the matrix is sparse, we need to store the
@@ -1577,9 +1577,9 @@ class Table(object):
                 else:
                     # if we are not on the last row
                     if obs_index != max_row_idx:
-                        data += "[%s]," % ','.join(map(repr, obs[0]))
+                        data.append("[%s]," % ','.join(map(repr, obs[0])))
                     else:
-                        data += "[%s]]," % ','.join(map(repr, obs[0]))
+                        data.append("[%s]]," % ','.join(map(repr, obs[0])))
 
             elif self._biom_matrix_type == "sparse":
                 # turns out its a pain to figure out when to place commas. the
@@ -1597,11 +1597,11 @@ class Table(object):
                         if direct_io:
                             direct_io.write(',')
                         else:
-                            data += ','
+                            data.append(',')
                     if direct_io:
                         direct_io.write(','.join(built_row))
                     else:
-                        data += ','.join(built_row)
+                        data.append(','.join(built_row))
 
                     have_written = True
 
@@ -1610,17 +1610,20 @@ class Table(object):
             if direct_io:
                 direct_io.write("],")
             else:
-                data += "],"
+                data.append("],")
 
         # Fill in details about the columns in the table.
-        columns = '"columns": ['
+        columns = ['"columns": [']
         for samp_index, samp in enumerate(self.iterSamples()):
             if samp_index != max_col_idx:
-                columns += '{"id": "%s", "metadata": %s},' % (samp[1], 
-                                                                dumps(samp[2]))
+                columns.append('{"id": "%s", "metadata": %s},' % (samp[1],
+                        dumps(samp[2])))
             else:
-                columns += '{"id": "%s", "metadata": %s}]' % (samp[1], 
-                                                                dumps(samp[2]))
+                columns.append('{"id": "%s", "metadata": %s}]' % (samp[1],
+                        dumps(samp[2])))
+
+        rows = ''.join(rows)
+        columns = ''.join(columns)
 
         if direct_io:
             direct_io.write(rows)
@@ -1630,7 +1633,7 @@ class Table(object):
             return "{%s}" % ''.join([id_, format_, format_url, type_, 
                                       generated_by, date, 
                                       matrix_type, matrix_element_type, shape, 
-                                      data, rows, columns])
+                                      ''.join(data), rows, columns])
 
     def getBiomFormatPrettyPrint(self,generated_by):
         """Returns a 'pretty print' format of a BIOM file
