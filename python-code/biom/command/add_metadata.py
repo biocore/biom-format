@@ -2,6 +2,8 @@
 
 from __future__ import division
 from pyqi.core.command import Command, Parameter
+from biom.parse import MetadataMap
+from biom.table import Table
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2013, The BIOM-Format project"
@@ -16,7 +18,7 @@ class AddMetadata(Command):
     LongDescription = ("Add sample and/or observation metadata to "
                        "BIOM-formatted files.")
 
-    def run(self, biom-table, **kwargs):
+    def run(self, **kwargs):
         results = {}
 
         ## define metadata processing functions, if any
