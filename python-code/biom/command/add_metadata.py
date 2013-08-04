@@ -16,10 +16,18 @@ __email__ = "jai.rideout@gmail.com"
 class AddMetadata(Command):
     BriefDescription = "Add metadata to table"
     LongDescription = ("Add sample and/or observation metadata to "
-                       "BIOM-formatted files.")
+                       "BIOM-formatted files. Detailed usage examples can be "
+                       "found here: http://biom-format.org/documentation/adding_metadata.html")
 
     def run(self, **kwargs):
         results = {}
+
+        sc_separated = kwargs['sc-separated']
+        int_fields = kwargs['int-fields']
+        float_fields = kwargs['float-fields']
+        sc_pipe_separated = kwargs['sc-pipe-separated']
+        sample_mapping = kwargs['sample-mapping']
+        obs_mapping = kwargs['observation-mapping']
 
         ## define metadata processing functions, if any
         process_fns = {}
@@ -38,19 +46,15 @@ class AddMetadata(Command):
                     self._split_on_semicolons_and_pipes))
 
         ## parse mapping files
-        if sample_mapping_fp != None:
-            sample_mapping = parse_mapping(sample_mapping,
-                                           process_fns=process_fns,
-                                           header=sample_header)
-        else:
-            sample_mapping = None
+        if sample_mapping != None:
+            sample_mapping = MetadataMap.fromFile(sample_mapping,
+                                                  process_fns=process_fns,
+                                                  header=sample_header)
 
-        if obs_mapping_fp != None:
-            obs_mapping = parse_mapping(obs_mapping,
-                                        process_fns=process_fns,
-                                        header=observation_header)
-        else:
-            obs_mapping = None
+        if obs_mapping != None:
+            obs_mapping = MetadataMap.fromFile(obs_mapping,
+                                               process_fns=process_fns,
+                                               header=observation_header)
 
         if sample_mapping == None and obs_mapping == None:
             raise CommandError('Must specify sample_mapping and/or '
