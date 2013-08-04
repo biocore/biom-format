@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
-from pyqi.interface.cli import CLOption, UsageExample, ParameterConversion
-from pyqi.interface.input_handler.cli import file_reading_handler
+from pyqi.interface.cli import (CLOption, UsageExample, ParameterConversion,
+                                OutputHandler)
+from pyqi.interface.input_handler.cli import (file_reading_handler,
+                                              string_list_handler)
 
 from biom.command.add_metadata import CommandConstructor
-from biom.cli.input_handler import biom_table_handler, string_list_handler
+from biom.cli.input_handler import biom_table_handler
+from biom.cli.output_handler import write_biom_table
+from biom.table import Table
 
 usage_examples = [
     UsageExample(ShortDesc="Adding sample metadata",
@@ -47,7 +51,7 @@ param_conversions = {
 }
 
 output_map = {
-    'biom-table': OutputHandler(OutputName='output_fp',
+    'biom-table': OutputHandler(OptionName='output_fp',
                                 Function=write_biom_table)
 }
 
