@@ -14,20 +14,20 @@ __maintainer__ = "Jai Ram Rideout"
 __email__ = "jai.rideout@gmail.com"
 
 class AddMetadata(Command):
-    BriefDescription = "Add metadata to table"
+    BriefDescription = "Add metadata to a table"
     LongDescription = ("Add sample and/or observation metadata to "
                        "BIOM-formatted files. Detailed usage examples can be "
                        "found here: http://biom-format.org/documentation/adding_metadata.html")
 
     def run(self, **kwargs):
-        results = {}
-
         sc_separated = kwargs['sc-separated']
         int_fields = kwargs['int-fields']
         float_fields = kwargs['float-fields']
         sc_pipe_separated = kwargs['sc-pipe-separated']
         sample_mapping = kwargs['sample-mapping']
         obs_mapping = kwargs['observation-mapping']
+        sample_header = kwargs['sample-header']
+        observation_header = kwargs['observation-header']
 
         ## define metadata processing functions, if any
         process_fns = {}
@@ -62,6 +62,9 @@ class AddMetadata(Command):
 
         table = kwargs['biom-table']
 
+        # NAUGHTY: this is modifying the input table IN PLACE!!! And then
+        # RETURNING IT!
+
         ## add metadata as necessary
         if sample_mapping:
             table.addSampleMetadata(sample_mapping)
@@ -69,9 +72,7 @@ class AddMetadata(Command):
         if obs_mapping:
             table.addObservationMetadata(obs_mapping)
 
-        # NAUGHTY: this is modifying the input table IN PLACE!!! And then
-        # RETURNING IT!
-        results['biom-table'] = table
+        return {'biom-table': table}
 
     def _split_on_semicolons(self, x):
         return [e.strip() for e in x.split(';')]
