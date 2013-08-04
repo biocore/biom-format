@@ -1,51 +1,60 @@
 #!/usr/bin/env python
 
 from pyqi.interface.cli import CLOption, UsageExample, ParameterConversion
-from biom.command import CommandConstructor
+from biom.command.add_metadata import CommandConstructor
 
-# How you can use the command from the command line
 usage_examples = [
-    ]
+    UsageExample(ShortDesc="Adding sample metadata",
+                 LongDesc="Add sample metadata to a BIOM table",
+                 Ex="%prog -i otu_table.biom -o table-with-sample-metadata.biom --sample_mapping_fp sample_metadata.txt")
+]
 
-# Parameter conversions tell the interface how to describe command line 
-# options
 param_conversions = {
-    		'biom-table':ParameterConversion(ShortName="MUST BE DEFINED",
-					LongName='biom-table',
-					CLType=<class 'biom.table.Table'>),
-		'sample-mapping':ParameterConversion(ShortName="MUST BE DEFINED",
-					LongName='sample-mapping',
-					CLType=<class 'biom.parse.MetadataMap'>),
-		'observation-mapping':ParameterConversion(ShortName="MUST BE DEFINED",
-					LongName='observation-mapping',
-					CLType=<class 'biom.parse.MetadataMap'>),
-		'sc-separated':ParameterConversion(ShortName="MUST BE DEFINED",
-					LongName='sc-separated',
-					CLType=<type 'list'>),
-		'sc-pipe-separated':ParameterConversion(ShortName="MUST BE DEFINED",
-					LongName='sc-pipe-separated',
-					CLType=<type 'list'>),
-		'int-fields':ParameterConversion(ShortName="MUST BE DEFINED",
-					LongName='int-fields',
-					CLType=<type 'list'>),
-		'float-fields':ParameterConversion(ShortName="MUST BE DEFINED",
-					LongName='float-fields',
-					CLType=<type 'list'>),
-		'observation-header':ParameterConversion(ShortName="MUST BE DEFINED",
-					LongName='observation-header',
-					CLType=<type 'list'>),
-		'sample-header':ParameterConversion(ShortName="MUST BE DEFINED",
-					LongName='sample-header',
-					CLType=<type 'list'>),
+    'biom-table': ParameterConversion(ShortName='i', LongName='input_fp',
+                                      CLType='existing_filepath',
+                                      InHandler=biom_table_handler),
+    'sample-mapping': ParameterConversion(ShortName='m',
+                                          LongName='sample_mapping_fp',
+                                          CLType='existing_filepath',
+                                          InHandler=file_reading_handler),
+    'observation-mapping': ParameterConversion(ShortName=None,
+            LongName='observation_mapping_fp', CLType='existing_filepath',
+            InHandler=file_reading_handler),
+    'sc-separated': ParameterConversion(ShortName=None,
+                                        LongName='sc_separated',
+                                        CLType=str,
+                                        InHandler=string_list_handler),
+    'sc-pipe-separated': ParameterConversion(ShortName=None,
+                                             LongName='sc_pipe_separated',
+                                             CLType=str,
+                                             InHandler=string_list_handler),
+    'int-fields': ParameterConversion(ShortName=None,
+                                      LongName='int_fields', CLType=str,
+                                      InHandler=string_list_handler),
+    'float-fields': ParameterConversion(ShortName=None,
+                                        LongName='float_fields', CLType=str,
+                                        InHandler=string_list_handler),
+    'observation-header': ParameterConversion(ShortName=None,
+                                              LongName='observation_header',
+                                              CLType=str,
+                                              InHandler=string_list_handler),
+    'sample-header': ParameterConversion(ShortName=None,
+                                         LongName='sample_header', CLType=str,
+                                         InHandler=string_list_handler)
+}
 
-    }
-
-# The output map associated keys in the results returned from Command.run
-# without output handlers
 output_map = {
-    }
+    'biom-table': OutputHandler(OutputName='output_fp',
+                                Function=write_biom_table)
+}
 
-# In case there are interface specific bits such as output files
 additional_options = [
+    CLOption(Type=Table,
+             Help='the output BIOM table',
+             Name='biom-table',
+             Required=True,
+             LongName='output_fp',
+             CLType='new_filepath',
+             ShortName='o')
     ]
-
+]
