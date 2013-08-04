@@ -20,7 +20,7 @@ __email__ = "gregcaporaso@gmail.com"
 
 class PrintBiomTableSummary(Command):
     BriefDescription = "Summarize sample or observation data in a BIOM table."
-    LongDescription = "Provides details on the observation counts per sample, including summary statistics, as well as metadata categories associated with samples an observations."
+    LongDescription = "Provides details on the observation counts per sample, including summary statistics, as well as metadata categories associated with samples and observations."
 
     def run(self, **kwargs):
         """
@@ -31,6 +31,7 @@ class PrintBiomTableSummary(Command):
                    ids per sample, rather than total observation count per
                    sample
         """
+        print kwargs
         result = {}
         qualitative = kwargs.get('qualitative')
         table = kwargs.get('table')
@@ -90,7 +91,7 @@ class PrintBiomTableSummary(Command):
         for v,k in sorted_counts_per_sample:
             lines.append(' %s: %s' % (k,str(v)))
         
-        result['summary_lines'] = lines
+        result['biom-summary'] = lines
         return result 
 
     def _get_parameters(self):
