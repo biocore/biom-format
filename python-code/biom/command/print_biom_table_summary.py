@@ -31,7 +31,6 @@ class PrintBiomTableSummary(Command):
                    ids per sample, rather than total observation count per
                    sample
         """
-        print kwargs
         result = {}
         qualitative = kwargs.get('qualitative')
         table = kwargs.get('table')
