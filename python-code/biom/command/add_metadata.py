@@ -20,15 +20,14 @@ class AddMetadata(Command):
                        "found here: http://biom-format.org/documentation/adding_metadata.html")
 
     def run(self, **kwargs):
-        print kwargs
-        results = {}
-
         sc_separated = kwargs['sc-separated']
         int_fields = kwargs['int-fields']
         float_fields = kwargs['float-fields']
         sc_pipe_separated = kwargs['sc-pipe-separated']
         sample_mapping = kwargs['sample-mapping']
         obs_mapping = kwargs['observation-mapping']
+        sample_header = kwargs['sample-header']
+        observation_header = kwargs['observation-header']
 
         ## define metadata processing functions, if any
         process_fns = {}
@@ -63,6 +62,9 @@ class AddMetadata(Command):
 
         table = kwargs['biom-table']
 
+        # NAUGHTY: this is modifying the input table IN PLACE!!! And then
+        # RETURNING IT!
+
         ## add metadata as necessary
         if sample_mapping:
             table.addSampleMetadata(sample_mapping)
@@ -70,9 +72,7 @@ class AddMetadata(Command):
         if obs_mapping:
             table.addObservationMetadata(obs_mapping)
 
-        # NAUGHTY: this is modifying the input table IN PLACE!!! And then
-        # RETURNING IT!
-        results['biom-table'] = table
+        return {'biom-table': table}
 
     def _split_on_semicolons(self, x):
         return [e.strip() for e in x.split(';')]
