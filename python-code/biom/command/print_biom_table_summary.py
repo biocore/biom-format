@@ -27,16 +27,16 @@ class PrintBiomTableSummary(Command):
          table: the biom table to summarize
          input_fp: path to .biom file that table is derived from, provide if 
                    the md5 sum should be included in the output
-         quantitative: counts are presented as number of unique observation
+         qualitative: counts are presented as number of unique observation
                    ids per sample, rather than total observation count per
                    sample
         """
         result = {}
-        quantitative = kwargs.get('quantitative')
+        qualitative = kwargs.get('qualitative')
         table = kwargs.get('table')
         
         min_counts, max_counts, median_counts, mean_counts, counts_per_sample =\
-         compute_counts_per_sample_stats(table, quantitative)
+         compute_counts_per_sample_stats(table, qualitative)
         num_observations = len(table.ObservationIds)
         
         input_fp = kwargs.get('input_fp',None)
@@ -67,7 +67,7 @@ class PrintBiomTableSummary(Command):
             lines.append('Table md5 (unzipped): %s' % safe_md5(biom_open(input_fp,'U')))
         lines.append('')
 
-        if quantitative:
+        if qualitative:
             lines.append('Observations/sample summary:')
         else:
             lines.append('Counts/sample summary:')
@@ -80,7 +80,7 @@ class PrintBiomTableSummary(Command):
         lines.append(' Observation Metadata Categories: %s' % '; '.join(observation_md_keys))
      
         lines.append('')
-        if quantitative:
+        if qualitative:
             lines.append('Observations/sample detail:')
         else:
             lines.append('Counts/sample detail:')
@@ -90,7 +90,7 @@ class PrintBiomTableSummary(Command):
         for v,k in sorted_counts_per_sample:
             lines.append(' %s: %s' % (k,str(v)))
         
-        result['summary_lines'] = '\n'.join(lines)
+        result['summary_lines'] = lines
         return result 
 
     def _get_parameters(self):
