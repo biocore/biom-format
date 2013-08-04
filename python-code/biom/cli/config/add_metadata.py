@@ -1,7 +1,10 @@
 #!/usr/bin/env python
 
 from pyqi.interface.cli import CLOption, UsageExample, ParameterConversion
+from pyqi.interface.input_handler.cli import file_reading_handler
+
 from biom.command.add_metadata import CommandConstructor
+from biom.cli.input_handler import biom_table_handler, string_list_handler
 
 usage_examples = [
     UsageExample(ShortDesc="Adding sample metadata",
@@ -56,5 +59,4 @@ additional_options = [
              LongName='output_fp',
              CLType='new_filepath',
              ShortName='o')
-    ]
 ]
