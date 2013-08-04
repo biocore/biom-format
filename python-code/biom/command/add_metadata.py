@@ -14,12 +14,13 @@ __maintainer__ = "Jai Ram Rideout"
 __email__ = "jai.rideout@gmail.com"
 
 class AddMetadata(Command):
-    BriefDescription = "Add metadata to table"
+    BriefDescription = "Add metadata to a table"
     LongDescription = ("Add sample and/or observation metadata to "
                        "BIOM-formatted files. Detailed usage examples can be "
                        "found here: http://biom-format.org/documentation/adding_metadata.html")
 
     def run(self, **kwargs):
+        print kwargs
         results = {}
 
         sc_separated = kwargs['sc-separated']
