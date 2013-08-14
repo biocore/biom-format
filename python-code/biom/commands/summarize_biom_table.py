@@ -122,7 +122,7 @@ class SummarizeBiomTable(Command):
         for v,k in sorted_counts_per_sample:
             lines.append(' %s: %s' % (k,str(v)))
         
-        result['biom-summary'] = lines
+        result['biom-summary'] = '\n'.join(lines)
         return result 
 
 CommandConstructor = SummarizeBiomTable
