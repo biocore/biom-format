@@ -89,12 +89,12 @@ class SummarizeBiomTable(Command):
         lines = []
     
         num_samples = len(counts_per_sample)
-        lines.append('Num samples: %s' % str(num_samples))
-        lines.append('Num observations: %s' % str(num_observations))
+        lines.append('Num samples: %d' % num_samples)
+        lines.append('Num observations: %d' % num_observations)
         if not num_observations:
             total_count = sum(counts_per_sample_values)
-            lines.append('Total count: %s' % str(total_count))
-            lines.append('Table density (fraction of non-zero values): %1.4f' % \
+            lines.append('Total count: %d' % total_count)
+            lines.append('Table density (fraction of non-zero values): %1.3f' % \
                   table.getTableDensity())
         if not suppress_md5:
             lines.append('Table md5 (unzipped): %s' % safe_md5(biom_open(input_fp,'U')))
@@ -104,11 +104,11 @@ class SummarizeBiomTable(Command):
             lines.append('Observations/sample summary:')
         else:
             lines.append('Counts/sample summary:')
-        lines.append(' Min: %s' % str(min_counts))
-        lines.append(' Max: %s' % str(max_counts))
-        lines.append(' Median: %s' % str(median_counts))
-        lines.append(' Mean: %s' % str(mean_counts))
-        lines.append(' Std. dev.: %s' % (str(std(counts_per_sample_values))))
+        lines.append(' Min: %r' % min_counts)
+        lines.append(' Max: %r' % max_counts)
+        lines.append(' Median: %1.3f' % median_counts)
+        lines.append(' Mean: %1.3f' % mean_counts)
+        lines.append(' Std. dev.: %1.3f' % std(counts_per_sample_values))
         lines.append(' Sample Metadata Categories: %s' % '; '.join(sample_md_keys))
         lines.append(' Observation Metadata Categories: %s' % '; '.join(observation_md_keys))
      
@@ -121,9 +121,10 @@ class SummarizeBiomTable(Command):
         sorted_counts_per_sample = [(v,k) for k,v in counts_per_sample.items()]
         sorted_counts_per_sample.sort()
         for v,k in sorted_counts_per_sample:
-            lines.append(' %s: %s' % (k,str(v)))
+            lines.append(' %s: %r' % (k,v))
         
         result['biom-summary'] = '\n'.join(lines)
-        return result 
+        return result
+    
 
 CommandConstructor = SummarizeBiomTable
