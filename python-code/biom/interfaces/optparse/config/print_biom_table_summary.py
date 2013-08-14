@@ -8,9 +8,9 @@ from biom.commands.summarize_biom_table import CommandConstructor
 from biom.interfaces.optparse.input_handler import load_biom_table
 
 usage_examples = [
-    OptparseUsageExample(ShortDesc="A short single sentence description of the example",
-                         LongDesc="A longer, more detailed description",
-                         Ex="%prog --foo --bar some_file")
+    OptparseUsageExample(ShortDesc="Basic script usage",
+                         LongDesc="Write a summary of table.biom to table_summary.txt",
+                         Ex="%prog -i table.biom -o table_summary.txt")
 ]
 
 inputs = [
