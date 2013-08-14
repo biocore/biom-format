@@ -76,14 +76,15 @@ class SummarizeBiomTable(Command):
     
         counts_per_sample_values = counts_per_sample.values()
     
-        try:
-            sample_md_keys = table.SampleMetadata[0].keys()
-        except TypeError:
+        if table.SampleMetadata is None:
             sample_md_keys = ["None provided"]
-        try:
-            observation_md_keys = table.ObservationMetadata[0].keys()
-        except TypeError:
+        else:
+            sample_md_keys = table.SampleMetadata[0].keys()
+        
+        if table.ObservationMetadata is None:
             observation_md_keys = ["None provided"]
+        else:
+            observation_md_keys = table.ObservationMetadata[0].keys()
     
         lines = []
     
