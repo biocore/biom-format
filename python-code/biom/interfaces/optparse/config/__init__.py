@@ -1,18 +1,16 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
-# Copyright (c) 2013, The BiPy Development Team.
-#
-# Distributed under the terms of the Modified BSD License.
-#
-# The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+####
+# This file is copied from pyqi/interfaces/optparse/config/__init__.py
+# I think we want to work out a better solution for this as we'll need 
+# this file a lot.
+####
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2013, The pyqi project"
 __credits__ = ["Daniel McDonald", "Greg Caporaso", "Doug Wendel",
                "Jai Ram Rideout"]
-__license__ = "BSD"
+__license__ = "GPL"
 __version__ = "0.1.0-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
