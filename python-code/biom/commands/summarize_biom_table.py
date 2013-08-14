@@ -44,9 +44,6 @@ class SummarizeBiomTable(Command):
     ])
 
     def run(self, **kwargs):
-        # EXAMPLE:
-        # return {'result_1': kwargs['foo'] * kwargs['bar'],
-        #         'result_2': "Some output bits"}
         """
          table: the biom table to summarize
          input_fp: path to .biom file that table is derived from, provide if 
