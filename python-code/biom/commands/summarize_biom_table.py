@@ -20,6 +20,17 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
 class SummarizeBiomTable(Command):
+    """
+     Example usage:
+      from biom.commands.summarize_biom_table import SummarizeBiomTable
+      from biom.parse import parse_biom_table
+      c = SummarizeBiomTable()
+      t = parse_biom_table(open("table.biom"))
+      result = c(table=t)
+      result = c(table=t,qualitative=True)
+      result = c(table=t,qualitative=True,input_fp="table.biom")
+    
+    """
     BriefDescription = "Summarize sample or observation data in a BIOM-formatted file."
     LongDescription = "Provides details on the observation counts per sample, including summary statistics, as well as metadata categories associated with samples and observations."
     Parameters = ParameterCollection([
