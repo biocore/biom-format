@@ -31,7 +31,7 @@ class TableSummarizer(Command):
       result = c(table=t,qualitative=True,table_fp="table.biom")
     
     """
-    BriefDescription = "Summarize sample or observation data in a BIOM-formatted file."
+    BriefDescription = "Summarize sample or observation data in a BIOM table."
     LongDescription = "Provides details on the observation counts per sample, including summary statistics, as well as metadata categories associated with samples and observations."
     Parameters = ParameterCollection([
         Parameter(Name='table', 
