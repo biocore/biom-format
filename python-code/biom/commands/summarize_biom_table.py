@@ -19,7 +19,7 @@ __version__ = "1.1.2-dev"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
-class SummarizeBiomTable(Command):
+class TableSummarizer(Command):
     """
      Example usage:
       from biom.commands.summarize_biom_table import SummarizeBiomTable
@@ -127,4 +127,4 @@ class SummarizeBiomTable(Command):
         return result
     
 
-CommandConstructor = SummarizeBiomTable
+CommandConstructor = TableSummarizer
