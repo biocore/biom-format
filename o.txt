@@ -1,0 +1,22 @@
+Num samples: 9
+Num observations: 1
+
+Counts/sample summary:
+ Min: 0.99999999999999911
+ Max: 1.0000000000000013
+ Median: 1.000
+ Mean: 1.000
+ Std. dev.: 0.000
+ Sample Metadata Categories: None provided
+ Observation Metadata Categories: None provided
+
+Counts/sample detail:
+ PC.635: 0.99999999999999911
+ PC.354: 0.99999999999999944
+ PC.607: 0.99999999999999944
+ PC.593: 0.99999999999999956
+ PC.634: 1.0000000000000002
+ PC.355: 1.0000000000000004
+ PC.356: 1.0000000000000007
+ PC.481: 1.0000000000000011
+ PC.636: 1.0000000000000013

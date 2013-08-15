@@ -3,7 +3,7 @@
 from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
                                            OptparseOption, OptparseResult)
-from pyqi.core.interfaces.optparse.output_handler import write_string
+from pyqi.core.interfaces.optparse.output_handler import write_list_of_strings
 from biom.commands.summarize_biom_table import CommandConstructor
 from biom.interfaces.optparse.input_handler import load_biom_table
 
@@ -40,6 +40,6 @@ inputs = [
 
 outputs = [
     OptparseResult(ResultKey='biom-summary',
-                   OutputHandler=write_string,
+                   OutputHandler=write_list_of_strings,
                    OptionName='output_fp')
 ]
