@@ -71,7 +71,10 @@ class TableSummarizer(Command):
          compute_counts_per_sample_stats(table, qualitative)
         num_observations = len(table.ObservationIds)
         
-        table_fp = kwargs['table_fp']
+        try:
+            table_fp = kwargs['table_fp']
+        except KeyError:
+            table_fp = None
         suppress_md5 = table_fp is None
     
         counts_per_sample_values = counts_per_sample.values()
