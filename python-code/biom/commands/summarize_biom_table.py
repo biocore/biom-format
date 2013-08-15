@@ -64,14 +64,14 @@ class TableSummarizer(Command):
                    sample
         """
         result = {}
-        qualitative = kwargs.get('qualitative')
-        table = kwargs.get('table')
+        qualitative = kwargs['qualitative']
+        table = kwargs['table']
         
         min_counts, max_counts, median_counts, mean_counts, counts_per_sample =\
          compute_counts_per_sample_stats(table, qualitative)
         num_observations = len(table.ObservationIds)
         
-        table_fp = kwargs.get('table_fp',None)
+        table_fp = kwargs['table_fp']
         suppress_md5 = table_fp is None
     
         counts_per_sample_values = counts_per_sample.values()
@@ -91,7 +91,7 @@ class TableSummarizer(Command):
         num_samples = len(counts_per_sample)
         lines.append('Num samples: %d' % num_samples)
         lines.append('Num observations: %d' % num_observations)
-        if not num_observations:
+        if not qualitative:
             total_count = sum(counts_per_sample_values)
             lines.append('Total count: %d' % total_count)
             lines.append('Table density (fraction of non-zero values): %1.3f' % \
