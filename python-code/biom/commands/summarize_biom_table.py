@@ -25,7 +25,7 @@ class TableSummarizer(Command):
       from biom.commands.summarize_biom_table import SummarizeBiomTable
       from biom.parse import parse_biom_table
       c = SummarizeBiomTable()
-      t = parse_biom_table(open("table.biom"))
+      t = parse_biom_table(open("table.biom","U"))
       result = c(table=t)
       result = c(table=t,qualitative=True)
       result = c(table=t,qualitative=True,table_fp="table.biom")
