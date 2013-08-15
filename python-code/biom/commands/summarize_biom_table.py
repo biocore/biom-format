@@ -28,7 +28,7 @@ class SummarizeBiomTable(Command):
       t = parse_biom_table(open("table.biom"))
       result = c(table=t)
       result = c(table=t,qualitative=True)
-      result = c(table=t,qualitative=True,input_fp="table.biom")
+      result = c(table=t,qualitative=True,table_fp="table.biom")
     
     """
     BriefDescription = "Summarize sample or observation data in a BIOM-formatted file."
@@ -45,7 +45,7 @@ class SummarizeBiomTable(Command):
                                'counts of observations per sample.'), 
                   Required=False,
                   Default=False),
-        Parameter(Name='input_fp', 
+        Parameter(Name='table_fp', 
                   DataType=str,
                   Description=('Path to BIOM-formatted file, if the md5sum '
                                'of that file should be included in the '
@@ -57,7 +57,7 @@ class SummarizeBiomTable(Command):
     def run(self, **kwargs):
         """
          table: the biom table to summarize
-         input_fp: path to .biom file that table is derived from, provide if 
+         table_fp: path to .biom file that table is derived from, provide if 
                    the md5 sum should be included in the output
          qualitative: counts are presented as number of unique observation
                    ids per sample, rather than total observation count per
@@ -71,8 +71,8 @@ class SummarizeBiomTable(Command):
          compute_counts_per_sample_stats(table, qualitative)
         num_observations = len(table.ObservationIds)
         
-        input_fp = kwargs.get('input_fp',None)
-        suppress_md5 = input_fp is None
+        table_fp = kwargs.get('table_fp',None)
+        suppress_md5 = table_fp is None
     
         counts_per_sample_values = counts_per_sample.values()
     
@@ -97,7 +97,7 @@ class SummarizeBiomTable(Command):
             lines.append('Table density (fraction of non-zero values): %1.3f' % \
                   table.getTableDensity())
         if not suppress_md5:
-            lines.append('Table md5 (unzipped): %s' % safe_md5(biom_open(input_fp,'U')))
+            lines.append('Table md5 (unzipped): %s' % safe_md5(biom_open(table_fp,'U')))
         lines.append('')
 
         if qualitative:
