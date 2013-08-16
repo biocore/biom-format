@@ -4,7 +4,7 @@ from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
                                            OptparseOption, OptparseResult)
 from pyqi.core.interfaces.optparse.output_handler import write_list_of_strings
-from biom.commands.summarize_biom_table import CommandConstructor
+from biom.commands.table_summarizer import CommandConstructor
 from biom.interfaces.optparse.input_handler import load_biom_table
 
 usage_examples = [
