@@ -9,7 +9,6 @@ __version__ = "1.1.2-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
-from tempfile import TemporaryFile
 from biom.commands.table_summarizer import TableSummarizer
 from biom.parse import parse_biom_table
 from biom.unit_test import TestCase, main
@@ -19,8 +18,6 @@ class TableSummarizerTests(TestCase):
     def setUp(self):
         """ initialize objects for use in tests """
         self.biom1_lines = biom1.split('\n')
-        self.biom1_f = TemporaryFile()
-        self.biom1_f.write(biom1)
         self.summary1_lines = summary1.split('\n')
         self.summary2_lines = summary2.split('\n')
     
@@ -32,7 +29,7 @@ class TableSummarizerTests(TestCase):
         
         """
         t = TableSummarizer()
-        actual = t.run(table=(parse_biom_table(self.biom1_lines),self.biom1_f),
+        actual = t.run(table=(parse_biom_table(self.biom1_lines),self.biom1_lines),
                        qualitative=False,
                        suppress_md5=True)
         self.assertEqual(actual['biom-summary'],self.summary1_lines)
@@ -45,7 +42,7 @@ class TableSummarizerTests(TestCase):
         
         """
         t = TableSummarizer()
-        actual = t.run(table=(parse_biom_table(self.biom1_lines),self.biom1_f),
+        actual = t.run(table=(parse_biom_table(self.biom1_lines),self.biom1_lines),
                        qualitative=True,
                        suppress_md5=True)
         self.assertEqual(actual['biom-summary'],self.summary2_lines)
