@@ -44,6 +44,12 @@ class TableSummarizer(Command):
                                'observation ids per sample, rather than '
                                'counts of observations per sample.'), 
                   Required=False,
+                  Default=False),
+        Parameter(Name='suppress_md5', 
+                  DataType=bool,
+                  Description=('Do not compute md5sum of table. '
+                               'Useful if you\'re concerned about runtime.'), 
+                  Required=False,
                   Default=False)
     ])
 
@@ -64,11 +70,7 @@ class TableSummarizer(Command):
          compute_counts_per_sample_stats(table, qualitative)
         num_observations = len(table.ObservationIds)
         
-        try:
-            table_fp = kwargs['table_fp']
-        except KeyError:
-            table_fp = None
-        suppress_md5 = table_lines is None
+        suppress_md5 = (table_lines is None) or kwargs['suppress_md5']
     
         counts_per_sample_values = counts_per_sample.values()
     
