@@ -227,6 +227,7 @@ def safe_md5(open_file, block_size=2**20):
     """
     data = True
     result = md5()
+    
     ## While a little hackish, this allows this code to
     ## safely work either with a file object or a list of lines.
     if isinstance(open_file,file):
