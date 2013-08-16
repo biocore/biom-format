@@ -13,4 +13,6 @@ from biom.parse import parse_biom_table
 
 def load_biom_table(biom_fp):
     with biom_open(biom_fp, 'U') as table_f:
-        return parse_biom_table(table_f)
+        return (parse_biom_table(table_f), biom_open(biom_fp, 'U'))
+
+        
