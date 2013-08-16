@@ -1,66 +1,79 @@
 #!/usr/bin/env python
 
-from pyqi.interface.cli import (CLOption, UsageExample, ParameterConversion,
-                                OutputHandler)
-from pyqi.interface.input_handler.cli import (file_reading_handler,
-                                              string_list_handler)
-
-from biom.command.add_metadata import CommandConstructor
+from pyqi.core.interfaces.optparse import (OptparseOption,
+                                           OptparseUsageExample,
+                                           OptparseResult)
+from pyqi.core.command import make_parameter_collection_lookup_f
+from pyqi.core.interfaces.optparse.input_handler import (file_reading_handler,
+                                                         string_list_handler)
+from biom.command.metadata_adder import CommandConstructor
 from biom.cli.input_handler import biom_table_handler
 from biom.cli.output_handler import write_biom_table
-from biom.table import Table
+
+__author__ = "Jai Ram Rideout"
+__copyright__ = "Copyright 2013, The BIOM-Format project"
+__credits__ = ["Jai Ram Rideout", "Greg Caporaso", "Morgan Langille"]
+__license__ = "GPL"
+__url__ = "http://biom-format.org"
+__version__ = "1.1.2-dev"
+__maintainer__ = "Jai Ram Rideout"
+__email__ = "jai.rideout@gmail.com"
+
+param_lookup = make_parameter_collection_lookup_f(CommandConstructor)
 
 usage_examples = [
-    UsageExample(ShortDesc="Adding sample metadata",
-                 LongDesc="Add sample metadata to a BIOM table",
-                 Ex="%prog -i otu_table.biom -o table-with-sample-metadata.biom --sample_mapping_fp sample_metadata.txt")
+    OptparseUsageExample(ShortDesc="Adding sample metadata",
+                         LongDesc="Add sample metadata to a BIOM table",
+                         Ex="%prog -i otu_table.biom -o table_with_sample_metadata.biom -m sample_metadata.txt")
 ]
 
-param_conversions = {
-    'biom-table': ParameterConversion(ShortName='i', LongName='input_fp',
-                                      CLType='existing_filepath',
-                                      InHandler=biom_table_handler),
-    'sample-mapping': ParameterConversion(ShortName='m',
-                                          LongName='sample_mapping_fp',
-                                          CLType='existing_filepath',
-                                          InHandler=file_reading_handler),
-    'observation-mapping': ParameterConversion(ShortName=None,
-            LongName='observation_mapping_fp', CLType='existing_filepath',
-            InHandler=file_reading_handler),
-    'sc-separated': ParameterConversion(ShortName=None,
-                                        LongName='sc_separated',
-                                        CLType=str,
-                                        InHandler=string_list_handler),
-    'sc-pipe-separated': ParameterConversion(ShortName=None,
-                                             LongName='sc_pipe_separated',
-                                             CLType=str,
-                                             InHandler=string_list_handler),
-    'int-fields': ParameterConversion(ShortName=None,
-                                      LongName='int_fields', CLType=str,
-                                      InHandler=string_list_handler),
-    'float-fields': ParameterConversion(ShortName=None,
-                                        LongName='float_fields', CLType=str,
-                                        InHandler=string_list_handler),
-    'observation-header': ParameterConversion(ShortName=None,
-                                              LongName='observation_header',
-                                              CLType=str,
-                                              InHandler=string_list_handler),
-    'sample-header': ParameterConversion(ShortName=None,
-                                         LongName='sample_header', CLType=str,
-                                         InHandler=string_list_handler)
-}
+inputs = [
+    OptparseOption(Parameter=param_lookup('table'),
+                   InputType='existing_filepath',
+                   InputHandler=biom_table_handler, ShortName='i',
+                   Name='input_fp', convert_to_dashed_name=False),
 
-output_map = {
-    'biom-table': OutputHandler(OptionName='output_fp',
-                                Function=write_biom_table)
-}
+    OptparseOption(Parameter=param_lookup('sample_metadata'),
+                   InputType='existing_filepath',
+                   InputHandler=file_reading_handler, ShortName='m',
+                   Name='sample_mapping_fp', convert_to_dashed_name=False),
 
-additional_options = [
-    CLOption(Type=Table,
-             Help='the output BIOM table',
-             Name='biom-table',
-             Required=True,
-             LongName='output_fp',
-             CLType='new_filepath',
-             ShortName='o')
+    OptparseOption(Parameter=param_lookup('observation_metadata'),
+                   InputType='existing_filepath',
+                   InputHandler=file_reading_handler,
+                   Name='observation_mapping_fp',
+                   convert_to_dashed_name=False),
+
+    OptparseOption(Parameter=param_lookup('sc_separated'),
+                   InputHandler=string_list_handler,
+                   convert_to_dashed_name=False),
+
+    OptparseOption(Parameter=param_lookup('sc_pipe_separated'),
+                   InputHandler=string_list_handler,
+                   convert_to_dashed_name=False),
+
+    OptparseOption(Parameter=param_lookup('int_fields'),
+                   InputHandler=string_list_handler,
+                   convert_to_dashed_name=False),
+
+    OptparseOption(Parameter=param_lookup('float_fields'),
+                   InputHandler=string_list_handler,
+                   convert_to_dashed_name=False),
+
+    OptparseOption(Parameter=param_lookup('sample_header'),
+                   InputHandler=string_list_handler,
+                   convert_to_dashed_name=False),
+
+    OptparseOption(Parameter=param_lookup('observation_header'),
+                   InputHandler=string_list_handler,
+                   convert_to_dashed_name=False),
+
+    OptparseOption(Parameter=None, InputType='new_filepath', ShortName='o',
+                   Name='output_fp', Required=True,
+                   Help='the output BIOM table', convert_to_dashed_name=False)
+]
+
+outputs = [
+    OptparseResult(ResultKey='table', OutputHandler=write_biom_table,
+                   OptionName='output_fp')
 ]
