@@ -14,7 +14,8 @@ from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
                                            OptparseOption, OptparseResult)
 from biom.commands.table_summarizer import CommandConstructor
-from biom.interfaces.optparse.input_handler import load_biom_table
+from biom.interfaces.optparse.input_handler import (
+        load_biom_table_with_file_contents)
 
 param_lookup = make_parameter_collection_lookup_f(CommandConstructor)
 
@@ -27,7 +28,7 @@ usage_examples = [
 inputs = [
     OptparseOption(Parameter=param_lookup('table'),
                    InputType="existing_filepath",
-                   InputHandler=load_biom_table,
+                   InputHandler=load_biom_table_with_file_contents,
                    ShortName='i',
                    Name='input_fp'),
     OptparseOption(Parameter=param_lookup('qualitative'),
