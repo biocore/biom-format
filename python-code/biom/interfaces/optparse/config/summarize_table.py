@@ -2,7 +2,7 @@
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2013, The BIOM-Format project"
-__credits__ = ["Greg Caporaso"]
+__credits__ = ["Greg Caporaso", "Jai Ram Rideout"]
 __license__ = "GPL"
 __version__ = "1.1.2-dev"
 __maintainer__ = "Greg Caporaso"
@@ -30,30 +30,23 @@ inputs = [
                    InputType="existing_filepath",
                    InputHandler=load_biom_table_with_file_contents,
                    ShortName='i',
-                   Name='input_fp'),
+                   Name='input-fp'),
     OptparseOption(Parameter=param_lookup('qualitative'),
                    InputType=None,
-                   InputAction="store_true",
-                   InputHandler=None,
-                   ShortName=None,
-                   Name='num_observations'),
+                   InputAction="store_true"),
     OptparseOption(Parameter=param_lookup('suppress_md5'),
                    InputType=None,
-                   InputAction="store_true",
-                   InputHandler=None,
-                   ShortName=None,
-                   Name='suppress_md5'),
+                   InputAction="store_true"),
     OptparseOption(Parameter=None,
                    InputType='new_filepath',
-                   InputHandler=None,
                    ShortName='o',
-                   Name='output_fp',
+                   Name='output-fp',
                    Required=True,
-                   Help='output filepath')
+                   Help='the output filepath')
 ]
 
 outputs = [
     OptparseResult(ResultKey='biom-summary',
                    OutputHandler=write_list_of_strings,
-                   OptionName='output_fp')
+                   OptionName='output-fp')
 ]
