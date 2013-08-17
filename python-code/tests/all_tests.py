@@ -38,6 +38,7 @@ def suite():
         'test_sparsedict',
         'test_util',
         'test_unit_test',
+        'test_commands.test_table_summarizer'
         ]
     try:
         import biom._sparsemat
