@@ -6,9 +6,9 @@ from pyqi.core.interfaces.optparse import (OptparseOption,
 from pyqi.core.command import make_parameter_collection_lookup_f
 from pyqi.core.interfaces.optparse.input_handler import (file_reading_handler,
                                                          string_list_handler)
-from biom.command.metadata_adder import CommandConstructor
-from biom.cli.input_handler import biom_table_handler
-from biom.cli.output_handler import write_biom_table
+from biom.commands.metadata_adder import CommandConstructor
+from biom.interfaces.optparse.input_handler import load_biom_table
+from biom.interfaces.optparse.output_handler import write_biom_table
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2013, The BIOM-Format project"
@@ -30,7 +30,7 @@ usage_examples = [
 inputs = [
     OptparseOption(Parameter=param_lookup('table'),
                    InputType='existing_filepath',
-                   InputHandler=biom_table_handler, ShortName='i',
+                   InputHandler=load_biom_table, ShortName='i',
                    Name='input_fp', convert_to_dashed_name=False),
 
     OptparseOption(Parameter=param_lookup('sample_metadata'),
