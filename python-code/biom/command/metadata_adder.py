@@ -2,6 +2,7 @@
 
 from __future__ import division
 from pyqi.core.command import Command, Parameter, ParameterCollection
+from pyqi.core.exception import CommandError
 from biom.parse import MetadataMap
 from biom.table import Table
 

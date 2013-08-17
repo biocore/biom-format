@@ -3,7 +3,7 @@
 from __future__ import division
 
 from optparse import make_option, OptionParser, OptionGroup
-from biom.parse import parse_biom_table, parse_mapping, generatedby
+from biom.parse import parse_biom_table, MetadataMap, generatedby
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2012, The BIOM-Format project"
@@ -138,16 +138,16 @@ def main():
     sample_mapping_fp = opts.sample_mapping_fp
     obs_mapping_fp = opts.observation_mapping_fp
     if sample_mapping_fp != None:
-        sample_mapping = parse_mapping(open(sample_mapping_fp,'U'),
-                                       process_fns=process_fns,
-                                       header=sample_header)
+        sample_mapping = MetadataMap.fromFile(open(sample_mapping_fp,'U'),
+                                              process_fns=process_fns,
+                                              header=sample_header)
     else:
         sample_mapping = None
     
     if obs_mapping_fp != None:
-        obs_mapping = parse_mapping(open(obs_mapping_fp, 'U'),
-                                    process_fns=process_fns,
-                                    header=observation_header)
+        obs_mapping = MetadataMap.fromFile(open(obs_mapping_fp, 'U'),
+                                           process_fns=process_fns,
+                                           header=observation_header)
     else:
         obs_mapping = None
     
