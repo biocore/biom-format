@@ -169,7 +169,7 @@ class UtilTests(TestCase):
                                     'Sample4':2,'Sample5':1,'Sample6':3})
 
     def test_safe_md5(self):
-        """Make sure we have the expected md5
+        """Make sure we have the expected md5 with varied input types
         
         Modified from PyCogent (www.pycogent.org).
         """
@@ -181,6 +181,12 @@ class UtilTests(TestCase):
 
         obs = safe_md5(open(tmp_f.name, 'U'))
         self.assertEqual(obs,exp)
+        
+        obs = safe_md5(['foo\n'])
+        self.assertEqual(obs,exp)
+        
+        # unsupported type raises TypeError
+        self.assertRaises(TypeError,safe_md5,42)
 
 biom_otu_table1_w_tax = """{
      "id":null,
