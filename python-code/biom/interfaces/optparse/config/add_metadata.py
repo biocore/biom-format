@@ -31,49 +31,65 @@ inputs = [
     OptparseOption(Parameter=param_lookup('table'),
                    InputType='existing_filepath',
                    InputHandler=load_biom_table, ShortName='i',
-                   Name='input_fp', convert_to_dashed_name=False),
+                   Name='input-fp'),
 
     OptparseOption(Parameter=param_lookup('sample_metadata'),
                    InputType='existing_filepath',
                    InputHandler=file_reading_handler, ShortName='m',
-                   Name='sample_mapping_fp', convert_to_dashed_name=False),
+                   Name='sample-metadata-fp'),
 
     OptparseOption(Parameter=param_lookup('observation_metadata'),
                    InputType='existing_filepath',
                    InputHandler=file_reading_handler,
-                   Name='observation_mapping_fp',
-                   convert_to_dashed_name=False),
+                   Name='observation-metadata-fp'),
 
     OptparseOption(Parameter=param_lookup('sc_separated'),
                    InputHandler=string_list_handler,
-                   convert_to_dashed_name=False),
+                   Help='comma-separated list of the metadata fields to split '
+                   'on semicolons. This is useful for hierarchical data such '
+                   'as taxonomy or functional categories'),
 
     OptparseOption(Parameter=param_lookup('sc_pipe_separated'),
                    InputHandler=string_list_handler,
-                   convert_to_dashed_name=False),
+                   Help='comma-separated list of the metadata fields to split '
+                   'on semicolons and pipes ("|"). This is useful for '
+                   'hierarchical data such as functional categories with '
+                   'one-to-many mappings (e.g. x;y;z|x;y;w)'),
 
     OptparseOption(Parameter=param_lookup('int_fields'),
                    InputHandler=string_list_handler,
-                   convert_to_dashed_name=False),
+                   Help='comma-separated list of the metadata fields to cast '
+                   'to integers. This is useful for integer data such as '
+                   '"DaysSinceStart"'),
 
     OptparseOption(Parameter=param_lookup('float_fields'),
                    InputHandler=string_list_handler,
-                   convert_to_dashed_name=False),
+                   Help='comma-separated list of the metadata fields to cast '
+                   'to floating point numbers. This is useful for real number '
+                   'data such as "pH"'),
 
     OptparseOption(Parameter=param_lookup('sample_header'),
                    InputHandler=string_list_handler,
-                   convert_to_dashed_name=False),
+                   Help='comma-separated list of the sample metadata field '
+                   'names. This is useful if a header line is not provided '
+                   'with the metadata, if you want to rename the fields, or '
+                   'if you want to include only the first n fields where n is '
+                   'the number of entries provided here'),
 
     OptparseOption(Parameter=param_lookup('observation_header'),
                    InputHandler=string_list_handler,
-                   convert_to_dashed_name=False),
+                   Help='comma-separated list of the observation metadata '
+                   'field names. This is useful if a header line is not '
+                   'provided with the metadata, if you want to rename the '
+                   'fields, or if you want to include only the first n fields '
+                   'where n is the number of entries provided here'),
 
     OptparseOption(Parameter=None, InputType='new_filepath', ShortName='o',
-                   Name='output_fp', Required=True,
-                   Help='the output BIOM table', convert_to_dashed_name=False)
+                   Name='output-fp', Required=True,
+                   Help='the output BIOM table')
 ]
 
 outputs = [
     OptparseResult(ResultKey='table', OutputHandler=write_biom_table,
-                   OptionName='output_fp')
+                   OptionName='output-fp')
 ]
