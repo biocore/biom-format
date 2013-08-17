@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 
-__author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Daniel McDonald", "Jai Ram Rideout"]
+__author__ = "Greg Caporaso"
+__copyright__ = "Copyright 2013, The BIOM-Format project"
+__credits__ = ["Greg Caporaso", "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
 __version__ = "1.1.2-dev"
-__maintainer__ = "Daniel McDonald"
-__email__ = "daniel.mcdonald@colorado.edu"
+__maintainer__ = "Greg Caporaso"
+__email__ = "gregcaporaso@gmail.com"
 
 from biom.commands.table_summarizer import TableSummarizer
 from biom.parse import parse_biom_table
@@ -23,7 +23,7 @@ class TableSummarizerTests(TestCase):
         self.summary_qualitative_lines = summary_qualitative.split('\n')
     
     def test_default(self):
-        """ TableSummarizerTests functions as expected with md5 suppression
+        """ TableSummarizer functions as expected with md5 suppression
         
         """
         t = TableSummarizer()
@@ -33,7 +33,7 @@ class TableSummarizerTests(TestCase):
         self.assertEqual(actual['biom-summary'],self.summary_default_lines)
     
     def test_suppress_md5(self):
-        """ TableSummarizerTests functions as expected with md5 suppression
+        """ TableSummarizer functions as expected with md5 suppression
         
         """
         t = TableSummarizer()
@@ -59,7 +59,7 @@ class TableSummarizerTests(TestCase):
                          self.summary_suppress_md5_lines)
 
     def test_qualitative(self):
-        """ TableSummarizerTests functions as expected with qualitative=True
+        """ TableSummarizer functions as expected with qualitative=True
         
         """
         t = TableSummarizer()
