@@ -9,7 +9,7 @@ __version__ = "1.1.2-dev"
 __maintainer__ = "Jai Ram Rideout"
 __email__ = "jai.rideout@gmail.com"
 
-from biom.command.metadata_adder import MetadataAdder
+from biom.commands.metadata_adder import MetadataAdder
 from biom.parse import parse_biom_table
 from biom.unit_test import TestCase, main
 
