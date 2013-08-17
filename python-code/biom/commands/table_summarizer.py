@@ -22,14 +22,16 @@ __email__ = "gregcaporaso@gmail.com"
 class TableSummarizer(Command):
     """
      Example usage:
-      from biom.commands.summarize_biom_table import SummarizeBiomTable
+      from biom.commands.table_summarizer import TableSummarizer
       from biom.parse import parse_biom_table
-      c = SummarizeBiomTable()
-      t = parse_biom_table(open("table.biom","U"))
-      result = c(table=t)
-      result = c(table=t,qualitative=True)
-      result = c(table=t,qualitative=True,table_fp="table.biom")
-    
+      c = TableSummarizer()
+      table_f = open("table.biom","U")
+      t = parse_biom_table(table_f)
+      table_f.seek(0)
+      result = c(table=(t,None))
+      result = c(table=(t,None),qualitative=True)
+      result = c(table=(t,table_f),qualitative=True)
+      table_f.close()
     """
     BriefDescription = "Summarize sample or observation data in a BIOM table"
     LongDescription = "Provides details on the observation counts per sample, including summary statistics, as well as metadata categories associated with samples and observations."
@@ -55,12 +57,16 @@ class TableSummarizer(Command):
 
     def run(self, **kwargs):
         """
-         table: the biom table to summarize
-         table_fp: path to .biom file that table is derived from, provide if 
-                   the md5 sum should be included in the output
+         table: two-element tuple containing the biom table to summarize and
+                the file(-like) object containing the original table data. The
+                second element of the tuple (the file(-like) object) may be
+                None. If this is the case, the MD5 sum will *not* be computed
          qualitative: counts are presented as number of unique observation
-                   ids per sample, rather than total observation count per
-                   sample
+                      ids per sample, rather than total observation count per
+                      sample
+         suppress_md5: if ``True``, the MD5 sum of the table file contents will
+                       not be computed. This parameter is ignored if
+                       ``table[1] is None``
         """
         result = {}
         qualitative = kwargs['qualitative']
