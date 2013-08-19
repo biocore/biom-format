@@ -26,35 +26,23 @@ class InstallationInformer(Command):
     def run(self, **kwargs):
         lines = []
 
-        system_info = self.getSystemInfo()
-        max_len =  self._get_max_length(system_info)
-
-        lines.append('')
-        lines.append("System information")
-        lines.append("==================")
-        for e in system_info:
-            lines.append("%*s:\t%s" % (max_len, e[0], e[1]))
-
-        version_info = self.getDependencyVersionInfo()
-        max_len =  self._get_max_length(version_info)
-
-        lines.append('')
-        lines.append("Dependency versions")
-        lines.append("===================")
-        for e in version_info:
-            lines.append("%*s:\t%s" % (max_len, e[0], e[1]))
-
-        package_info = self.getPackageInfo()
-        max_len =  self._get_max_length(package_info)
-
-        lines.append('')
-        lines.append("biom-format package information")
-        lines.append("===============================")
-        for e in package_info:
-            lines.append("%*s:\t%s" % (max_len, e[0], e[1]))
+        lines.extend(self.getFormattedSystemInfo())
+        lines.extend(self.getFormattedDependencyVersionInfo())
+        lines.extend(self.getFormattedPackageInfo())
         lines.append('')
 
         return {'install_info_lines': lines}
+
+    def getFormattedSystemInfo(self):
+        return self._format_info(self.getSystemInfo(), 'System information')
+
+    def getFormattedDependencyVersionInfo(self):
+        return self._format_info(self.getDependencyVersionInfo(),
+                                 'Dependency versions')
+
+    def getFormattedPackageInfo(self):
+        return self._format_info(self.getPackageInfo(),
+                                 'biom-format package information')
 
     def getSystemInfo(self):
         return (("Platform", platform),
@@ -97,7 +85,18 @@ class InstallationInformer(Command):
         return (("biom-format version", biom_lib_version),
                 ("SparseObj type", SparseObj))
 
-    def _get_max_length(self, items):
-        return max([len(e[0]) for e in items])
+    def _format_info(self, info, title):
+        max_len = self._get_max_length(info)
+
+        lines = ['']
+        lines.append(title)
+        lines.append('=' * len(title))
+        for e in info:
+            lines.append("%*s:\t%s" % (max_len, e[0], e[1]))
+
+        return lines
+
+    def _get_max_length(self, info):
+        return max([len(e[0]) for e in info])
 
 CommandConstructor = InstallationInformer
