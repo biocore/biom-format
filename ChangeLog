@@ -17,6 +17,8 @@ New Features
 Changes
 -------
 
+* Table.addSampleMetadata and Table.addObservationMetadata now support adding metadata to a subset of the samples/observations in a table that previously was without any sample/observation metadata. This used to result in an error.
+
 Bug Fixes
 ---------
 
