@@ -62,8 +62,14 @@ class InstallationInformer(Command):
                                  "(This will also cause the BIOM library to "
                                  "not be importable.)")
 
+        try:
+            from dateutil import __version__ as dateutil_lib_version
+        except ImportError:
+            dateutil_lib_version = "Not installed"
+
         return (("pyqi version", pyqi_lib_version),
-                ("NumPy version", numpy_lib_version))
+                ("NumPy version", numpy_lib_version),
+                ("dateutil version", dateutil_lib_version))
 
     def getPackageInfo(self):
         import_error_msg = ("ERROR: Can't find the BIOM library code (or "
