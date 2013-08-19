@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import sys
 from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
                                            OptparseResult)
@@ -18,6 +19,14 @@ __maintainer__ = "Jai Ram Rideout"
 __email__ = "jai.rideout@gmail.com"
 
 param_lookup = make_parameter_collection_lookup_f(CommandConstructor)
+
+def report_table_validity(result_key, data, option_value=None):
+    if data:
+        print "The input file is a valid BIOM-formatted file."
+        sys.exit(0)
+    else:
+        print "The input file is not a valid BIOM-formatted file."
+        sys.exit(1)
 
 usage_examples = [
     OptparseUsageExample(ShortDesc="Validating a BIOM file",
@@ -42,5 +51,7 @@ inputs = [
 
 outputs = [
     OptparseResult(ResultKey='report_lines',
-                   OutputHandler=print_list_of_strings)
+                   OutputHandler=print_list_of_strings),
+    OptparseResult(ResultKey='valid_table',
+                   OutputHandler=report_table_validity)
 ]
