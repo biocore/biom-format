@@ -5,9 +5,9 @@ from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
                                            OptparseResult)
 from pyqi.core.command import make_parameter_collection_lookup_f
-from pyqi.core.interfaces.optparse.input_handler import file_reading_handler
 from pyqi.core.interfaces.optparse.output_handler import print_list_of_strings
 from biom.commands.table_validator import CommandConstructor
+from biom.interfaces.optparse.input_handler import load_json_document
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2013, The BIOM-Format project"
@@ -36,9 +36,9 @@ usage_examples = [
 ]
 
 inputs = [
-    OptparseOption(Parameter=param_lookup('table_file'),
+    OptparseOption(Parameter=param_lookup('table_json'),
                    InputType='existing_filepath',
-                   InputHandler=file_reading_handler, ShortName='i',
+                   InputHandler=load_json_document, ShortName='i',
                    Name='input-fp',
                    Help='the input filepath to validate against the BIOM '
                    'format specification'),
