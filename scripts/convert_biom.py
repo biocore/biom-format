@@ -8,7 +8,7 @@ from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
         SparseOrthologTable, DenseOrthologTable, SparseGeneTable, \
         DenseGeneTable, SparseMetaboliteTable, DenseMetaboliteTable,\
         SparseTaxonTable, DenseTaxonTable, table_factory
-from biom.parse import parse_biom_table, parse_mapping, convert_biom_to_table, \
+from biom.parse import parse_biom_table, MetadataMap, convert_biom_to_table, \
         convert_table_to_biom, generatedby
 
 __author__ = "Greg Caporaso"
@@ -122,12 +122,12 @@ def main():
     obs_mapping_fp = opts.observation_mapping_fp
     
     if sample_mapping_fp != None:
-        sample_mapping = parse_mapping(open(sample_mapping_fp,'U'))
+        sample_mapping = MetadataMap.fromFile(open(sample_mapping_fp,'U'))
     else:
         sample_mapping = None
     
     if obs_mapping_fp != None:
-        obs_mapping = parse_mapping(open(obs_mapping_fp, 'U'))
+        obs_mapping = MetadataMap.fromFile(open(obs_mapping_fp, 'U'))
     else:
         obs_mapping = None
     
