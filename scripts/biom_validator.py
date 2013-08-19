@@ -128,7 +128,7 @@ def valid_format(table):
         print "Validating format..."
         
     if table['format'] != FORMAT_STRING:
-        raise ValueError, "Invalid 'format' %s, must be %s" % \
+        raise ValueError, "Invalid format '%s', must be '%s'" % \
                 (table['format'], FORMAT_STRING)
 
 def valid_type(table):

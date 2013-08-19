@@ -243,8 +243,8 @@ class ParserTests(TestCase):
 
 rich_sparse_otu = """{
      "id":null,
-     "format": "Biological Observation Matrix v0.9",
-     "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+     "format": "Biological Observation Matrix 1.0.0",
+     "format_url": "http://biom-format.org",
      "type": "OTU table",
      "generated_by": "QIIME revision XYZ",
      "date": "2011-12-19T19:00:00",
@@ -310,8 +310,8 @@ rich_sparse_otu = """{
 
 min_sparse_otu = """{
         "id":null,
-        "format": "Biological Observation Matrix v0.9",
-        "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+        "format": "Biological Observation Matrix 1.0.0",
+        "format_url": "http://biom-format.org",
         "type": "OTU table",
         "generated_by": "QIIME revision XYZ",
         "date": "2011-12-19T19:00:00",
@@ -353,8 +353,8 @@ min_sparse_otu = """{
 
 rich_dense_otu = """{
      "id":null,
-     "format": "Biological Observation Matrix v0.9",
-     "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+     "format": "Biological Observation Matrix 1.0.0",
+     "format_url": "http://biom-format.org",
      "type": "OTU table",
      "generated_by": "QIIME revision XYZ",
      "date": "2011-12-19T19:00:00",  
@@ -409,8 +409,8 @@ rich_dense_otu = """{
 
 min_dense_otu = """ {
         "id":null,
-        "format": "Biological Observation Matrix v0.9",
-        "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+        "format": "Biological Observation Matrix 1.0.0",
+        "format_url": "http://biom-format.org",
         "type": "OTU table",
         "generated_by": "QIIME revision XYZ",
         "date": "2011-12-19T19:00:00",
