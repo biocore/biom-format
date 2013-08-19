@@ -83,18 +83,18 @@ class MetadataAdder(Command):
         # define metadata processing functions, if any
         process_fns = {}
         if sc_separated is not None:
-            process_fns.update({}.fromkeys(sc_separated,
-                                           self._split_on_semicolons))
+            process_fns.update(dict.fromkeys(sc_separated,
+                                             self._split_on_semicolons))
 
         if sc_pipe_separated is not None:
-            process_fns.update({}.fromkeys(sc_pipe_separated,
+            process_fns.update(dict.fromkeys(sc_pipe_separated,
                     self._split_on_semicolons_and_pipes))
 
         if int_fields is not None:
-            process_fns.update({}.fromkeys(int_fields, self._int))
+            process_fns.update(dict.fromkeys(int_fields, self._int))
 
         if float_fields is not None:
-            process_fns.update({}.fromkeys(float_fields, self._float))
+            process_fns.update(dict.fromkeys(float_fields, self._float))
 
         # parse mapping files
         if sample_metadata is not None:
