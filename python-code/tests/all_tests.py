@@ -39,7 +39,8 @@ def suite():
         'test_util',
         'test_unit_test',
         'test_commands.test_table_summarizer',
-        'test_commands.test_metadata_adder'
+        'test_commands.test_metadata_adder',
+        'test_commands.test_installation_informer'
         ]
     try:
         import biom._sparsemat
