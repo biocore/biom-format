@@ -1,82 +1,128 @@
 #!/usr/bin/env python
 
-from unittest import TestCase, main
-from biom_validator import valid_format_url, valid_rows,\
-        valid_columns, valid_data, valid_datetime,\
-        valid_sparse_data, valid_dense_data, \
-        valid_shape, valid_matrix_type, valid_matrix_element_type,\
-        valid_biom, valid_type, valid_generated_by, valid_format, \
-        valid_metadata
-import json
-
-__author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, The BIOM-Format Project"
-__credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso", 
-               "Jai Rideout", "Justin Kuczynski", "Andreas Wilke",
-               "Tobias Paczian", "Rob Knight", "Folker Meyer", 
-               "Sue Huse"]
-__url__ = "http://biom-format.org"
+__author__ = "Jai Ram Rideout"
+__copyright__ = "Copyright 2013, The BIOM-Format project"
+__credits__ = ["Jai Ram Rideout"]
 __license__ = "GPL"
+__url__ = "http://biom-format.org"
 __version__ = "1.1.2-dev"
-__maintainer__ = "Daniel McDonald"
-__email__ = "daniel.mcdonald@colorado.edu"
-__status__ = "Development"
+__maintainer__ = "Jai Ram Rideout"
+__email__ = "jai.rideout@gmail.com"
 
-class ParserTests(TestCase):
+import json
+from biom.commands.table_validator import TableValidator
+from biom.unit_test import TestCase, main
+
+class TableValidatorTests(TestCase):
     def setUp(self):
+        """Set up data for use in unit tests."""
+        self.cmd = TableValidator()
         self.min_sparse_otu = json.loads(min_sparse_otu)
         self.rich_sparse_otu = json.loads(rich_sparse_otu)
         self.rich_dense_otu = json.loads(rich_dense_otu)
         self.min_dense_otu = json.loads(min_dense_otu)
-        
-    def test_valid_biom(self):
-        """validates a table"""
-        self.assertEqual(valid_biom(self.min_sparse_otu), None)
-        self.assertEqual(valid_biom(self.rich_sparse_otu), None)
+
+    def test_valid(self):
+        """Correctly validates a table that is indeed... valid."""
+        exp = {'valid_table': True, 'report_lines': []}
+        obs = self.cmd(table_json=self.min_sparse_otu)
+        self.assertEqual(obs, exp)
+
+        obs = self.cmd(table_json=self.rich_sparse_otu)
+        self.assertEqual(obs, exp)
+
+        # Soldier, report!!
+        obs = self.cmd(table_json=self.min_sparse_otu, detailed_report=True)
+        self.assertTrue(obs['valid_table'])
+        self.assertTrue(len(obs['report_lines']) > 0)
+
+    def test_invalid(self):
+        """Correctly invalidates a table that is... invalid."""
+        del self.min_sparse_otu['date']
+        exp = {'valid_table': False, 'report_lines': ["Missing field: 'date'"]}
+        obs = self.cmd(table_json=self.min_sparse_otu)
+        self.assertEqual(obs, exp)
+
+        self.rich_dense_otu['shape'][1] = 42
+        exp = {'valid_table': False,
+               'report_lines': ['Incorrect number of cols: [0, 0, 1, 0, 0, 0]',
+                                "Number of columns in 'columns' is not equal "
+                                "to 'shape'"]}
+        obs = self.cmd(table_json=self.rich_dense_otu)
+        self.assertEqual(obs, exp)
 
     def test_valid_format_url(self):
         """validates format url"""
         table = self.min_sparse_otu
-        self.assertEqual(valid_format_url(table), None)
+
+        obs = self.cmd._valid_format_url(table)
+        self.assertTrue(len(obs) == 0)
+
         table['format_url'] = 'foo'
-        self.assertRaises(ValueError, valid_format_url, table)
+        obs = self.cmd._valid_format_url(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_format(self):
         """Should match format string"""
         table = self.min_sparse_otu
-        self.assertEqual(valid_format(table), None)
+
+        self.cmd._format_version = 'Biological Observation Matrix 1.0.0'
+        obs = self.cmd._valid_format(table)
+        self.assertTrue(len(obs) == 0)
+
         table['format'] = 'foo'
-        self.assertRaises(ValueError, valid_format, table)
+        obs = self.cmd._valid_format(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_type(self):
         """Should be valid table type"""
         table = self.min_sparse_otu
-        self.assertEqual(valid_type(table), None)
+
         table['type'] = 'otu table' # should not be case sensitive
-        self.assertEqual(valid_type(table), None)
+        obs = self.cmd._valid_type(table)
+        self.assertTrue(len(obs) == 0)
+
         table['type'] = 'Pathway table'
-        self.assertEqual(valid_type(table), None)
+        obs = self.cmd._valid_type(table)
+        self.assertTrue(len(obs) == 0)
+
         table['type'] = 'Function table'
-        self.assertEqual(valid_type(table), None)
+        obs = self.cmd._valid_type(table)
+        self.assertTrue(len(obs) == 0)
+
         table['type'] = 'Ortholog table'
-        self.assertEqual(valid_type(table), None)
+        obs = self.cmd._valid_type(table)
+        self.assertTrue(len(obs) == 0)
+
         table['type'] = 'Gene table'
-        self.assertEqual(valid_type(table), None)
+        obs = self.cmd._valid_type(table)
+        self.assertTrue(len(obs) == 0)
+
         table['type'] = 'Metabolite table'
-        self.assertEqual(valid_type(table), None)
+        obs = self.cmd._valid_type(table)
+        self.assertTrue(len(obs) == 0)
+
         table['type'] = 'OTU table'
-        self.assertEqual(valid_type(table), None)
+        obs = self.cmd._valid_type(table)
+        self.assertTrue(len(obs) == 0)
+
         table['type'] = 'Taxon table'
-        self.assertEqual(valid_type(table), None)
+        obs = self.cmd._valid_type(table)
+        self.assertTrue(len(obs) == 0)
+
         table['type'] = 'foo'
-        self.assertRaises(ValueError, valid_type, table)
+        obs = self.cmd._valid_type(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_generated_by(self):
         """Should have some string for generated by"""
         table = self.min_sparse_otu
-        self.assertEqual(valid_generated_by(table), None)
+        obs = self.cmd._valid_generated_by(table)
+        self.assertTrue(len(obs) == 0)
+
         table['generated_by'] = None
-        self.assertRaises(ValueError, valid_generated_by, table)
+        obs = self.cmd._valid_generated_by(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_nullable_id(self):
         """Should just work."""
@@ -87,164 +133,232 @@ class ParserTests(TestCase):
         table = self.min_sparse_otu
 
         table['rows'][2]['metadata'] = None
-        self.assertEqual(valid_metadata(table['rows'][2]), None)
-        
+        obs = self.cmd._valid_metadata(table['rows'][2])
+        self.assertTrue(len(obs) == 0)
+
         table['rows'][2]['metadata'] = {10:20}
-        self.assertEqual(valid_metadata(table['rows'][2]), None)
-        
+        obs = self.cmd._valid_metadata(table['rows'][2])
+        self.assertTrue(len(obs) == 0)
+
         table['rows'][2]['metadata'] = ""
-        self.assertRaises(ValueError, valid_metadata, table['rows'][2])
+        obs = self.cmd._valid_metadata(table['rows'][2])
+        self.assertTrue(len(obs) > 0)
 
         table['rows'][2]['metadata'] = "asdasda"
-        self.assertRaises(ValueError, valid_metadata, table['rows'][2])
+        obs = self.cmd._valid_metadata(table['rows'][2])
+        self.assertTrue(len(obs) > 0)
 
         table['rows'][2]['metadata'] = [{'a':'b'},{'c':'d'}]
-        self.assertRaises(ValueError, valid_metadata, table['rows'][2])
+        obs = self.cmd._valid_metadata(table['rows'][2])
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_matrix_type(self):
         """Make sure we have a valid matrix type"""
-        self.assertEqual(valid_matrix_type(self.min_dense_otu), None)
-        self.assertEqual(valid_matrix_type(self.min_sparse_otu), None)
+        obs = self.cmd._valid_matrix_type(self.min_dense_otu)
+        self.assertTrue(len(obs) == 0)
+
+        obs = self.cmd._valid_matrix_type(self.min_sparse_otu)
+        self.assertTrue(len(obs) == 0)
+
         table = self.min_dense_otu
+
         table['matrix_type'] = 'spARSe'
-        self.assertRaises(ValueError, valid_matrix_type, table)
+        obs = self.cmd._valid_matrix_type(table)
+        self.assertTrue(len(obs) > 0)
+
         table['matrix_type'] = 'sparse_asdasd'
-        self.assertRaises(ValueError, valid_matrix_type, table)
+        obs = self.cmd._valid_matrix_type(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_matrix_element_type(self):
         """Make sure we have a valid matrix type"""
-        min_sparse_otu = self.min_sparse_otu
-        self.assertEqual(valid_matrix_element_type(min_sparse_otu), None)
-        min_sparse_otu['matrix_element_type'] = u'int'
-        self.assertEqual(valid_matrix_element_type(min_sparse_otu), None)
-        min_sparse_otu['matrix_element_type'] = 'float'
-        self.assertEqual(valid_matrix_element_type(min_sparse_otu), None)
-        min_sparse_otu['matrix_element_type'] = u'float'
-        self.assertEqual(valid_matrix_element_type(min_sparse_otu), None)
-        min_sparse_otu['matrix_element_type'] = 'str'
-        self.assertEqual(valid_matrix_element_type(min_sparse_otu), None)
-        min_sparse_otu['matrix_element_type'] = u'str'
-        self.assertEqual(valid_matrix_element_type(min_sparse_otu), None)
+        table = self.min_sparse_otu
 
-        min_sparse_otu['matrix_element_type'] = 'obj'
-        self.assertRaises(ValueError, valid_matrix_element_type, min_sparse_otu)
-        min_sparse_otu['matrix_element_type'] = u'asd'
-        self.assertRaises(ValueError, valid_matrix_element_type, min_sparse_otu)
+        obs = self.cmd._valid_matrix_element_type(table)
+        self.assertTrue(len(obs) == 0)
+
+        table['matrix_element_type'] = u'int'
+        obs = self.cmd._valid_matrix_element_type(table)
+        self.assertTrue(len(obs) == 0)
+
+        table['matrix_element_type'] = 'float'
+        obs = self.cmd._valid_matrix_element_type(table)
+        self.assertTrue(len(obs) == 0)
+
+        table['matrix_element_type'] = u'float'
+        obs = self.cmd._valid_matrix_element_type(table)
+        self.assertTrue(len(obs) == 0)
+
+        table['matrix_element_type'] = 'str'
+        obs = self.cmd._valid_matrix_element_type(table)
+        self.assertTrue(len(obs) == 0)
+
+        table['matrix_element_type'] = u'str'
+        obs = self.cmd._valid_matrix_element_type(table)
+        self.assertTrue(len(obs) == 0)
+
+        table['matrix_element_type'] = 'obj'
+        obs = self.cmd._valid_matrix_element_type(table)
+        self.assertTrue(len(obs) > 0)
+
+        table['matrix_element_type'] = u'asd'
+        obs = self.cmd._valid_matrix_element_type(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_datetime(self):
         """Make sure we have a datetime stamp"""
-        min_sparse_otu = self.min_sparse_otu
-        self.assertEqual(valid_datetime(min_sparse_otu), None)
-        min_sparse_otu['date'] = "1999-11-11T10:11:12"
-        self.assertEqual(valid_datetime(min_sparse_otu), None)
-        min_sparse_otu['date'] = "10-11-1999 10:11:12"
-        self.assertEqual(valid_datetime(min_sparse_otu), None)
-        min_sparse_otu['date'] = "10-11-1asdfasd:12"
-        self.assertRaises(ValueError, valid_datetime, min_sparse_otu)
+        table = self.min_sparse_otu
+
+        obs = self.cmd._valid_datetime(table)
+        self.assertTrue(len(obs) == 0)
+
+        table['date'] = "1999-11-11T10:11:12"
+        obs = self.cmd._valid_datetime(table)
+        self.assertTrue(len(obs) == 0)
+
+        table['date'] = "10-11-1999 10:11:12"
+        obs = self.cmd._valid_datetime(table)
+        self.assertTrue(len(obs) == 0)
+
+        table['date'] = "10-11-1asdfasd:12"
+        obs = self.cmd._valid_datetime(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_sparse_data(self):
         """Takes a sparse matrix field and validates"""
         table = self.min_sparse_otu
-        self.assertEqual(valid_sparse_data(table), None)
+
+        obs = self.cmd._valid_sparse_data(table)
+        self.assertTrue(len(obs) == 0)
 
         # incorrect type
         table['matrix_element_type'] = 'float'
-        self.assertRaises(ValueError, valid_sparse_data, table)
+        obs = self.cmd._valid_sparse_data(table)
+        self.assertTrue(len(obs) > 0)
         
         # not balanced
         table['matrix_element_type'] = 'int'
         table['data'][5] = [0,10]
-        self.assertRaises(ValueError, valid_sparse_data, table)
+        obs = self.cmd._valid_sparse_data(table)
+        self.assertTrue(len(obs) > 0)
         
         # odd type for index
         table['data'][5] = [1.2,5,10]
-        self.assertRaises(ValueError, valid_sparse_data, table)
+        obs = self.cmd._valid_sparse_data(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_dense_data(self):
         """Takes a dense matrix field and validates"""
         table = self.min_dense_otu
-        self.assertEqual(valid_dense_data(table), None)
+
+        obs = self.cmd._valid_dense_data(table)
+        self.assertTrue(len(obs) == 0)
 
         # incorrect type
         table['matrix_element_type'] = 'float'
-        self.assertRaises(ValueError, valid_dense_data, table)
+        obs = self.cmd._valid_dense_data(table)
+        self.assertTrue(len(obs) > 0)
 
         # not balanced
         table['matrix_element_type'] = 'int'
         table['data'][1] = [0,10]
-        self.assertRaises(ValueError, valid_dense_data, table)
+        obs = self.cmd._valid_dense_data(table)
+        self.assertTrue(len(obs) > 0)
 
         # bad type in a field
         table['data'][1] = [5, 1, 0, 2.3, 3, 1]
-        self.assertRaises(ValueError, valid_dense_data, table)
+        obs = self.cmd._valid_dense_data(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_shape(self):
         """validates shape information"""
-        self.assertEqual(valid_shape(self.min_sparse_otu), None)
-        self.assertEqual(valid_shape(self.rich_sparse_otu), None)
-    
+        obs = self.cmd._valid_shape(self.min_sparse_otu)
+        self.assertTrue(len(obs) == 0)
+
+        obs = self.cmd._valid_shape(self.rich_sparse_otu)
+        self.assertTrue(len(obs) == 0)
+
         bad_shape = self.min_sparse_otu.copy()
         bad_shape['shape'] = ['asd',10]
-        self.assertRaises(ValueError, valid_shape, bad_shape)
-        
+        obs = self.cmd._valid_shape(bad_shape)
+        self.assertTrue(len(obs) > 0)
+
     def test_valid_rows(self):
         """validates rows: field"""
         table = self.rich_dense_otu
-        self.assertEqual(valid_rows(table), None)
+
+        obs = self.cmd._valid_rows(table)
+        self.assertTrue(len(obs) == 0)
 
         table['rows'][0]['id'] = ""
-        self.assertRaises(ValueError, valid_rows, table)
+        obs = self.cmd._valid_rows(table)
+        self.assertTrue(len(obs) > 0)
 
         table['rows'][0]['id'] = None
-        self.assertRaises(ValueError, valid_rows, table)
+        obs = self.cmd._valid_rows(table)
+        self.assertTrue(len(obs) > 0)
         
         del table['rows'][0]['id']
-        self.assertRaises(AttributeError, valid_rows, table)
+        obs = self.cmd._valid_rows(table)
+        self.assertTrue(len(obs) > 0)
 
         table['rows'][0]['id'] = 'asd'
         table['rows'][0]['metadata'] = None
-        self.assertEqual(valid_rows(table), None)
+        obs = self.cmd._valid_rows(table)
+        self.assertTrue(len(obs) == 0)
 
         # since this is an OTU table, metadata is a required key
         del table['rows'][0]['metadata']
-        self.assertRaises(AttributeError, valid_rows, table)
+        obs = self.cmd._valid_rows(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_columns(self):
         """validates table:columns: fields"""
         table = self.rich_dense_otu
-        self.assertEqual(valid_columns(table), None)
+
+        obs = self.cmd._valid_columns(table)
+        self.assertTrue(len(obs) == 0)
 
         table['columns'][0]['id'] = ""
-        self.assertRaises(ValueError, valid_columns, table)
+        obs = self.cmd._valid_columns(table)
+        self.assertTrue(len(obs) > 0)
 
         table['columns'][0]['id'] = None
-        self.assertRaises(ValueError, valid_columns, table)
+        obs = self.cmd._valid_columns(table)
+        self.assertTrue(len(obs) > 0)
         
         del table['columns'][0]['id']
-        self.assertRaises(AttributeError, valid_columns, table)
+        obs = self.cmd._valid_columns(table)
+        self.assertTrue(len(obs) > 0)
 
         table['columns'][0]['id'] = 'asd'
         table['columns'][0]['metadata'] = None
-        self.assertEqual(valid_columns(table), None)
+        obs = self.cmd._valid_columns(table)
+        self.assertTrue(len(obs) == 0)
 
         # since this is an OTU table, metadata is a required key
         del table['columns'][0]['metadata']
-        self.assertRaises(AttributeError, valid_columns, table)
+        obs = self.cmd._valid_columns(table)
+        self.assertTrue(len(obs) > 0)
 
     def test_valid_data(self):
         """validates data: fields"""
         # the burden of validating data is passed on to valid_sparse_data
         # and valid_dense_data
         table = self.rich_sparse_otu
-        self.assertEqual(valid_data(table), None)
+
+        obs = self.cmd._valid_data(table)
+        self.assertTrue(len(obs) == 0)
         
         table['matrix_type'] = 'foo'
-        self.assertRaises(AttributeError, valid_data, table)
+        obs = self.cmd._valid_data(table)
+        self.assertTrue(len(obs) > 0)
+
 
 rich_sparse_otu = """{
      "id":null,
-     "format": "Biological Observation Matrix v0.9",
-     "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+     "format": "Biological Observation Matrix 1.0.0",
+     "format_url": "http://biom-format.org",
      "type": "OTU table",
      "generated_by": "QIIME revision XYZ",
      "date": "2011-12-19T19:00:00",
@@ -310,8 +424,8 @@ rich_sparse_otu = """{
 
 min_sparse_otu = """{
         "id":null,
-        "format": "Biological Observation Matrix v0.9",
-        "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+        "format": "Biological Observation Matrix 1.0.0",
+        "format_url": "http://biom-format.org",
         "type": "OTU table",
         "generated_by": "QIIME revision XYZ",
         "date": "2011-12-19T19:00:00",
@@ -353,8 +467,8 @@ min_sparse_otu = """{
 
 rich_dense_otu = """{
      "id":null,
-     "format": "Biological Observation Matrix v0.9",
-     "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+     "format": "Biological Observation Matrix 1.0.0",
+     "format_url": "http://biom-format.org",
      "type": "OTU table",
      "generated_by": "QIIME revision XYZ",
      "date": "2011-12-19T19:00:00",  
@@ -409,8 +523,8 @@ rich_dense_otu = """{
 
 min_dense_otu = """ {
         "id":null,
-        "format": "Biological Observation Matrix v0.9",
-        "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
+        "format": "Biological Observation Matrix 1.0.0",
+        "format_url": "http://biom-format.org",
         "type": "OTU table",
         "generated_by": "QIIME revision XYZ",
         "date": "2011-12-19T19:00:00",
@@ -439,6 +553,6 @@ min_dense_otu = """ {
                   [0,1,1,0,0,0]]
     }"""
 
-if __name__ == '__main__':
-    main()
 
+if __name__ == "__main__":
+    main()
