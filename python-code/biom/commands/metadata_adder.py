@@ -16,7 +16,7 @@ __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
 class MetadataAdder(Command):
-    BriefDescription = "Add metadata to a table"
+    BriefDescription = "Add metadata to a BIOM table"
     LongDescription = ("Add sample and/or observation metadata to "
                        "BIOM-formatted files. Detailed usage examples can be "
                        "found here: http://biom-format.org/documentation/adding_metadata.html")
