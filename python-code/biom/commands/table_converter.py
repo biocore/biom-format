@@ -48,6 +48,16 @@ class TableConverter(Command):
                        "here: http://biom-format.org/documentation/biom_conversion.html")
 
     Parameters = ParameterCollection([
+        ### This is not an ideal usage of the pyqi framework because we are
+        # expecting a file-like object here, and a lot of the parameters deal
+        # with I/O-ish things, like converting between file formats. Even
+        # though no I/O is forced here, it would be better to have rich objects
+        # as input and output, instead of lines of data. However, this will
+        # likely require a refactoring/redesign of our interface for table
+        # conversions because the primary input here can be either a BIOM table
+        # or a classic table. One possible solution is to split out different
+        # types of conversions into their own (smaller and simpler) commands,
+        # which would allow us to avoid some of this I/O-ish stuff.
         Parameter(Name='table_file', DataType=file,
                   Description='the input table (file-like object), either in '
                   'BIOM or classic format', Required=True),
