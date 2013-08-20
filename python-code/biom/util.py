@@ -279,18 +279,3 @@ def biom_open(fp, permission='U'):
         return gzip_open(fp,'rb')
     else:
         return open(fp, permission)
-
-def old_to_new_biom_command(local_argv):
-    logger = StdErrLogger()
-
-    cmd_name = splitext(split(local_argv[0])[1])[0]
-    base_cmd = "biom %s" % cmd_name 
-    command = '%s %s' % (base_cmd,' '.join(local_argv[1:]))
-
-    logger.info("This is a new-style BIOM script. You should now call it with: %s" % base_cmd)
-    logger.info("Calling: %s " % command)
-
-    result_stdout, result_stderr, result_retval = pyqi_system_call(command)
-
-    stdout.write(result_stdout)
-    stderr.write(result_stderr)

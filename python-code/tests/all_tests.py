@@ -42,7 +42,8 @@ def suite():
         'test_commands.test_metadata_adder',
         'test_commands.test_installation_informer',
         'test_commands.test_table_validator',
-        'test_commands.test_table_subsetter'
+        'test_commands.test_table_subsetter',
+        'test_commands.test_table_converter'
         ]
     try:
         import biom._sparsemat
