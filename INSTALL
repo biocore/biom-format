@@ -18,3 +18,8 @@ $ python setup.py install
 If you have Sphinx installed, you can build the documentation locally with:
 
 $ cd doc; make html
+
+If you have nose installed, you can run the unit tests with:
+
+$ cd python-code/
+$ nosetests
