@@ -169,8 +169,8 @@ class TableConverter(Command):
                                    "%s" % ', '.join(self.TableTypes.keys()))
 
             if matrix_type not in self.MatrixTypes:
-                raise CommandError("Must specify the BIOM matrix type, either "
-                                   "'dense' or 'sparse'.")
+                raise CommandError("Unknown BIOM matrix type, must be one of: "
+                                   "%s" % ', '.join(self.MatrixTypes))
 
             if process_obs_metadata not in \
                     self.ObservationMetadataTypes.keys():
@@ -186,7 +186,7 @@ class TableConverter(Command):
                         observation_metadata,
                         self.ObservationMetadataTypes[process_obs_metadata],
                         constructor)
-            except ValueError:
+            except:
                 raise CommandError("Input does not look like a classic table. "
                                    "Did you forget to specify that a classic "
                                    "table file should be created from a BIOM "
