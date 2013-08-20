@@ -8,6 +8,7 @@ __version__ = "1.1.2-dev"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
+import json
 from biom.util import biom_open
 from biom.parse import parse_biom_table
 
@@ -30,3 +31,8 @@ def load_biom_table_with_file_contents(biom_fp):
     table = parse_biom_table(biom_f)
     biom_f.seek(0)
     return table, biom_f
+
+def load_json_document(fp):
+    """Return a parsed JSON object."""
+    with biom_open(fp, 'U') as f:
+        return json.load(f)
