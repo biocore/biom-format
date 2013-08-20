@@ -43,7 +43,8 @@ def suite():
         'test_commands.test_installation_informer',
         'test_commands.test_table_validator',
         'test_commands.test_table_subsetter',
-        'test_commands.test_table_converter'
+        'test_commands.test_table_converter',
+        'test_interfaces.test_optparse.test_input_handler'
         ]
     try:
         import biom._sparsemat
