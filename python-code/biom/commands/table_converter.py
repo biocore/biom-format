@@ -155,7 +155,6 @@ class TableConverter(Command):
                             table.ObservationIds, table.SampleMetadata, 
                             table.ObservationMetadata, table.TableId, 
                             constructor=conv_constructor)
-
             result = conv_table.getBiomFormatJsonString(generatedby())
         else:
             if table_type is None:
@@ -181,16 +180,20 @@ class TableConverter(Command):
             idx = 0 if matrix_type == 'sparse' else 1
             constructor = self.TableTypes[table_type][idx]
 
+
+            convert_error_msg = ("Input does not look like a classic table. "
+                                 "Did you forget to specify that a classic "
+                                 "table file should be created from a BIOM "
+                                 "table file?")
             try:
                 result = convert_table_to_biom(table_file, sample_metadata,
                         observation_metadata,
                         self.ObservationMetadataTypes[process_obs_metadata],
                         constructor)
-            except:
-                raise CommandError("Input does not look like a classic table. "
-                                   "Did you forget to specify that a classic "
-                                   "table file should be created from a BIOM "
-                                   "table file?")
+            except ValueError:
+                raise CommandError(convert_error_msg)
+            except IndexError:
+                raise CommandError(convert_error_msg)
 
         return {'table_str': result}
 

@@ -12,6 +12,7 @@ __email__ = "jai.rideout@gmail.com"
 from pyqi.core.exception import CommandError
 from biom.commands.table_converter import TableConverter
 from biom.parse import MetadataMap, parse_biom_table
+from biom.table import SparseOTUTable
 from biom.unit_test import TestCase, main
 
 class TableConverterTests(TestCase):
@@ -25,29 +26,88 @@ class TableConverterTests(TestCase):
         self.classic_lines1 = classic1.split('\n')
 
         self.sample_md1 = MetadataMap.fromFile(sample_md1.split('\n'))
-        self.obs_md1 = MetadataMap.fromFile(obs_md1.split('\n'))
 
     def test_classic_to_biom(self):
         """Correctly converts classic to biom."""
-        obs = self.cmd(table_file=self.classic_lines1,
-                       table_type='otu table')
-        print obs
+        obs = self.cmd(table_file=self.classic_lines1, table_type='otu table')
+        self.assertEqual(obs.keys(), ['table_str'])
 
-#    def test_add_sample_metadata_no_casting(self):
-#        """Correctly adds sample metadata without casting it."""
-#        # Add a subset of sample metadata to a table that doesn't have any
-#        # sample metadata to begin with. Don't perform any casting.
-#        obs = self.cmd(table=self.biom_table1,
-#                       sample_metadata=self.sample_md_lines1)
-#        self.assertEqual(obs.keys(), ['table'])
-#
-#        obs = obs['table']
-#        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('f4')],
-#                         {'bar': '0.23', 'foo': '9', 'baz': 'abc;123'})
-#        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('not16S.1')],
-#                         {'bar': '-4.2', 'foo': '0', 'baz': '123;abc'})
-#        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('f2')], {})
+        obs = parse_biom_table(obs['table_str'])
+        self.assertEqual(type(obs), SparseOTUTable)
+        self.assertEqual(len(obs.SampleIds), 9)
+        self.assertEqual(len(obs.ObservationIds), 14)
+        self.assertEqual(obs.SampleMetadata, None)
+        self.assertNotEqual(obs.ObservationMetadata, None)
 
+    def test_classic_to_biom_with_metadata(self):
+        """Correctly converts classic to biom with metadata."""
+        # No processing of metadata.
+        obs = self.cmd(table_file=self.classic_lines1, table_type='otu table',
+                       sample_metadata=self.sample_md1)
+        self.assertEqual(obs.keys(), ['table_str'])
+
+        obs = parse_biom_table(obs['table_str'])
+        self.assertEqual(type(obs), SparseOTUTable)
+        self.assertEqual(len(obs.SampleIds), 9)
+        self.assertEqual(len(obs.ObservationIds), 14)
+        self.assertNotEqual(obs.SampleMetadata, None)
+        self.assertNotEqual(obs.ObservationMetadata, None)
+        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('p2')],
+                         {'foo': 'c;b;a'})
+        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('not16S.1')],
+                         {'foo': 'b;c;d'})
+        self.assertEqual(obs.ObservationMetadata[
+                obs.getObservationIndex('None11')],
+                {'taxonomy': 'Unclassified'})
+
+        # With processing of metadata (currently only supports observation md).
+        obs = self.cmd(table_file=self.classic_lines1, table_type='otu table',
+                       sample_metadata=self.sample_md1,
+                       process_obs_metadata='sc_separated')
+        self.assertEqual(obs.keys(), ['table_str'])
+
+        obs = parse_biom_table(obs['table_str'])
+        self.assertEqual(type(obs), SparseOTUTable)
+        self.assertEqual(len(obs.SampleIds), 9)
+        self.assertEqual(len(obs.ObservationIds), 14)
+        self.assertNotEqual(obs.SampleMetadata, None)
+        self.assertNotEqual(obs.ObservationMetadata, None)
+        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('p2')],
+                         {'foo': 'c;b;a'})
+        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('not16S.1')],
+                         {'foo': 'b;c;d'})
+        self.assertEqual(obs.ObservationMetadata[
+                obs.getObservationIndex('None11')],
+                {'taxonomy': ['Unclassified']})
+
+    def test_biom_to_classic(self):
+        """Correctly converts biom to classic."""
+        obs = self.cmd(table_file=self.biom_lines1, biom_to_classic_table=True,
+                       header_key='taxonomy')
+        self.assertEqual(obs.keys(), ['table_str'])
+        self.assertEqual(obs['table_str'], classic1)
+
+        obs = self.cmd(table_file=self.biom_lines1, biom_to_classic_table=True,
+                       header_key='taxonomy', output_metadata_id='foo')
+        self.assertEqual(obs.keys(), ['table_str'])
+        obs_md_col = obs['table_str'].split('\n')[1].split('\t')[-1]
+        self.assertEqual(obs_md_col, 'foo')
+
+    def test_dense_to_sparse(self):
+        """Correctly converts dense biom to sparse biom."""
+        # classic -> dense -> sparse
+        dense = self.cmd(table_file=self.classic_lines1,
+                         table_type='otu table', matrix_type='dense')
+        obs = self.cmd(table_file=dense['table_str'].split('\n'),
+                       dense_biom_to_sparse_biom=True)
+        self.assertEqual(obs.keys(), ['table_str'])
+
+        obs = parse_biom_table(obs['table_str'])
+        self.assertEqual(type(obs), SparseOTUTable)
+        self.assertEqual(len(obs.SampleIds), 9)
+        self.assertEqual(len(obs.ObservationIds), 14)
+        self.assertEqual(obs.SampleMetadata, None)
+        self.assertNotEqual(obs.ObservationMetadata, None)
 
     def test_invalid_input(self):
         """Correctly handles invalid input by raising a CommandError."""
@@ -117,15 +177,16 @@ None1\t0.0\t0.0\t0.0\t0.0\t0.0\t1.0\t0.0\t0.0\t0.0\tUnclassified
 None9\t0.0\t0.0\t0.0\t0.0\t3.0\t0.0\t19.0\t0.0\t15.0\tUnclassified
 None8\t1.0\t4.0\t4.0\t0.0\t0.0\t0.0\t0.0\t0.0\t0.0\tk__Bacteria"""
 
-sample_md1 = """#SampleID\tfoo\tbar\tbaz
-f4\t9\t0.23\tabc;123
-not16S.1\t0\t-4.2\t123;abc
-"""
-
-obs_md1 = """#OTUID\tfoo\ttaxonomy
-None7\t6\tabc;123|def;456
-best-observation\t8\tghi;789|jkl;101112
-879972\t3\t123;abc|456;def
+sample_md1 = """#SampleID\tfoo
+f4\ta;b;c
+not16S.1\tb;c;d
+f2\ta;c;d
+f1\ta;b;c
+p2\tc;b;a
+f3\ta;b;c
+t1\tt;b;c
+p1\tp;b;c
+t2\tt;2;z
 """
 
 
