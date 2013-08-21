@@ -10,7 +10,7 @@ __email__ = "gregcaporaso@gmail.com"
 
 import json
 from biom.util import biom_open
-from biom.parse import parse_biom_table
+from biom.parse import MetadataMap, parse_biom_table
 
 def load_biom_table(biom_fp):
     """Return a parsed BIOM table."""
@@ -36,3 +36,14 @@ def load_json_document(fp):
     """Return a parsed JSON object."""
     with biom_open(fp, 'U') as f:
         return json.load(f)
+
+def load_metadata(fp):
+    """Parse a sample/observation metadata file, return a ``MetadataMap``.
+    
+    If ``fp`` is ``None``, this function will return ``None``.
+    """
+    if fp is None:
+        return None
+    else:
+        with open(fp, 'U') as f:
+            return MetadataMap.fromFile(f)
