@@ -217,7 +217,7 @@ Processing metadata while adding
 
 There are some additional parameters you can pass to this command for more complex processing. 
 
-You can tell the command to process certain metadata column values as integers (``--int_fields``), floating point (i.e., decimal or real) numbers (``--float_fields``), or as hierarchical semicolon-delimited data (``--sc_separated``).
+You can tell the command to process certain metadata column values as integers (``--int-fields``), floating point (i.e., decimal or real) numbers (``--float-fields``), or as hierarchical semicolon-delimited data (``--sc-separated``).
 
 ::
 
@@ -341,7 +341,7 @@ If you have multiple fields that you'd like processed in one of these ways, you 
 Renaming (or naming) metadata columns while adding
 ==================================================
 
-You can also override the names of the metadata fields provided in the mapping files with the ``--observation_header`` and ``--sample_header`` parameters. This is useful if you want to rename metadata columns, or if metadata column headers aren't present in your metadata mapping file. If you pass either of these parameters, you must name all columns in order. If there are more columns in the metadata mapping file then there are headers, extra columns will be ignored (so this is also a useful way to select only the first n columns from your mapping file). For example, if you want to rename the ``DOB`` column in the sample metadata mapping you could do the following::
+You can also override the names of the metadata fields provided in the mapping files with the ``--observation-header`` and ``--sample-header`` parameters. This is useful if you want to rename metadata columns, or if metadata column headers aren't present in your metadata mapping file. If you pass either of these parameters, you must name all columns in order. If there are more columns in the metadata mapping file then there are headers, extra columns will be ignored (so this is also a useful way to select only the first n columns from your mapping file). For example, if you want to rename the ``DOB`` column in the sample metadata mapping you could do the following::
 	
 	biom add-metadata -i min_sparse_otu_table.biom -o table.w_smd.biom --sample-metadata-fp sam_md.txt --sample-header SampleID,BarcodeSequence,DateOfBirth
 

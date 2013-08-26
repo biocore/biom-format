@@ -10,7 +10,7 @@ To get help with ``biom summarize-table`` you can call::
 
 	biom summarize-table -h
 
-This command takes a BIOM file or gzipped BIOM file as input, and will print a summary of the count information on a per-sample basis to the terminal (default) or to a new file (if provided via the ``-o`` parameter). The example file used in the commands below can be found in the ``biom-format/examples`` directory.
+This command takes a BIOM file or gzipped BIOM file as input, and will print a summary of the count information on a per-sample basis to the a new file specified by the ``-o`` parameter. The example file used in the commands below can be found in the ``biom-format/examples`` directory.
 
 Summarizing sample data
 -----------------------
@@ -19,7 +19,7 @@ To summarize the per-sample data in a BIOM file, you can run::
 	
 	biom summarize-table -i rich_sparse_otu_table.biom -o rich_sparse_otu_table_summary.txt
 
-This will print the following output to the screen::
+The following information will be written to ``rich_sparse_otu_table_summary.txt``::
 
 	Num samples: 6
 	Num observations: 5
@@ -53,7 +53,7 @@ To summarize the per-sample data in a BIOM file qualitatively, where the number 
 
 	biom summarize-table -i rich_sparse_otu_table.biom --qualitative -o rich_sparse_otu_table_qual_summary.txt
 
-This will print the following output to the screen::
+The following information will be written to ``rich_sparse_otu_table_qual_summary.txt``::
 
 	Num samples: 6
 	Num observations: 5
