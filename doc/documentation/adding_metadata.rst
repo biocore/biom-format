@@ -4,13 +4,13 @@
 Adding sample and observation metadata to biom files
 ====================================================
 
-Frequently you'll have an existing BIOM file and want to add sample and/or observation metadata to it. For samples, metadata is frequently environmental or technical details about your samples: the subject that a sample was collected from, the pH of the sample, the PCR primers used to amplify DNA from the samples, etc. For observations, metadata is frequently a categorization of the observation: the taxonomy of an OTU, or the EC hierarchy of a gene. You can use the ``add_metadata.py`` script to add this information to an existing BIOM file.
+Frequently you'll have an existing BIOM file and want to add sample and/or observation metadata to it. For samples, metadata is frequently environmental or technical details about your samples: the subject that a sample was collected from, the pH of the sample, the PCR primers used to amplify DNA from the samples, etc. For observations, metadata is frequently a categorization of the observation: the taxonomy of an OTU, or the EC hierarchy of a gene. You can use the ``biom add-metadata`` command to add this information to an existing BIOM file.
 
-To get help with ``add_metadata.py`` you can call::
+To get help with ``add-metadata`` you can call::
 
-	add_metadata.py -h
+	biom add-metadata -h
 
-This script takes a BIOM file, and corresponding sample and/or observation mapping files. The following examples are used in the commands below. You can find these files in the ``biom-format/examples`` directory.
+This command takes a BIOM file, and corresponding sample and/or observation mapping files. The following examples are used in the commands below. You can find these files in the ``biom-format/examples`` directory.
 
 Your BIOM file might look like the following::
 
@@ -89,15 +89,15 @@ Adding metadata
 
 To add sample metadata to a BIOM file, you can run the following::
 
-	add_metadata.py -i min_sparse_otu_table.biom -o table.w_smd.biom --sample_mapping_fp sam_md.txt
+	biom add-metadata -i min_sparse_otu_table.biom -o table.w_smd.biom --sample-metadata-fp sam_md.txt
 
 To add observation metadata to a BIOM file, you can run the following::
 
-	add_metadata.py -i min_sparse_otu_table.biom -o table.w_omd.biom --observation_mapping_fp obs_md.txt
+	biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt
 
 You can also combine these in a single command to add both observation and sample metadata::
 
-	add_metadata.py -i min_sparse_otu_table.biom -o table.w_md.biom --observation_mapping_fp obs_md.txt --sample_mapping_fp sam_md.txt
+	biom add-metadata -i min_sparse_otu_table.biom -o table.w_md.biom --observation-metadata-fp obs_md.txt --sample-metadata-fp sam_md.txt
 
 In the last case, the resulting BIOM file will look like the following::
 
@@ -215,13 +215,13 @@ In the last case, the resulting BIOM file will look like the following::
 Processing metadata while adding
 ================================
 
-There are some additional parameters you can pass to this script for more complex processing. 
+There are some additional parameters you can pass to this command for more complex processing. 
 
-You can tell the script to process certain metadata column values as integers (``--int_fields``), floating point (i.e., decimal or real) numbers (``--float_fields``), or as hierarchical semicolon-delimited data (``--sc_separated``).
+You can tell the command to process certain metadata column values as integers (``--int-fields``), floating point (i.e., decimal or real) numbers (``--float-fields``), or as hierarchical semicolon-delimited data (``--sc-separated``).
 
 ::
 
-	add_metadata.py -i min_sparse_otu_table.biom -o table.w_md.biom --observation_mapping_fp obs_md.txt --sample_mapping_fp sam_md.txt --int_fields DOB --sc_separated taxonomy --float_fields confidence
+	biom add-metadata -i min_sparse_otu_table.biom -o table.w_md.biom --observation-metadata-fp obs_md.txt --sample-metadata-fp sam_md.txt --int-fields DOB --sc-separated taxonomy --float-fields confidence
 
 Here your resulting BIOM file will look like the following, where ``DOB`` values are now integers (compare to the above: they're not quoted now), ``confidence`` values are now floating point numbers (again, not quoted now), and ``taxonomy`` values are now lists where each entry is a taxonomy level, opposed to above where they appear as a single semi-colon-separated string.
 ::
@@ -341,9 +341,9 @@ If you have multiple fields that you'd like processed in one of these ways, you 
 Renaming (or naming) metadata columns while adding
 ==================================================
 
-You can also override the names of the metadata fields provided in the mapping files with the ``--observation_header`` and ``--sample_header`` parameters. This is useful if you want to rename metadata columns, or if metadata column headers aren't present in your metadata mapping file. If you pass either of these parameters, you must name all columns in order. If there are more columns in the metadata mapping file then there are headers, extra columns will be ignored (so this is also a useful way to select only the first n columns from your mapping file). For example, if you want to rename the ``DOB`` column in the sample metadata mapping you could do the following::
+You can also override the names of the metadata fields provided in the mapping files with the ``--observation-header`` and ``--sample-header`` parameters. This is useful if you want to rename metadata columns, or if metadata column headers aren't present in your metadata mapping file. If you pass either of these parameters, you must name all columns in order. If there are more columns in the metadata mapping file then there are headers, extra columns will be ignored (so this is also a useful way to select only the first n columns from your mapping file). For example, if you want to rename the ``DOB`` column in the sample metadata mapping you could do the following::
 	
-	add_metadata.py -i min_sparse_otu_table.biom -o table.w_smd.biom --sample_mapping_fp sam_md.txt --sample_header SampleID,BarcodeSequence,DateOfBirth
+	biom add-metadata -i min_sparse_otu_table.biom -o table.w_smd.biom --sample-metadata-fp sam_md.txt --sample-header SampleID,BarcodeSequence,DateOfBirth
 
 If you have a mapping file without headers such as the following::
 
@@ -356,9 +356,9 @@ If you have a mapping file without headers such as the following::
 
 you could name these while adding them as follows::
 
-	add_metadata.py -i min_sparse_otu_table.biom -o table.w_omd.biom --observation_mapping_fp obs_md.txt --observation_header OTUID,taxonomy,confidence
+	biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt --observation-header OTUID,taxonomy,confidence
 
 As a variation on the last command, if you only want to include the ``taxonomy`` column and exclude the ``confidence`` column, you could run::
 
-	add_metadata.py -i min_sparse_otu_table.biom -o table.w_omd.biom --observation_mapping_fp obs_md.txt --observation_header OTUID,taxonomy
+	biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt --observation-header OTUID,taxonomy
 
