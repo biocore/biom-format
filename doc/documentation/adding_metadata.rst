@@ -221,7 +221,7 @@ You can tell the command to process certain metadata column values as integers (
 
 ::
 
-	biom add-metadata -i min_sparse_otu_table.biom -o table.w_md.biom ----observation-metadata-fp obs_md.txt --sample-metadata-fp sam_md.txt --int-fields DOB --sc-separated taxonomy --float-fields confidence
+	biom add-metadata -i min_sparse_otu_table.biom -o table.w_md.biom --observation-metadata-fp obs_md.txt --sample-metadata-fp sam_md.txt --int-fields DOB --sc-separated taxonomy --float-fields confidence
 
 Here your resulting BIOM file will look like the following, where ``DOB`` values are now integers (compare to the above: they're not quoted now), ``confidence`` values are now floating point numbers (again, not quoted now), and ``taxonomy`` values are now lists where each entry is a taxonomy level, opposed to above where they appear as a single semi-colon-separated string.
 ::
