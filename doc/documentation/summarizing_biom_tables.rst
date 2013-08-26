@@ -17,7 +17,7 @@ Summarizing sample data
 
 To summarize the per-sample data in a BIOM file, you can run::
 	
-	biom summarize-table -i rich_sparse_otu_table.biom
+	biom summarize-table -i rich_sparse_otu_table.biom -o rich_sparse_otu_table_summary.txt
 
 This will print the following output to the screen::
 
@@ -51,7 +51,7 @@ Summarizing sample data qualitatively
 
 To summarize the per-sample data in a BIOM file qualitatively, where the number of unique observations per sample (rather than the total count of observations per sample) are provided, you can run::
 
-	biom summarize-table -i rich_sparse_otu_table.biom --qualitative
+	biom summarize-table -i rich_sparse_otu_table.biom --qualitative -o rich_sparse_otu_table_qual_summary.txt
 
 This will print the following output to the screen::
 
