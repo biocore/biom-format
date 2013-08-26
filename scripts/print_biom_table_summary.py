@@ -8,4 +8,4 @@ __version__ = "1.1.2-dev"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
-print "\nThis script no longer exists. The script should now be run as:\n\n  biom summarize_table\n\nFor help, run:\n\n  biom summarize_table -h\n"
+print "\nThis script no longer exists. The script should now be run as:\n\n  biom summarize-table\n\nFor help, run:\n\n  biom summarize-table -h\n"
