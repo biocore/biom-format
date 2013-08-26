@@ -10,7 +10,7 @@ To get help with ``biom summarize-table`` you can call::
 
 	biom summarize-table -h
 
-This command takes a BIOM file or gzipped BIOM file as input, and will print a summary of the count information on a per-sample basis to the a new file specified by the ``-o`` parameter. The example file used in the commands below can be found in the ``biom-format/examples`` directory.
+This command takes a BIOM file or gzipped BIOM file as input, and will print a summary of the count information on a per-sample basis to the new file specified by the ``-o`` parameter. The example file used in the commands below can be found in the ``biom-format/examples`` directory.
 
 Summarizing sample data
 -----------------------
