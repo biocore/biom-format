@@ -71,9 +71,9 @@ You should see the current version of the biom-format project.
 
 Next you can run::
 
-	which convert_biom.py
+	which biom
 
-You should get a file path ending with ``convert_biom.py`` printed to your screen if it is installed correctly.
+You should get a file path ending with ``biom`` printed to your screen if it is installed correctly.
 
 
 Citing the BIOM project

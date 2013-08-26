@@ -4,13 +4,13 @@
 Adding sample and observation metadata to biom files
 ====================================================
 
-Frequently you'll have an existing BIOM file and want to add sample and/or observation metadata to it. For samples, metadata is frequently environmental or technical details about your samples: the subject that a sample was collected from, the pH of the sample, the PCR primers used to amplify DNA from the samples, etc. For observations, metadata is frequently a categorization of the observation: the taxonomy of an OTU, or the EC hierarchy of a gene. You can use the ``biom add-metadata`` script to add this information to an existing BIOM file.
+Frequently you'll have an existing BIOM file and want to add sample and/or observation metadata to it. For samples, metadata is frequently environmental or technical details about your samples: the subject that a sample was collected from, the pH of the sample, the PCR primers used to amplify DNA from the samples, etc. For observations, metadata is frequently a categorization of the observation: the taxonomy of an OTU, or the EC hierarchy of a gene. You can use the ``biom add-metadata`` command to add this information to an existing BIOM file.
 
 To get help with ``add-metadata`` you can call::
 
 	biom add-metadata -h
 
-This script takes a BIOM file, and corresponding sample and/or observation mapping files. The following examples are used in the commands below. You can find these files in the ``biom-format/examples`` directory.
+This command takes a BIOM file, and corresponding sample and/or observation mapping files. The following examples are used in the commands below. You can find these files in the ``biom-format/examples`` directory.
 
 Your BIOM file might look like the following::
 
@@ -215,9 +215,9 @@ In the last case, the resulting BIOM file will look like the following::
 Processing metadata while adding
 ================================
 
-There are some additional parameters you can pass to this script for more complex processing. 
+There are some additional parameters you can pass to this command for more complex processing. 
 
-You can tell the script to process certain metadata column values as integers (``--int_fields``), floating point (i.e., decimal or real) numbers (``--float_fields``), or as hierarchical semicolon-delimited data (``--sc_separated``).
+You can tell the command to process certain metadata column values as integers (``--int_fields``), floating point (i.e., decimal or real) numbers (``--float_fields``), or as hierarchical semicolon-delimited data (``--sc_separated``).
 
 ::
 

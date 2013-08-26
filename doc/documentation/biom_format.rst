@@ -23,7 +23,7 @@ Tips and FAQs regarding the BIOM file format
 Should I generate sparse or dense biom files?
 =============================================
 
-In general, we recommend using the sparse format for your biom files. These will be a lot smaller than the dense format biom files when your data is sparse (i.e., more than 85% of your counts are zero). This is common for OTU tables and metagenome tables, and you'll want to investigate whether it's true for your data. If you currently format your data in tab-separated tables where observations are rows and samples are columns, you can format that file to be convertible to biom format with the ``biom convert-biom``. Here you can create dense and sparse formats, and see which file size is smaller. See the section on :ref:`converting`. 
+In general, we recommend using the sparse format for your biom files. These will be a lot smaller than the dense format biom files when your data is sparse (i.e., more than 85% of your counts are zero). This is common for OTU tables and metagenome tables, and you'll want to investigate whether it's true for your data. If you currently format your data in tab-separated tables where observations are rows and samples are columns, you can format that file to be convertible to biom format with the ``biom convert`` command. Here you can create dense and sparse formats, and see which file size is smaller. See the section on :ref:`converting`. 
 
 Motivation for the BIOM format
 ==============================

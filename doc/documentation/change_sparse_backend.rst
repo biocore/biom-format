@@ -9,9 +9,9 @@ As the BIOM project evolves, so do the underlying data structures, leading to po
 How to check what sparse backend is in use
 ==========================================
 
-To check what sparse backend is in use, simply execute ``biom print-biom-python-config``. The last line shows the SparseObj type. For instance::
+To check what sparse backend is in use, simply execute ``biom show-install-info``. The last line shows the SparseObj type. For instance::
 
-	biom print-biom-python-config 
+	$ biom show-install-info
 	
 	System information
 	==================
