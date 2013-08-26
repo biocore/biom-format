@@ -45,6 +45,7 @@ class ParseTests(TestCase):
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
         self.biom_otu_table1_w_tax = biom_otu_table1_w_tax.split('\n')
         self.biom_otu_table1_no_tax = biom_otu_table1_no_tax.split('\n')
+        self.classic_table_with_complex_metadata = classic_table_with_complex_metadata.split('\n')
 
     def test_direct_parse_key_object(self):
         """Parse a specific key (eg column, rows, etc)"""
@@ -655,6 +656,24 @@ class ParseTests(TestCase):
         self.assertEqual(parsed_roundtripped_classic_otu_table1_no_tax,
                          parsed_classic_otu_table1_no_tax)
 
+    def test_otu_table_biom_conversions_complex_metadata(self):
+        """ converting between classic otu table and biom is roundtrip-able using complex metadata (e.g. list of lists)
+        """
+        # parse the classic otu table with complex metadata
+        parsed_table = parse_classic_table(self.classic_table_with_complex_metadata)
+
+        # convert the classic otu table to a biom file, and then convert the biom file
+        # to a classic otu table (i.e., roundtrip the file)
+        roundtripped_table =\
+          convert_biom_to_table(
+            convert_table_to_biom(self.classic_table_with_complex_metadata, None, None, OBS_META_TYPES['sc_pipe_separated'], DenseOTUTable),'KEGG_Pathways', 'KEGG_Pathways')
+        # parse the roundtripped file
+        parsed_roundtripped_table = parse_classic_table(roundtripped_table.split('\n'))
+
+        # compare the parsed roundtripped file to the parsed input file
+        self.assertEqual(parsed_roundtripped_table,
+                         parsed_table)
+
 
 legacy_otu_table1 = """# some comment goes here
 #OTU ID	Fing	Key	NA	Consensus Lineage
@@ -698,6 +717,14 @@ OTU ID	Fing	Key	NA	Consensus Lineage
 4	589.6	2074.4	34.5	Bacteria; Cyanobacteria; Chloroplasts; vectors
 """
 
+classic_table_with_complex_metadata="""# some comment
+#OTU ID	sample1	sample2	KEGG_Pathways
+K05842	1.0	3.5	rank1A;rank2A|rank1B;rank2B
+K05841	2.0	4.5	Environmental Information Processing;
+K00508	0.0	0.0	Metabolism;Lipid Metabolism;Linoleic acid metabolism
+K00500	0.5	0.5	Metabolism;Amino Acid Metabolism;Phenylalanine metabolism|Metabolism;Amino Acid Metabolism;Phenylalanine, tyrosine and tryptophan biosynthesis
+K00507	0.0	0.0	Metabolism;Lipid Metabolism;Biosynthesis of unsaturated fatty acids|Organismal Systems;Endocrine System;PPAR signaling pathway
+"""
 biom_minimal_dense = """
 
     {

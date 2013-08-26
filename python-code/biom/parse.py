@@ -614,9 +614,10 @@ def parse_biom_table_str(json_str,constructor=None, data_pump=None):
     return f(json_table, constructor, data_pump)
 
 OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
-                  'naive': lambda x: x
+                  'naive': lambda x: x, 'sc_pipe_separated': lambda x: [[e.strip() for e in y.split(';')] for y in x.split('|')]
                   }
 OBS_META_TYPES['taxonomy'] = OBS_META_TYPES['sc_separated']
+
 
 def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping, process_func,
         constructor, **kwargs):
@@ -858,13 +859,26 @@ def convert_table_to_biom(table_f,sample_mapping, obs_mapping, process_func, con
                                                   constructor, **kwargs)
     return otu_table.getBiomFormatJsonString(generatedby())
 
+def biom_meta_to_string(metadata, replace_str=':'):
+    """ Determine which format the metadata is (e.g. str, list, or list of lists) and then convert to a string"""
+
+    #Note that since ';' and '|' are used as seperators we must replace them if they exist
+    if type(metadata) ==str or type(metadata)==unicode:
+        return metadata.replace(';',replace_str)
+    elif type(metadata) == list:
+        if type(metadata[0]) == list:
+            return "|".join(";".join([y.replace(';',replace_str).replace('|',replace_str) for y in x]) for x in metadata)
+        else:
+            return ";".join(x.replace(';',replace_str) for x in metadata)
+
+
 def convert_biom_to_table(biom_f, header_key=None, header_value=None, \
         md_format=None):
     """Convert a biom table to a contigency table"""
     table = parse_biom_table(biom_f)
 
     if md_format is None:
-        md_format = lambda x: '; '.join(x)
+         md_format = biom_meta_to_string
 
     if table.ObservationMetadata is None:
         return table.delimitedSelf()
