@@ -31,7 +31,7 @@ To install the ``biom-format`` project, you can download the release version `bi
 The biom-format project has the following dependencies:
 	* Python >= 2.7 and < 3.0
 	* numpy >= 1.3.0
-	* `pyqi <http://bipy.github.io/pyqi>`_  >= 0.2.0
+	* `pyqi <http://bipy.github.io/pyqi>`_ 0.2.0
 	* gcc >= 4.1.2 (optional; used for more efficient sparse table representations)
 	* cython >= 0.14.1 (optional; used for more efficient sparse table representations)
 	* dateutil (optional; must be installed if using the ``biom validate_table`` command)
