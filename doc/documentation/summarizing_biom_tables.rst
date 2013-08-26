@@ -4,11 +4,11 @@
 Summarizing BIOM tables
 ====================================================
 
-If you have an existing BIOM file and want to compile a summary of the information in that table, you can use the ``print_biom_table_summary.py`` script.
+If you have an existing BIOM file and want to compile a summary of the information in that table, you can use the ``biom print-biom-table-summary`` script.
 
-To get help with ``print_biom_table_summary.py`` you can call::
+To get help with ``biom print-biom-table-summary`` you can call::
 
-	print_biom_table_summary.py -h
+	biom print-biom-table-summary -h
 
 This script takes a BIOM file or gzipped BIOM file as input, and will print a summary of the count information on a per-sample basis to the terminal (default) or to a new file (if provided via the ``-o`` parameter). The example file used in the commands below can be found in the ``biom-format/examples`` directory.
 
@@ -17,7 +17,7 @@ Summarizing sample data
 
 To summarize the per-sample data in a BIOM file, you can run::
 	
-	print_biom_table_summary.py -i rich_sparse_otu_table.biom
+	biom print-biom-table-summary -i rich_sparse_otu_table.biom
 
 This will print the following output to the screen::
 
@@ -51,7 +51,7 @@ Summarizing sample data qualitatively
 
 To summarize the per-sample data in a BIOM file qualitatively, where the number of unique observations per sample (rather than the total count of observations per sample) are provided, you can run::
 
-	print_biom_table_summary.py -i rich_sparse_otu_table.biom --num_observations
+	biom print-biom-table-summary -i rich_sparse_otu_table.biom --num_observations
 
 This will print the following output to the screen::
 
