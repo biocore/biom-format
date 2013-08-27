@@ -336,7 +336,7 @@ Here your resulting BIOM file will look like the following, where ``DOB`` values
 	    "type": "OTU table"
 	}
 
-If you have multiple fields that you'd like processed in one of these ways, you can pass a comma-separated list of field names (e.g., ``--float_fields confidence,pH``).
+If you have multiple fields that you'd like processed in one of these ways, you can pass a comma-separated list of field names (e.g., ``--float-fields confidence,pH``).
 
 Renaming (or naming) metadata columns while adding
 ==================================================
