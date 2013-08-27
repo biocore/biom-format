@@ -34,7 +34,7 @@ The biom-format project has the following dependencies:
 	* `pyqi <http://bipy.github.io/pyqi>`_ 0.2.0
 	* gcc >= 4.1.2 (optional; used for more efficient sparse table representations)
 	* cython >= 0.14.1 (optional; used for more efficient sparse table representations)
-	* dateutil (optional; must be installed if using the ``biom validate_table`` command)
+	* dateutil (optional; must be installed if using the ``biom validate-table`` command)
 
 We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
 
