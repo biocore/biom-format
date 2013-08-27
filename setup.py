@@ -8,7 +8,8 @@ from glob import glob
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, The BIOM Format"
-__credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente"]
+__credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente",
+               "Jai Ram Rideout"]
 __license__ = "GPL"
 __version__ = "1.1.2-dev"
 __maintainer__ = "Daniel McDonald"
@@ -20,6 +21,11 @@ try:
     import numpy
 except ImportError:
     raise ImportError, "numpy cannot be found. Can't continue."
+
+try:
+    import pyqi
+except ImportError:
+    raise ImportError, "pyqi cannot be found. Can't continue."
 
 try:
     import Cython
@@ -40,11 +46,9 @@ library_path = split(numpy.__file__)[0]
 long_description = """BIOM: Biological Observation Matrix
 http://www.biom-format.org
 
-The Biological Observation Matrix (BIOM) Format or: How I Learned To Stop Worrying and Love the Ome-ome
-Daniel McDonald, Jose C Clemente, Justin Kuczynski, Jai Ram Rideout,
-Jesse Stombaugh, Doug Wendel, Andreas Wilke, Susan Huse, John
-Hufnagle, Folker Meyer, Rob Knight and J Gregory Caporaso.
-GigaScience, accepted 2012.
+The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome
+Daniel McDonald, Jose C Clemente, Justin Kuczynski, Jai Ram Rideout, Jesse Stombaugh, Doug Wendel, Andreas Wilke, Susan Huse, John Hufnagle, Folker Meyer, Rob Knight, J Gregory Caporaso
+GigaScience 2012, 1:7.
 """
 
 
@@ -61,14 +65,19 @@ if cython_present:
 
     setup(name='biom-format',
         version=__version__,
-        description='Biological Observation Matrix',
+        description='Biological Observation Matrix (BIOM) format',
         author=__maintainer__,
         author_email=__email__,
         maintainer=__maintainer__,
         maintainer_email=__email__,
         url='http://www.biom-format.org',
-        packages=['biom'],
-        scripts=glob('scripts/*py'),
+        packages=['biom',
+                  'biom/commands',
+                  'biom/interfaces',
+                  'biom/interfaces/optparse',
+                  'biom/interfaces/optparse/config'
+                  ],
+        scripts=glob('scripts/*'),
         package_dir={'':'python-code'},
         package_data={},
         data_files={},
@@ -86,14 +95,19 @@ if cython_present:
 else:
     setup(name='biom-format',
         version=__version__,
-        description='Biological Observation Matrix',
+        description='Biological Observation Matrix (BIOM) format',
         author=__maintainer__,
         author_email=__email__,
         maintainer=__maintainer__,
         maintainer_email=__email__,
         url='http://www.biom-format.org',
-        packages=['biom'],
-        scripts=glob('scripts/*py'),
+        packages=['biom',
+                  'biom/commands',
+                  'biom/interfaces',
+                  'biom/interfaces/optparse',
+                  'biom/interfaces/optparse/config'
+                  ],
+        scripts=glob('scripts/*'),
         package_dir={'':'python-code'},
         package_data={},
         data_files={},
