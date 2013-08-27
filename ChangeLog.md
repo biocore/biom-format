@@ -1,23 +1,19 @@
-*********
-ChangeLog
-*********
-
 BIOM-Format 1.1.2 - 1.2.0
 =========================
 
 New Features
 ------------
 
-* Table.collapseObservationsByMetadata and Table.collapseSamplesByMetadata now have an additional argument, include_collapsed_metadata, which allows the user to either include or exclude collapsed metadata in the collapsed table.
-* Table.collapseObservationsByMetadata and Table.collapseSamplesByMetadata now have an additional argument, one_to_many_mode, which allows the user to specify a collapsing strategy for one-to-many metadata relationships (currently supports adding and dividing counts).
-* Table.binObservationsByMetadata, Table.binSamplesByMetadata, Table.collapseObservationsByMetadata, and Table.collapseSamplesByMetadata now have an additional argument, constructor, which allows the user to choose the return type of the binned/collapsed table(s).
-* Table.delimitedSelf now has an additional argument, observation_column_name, which allows the user to specify the name of the first column in the output table (e.g. 'OTU ID', 'Taxon', etc.).
-* Added new Table.transpose method.
+* ```Table.collapseObservationsByMetadata``` and ```Table.collapseSamplesByMetadata``` now have an additional argument, ```include_collapsed_metadata```, which allows the user to either include or exclude collapsed metadata in the collapsed table.
+* ```Table.collapseObservationsByMetadata``` and ```Table.collapseSamplesByMetadata``` now have an additional argument, ```one_to_many_mode```, which allows the user to specify a collapsing strategy for one-to-many metadata relationships (currently supports adding and dividing counts).
+* ```Table.binObservationsByMetadata```, ```Table.binSamplesByMetadata```, ```Table.collapseObservationsByMetadata```, and ```Table.collapseSamplesByMetadata``` now have an additional argument, ```constructor```, which allows the user to choose the return type of the binned/collapsed table(s).
+* ```Table.delimitedSelf``` now has an additional argument, ```observation_column_name```, which allows the user to specify the name of the first column in the output table (e.g. 'OTU ID', 'Taxon', etc.).
+* Added new ```Table.transpose``` method.
 
 Changes
 -------
 
-* Table.addSampleMetadata and Table.addObservationMetadata now support adding metadata to a subset of the samples/observations in a table that previously was without any sample/observation metadata. This used to result in an error.
+* ```Table.addSampleMetadata``` and ```Table.addObservationMetadata``` now support adding metadata to a subset of the samples/observations in a table that previously was without any sample/observation metadata. This used to result in an error.
 
 Bug Fixes
 ---------
