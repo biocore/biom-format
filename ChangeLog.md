@@ -1,3 +1,15 @@
+BIOM-Format 1.2.0-dev (changes since BIOM-Format 1.2.0 go here)
+===============================================================
+
+New Features
+------------
+
+Changes
+-------
+
+Bug Fixes
+---------
+
 BIOM-Format 1.1.2 - 1.2.0
 =========================
 
