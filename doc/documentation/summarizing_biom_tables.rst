@@ -4,22 +4,22 @@
 Summarizing BIOM tables
 ====================================================
 
-If you have an existing BIOM file and want to compile a summary of the information in that table, you can use the ``print_biom_table_summary.py`` script.
+If you have an existing BIOM file and want to compile a summary of the information in that table, you can use the ``biom summarize-table`` command.
 
-To get help with ``print_biom_table_summary.py`` you can call::
+To get help with ``biom summarize-table`` you can call::
 
-	print_biom_table_summary.py -h
+	biom summarize-table -h
 
-This script takes a BIOM file or gzipped BIOM file as input, and will print a summary of the count information on a per-sample basis to the terminal (default) or to a new file (if provided via the ``-o`` parameter). The example file used in the commands below can be found in the ``biom-format/examples`` directory.
+This command takes a BIOM file or gzipped BIOM file as input, and will print a summary of the count information on a per-sample basis to the new file specified by the ``-o`` parameter. The example file used in the commands below can be found in the ``biom-format/examples`` directory.
 
 Summarizing sample data
 -----------------------
 
 To summarize the per-sample data in a BIOM file, you can run::
 	
-	print_biom_table_summary.py -i rich_sparse_otu_table.biom
+	biom summarize-table -i rich_sparse_otu_table.biom -o rich_sparse_otu_table_summary.txt
 
-This will print the following output to the screen::
+The following information will be written to ``rich_sparse_otu_table_summary.txt``::
 
 	Num samples: 6
 	Num observations: 5
@@ -51,9 +51,9 @@ Summarizing sample data qualitatively
 
 To summarize the per-sample data in a BIOM file qualitatively, where the number of unique observations per sample (rather than the total count of observations per sample) are provided, you can run::
 
-	print_biom_table_summary.py -i rich_sparse_otu_table.biom --num_observations
+	biom summarize-table -i rich_sparse_otu_table.biom --qualitative -o rich_sparse_otu_table_qual_summary.txt
 
-This will print the following output to the screen::
+The following information will be written to ``rich_sparse_otu_table_qual_summary.txt``::
 
 	Num samples: 6
 	Num observations: 5
