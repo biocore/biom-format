@@ -13,7 +13,6 @@ New Features
 Changes
 -------
 
-* ```Table.addSampleMetadata``` and ```Table.addObservationMetadata``` now support adding metadata to a subset of the samples/observations in a table that previously was without any sample/observation metadata. This used to result in an error.
 * [pyqi](http://bipy.github.io/pyqi) 0.2.0 is now a required dependency. This changes the look-and-feel of the biom-format command-line interfaces and introduces a new executable, ```biom```, which can be used to see a list of all available biom-format command-line commands. The ```biom``` command is now used to run biom-format commands, instead of having a Python script (i.e., .py file) for each biom-format command. The old scripts (e.g., add_metadata.py, convert_biom.py, etc.) are still included but are deprecated. Users are pointed to the new ```biom``` command to run instead. Bash tab completion is now supported for all command and option names (see the biom-format documentation for instructions on how to enable this).
 * The following scripts have had their names and options changed:
     * ```add_metadata.py``` is now ```biom add-metadata```. Changed option names:
@@ -58,6 +57,8 @@ Bug Fixes
 ---------
 
 * Fixed performance issue with formatting BIOM tables for writing to a file.
+* Fixed issue with ```Table.addSampleMetadata``` and ```Table.addObservationMetadata``` when adding metadata to a subset of the samples/observations in a table that previously was without any sample/observation metadata.
+* Fixed issue with ```Table.addSampleMetadata``` and ```Table.addObservationMetadata``` when updating a table's existing metadata, including the case where there are sample/observation IDs that are in the metadata file but not in the table.
 
 BIOM-Format 1.1.1 - 1.1.2
 =========================
