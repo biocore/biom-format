@@ -26,20 +26,20 @@ BIOM-Format 1.1.1 - 1.1.2
 New Features
 ------------
 
-* Table.collapseObservationsByMetadata and Table.collapseSamplesByMetadata now
+* ```Table.collapseObservationsByMetadata``` and ```Table.collapseSamplesByMetadata``` now
 support one-to-many relationships on the metadata field to collapse on.
 
-* added new script called print_biom_table_summary.py (and accompanying tutorial) that prints summary statistics of the input BIOM table as a whole and on a per-sample basis
+* added new script called ```print_biom_table_summary.py``` (and accompanying tutorial) that prints summary statistics of the input BIOM table as a whole and on a per-sample basis
 
 Changes
 -------
 
-* SparseMat now uses cython for loops more efficiently
+* ```SparseMat``` now uses cython for loops more efficiently
 
 Bug Fixes
 ---------
 
-* fixed serious performance issue with Table.transformSamples/Observations when using CSMat as the sparse backend
+* fixed serious performance issue with ```Table.transformSamples/Observations``` when using ```CSMat``` as the sparse backend
 
 BIOM-Format 1.1.0 - 1.1.1
 =========================
@@ -55,7 +55,7 @@ Changes
 Bug Fixes
 ---------
 
-* performance issue on table creation with CSMat where an O(N) lookup was being performed
+* performance issue on table creation with ```CSMat``` where an ```O(N)``` lookup was being performed
 
 BIOM-Format 1.0.0 - 1.1.0
 =========================
@@ -63,23 +63,23 @@ BIOM-Format 1.0.0 - 1.1.0
 New Features
 ------------
 
-* new default sparse matrix backend CSMat (COO/CSR/CSC) more efficient than SparseDict and SparseMat (pure python + numpy)
-* support for biom config file, which allows specification of sparse backend to use. Currently supports CSMat (default), SparseMat, and SparseDict. Default can be found under support_files/biom_config, and can be copied to $HOME/.biom_config or located by setting $BIOM_CONFIG_FP
-* new script called add_metadata.py with accompanying tutorial that allows users to add arbitrary sample and/or observation metadata to biom files
-* new script called subset_biom.py that efficiently pulls out a subset of a biom table (either by samples or observations). Useful for very large tables where memory may be an issue
+* new default sparse matrix backend ```CSMat``` (COO/CSR/CSC) more efficient than ```SparseDict``` and ```SparseMat``` (pure python + numpy)
+* support for biom config file, which allows specification of sparse backend to use. Currently supports ```CSMat``` (default), ```SparseMat```, and ```SparseDict```. Default can be found under ```support_files/biom_config```, and can be copied to ```$HOME/.biom_config``` or located by setting ```$BIOM_CONFIG_FP```
+* new script called ```add_metadata.py``` with accompanying tutorial that allows users to add arbitrary sample and/or observation metadata to biom files
+* new script called ```subset_biom.py``` that efficiently pulls out a subset of a biom table (either by samples or observations). Useful for very large tables where memory may be an issue
 
 Changes
 -------
 
 * parser is more efficient for sparse tables and formatter is more efficient for both table types (less memory consumption)
-* biom.Table objects are now immutable (except that metadata can still be added via addSampleMetadata/addObservationMetadata). __setitem__ and setValueByIds have been removed and SampleIds, ObservationIds, SampleMetadata, and ObservationMetadata members are now tuples as a result
-* biom.Table object has a new method called getTableDensity()
-* performance testing framework has been added for Table objects
+* ```biom.Table``` objects are now immutable (except that metadata can still be added via ```addSampleMetadata```/```addObservationMetadata```). ```__setitem__``` and ```setValueByIds``` have been removed and ```SampleIds```, ```ObservationIds```, ```SampleMetadata```, and ```ObservationMetadata``` members are now tuples as a result
+* ```biom.Table``` object has a new method called ```getTableDensity()```
+* performance testing framework has been added for ```Table``` objects
 
 Bug Fixes
 ---------
 
-* convert_biom.py now converts dense tables to sparse tables (previously it didn't do anything)
+* ```convert_biom.py``` now converts dense tables to sparse tables (previously it didn't do anything)
 * many misc. fixes to script help/documentation and docstrings (fixing typos, editing for clarity, etc.)
 
 BIOM-Format 0.9.1 - 1.0.0
@@ -88,7 +88,7 @@ BIOM-Format 0.9.1 - 1.0.0
 New Features
 ------------
 
-* new default sparse matrix backend SparseMat (requires Cython) more efficient over existing SparseDict backend
+* new default sparse matrix backend ```SparseMat``` (requires Cython) more efficient over existing ```SparseDict``` backend
 
 Changes
 -------
@@ -100,8 +100,8 @@ BIOM-Format 0.9 - 0.9.1
 =======================
 
 * format now accepts unicode but does not accept str due to JSON parsing from Python
-* specification for metadata is now either null or an object
-* PySparse has been gutted, sparse matrix support is now through Table.SparseDict
+* specification for metadata is now either ```null``` or an object
+* PySparse has been gutted, sparse matrix support is now through ```Table.SparseDict```
 
 New Features
 ------------
@@ -111,7 +111,7 @@ New Features
 Changes
 -------
 
-* Table.getBioFormatJsonString() and similar methods now require a generatedby string
+* ```Table.getBioFormatJsonString()``` and similar methods now require a ```generatedby``` string
 
 Bug Fixes
 ---------
