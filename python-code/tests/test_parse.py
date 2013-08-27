@@ -8,7 +8,7 @@ from biom.parse import parse_biom_table_str, \
         parse_biom_table, parse_biom_otu_table, \
         parse_classic_table_to_rich_table, convert_biom_to_table, \
         convert_table_to_biom, parse_classic_table, generatedby, \
-        parse_mapping, pick_constructor, parse_biom_pathway_table,\
+        MetadataMap, pick_constructor, parse_biom_pathway_table,\
         parse_biom_function_table, parse_biom_ortholog_table, \
         parse_biom_gene_table, parse_biom_metabolite_table, \
         parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_sparse, \
@@ -25,7 +25,7 @@ __copyright__ = "Copyright 2012, BIOM-Format Project"
 __credits__ = ["Justin Kuczynski","Daniel McDonald"] #remember to add yourself
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.1.2-dev"
+__version__ = "1.2.0"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 
@@ -269,25 +269,25 @@ class ParseTests(TestCase):
         obs = generatedby()
         self.assertEqual(obs,exp)
 
-    def test_parse_mapping(self):
-        """parse_mapping_file functions as expected"""
+    def test_MetadataMap(self):
+        """MetadataMap functions as expected"""
         s1 = ['#sample\ta\tb', '#comment line to skip',\
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
         exp = ([['x','y','z'],['i','j','k']],\
                ['sample','a','b'],\
                ['comment line to skip','more skip'])
         exp = {'x':{'a':'y','b':'z'},'i':{'a':'j','b':'k'}}
-        obs = parse_mapping(s1)
+        obs = MetadataMap.fromFile(s1)
         self.assertEqual(obs, exp)
     
         #check that we strip double quotes by default
         s2 = ['#sample\ta\tb', '#comment line to skip',\
               '"x "\t" y "\t z ', ' ', '"#more skip"', 'i\t"j"\tk']
-        obs = parse_mapping(s2)
+        obs = MetadataMap.fromFile(s2)
         self.assertEqual(obs, exp)
 
-    def test_parse_mapping_w_map_fs(self):
-        """parse_mapping_file functions as expected w process_fns"""
+    def test_MetadataMap_w_map_fs(self):
+        """MetadataMap functions as expected w process_fns"""
         s1 = ['#sample\ta\tb', '#comment line to skip',\
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
         exp = ([['x','y','z'],['i','j','k']],\
@@ -295,11 +295,11 @@ class ParseTests(TestCase):
                ['comment line to skip','more skip'])
         exp = {'x':{'a':'y','b':'zzz'},'i':{'a':'j','b':'kkk'}}
         process_fns = {'b': lambda x: x*3}
-        obs = parse_mapping(s1,process_fns=process_fns)
+        obs = MetadataMap.fromFile(s1,process_fns=process_fns)
         self.assertEqual(obs, exp)
 
-    def test_parse_mapping_w_header(self):
-        """parse_mapping_file functions as expected w user-provided header"""
+    def test_MetadataMap_w_header(self):
+        """MetadataMap functions as expected w user-provided header"""
         # number of user-provided headers matches number of columns, and no
         # header line in file
         s1 = ['#comment line to skip',
@@ -309,7 +309,7 @@ class ParseTests(TestCase):
                ['comment line to skip','more skip'])
         exp = {'x':{'a':'y','b':'z'},'i':{'a':'j','b':'k'}}
         header = ['sample','a','b']
-        obs = parse_mapping(s1,header=header)
+        obs = MetadataMap.fromFile(s1,header=header)
         self.assertEqual(obs, exp)
         
         # number of user-provided headers is fewer than number of columns, and
@@ -321,7 +321,7 @@ class ParseTests(TestCase):
                ['comment line to skip','more skip'])
         exp = {'x':{'a':'y'},'i':{'a':'j'}}
         header = ['sample','a']
-        obs = parse_mapping(s1,header=header)
+        obs = MetadataMap.fromFile(s1,header=header)
         self.assertEqual(obs, exp)
         
         # number of user-provided headers is fewer than number of columns, and
@@ -333,7 +333,7 @@ class ParseTests(TestCase):
                ['comment line to skip','more skip'])
         exp = {'x':{'a':'y'},'i':{'a':'j'}}
         header = ['sample','a']
-        obs = parse_mapping(s1,header=header)
+        obs = MetadataMap.fromFile(s1,header=header)
         self.assertEqual(obs, exp)
 
     def test_parse_classic_table_to_rich_table(self):
