@@ -21,13 +21,13 @@ To check what sparse backend is in use, simply execute ``biom show-install-info`
 # 
 # Dependency versions
 # ===================
-#     pyqi version:	0.1.0-dev
+#     pyqi version:	0.2.0
 #    NumPy version:	1.7.1
 # dateutil version:	1.5
 # 
 # biom-format package information
 # ===============================
-# biom-format version:	1.1.2-dev
+# biom-format version:	1.2.0
 #      SparseObj type:	biom.csmat.CSMat
 
 The last line indicates that the ``CSMat`` object is in use.
