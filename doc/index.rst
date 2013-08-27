@@ -26,7 +26,7 @@ The latest official version of the biom-format project is |release| and of the B
 Installing the biom-format project
 ==================================
 
-To install the ``biom-format`` project, you can download the release version `biom-format-1.1.3 <ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.1.3.tar.gz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
+To install the ``biom-format`` project, you can download the release version `biom-format-1.2.0 <ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.2.0.tar.gz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
 
 The biom-format project has the following dependencies:
 	* Python >= 2.7 and < 3.0
@@ -34,17 +34,17 @@ The biom-format project has the following dependencies:
 	* `pyqi <http://bipy.github.io/pyqi>`_ 0.2.0
 	* gcc >= 4.1.2 (optional; used for more efficient sparse table representations)
 	* cython >= 0.14.1 (optional; used for more efficient sparse table representations)
-	* dateutil (optional; must be installed if using the ``biom validate_table`` command)
+	* dateutil (optional; must be installed if using the ``biom validate-table`` command)
 
 We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
 
 	cd $HOME/code
 
-To install the release version, download from `biom-format-1.1.3 <ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.1.3.tar.gz>`_, uncompress the file, and change to the resulting directory::
+To install the release version, download from `biom-format-1.2.0 <ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.2.0.tar.gz>`_, uncompress the file, and change to the resulting directory::
 
-	wget ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.1.3.tar.gz
-	tar -xvzf biom-format-1.1.3.tar.gz
-	cd $HOME/code/biom-format-1.1.3
+	wget ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.2.0.tar.gz
+	tar -xvzf biom-format-1.2.0.tar.gz
+	cd $HOME/code/biom-format-1.2.0
 
 Alternatively, to install the development version, pull it from github, and change to the resulting directory::
 
