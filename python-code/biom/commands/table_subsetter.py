@@ -10,7 +10,7 @@ __copyright__ = "Copyright 2013, The BIOM-Format project"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.2.0"
+__version__ = "1.2.0-dev"
 __author__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
