@@ -29,7 +29,7 @@ __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.1.2-dev"
+__version__ = "1.2.0"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"   
 
@@ -182,13 +182,15 @@ class Table(object):
 
         ``md`` should be of the form ``{observation_id:{dict_of_metadata}}``
         """
-        if self.ObservationMetadata != None:
+        if self.ObservationMetadata is not None:
             for id_, md_entry in md.items():
                 if self.observationExists(id_):
-                    self.ObservationMetadata[self.getObservationIndex(id_)].update(md_entry)
+                    self.ObservationMetadata[
+                            self.getObservationIndex(id_)].update(md_entry)
         else:
             super(Table, self).__setattr__('ObservationMetadata',
-                    tuple([md[id_] for id_ in self.ObservationIds]))
+                  tuple([md[id_] if id_ in md else None
+                         for id_ in self.ObservationIds]))
         self._cast_metadata()
 
     def addSampleMetadata(self, md):
@@ -196,13 +198,15 @@ class Table(object):
     
         ``md`` should be of the form ``{sample_id:{dict_of_metadata}}``
         """
-        if self.SampleMetadata != None:
+        if self.SampleMetadata is not None:
             for id_, md_entry in md.items():
                 if self.sampleExists(id_):
-                    self.SampleMetadata[self.getSampleIndex(id_)].update(md_entry)
+                    self.SampleMetadata[
+                            self.getSampleIndex(id_)].update(md_entry)
         else:
             super(Table, self).__setattr__('SampleMetadata',
-                    tuple([md[id_] for id_ in self.SampleIds]))
+                  tuple([md[id_] if id_ in md else None
+                         for id_ in self.SampleIds]))
         self._cast_metadata()
 
     def __getitem__(self, args):

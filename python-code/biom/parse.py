@@ -18,7 +18,7 @@ __copyright__ = "Copyright 2012, BIOM-Format Project"
 __credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso", "Jose Carlos Clemente Litran"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.1.2-dev"
+__version__ = "1.2.0"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
@@ -740,105 +740,115 @@ def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None, \
 
     return samp_ids, obs_ids, asarray(data), metadata, md_name
 
-def parse_mapping(lines, 
-                  strip_quotes=True, 
-                  suppress_stripping=False,
-                  header = None,
-                  process_fns=None):
-    """Parser for map file that relates samples or observations to metadata.
-    
-    Format: header line with fields
-            optionally other comment lines starting with #
-            tab-delimited fields
-    
-    process_fns: a dictionary of functions to apply to metadata categories. 
-     the keys should be the column headings, and the values should be
-     functions which take a single value. For example, if the values in a 
-     column called "taxonomy" should be split on semi-colons before being 
-     added as metadata, and all other columns should be left as-is, 
-     process_fns should be:
-      {'taxonomy': lambda x: x.split(';')}
+class MetadataMap(dict):
 
-    Result: {first_column:{column_i:value}}, where i > 0
+    @classmethod
+    def fromFile(cls, lines, strip_quotes=True, suppress_stripping=False,
+                 header=None, process_fns=None):
+        """Parse mapping file that relates samples or observations to metadata.
 
-    Assumes the first column in the mapping file is the id
+        Format: header line with fields
+                optionally other comment lines starting with #
+                tab-delimited fields
 
-    NOTE: code pulled and modified from QIIME (http://qiime.org)
-    """
-    if hasattr(lines,"upper"):
-        # Try opening if a string was passed
-        try:
-            lines = open(lines,'U')
-        except IOError:
-            raise BiomParseException,\
-             ("A string was passed that doesn't refer "
-              "to an accessible filepath.")
-    
-    if strip_quotes:
-        if suppress_stripping:
-            # remove quotes but not spaces
-            strip_f = lambda x: x.replace('"','')
-        else:
-            # remove quotes and spaces
-            strip_f = lambda x: x.replace('"','').strip()
-    else:
-        if suppress_stripping:
-            # don't remove quotes or spaces
-            strip_f = lambda x: x
-        else:
-            # remove spaces but not quotes
-            strip_f = lambda x: x.strip()
-    
-    # if the user didn't provide process functions, initialize as 
-    # an empty dict
-    if process_fns == None:
-        process_fns = {}
+        process_fns: a dictionary of functions to apply to metadata categories.
+         the keys should be the column headings, and the values should be
+         functions which take a single value. For example, if the values in a
+         column called "taxonomy" should be split on semi-colons before being
+         added as metadata, and all other columns should be left as-is,
+         process_fns should be:
+          {'taxonomy': lambda x: x.split(';')}
 
-    # Create lists to store the results
-    mapping_data = []
-    header = header or []
-    comments = []
+        Assumes the first column in the mapping file is the id.
 
-    # Begin iterating over lines
-    for line in lines:
-        line = strip_f(line)
-        if not line or (suppress_stripping and not line.strip()):
-            # skip blank lines when not stripping lines
-            continue
-
-        if line.startswith('#'):
-            line = line[1:]
-            if not header:
-                header = line.strip().split('\t')
-            else:
-                comments.append(line)
-        else:
-            # Will add empty string to empty fields
-            tmp_line = map(strip_f, line.split('\t'))
-            if len(tmp_line)<len(header):
-                tmp_line.extend(['']*(len(header)-len(tmp_line)))
-            mapping_data.append(tmp_line)
-
-    if not header:
-        raise BiomParseException, "No header line was found in mapping file."
-    if not mapping_data:
-        raise BiomParseException, "No data found in mapping file."
-
-    first_col = [i[0] for i in mapping_data]
-    if len(first_col) != len(set(first_col)):
-        raise BiomParseException, "First column values are not unique! Cannot be ids."
-
-    mapping = {}
-    for vals in mapping_data:
-        current_d = {}
-        for k,v in zip(header[1:], vals[1:]):
+        NOTE: code pulled and modified from QIIME (http://www.qiime.org).
+        """
+        if hasattr(lines,"upper"):
+            # Try opening if a string was passed
             try:
-                current_d[k] = process_fns[k](v)
-            except KeyError:
-                current_d[k] = v
-        mapping[vals[0]] = current_d
+                lines = open(lines,'U')
+            except IOError:
+                raise BiomParseException,\
+                 ("A string was passed that doesn't refer "
+                  "to an accessible filepath.")
 
-    return mapping
+        if strip_quotes:
+            if suppress_stripping:
+                # remove quotes but not spaces
+                strip_f = lambda x: x.replace('"','')
+            else:
+                # remove quotes and spaces
+                strip_f = lambda x: x.replace('"','').strip()
+        else:
+            if suppress_stripping:
+                # don't remove quotes or spaces
+                strip_f = lambda x: x
+            else:
+                # remove spaces but not quotes
+                strip_f = lambda x: x.strip()
+        
+        # if the user didn't provide process functions, initialize as 
+        # an empty dict
+        if process_fns == None:
+            process_fns = {}
+
+        # Create lists to store the results
+        mapping_data = []
+        header = header or []
+        comments = []
+
+        # Begin iterating over lines
+        for line in lines:
+            line = strip_f(line)
+            if not line or (suppress_stripping and not line.strip()):
+                # skip blank lines when not stripping lines
+                continue
+
+            if line.startswith('#'):
+                line = line[1:]
+                if not header:
+                    header = line.strip().split('\t')
+                else:
+                    comments.append(line)
+            else:
+                # Will add empty string to empty fields
+                tmp_line = map(strip_f, line.split('\t'))
+                if len(tmp_line)<len(header):
+                    tmp_line.extend(['']*(len(header)-len(tmp_line)))
+                mapping_data.append(tmp_line)
+
+        if not header:
+            raise BiomParseException("No header line was found in mapping "
+                                     "file.")
+        if not mapping_data:
+            raise BiomParseException("No data found in mapping file.")
+
+        first_col = [i[0] for i in mapping_data]
+        if len(first_col) != len(set(first_col)):
+            raise BiomParseException("First column values are not unique! "
+                                     "Cannot be ids.")
+
+        mapping = {}
+        for vals in mapping_data:
+            current_d = {}
+            for k,v in zip(header[1:], vals[1:]):
+                try:
+                    current_d[k] = process_fns[k](v)
+                except KeyError:
+                    current_d[k] = v
+            mapping[vals[0]] = current_d
+
+        return cls(mapping)
+
+    def __init__(self, mapping):
+        """Accepts dictionary mapping IDs to metadata.
+
+        ``mapping`` should be a dictionary mapping an ID to a dictionary of
+        metadata. For example:
+
+        {'Sample1': {'Treatment': 'Fast'}, 'Sample2': {'Treatment': 'Control'}}
+        """
+        super(MetadataMap, self).__init__(mapping)
 
 def generatedby():
     """Returns a generated by string"""

@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
+from sys import argv, stdout, stderr
 from collections import defaultdict
 from os import getenv
-from os.path import abspath, dirname, exists
+from os.path import (abspath, dirname, exists, split, splitext)
 import re
 from hashlib import md5
 from gzip import open as gzip_open
 from numpy import mean, median, min, max
+from pyqi.util import pyqi_system_call
+from pyqi.core.log import StdErrLogger
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
@@ -14,7 +17,7 @@ __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
-__version__ = "1.1.2-dev"
+__version__ = "1.2.0"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
@@ -222,10 +225,28 @@ def safe_md5(open_file, block_size=2**20):
     
     Modified from PyCogent (www.pycogent.org).
     """
-    result = md5()
     data = True
+    result = md5()
+    
+    ## While a little hackish, this allows this code to
+    ## safely work either with a file object or a list of lines.
+    if isinstance(open_file,file):
+        data_getter = open_file.read
+        data_getter_i = block_size
+    elif isinstance(open_file,list):
+        def f(i):
+            try:
+                return open_file.pop(i)
+            except IndexError:
+                return None
+        data_getter = f
+        data_getter_i = 0
+    else:
+        raise TypeError,\
+         "safe_md5 can only handle a file handle or list of lines but recieved %r." % type(open_file)
+         
     while data:
-        data = open_file.read(block_size)
+        data = data_getter(data_getter_i)
         if data:
             result.update(data)
     return result.hexdigest()

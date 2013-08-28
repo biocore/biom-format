@@ -9,32 +9,33 @@ As the BIOM project evolves, so do the underlying data structures, leading to po
 How to check what sparse backend is in use
 ==========================================
 
-To check what sparse backend is in use, simply execute ``print_biom_python_config.py``. The last line shows the SparseObj type. For instance::
+To check what sparse backend is in use, simply execute ``biom show-install-info``. The last line shows the SparseObj type. For instance::
 
-	print_biom_python_config.py 
-	
-	System information
-	==================
-	      Platform: darwin
-	Python/GCC version: 2.7.2 (default, Mar 23 2012, 13:31:52)  [GCC 4.2.1 (Based on Apple Inc. build 5658) (LLVM build 2336.9.00)]
-	Python executable: /Users/mcdonald/bin/python
-	
-	Dependency versions
-	===================
-	              NumPy version:    1.6.1
-	biom-format library version:    1.1.0-dev
-	 biom-format script version:    1.1.0-dev
-	
-	biom-format package information
-	===============================
-	SparseObj type: biom.csmat.CSMat
+ $ biom show-install-info
+
+ System information
+ ==================
+           Platform:	darwin
+ Python/GCC version:	2.7.1 (r271:86832, Aug 30 2012, 10:07:33)  [GCC 4.2.1 (Based on Apple Inc. build 5658) (LLVM build 2336.11.00)]
+  Python executable:	/Users/caporaso/.virtualenvs/biom/bin/python
+ 
+ Dependency versions
+ ===================
+     pyqi version:	0.2.0
+    NumPy version:	1.7.1
+ dateutil version:	1.5
+ 
+ biom-format package information
+ ===============================
+ biom-format version:	1.2.0
+      SparseObj type:	biom.csmat.CSMat
 
 The last line indicates that the ``CSMat`` object is in use.
 
 Changing the sparse backend
 ===========================
 
-There are two methods to change the backend that is used. The first method is by copying the ``biom_config`` file located under ``support_files/`` and placing it in your home directory as ``~/.biom_config. Then, edit ``~/.biom_config`` and replace the current backend type with the desired type.
+There are two methods to change the backend that is used. The first method is by copying the ``biom_config`` file located under ``support_files/`` and placing it in your home directory as ``~/.biom_config``. Then, edit ``~/.biom_config`` and replace the current backend type with the desired type.
 
 The second method is to set the environment variable ``$BIOM_CONFIG_FP`` to a file path of your choice, and place the following into that file::
 
