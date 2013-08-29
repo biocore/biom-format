@@ -64,6 +64,7 @@ Changes
         * ```--biom_fp``` is now ```--input-fp```
         * ```--output_fp``` is now ```--output-fp```
         * ```--ids_fp``` is now ```--ids```
+* ```biom.parse.parse_mapping``` has been replaced by ```biom.parse.MetadataMap```. ```biom.parse.MetadataMap.fromFile``` can be directly substituted in place of ```biom.parse.parse_mapping```.
 
 Bug Fixes
 ---------
