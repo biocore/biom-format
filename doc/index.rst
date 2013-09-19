@@ -86,6 +86,27 @@ The ``biom`` command referenced in the previous section is a driver for commands
 
 To enable tab completion, follow the steps outlined under `Configuring bash completion <http://bipy.github.io/pyqi/doc/tutorials/defining_your_command_driver.html#configuring-bash-completion>`_ in the pyqi install documentation, substituting ``biom`` for ``my-project`` and ``my_project`` in all commands. After completing those steps and closing and re-opening your terminal, auto-completion should be enabled.
 
+BIOM format in R
+=======================
+
+There is also a BIOM-format package for R, called ``biom``. This package includes basic tools for reading biom-format files, accessing and subsetting data tables from a biom object, as well as limited support for writing a biom-object back to a biom-format file. The design of this API is intended to match the python API and other tools included with the biom-format project, but with a decidedly "R flavor" that should be familiar to R users. This includes S4 classes and methods, as well as extensions of common core functions/methods.
+
+To install the latest stable release of the biom package enter the following command from within an R session::
+
+	install.packages("biom")
+
+To install the latest development version of the biom package, enter the following lines in an R session::
+
+	install.packages("devtools") # if not already installed
+	library("devtools")
+	install_github("biom", "joey711")
+
+Please post any support or feature requests and bugs to `the biom issue tracker <https://github.com/joey711/biom/issues>`_.
+
+See `the biom project on GitHub <https://github.com/joey711/biom/>`_ for further details, or if you would like to contribute.
+
+Note that the licenses between the biom R package (GPL-2) and some of the other biom-format software are different.
+
 Citing the BIOM project
 =======================
 
