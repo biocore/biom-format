@@ -91,11 +91,11 @@ BIOM format in R
 
 There is also a BIOM-format package for R, called ``biom``. This package includes basic tools for reading biom-format files, accessing and subsetting data tables from a biom object, as well as limited support for writing a biom-object back to a biom-format file. The design of this API is intended to match the python API and other tools included with the biom-format project, but with a decidedly "R flavor" that should be familiar to R users. This includes S4 classes and methods, as well as extensions of common core functions/methods.
 
-To install the latest stable release of the biom package enter the following command from within an R session:
+To install the latest stable release of the biom package enter the following command from within an R session::
 
 	install.packages("biom")
 
-To install the latest development version of the biom package, enter the following lines in an R session:
+To install the latest development version of the biom package, enter the following lines in an R session::
 
 	install.packages("devtools") # if not already installed
 	library("devtools")
