@@ -1713,7 +1713,6 @@ class SparseTable(Table):
     def _iter_obs(self):
         """Return observation vectors of data matrix"""
         for r in range(self._data.shape[0]):
-            #yield self._data[r,:]
             yield self._data.getRow(r)
 
     def getTableDensity(self):
