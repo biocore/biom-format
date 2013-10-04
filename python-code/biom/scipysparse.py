@@ -187,62 +187,62 @@ class ScipySparseMat(object):
             return self._matrix[row,col]
 
 
-def to_csmat(values, transpose=False, dtype=float):
-    """Tries to returns a populated CSMat object
+def to_scipy(values, transpose=False, dtype=float):
+    """Try to return a populated ScipySparseMat object.
 
     NOTE: assumes the max value observed in row and col defines the size of the
-    matrix
+    matrix.
     """
     # if it is a vector
     if isinstance(values, ndarray) and len(values.shape) == 1:
         if transpose:
-            mat = nparray_to_csmat(values[:,newaxis], dtype)
+            mat = nparray_to_scipy(values[:,newaxis], dtype)
         else:
-            mat = nparray_to_csmat(values, dtype)
+            mat = nparray_to_scipy(values, dtype)
         return mat
     if isinstance(values, ndarray):
         if transpose:
-            mat = nparray_to_csmat(values.T, dtype)
+            mat = nparray_to_scipy(values.T, dtype)
         else:
-            mat = nparray_to_csmat(values, dtype)
+            mat = nparray_to_scipy(values, dtype)
         return mat
     # the empty list
     elif isinstance(values, list) and len(values) == 0:
-        mat = CSMat(0,0)
-        return mat
+        # TODO: won't work (scipy raises ValueError)
+        return ScipySparseMat(0, 0)
     # list of np vectors
     elif isinstance(values, list) and isinstance(values[0], ndarray):
-        mat = list_nparray_to_csmat(values, dtype)
+        mat = list_nparray_to_scipy(values, dtype)
         if transpose:
             mat = mat.T
         return mat
     # list of dicts, each representing a row in row order
     elif isinstance(values, list) and isinstance(values[0], dict):
-        mat = list_dict_to_csmat(values, dtype)
+        mat = list_dict_to_scipy(values, dtype)
         if transpose:
             mat = mat.T
         return mat
-    # list of csmat, each representing a row in row order
-    elif isinstance(values, list) and isinstance(values[0], CSMat):
-        mat = list_csmat_to_csmat(values,dtype)
+    # list of ScipySparseMats, each representing a row in row order
+    elif isinstance(values, list) and isinstance(values[0], ScipySparseMat):
+        mat = list_scipy_to_scipy(values, dtype)
         if transpose:
             mat = mat.T
         return mat
     elif isinstance(values, dict):
-        mat = dict_to_csmat(values, dtype)
+        mat = dict_to_scipy(values, dtype)
         if transpose:
             mat = mat.T
         return mat
-    elif isinstance(values, CSMat):
+    elif isinstance(values, ScipySparseMat):
         mat = values
         if transpose:
             mat = mat.T
         return mat
     else:
-        raise TableException, "Unknown input type"
-        
-def list_list_to_csmat(data, dtype=float, shape=None):
-    """Convert a list of lists into a CSMat
+        raise TableException("Unknown input type")
+
+def list_list_to_scipy(data, dtype=float, shape=None):
+    """Convert a list of lists into a ScipySparseMat.
 
     [[row, col, value], ...]
     """
@@ -254,56 +254,68 @@ def list_list_to_csmat(data, dtype=float, shape=None):
     else:
         n_rows, n_cols = shape
 
-    mat = CSMat(n_rows, n_cols)
-    mat.bulkCOOUpdate(rows, cols, values)
-    return mat
+    # TODO: the CSMat code doesn't respect dtype. Should we pass it here?
+    return ScipySparseMat(n_rows, n_cols, data=(values,(rows,cols)))
 
-def nparray_to_csmat(data, dtype=float):
-    """Convert a numpy array to a CSMat"""
-    rows = []
-    cols = []
-    vals = []
-
+def nparray_to_scipy(data, dtype=float):
+    """Convert a numpy array to a ScipySparseMat."""
     if len(data.shape) == 1:
-        mat = CSMat(1, data.shape[0], dtype=dtype)
-        for col_idx, val in enumerate(data):
-            if val != 0:
-                rows.append(0)
-                cols.append(col_idx)
-                vals.append(val)
+        shape = (1, data.shape[0])
     else:
-        mat = CSMat(*data.shape, dtype=dtype)
-        for row_idx, row in enumerate(data):
-            for col_idx, value in enumerate(row):
-                if value != 0:
-                    rows.append(row_idx)
-                    cols.append(col_idx)
-                    vals.append(value)
-    mat.bulkCOOUpdate(rows, cols, vals)
-    return mat
+        shape = data.shape
 
-def list_nparray_to_csmat(data, dtype=float):
-    """Takes a list of numpy arrays and creates a csmat"""
-    mat = CSMat(len(data), len(data[0]),dtype=dtype)
+    return ScipySparseMat(*shape, dtype=dtype, data=data)
+
+def list_nparray_to_scipy(data, dtype=float):
+    """Takes a list of numpy arrays and creates a ScipySparseMat."""
+    return ScipySparseMat(len(data), len(data[0]), dtype=dtype, data=data)
+
+def list_scipy_to_scipy(data, dtype=float):
+    """Takes a list of ScipySparseMats and creates a ScipySparseMat."""
+    if isinstance(data[0], ScipySparseMat):
+        if data[0].shape[0] > data[0].shape[1]:
+            is_col = True
+            n_cols = len(data)
+            n_rows = data[0].shape[0]
+        else:
+            is_col = False
+            n_rows = len(data)
+            n_cols = data[0].shape[1]
+    else:
+        # TODO: Is this needed here? I thought this was supposed to take a list
+        # of sparse matrices, not a list of dicts.
+        all_keys = flatten([d.keys() for d in data])
+        n_rows = max(all_keys, key=itemgetter(0))[0] + 1
+        n_cols = max(all_keys, key=itemgetter(1))[1] + 1
+        if n_rows > n_cols:
+            is_col = True
+            n_cols = len(data)
+        else:
+            is_col = False
+            n_rows = len(data)
+
     rows = []
     cols = []
-    values = []
-    for row_idx, row in enumerate(data):
-        if len(row.shape) != 1:
-            raise TableException, "Cannot convert non-1d vectors!"
-        if len(row) != mat.shape[1]:
-            raise TableException, "Row vector isn't the correct length!"
+    vals = []
+    for row_idx,row in enumerate(data):
+        # TODO: items() is inefficient. Should use iteritems().
+        for (foo,col_idx),val in row.items():
+            if is_col:
+                # transpose
+                rows.append(foo)
+                cols.append(row_idx)
+                vals.append(val)
+            else:
+                rows.append(row_idx)
+                cols.append(col_idx)
+                vals.append(val)
 
-        for col_idx, val in enumerate(row):
-            rows.append(row_idx)
-            cols.append(col_idx)
-            values.append(val)
-    mat.bulkCOOUpdate(rows, cols, values)
-    return mat
+    return ScipySparseMat(n_rows, n_cols, dtype=dtype, data=(vals,(rows,cols)))
 
-def list_csmat_to_csmat(data, dtype=float):
-    """Takes a list of CSMats and creates a CSMat"""
-    if isinstance(data[0], CSMat):
+# TODO: this seems like the same function as above
+def list_dict_to_scipy(data, dtype=float):
+    """Takes a list of dict {(row,col):val} and creates a ScipySparseMat."""
+    if isinstance(data[0], ScipySparseMat):
         if data[0].shape[0] > data[0].shape[1]:
             is_col = True
             n_cols = len(data)
@@ -323,11 +335,9 @@ def list_csmat_to_csmat(data, dtype=float):
             is_col = False
             n_rows = len(data)
 
-    mat = CSMat(n_rows, n_cols, dtype=dtype)
     rows = []
     cols = []
     vals = []
-
     for row_idx,row in enumerate(data):
         for (foo,col_idx),val in row.items():
             if is_col:
@@ -339,64 +349,22 @@ def list_csmat_to_csmat(data, dtype=float):
                 rows.append(row_idx)
                 cols.append(col_idx)
                 vals.append(val)
-    mat.bulkCOOUpdate(rows, cols, vals) 
-    return mat
-    
-def list_dict_to_csmat(data, dtype=float):
-    """Takes a list of dict {(0,col):val} and creates a CSMat"""
-    if isinstance(data[0], CSMat):
-        if data[0].shape[0] > data[0].shape[1]:
-            is_col = True
-            n_cols = len(data)
-            n_rows = data[0].shape[0]
-        else:
-            is_col = False
-            n_rows = len(data)
-            n_cols = data[0].shape[1]
-    else:
-        all_keys = flatten([d.keys() for d in data])
-        n_rows = max(all_keys, key=itemgetter(0))[0] + 1
-        n_cols = max(all_keys, key=itemgetter(1))[1] + 1
-        if n_rows > n_cols:
-            is_col = True
-            n_cols = len(data)
-        else:
-            is_col = False
-            n_rows = len(data)
 
-    mat = CSMat(n_rows, n_cols, dtype=dtype)
-    rows = []
-    cols = []
-    vals = []
+    return ScipySparseMat(n_rows, n_cols, dtype=dtype, data=(vals,(rows,cols)))
 
-    for row_idx,row in enumerate(data):
-        for (foo,col_idx),val in row.items():
-            if is_col:
-                # transpose
-                rows.append(foo)
-                cols.append(row_idx)
-                vals.append(val)
-            else:
-                rows.append(row_idx)
-                cols.append(col_idx)
-                vals.append(val)
-    
-    mat.bulkCOOUpdate(rows, cols, vals)
-    return mat
-
-def dict_to_csmat(data, dtype=float):
-    """takes a dict {(row,col):val} and creates a CSMat"""
+def dict_to_scipy(data, dtype=float):
+    """Takes a dict {(row,col):val} and creates a ScipySparseMat."""
+    # TODO: this shape inferring code should be centralized somewhere. It is
+    # heavily duplicated.
     n_rows = max(data.keys(), key=itemgetter(0))[0] + 1
     n_cols = max(data.keys(), key=itemgetter(1))[1] + 1
-    mat = CSMat(n_rows, n_cols,dtype=dtype)
+
     rows = []
     cols = []
     vals = []
-
     for (r,c),v in data.items():
         rows.append(r)
         cols.append(c)
         vals.append(v)
 
-    mat.bulkCOOUpdate(rows, cols, vals)
-    return mat
+    return ScipySparseMat(n_rows, n_cols, dtype=dtype, data=(vals,(rows,cols)))
