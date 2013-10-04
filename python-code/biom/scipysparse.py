@@ -40,6 +40,8 @@ class ScipySparseMat(object):
                 # check_format()?
                 self._matrix = coo_matrix(data, shape=(num_rows, num_cols),
                                           dtype=dtype)
+                self.convert('csr')
+                self._matrix.eliminate_zeros()
 
     def _is_empty(self):
         return self._matrix is None
@@ -255,7 +257,6 @@ def to_scipy(values, transpose=False, dtype=float):
         return mat
     # the empty list
     elif isinstance(values, list) and len(values) == 0:
-        # TODO: won't work (scipy raises ValueError)
         return ScipySparseMat(0, 0)
     # list of np vectors
     elif isinstance(values, list) and isinstance(values[0], ndarray):
