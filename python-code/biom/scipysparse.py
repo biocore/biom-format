@@ -14,6 +14,8 @@ from scipy.sparse import coo_matrix
 
 class ScipySparseMat(object):
     def __init__(self, num_rows, num_cols, dtype=float, data=None):
+        # TODO: possible optimization is to allow data to be a preexisting
+        # scipy.sparse matrix.
         self.shape = (num_rows, num_cols)
         self.dtype = dtype
 
@@ -23,6 +25,7 @@ class ScipySparseMat(object):
             # TODO: coo_matrix allows zeros to be added as data, and this
             # affects nnz! May want some sanity checks, or make our nnz smarter
             # (e.g., use nonzero() instead, which does seem to work correctly.
+            # Or can possibly use eliminate_zeros() or check_format()?
             self._matrix = coo_matrix(data, shape=self.shape, dtype=self.dtype)
 
     def _get_format(self):
@@ -34,110 +37,60 @@ class ScipySparseMat(object):
         return self._matrix.nnz
     size = property(_get_size)
 
-    def transpose(self):
-        """Return a transposed copy of self."""
-        # TODO: return the correct type!
-        return self._matrix.transpose(copy=True)
-    T = property(transpose)
-
     def convert(self, fmt=None):
+        """If ``fmt`` is ``None`` or we're already in the specified format, do nothing."""
         self._matrix = self._matrix.asformat(fmt)
 
+    def transpose(self):
+        """Return a transposed copy of self."""
+        transposed = self.__class__(self.shape[1], self.shape[0],
+                                    dtype=self.dtype)
+        transposed._matrix = self._matrix.transpose(copy=True)
+        return transposed
+    T = property(transpose)
+
     def getRow(self, row_idx):
-        if row_idx >= self.shape[0] or row_idx < 0:
+        num_rows, num_cols = self.shape
+
+        if row_idx >= num_rows or row_idx < 0:
             raise IndexError("Row index %d is out of bounds." % row_idx)
 
-        n_rows, n_cols = self.shape
         self.convert('csr')
 
-        row_vector = self.__class__(1, n_cols, dtype=self.dtype)
-        row_vector._matrix = self._matrix[row_idx]
+        row_vector = self.__class__(1, num_cols, dtype=self.dtype)
+        row_vector._matrix = self._matrix.getrow(row_idx)
 
         return row_vector
 
-    def getCol(self, col):
-        """Return a col in CSMat form"""
-        if col >= self.shape[1] or col < 0:
-            raise IndexError, "Col %d is out of bounds!" % col
+    def getCol(self, col_idx):
+        num_rows, num_cols = self.shape
 
-        if self.hasUpdates():
-            self.absorbUpdates()
+        if col_idx >= num_cols or col_idx < 0:
+            raise IndexError("Column index %d is out of bounds." % col_idx)
 
-        n_rows,n_cols = self.shape
-        v = self.__class__(n_rows, 1, dtype=self.dtype)
+        self.convert('csc')
 
-        if self._order != "csc":
-            self.convert("csc")
+        col_vector = self.__class__(num_rows, 1, dtype=self.dtype)
+        col_vector._matrix = self._matrix.getcol(col_idx)
 
-        start = self._pkd_ax[col]
-        stop = self._pkd_ax[col + 1]
-        n_vals = stop - start
-
-        v._coo_cols = [uint32(0)] * n_vals
-        v._coo_rows = list(self._unpkd_ax[start:stop])
-        v._coo_values = list(self._values[start:stop])
-
-        return v
+        return col_vector
 
     def items(self):
-        """returns [((r,c),v)]"""
-        if self.hasUpdates():
-            self.absorbUpdates()
-
-        last = 0
-        res = []
-        if self._order == 'csr':
-            for row,i in enumerate(self._pkd_ax[1:]):
-                for col,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
-                    res.append(((row,col),val))
-                last = i
-        elif self._order == 'csc':
-            for col,i in enumerate(self._pkd_ax[1:]):
-                for row,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
-                    res.append(((row,col),val))
-                last = i
-        else:
-            for r,c,v in izip(self._coo_rows, self._coo_cols, self._coo_values):
-                res.append(((r,c),v))
-        return res
+        """Returns [((r,c),v)]. No guaranteed ordering!"""
+        return list(self.iteritems())
 
     def iteritems(self):
-        """Generator returning ((r,c),v)"""
-        if self.hasUpdates():
-            self.absorbUpdates()
+        """Generator returning ((r,c),v). No guaranteed ordering!"""
+        self.convert('coo')
 
-        last = 0
-        if self._order == 'csr':
-            for row,i in enumerate(self._pkd_ax[1:]):
-                for col,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
-                    yield ((row,col),val)
-                last = i
-        elif self._order == 'csc':
-            for col,i in enumerate(self._pkd_ax[1:]):
-                for row,val in izip(self._unpkd_ax[last:i],self._values[last:i]):
-                    yield ((row,col),val)
-                last = i
-        else:
-            for r,c,v in izip(self._coo_rows, self._coo_cols, self._coo_values):
-                yield ((r,c),v)
-
-    def __contains__(self, args):
-        """Return True if args are in self, false otherwise"""
-        if self._getitem(args) == (None, None, None):
-            return False
-        else:
-            return True
+        for r, c, v in izip(self._matrix.row, self._matrix.col,
+                            self._matrix.data):
+            yield (r, c), v
 
     def copy(self):
-        """Return a copy of self"""
+        """Return a deep copy of self."""
         new_self = self.__class__(*self.shape, dtype=self.dtype)
-        new_self._coo_rows = self._coo_rows[:]
-        new_self._coo_cols = self._coo_cols[:]
-        new_self._coo_values = self._coo_values[:]
-        new_self._pkd_ax = self._pkd_ax.copy()
-        new_self._unpkd_ax = self._unpkd_ax.copy()
-        new_self._values = self._values.copy()
-        new_self._order = self._order[:]
+        new_self._matrix = self._matrix.copy()
         return new_self
 
     def __eq__(self, other):
