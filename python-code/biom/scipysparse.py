@@ -22,44 +22,71 @@ class ScipySparseMat(object):
     """Based on CSMat implementation by Daniel McDonald."""
 
     def __init__(self, num_rows, num_cols, dtype=float, data=None):
-        # TODO: possible optimization is to allow data to be a preexisting
-        # scipy.sparse matrix.
-        if data is None:
-            self._matrix = coo_matrix((num_rows, num_cols), dtype=dtype)
+        # I hate myself for having the empty special case throughout the
+        # code... makes it much less elegant. However, scipy doesn't support
+        # empty sparse matrices, but we do...
+        if num_rows == 0 and num_cols == 0:
+            self._matrix = None
         else:
-            # TODO: coo_matrix allows zeros to be added as data, and this
-            # affects nnz! May want some sanity checks, or make our nnz smarter
-            # (e.g., use nonzero() instead, which does seem to work correctly.
-            # Or can possibly use eliminate_zeros() or check_format()?
-            self._matrix = coo_matrix(data, shape=(num_rows, num_cols),
-                                      dtype=dtype)
+            # TODO: possible optimization is to allow data to be a preexisting
+            # scipy.sparse matrix.
+            if data is None:
+                self._matrix = coo_matrix((num_rows, num_cols), dtype=dtype)
+            else:
+                # TODO: coo_matrix allows zeros to be added as data, and this
+                # affects nnz! May want some sanity checks, or make our nnz
+                # smarter (e.g., use nonzero() instead, which does seem to work
+                # correctly. Or can possibly use eliminate_zeros() or
+                # check_format()?
+                self._matrix = coo_matrix(data, shape=(num_rows, num_cols),
+                                          dtype=dtype)
+
+    def _is_empty(self):
+        return self._matrix is None
+    is_empty = property(_is_empty)
 
     def _get_shape(self):
-        return self._matrix.shape
+        if self.is_empty:
+            return 0,0
+        else:
+            return self._matrix.shape
     shape = property(_get_shape)
 
     def _get_dtype(self):
-        return self._matrix.dtype
+        if self.is_empty:
+            return None
+        else:
+            return self._matrix.dtype
     dtype = property(_get_dtype)
 
     def _get_format(self):
-        return self._matrix.getformat()
+        if self.is_empty:
+            return None
+        else:
+            return self._matrix.getformat()
     fmt = property(_get_format)
 
     def _get_size(self):
         """Return the number of non-zero elements (NNZ)."""
-        return self._matrix.nnz
+        if self.is_empty:
+            return 0
+        else:
+            return self._matrix.nnz
     size = property(_get_size)
 
     def convert(self, fmt=None):
         """If ``fmt`` is ``None`` or we're already in the specified format, do nothing."""
-        self._matrix = self._matrix.asformat(fmt)
+        if not self.is_empty:
+            self._matrix = self._matrix.asformat(fmt)
 
     def transpose(self):
         """Return a transposed copy of self."""
         transposed = self.__class__(self.shape[1], self.shape[0],
                                     dtype=self.dtype)
-        transposed._matrix = self._matrix.transpose(copy=True)
+
+        if not self.is_empty:
+            transposed._matrix = self._matrix.transpose(copy=True)
+
         return transposed
     T = property(transpose)
 
@@ -95,16 +122,20 @@ class ScipySparseMat(object):
 
     def iteritems(self):
         """Generator yielding ((r,c),v). No guaranteed ordering!"""
-        self.convert('coo')
+        if not self.is_empty:
+            self.convert('coo')
 
-        for r, c, v in izip(self._matrix.row, self._matrix.col,
-                            self._matrix.data):
-            yield (r, c), v
+            for r, c, v in izip(self._matrix.row, self._matrix.col,
+                                self._matrix.data):
+                yield (r, c), v
 
     def copy(self):
         """Return a deep copy of self."""
         new_self = self.__class__(*self.shape, dtype=self.dtype)
-        new_self._matrix = self._matrix.copy()
+
+        if not self.is_empty:
+            new_self._matrix = self._matrix.copy()
+
         return new_self
 
     def __eq__(self, other):
@@ -133,13 +164,14 @@ class ScipySparseMat(object):
         if self.size != other.size:
             return False
 
-        self.convert('csr')
-        other.convert('csr')
+        if not self.is_empty:
+            self.convert('csr')
+            other.convert('csr')
 
-        # From http://mail.scipy.org/pipermail/scipy-user/2008-April/016276.html
-        # TODO: Do we need abs here?
-        if (self._matrix - other._matrix).nnz > 0:
-            return False
+            # From http://mail.scipy.org/pipermail/scipy-user/2008-April/016276.html
+            # TODO: Do we need abs here?
+            if (self._matrix - other._matrix).nnz > 0:
+                return False
 
         return True
 
@@ -148,9 +180,15 @@ class ScipySparseMat(object):
         return not (self == other)
 
     def __str__(self):
-        return str(self._matrix)
+        if self.is_empty:
+            return '<0x0 sparse matrix>'
+        else:
+            return str(self._matrix)
 
     def __setitem__(self, args, value):
+        if self.is_empty:
+            raise IndexError("Cannot set an element on a 0x0 matrix.")
+
         try:
             row, col = args
         except:
@@ -170,6 +208,9 @@ class ScipySparseMat(object):
 
     def __getitem__(self, args):
         """Handles slices."""
+        if self.is_empty:
+            raise IndexError("Cannot retrieve an element from a 0x0 matrix.")
+
         try:
             row, col = args
         except:
