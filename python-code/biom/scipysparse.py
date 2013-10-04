@@ -3,7 +3,7 @@ from __future__ import division
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2013, BIOM-Format Project"
-__credits__ = ["Jai Ram Rideout"]
+__credits__ = ["Jai Ram Rideout", "Daniel McDonald"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
@@ -13,6 +13,8 @@ __email__ = "jai.rideout@gmail.com"
 from scipy.sparse import coo_matrix
 
 class ScipySparseMat(object):
+    """Based on CSMat implementation by Daniel McDonald."""
+
     def __init__(self, num_rows, num_cols, dtype=float, data=None):
         # TODO: possible optimization is to allow data to be a preexisting
         # scipy.sparse matrix.
@@ -134,300 +136,50 @@ class ScipySparseMat(object):
         return not (self == other)
 
     def __str__(self):
-        """dump priv data"""
-        l = []
-        l.append(self._order)
-        l.append("_coo_values\t" + '\t'.join(map(str, self._coo_values)))
-        l.append("_coo_rows\t" + '\t'.join(map(str, self._coo_rows)))
-        l.append("_coo_cols\t" + '\t'.join(map(str, self._coo_cols)))
-        l.append("_values\t" + '\t'.join(map(str, self._values)))
-        l.append("_pkd_ax\t" + '\t'.join(map(str, self._pkd_ax)))
-        l.append("_unpkd_ax\t" + '\t'.join(map(str, self._unpkd_ax)))
-        return '\n'.join(l)
+        return str(self._matrix)
 
-    def __setitem__(self,args,value):
-        """Wrap setitem, complain if out of bounds"""
+    def __setitem__(self, args, value):
         try:
-            row,col = args
+            row, col = args
         except:
-            # fast support foo[5] = 10, like numpy 1d vectors
-            col = args
-            row = 0
-            args = (row,col)
+            raise IndexError("Must specify the row and column of the element "
+                             "to be set.")
 
-        if row >= self.shape[0]:
-            raise IndexError, "Row %d is out of bounds!" % row
-        if col >= self.shape[1]:
-            raise IndexError, "Col %d is out of bounds!" % col
-
+        self.convert('csr')
         if value == 0:
-            if args in self:
+            # TODO: we can support this, but need to watch out for efficiency
+            # issues and nnz.
+            if self._matrix[row,col] != 0:
                 raise ValueError("Cannot set an existing non-zero element to "
                                  "zero.")
         else:
-            res = self._getitem(args)
-            if res == (None, None, None):
-                self._coo_rows.append(row)
-                self._coo_cols.append(col)
-                self._coo_values.append(value)
-            else:
-                if self._order == "coo":
-                    self._coo_values[res[0]] = value
-                else:
-                    self._values[res[-1]] = value
+            # TODO: may be inefficient for csr/csc (use lil or dok instead?).
+            self._matrix[row,col] = value
 
-    def __getitem__(self,args):
-        """Wrap getitem to handle slices"""
+    def __getitem__(self, args):
+        """Handles slices."""
         try:
-            row,col = args
-        except TypeError:
-            raise IndexError, "Must specify (row, col)"
+            row, col = args
+        except:
+            raise IndexError("Must specify (row, col).")
 
-        if isinstance(row, slice): 
+        if isinstance(row, slice) and isinstance(col, slice):
+            raise IndexError("Can only slice a single axis.")
+
+        if isinstance(row, slice):
             if row.start is None and row.stop is None:
                 return self.getCol(col)
             else:
-                raise AttributeError, "Can only handle full : slices per axis"
+                raise IndexError("Can only handle full : slices per axis.")
         elif isinstance(col, slice):
             if col.start is None and col.stop is None:
                 return self.getRow(row)
             else:
-                raise AttributeError, "Can only handle full : slices per axis"
+                raise IndexError("Can only handle full : slices per axis.")
         else:
-            if row >= self.shape[0] or row < 0:
-                raise IndexError, "Row out of bounds!"
-            if col >= self.shape[1] or col < 0:
-                raise IndexError, "Col out of bounds!"
+            self.convert('csr')
+            return self._matrix[row,col]
 
-            res = self._getitem(args)
-            if res == (None,None,None):
-                return self.dtype(0)
-            else:
-                if self._order == 'coo':
-                    return self._coo_values[res[0]]
-                else:
-                    return self._values[res[-1]]
-                
-        return self.dtype(0)
-
-    def _getitem(self, args):
-        """Mine for an item
-        
-        if order is csc | csr, returns
-        pkd_ax_idx, unpkd_ax_idx, values_idx 
-
-        if order is coo, returns
-        rows_idx, cols_idx, values_idx (all the same thing...)
-        """
-        if self.hasUpdates():
-            self.absorbUpdates()
-
-        row,col = args
-        if self._order == 'csr':
-            start = self._pkd_ax[row]
-            stop = self._pkd_ax[row+1]
-            for i,c in enumerate(self._unpkd_ax[start:stop]):
-                if c == col:
-                    return (row, start+i, start+i)
-
-        elif self._order == 'csc':
-            start = self._pkd_ax[col]
-            stop = self._pkd_ax[col+1]
-            for i,r in enumerate(self._unpkd_ax[start:stop]):
-                if r == row:
-                    return (start+i, col, start+i)
-
-        elif self._order == "coo":
-            # O(N) naive... but likely not a major use case
-            idx = 0
-            for (r,c) in izip(self._coo_rows, self._coo_cols):
-                if r == row and c == col:
-                    return (idx, idx, idx)
-                idx += 1
-        else:
-            raise ValueError, "Unknown matrix type: %s" % self._order
-
-        return (None, None, None)
-
-    def _buildCSfromCS(self):
-        """Convert csc <-> csr"""
-        expanded = self._expand_compressed(self._pkd_ax)
-        if self._order == "csr":
-            csc = self._toCSC(expanded, self._unpkd_ax, self._values)
-            self._pkd_ax, self._unpkd_ax, self._values = csc 
-            self._order = "csc"
-
-        elif self._order == "csc":
-            csr = self._toCSR(self._unpkd_ax, expanded, self._values)
-            self._pkd_ax, self._unpkd_ax, self._values = csr
-            self._order = "csr"
-
-    def _expand_compressed(self, pkd_ax):
-        """Expands packed axis"""
-        expanded = zeros(pkd_ax[-1], dtype=uint32)
-        last_idx = 0
-        pos = uint32(0)
-        for idx in pkd_ax[1:]:
-            expanded[last_idx:idx] = pos
-            pos += 1
-            last_idx = idx
-        return expanded
-            
-    def _buildCOOfromCS(self):
-        """Constructs a COO representation from CSC or CSR
-        
-        Invalidates existing CSC or CSR representation
-        """
-        coo = self._toCOO(self._pkd_ax,self._unpkd_ax,self._values,self._order)
-        coo_rows, coo_cols, coo_values = coo
-        self._coo_rows.extend(coo_rows)
-        self._coo_cols.extend(coo_cols)
-        self._coo_values.extend(coo_values)
-
-        self._values = array([], dtype=self.dtype)
-        self._pkd_ax = array([], dtype=uint32)
-        self._unpkd_ax = array([], dtype=uint32)
-        
-        self._order = "coo"
-
-    def _toCOO(self, pkd_ax, unpkd_ax, values, current_order):
-        """Returns rows, cols, values"""
-        coo_values = list(values)
-        expanded_ax = list(self._expand_compressed(pkd_ax))
-        
-        if current_order == 'csr':
-            coo_cols = list(unpkd_ax)
-            coo_rows = expanded_ax
-
-        elif current_order == 'csc':
-            coo_rows = list(unpkd_ax)
-            coo_cols = expanded_ax
-        else:
-            raise ValueError, "Unknown order: %s" % order
-
-        return (coo_rows, coo_cols, coo_values)
-        
-    def _buildCSfromCOO(self, order):
-        """Build a sparse representation
-
-        order is either csc or csr
-
-        Returns instantly if is stable, throws ValueError if the sparse rep
-        is already built
-        """
-        if order == 'csr':
-            csr = self._toCSR(self._coo_rows, self._coo_cols, self._coo_values)
-            self._pkd_ax, self._unpkd_ax, self._values = csr
-        elif order == 'csc':
-            csc = self._toCSC(self._coo_rows, self._coo_cols, self._coo_values)
-            self._pkd_ax, self._unpkd_ax, self._values = csc 
-        else:
-            raise ValueError, "Unknown order: %s" % order
-
-        self._coo_rows = []
-        self._coo_cols = []
-        self._coo_values = []
-        self._order = order
-
-    def _toCSR(self, rows, cols, values):
-        """Returns packed_axis, unpacked_axis and values"""
-        values = array(values, dtype=self.dtype)
-        unpkd_ax = array(cols, dtype=uint32)
-        tmp_rows = array(rows, dtype=uint32)
-
-        order = argsort(tmp_rows)
-        values = values.take(order)
-        tmp_rows = tmp_rows.take(order)
-        unpkd_ax = unpkd_ax.take(order)
-
-        v_last = -1
-        pkd_ax = []
-        pos = 0
-        p_last = 0
-        expected_row_idx = 0
-
-        # determine starting values idx for each row
-        # sort values and columns within each row
-        for v in tmp_rows:
-            if v != v_last:
-                pkd_ax.append(pos)
-
-                # Determine if we skipped any rows (i.e. we have empty rows).
-                # Copy the last row's index for all empty rows.
-                num_empty_rows = v - expected_row_idx
-                if num_empty_rows > 0:
-                    pkd_ax.extend([pkd_ax[-1]] * num_empty_rows)
-                expected_row_idx = v + 1
-
-                col_order = argsort(unpkd_ax[p_last:pos])
-                unpkd_ax[p_last:pos] = unpkd_ax[p_last:pos].take(col_order)
-                values[p_last:pos] = values[p_last:pos].take(col_order)
-                v_last = v
-                p_last = pos
-            pos += 1
-        # catch last column sort    
-        col_order = argsort(unpkd_ax[p_last:pos])
-        unpkd_ax[p_last:pos] = unpkd_ax[p_last:pos].take(col_order)
-        values[p_last:pos] = values[p_last:pos].take(col_order)
-        
-        pkd_ax.append(pos)
-
-        num_trailing_rows = self.shape[0] - expected_row_idx
-        if num_trailing_rows > 0:
-            pkd_ax.extend([pkd_ax[-1]] * num_trailing_rows)
-
-        pkd_ax = array(pkd_ax, dtype=uint32)
-
-        return (pkd_ax, unpkd_ax, values)
-
-    def _toCSC(self, rows, cols, values):
-        """Returns packed_axis, unpacked_axis, values"""
-        values = array(values, dtype=self.dtype)
-        unpkd_ax = array(rows, dtype=uint32)
-        tmp_cols = array(cols, dtype=uint32)
-
-        order = argsort(tmp_cols)
-        values = values.take(order)
-        tmp_cols = tmp_cols.take(order)
-        unpkd_ax = unpkd_ax.take(order)
-
-        v_last = -1
-        pkd_ax = []
-        pos = 0
-        p_last = 0
-        expected_col_idx = 0
-
-        ### gotta be something in numpy that does this...
-        for v in tmp_cols:
-            if v != v_last:
-                pkd_ax.append(pos)
-
-                num_empty_cols = v - expected_col_idx
-                if num_empty_cols > 0:
-                    pkd_ax.extend([pkd_ax[-1]] * num_empty_cols)
-                expected_col_idx = v + 1
-
-                row_order = argsort(unpkd_ax[p_last:pos])
-                unpkd_ax[p_last:pos] = unpkd_ax[p_last:pos].take(row_order)
-                values[p_last:pos] = values[p_last:pos].take(row_order)
-                v_last = v
-                p_last = pos
-            pos += 1
-        
-        # catch last row sort
-        row_order = argsort(unpkd_ax[p_last:pos])
-        unpkd_ax[p_last:pos] = unpkd_ax[p_last:pos].take(row_order)
-        values[p_last:pos] = values[p_last:pos].take(row_order)
-
-        pkd_ax.append(pos)
-
-        num_trailing_cols = self.shape[1] - expected_col_idx
-        if num_trailing_cols > 0:
-            pkd_ax.extend([pkd_ax[-1]] * num_trailing_cols)
-
-        pkd_ax = array(pkd_ax, dtype=uint32)
-
-        return (pkd_ax, unpkd_ax, values)
 
 def to_csmat(values, transpose=False, dtype=float):
     """Tries to returns a populated CSMat object
