@@ -33,11 +33,12 @@ class ScipySparseMat(object):
             if data is None:
                 self._matrix = coo_matrix((num_rows, num_cols), dtype=dtype)
             else:
-                # TODO: coo_matrix allows zeros to be added as data, and this
-                # affects nnz! May want some sanity checks, or make our nnz
-                # smarter (e.g., use nonzero() instead, which does seem to work
-                # correctly. Or can possibly use eliminate_zeros() or
-                # check_format()?
+                # coo_matrix allows zeros to be added as data, and this affects
+                # nnz, items, and iteritems. Clean them out here, as this is
+                # the only time these zeros can creep in.
+                # TODO: do we also want to handle duplicate entries? coo_matrix
+                # allows for this, and the entries will be summed when
+                # converted, which could be misleading/wrong...
                 self._matrix = coo_matrix(data, shape=(num_rows, num_cols),
                                           dtype=dtype)
                 self.convert('csr')
@@ -77,7 +78,11 @@ class ScipySparseMat(object):
     size = property(_get_size)
 
     def convert(self, fmt=None):
-        """If ``fmt`` is ``None`` or we're already in the specified format, do nothing."""
+        """
+
+        If ``fmt`` is ``None`` or we're already in the specified format, do
+        nothing.
+        """
         if not self.is_empty:
             self._matrix = self._matrix.asformat(fmt)
 
@@ -197,7 +202,7 @@ class ScipySparseMat(object):
             raise IndexError("Must specify the row and column of the element "
                              "to be set.")
 
-        self.convert('csr')
+        self.convert('lil')
         if value == 0:
             # TODO: we can support this, but need to watch out for efficiency
             # issues and nnz.
@@ -205,7 +210,6 @@ class ScipySparseMat(object):
                 raise ValueError("Cannot set an existing non-zero element to "
                                  "zero.")
         else:
-            # TODO: may be inefficient for csr/csc (use lil or dok instead?).
             self._matrix[row,col] = value
 
     def __getitem__(self, args):
