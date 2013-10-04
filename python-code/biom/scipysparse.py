@@ -10,7 +10,13 @@ __version__ = "1.2.0-dev"
 __maintainer__ = "Jai Ram Rideout"
 __email__ = "jai.rideout@gmail.com"
 
+from itertools import izip
+from operator import itemgetter
+
+from numpy import ndarray
 from scipy.sparse import coo_matrix
+
+from biom.util import flatten
 
 class ScipySparseMat(object):
     """Based on CSMat implementation by Daniel McDonald."""
