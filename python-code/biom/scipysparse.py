@@ -76,11 +76,11 @@ class ScipySparseMat(object):
         return col_vector
 
     def items(self):
-        """Returns [((r,c),v)]. No guaranteed ordering!"""
+        """Return [((r,c),v)]. No guaranteed ordering!"""
         return list(self.iteritems())
 
     def iteritems(self):
-        """Generator returning ((r,c),v). No guaranteed ordering!"""
+        """Generator yielding ((r,c),v). No guaranteed ordering!"""
         self.convert('coo')
 
         for r, c, v in izip(self._matrix.row, self._matrix.col,
@@ -94,43 +94,43 @@ class ScipySparseMat(object):
         return new_self
 
     def __eq__(self, other):
-        """Returns true if both CSMats are the same"""
+        """Return True if both matrices are equal.
+        
+        Matrices are equal iff the following items are equal:
+        - type
+        - shape
+        - dtype
+        - size (nnz)
+        - matrix data (more expensive, so performed last)
+
+        Sparse format does not need to be the same. ``self`` and ``other`` will
+        be converted to csr format if necessary before performing the final
+        comparison.
+        """
+        if not isinstance(other, self.__class__):
+            return False
+
         if self.shape != other.shape:
             return False
 
-        if self.hasUpdates():
-            self.absorbUpdates()
-        if other.hasUpdates():
-            other.absorbUpdates()
-
-        if self.shape[1] == 1:
-            self.convert("csc")
-            other.convert("csc")
-        else:
-            if self._order != "csr":
-                self.convert("csr")
-            if other._order != "csr":
-                other.convert("csr")
-
-        if len(self._pkd_ax) != len(other._pkd_ax):
+        if self.dtype != other.dtype:
             return False
 
-        if len(self._unpkd_ax) != len(other._unpkd_ax):
+        if self.size != other.size:
             return False
 
-        if (self._pkd_ax != other._pkd_ax).any():
-            return False
+        self.convert('csr')
+        other.convert('csr')
 
-        if (self._unpkd_ax != other._unpkd_ax).any():
-            return False
-
-        if (self._values != other._values).any():
+        # From http://mail.scipy.org/pipermail/scipy-user/2008-April/016276.html
+        # TODO: Do we need abs here?
+        if (self._matrix - other._matrix).nnz > 0:
             return False
 
         return True
 
     def __ne__(self, other):
-        """Return true if both CSMats are not equal"""
+        """Return True if both matrices are not equal."""
         return not (self == other)
 
     def __str__(self):
