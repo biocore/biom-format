@@ -18,17 +18,23 @@ class ScipySparseMat(object):
     def __init__(self, num_rows, num_cols, dtype=float, data=None):
         # TODO: possible optimization is to allow data to be a preexisting
         # scipy.sparse matrix.
-        self.shape = (num_rows, num_cols)
-        self.dtype = dtype
-
         if data is None:
-            self._matrix = coo_matrix(self.shape, dtype=self.dtype)
+            self._matrix = coo_matrix((num_rows, num_cols), dtype=dtype)
         else:
             # TODO: coo_matrix allows zeros to be added as data, and this
             # affects nnz! May want some sanity checks, or make our nnz smarter
             # (e.g., use nonzero() instead, which does seem to work correctly.
             # Or can possibly use eliminate_zeros() or check_format()?
-            self._matrix = coo_matrix(data, shape=self.shape, dtype=self.dtype)
+            self._matrix = coo_matrix(data, shape=(num_rows, num_cols),
+                                      dtype=dtype)
+
+    def _get_shape(self):
+        return self._matrix.shape
+    shape = property(_get_shape)
+
+    def _get_dtype(self):
+        return self._matrix.dtype
+    dtype = property(_get_dtype)
 
     def _get_format(self):
         return self._matrix.getformat()
@@ -103,7 +109,7 @@ class ScipySparseMat(object):
         - shape
         - dtype
         - size (nnz)
-        - matrix data (more expensive, so performed last)
+        - matrix data (more expensive, so checked last)
 
         Sparse format does not need to be the same. ``self`` and ``other`` will
         be converted to csr format if necessary before performing the final
