@@ -268,7 +268,8 @@ class TableTests(TestCase):
 
     def test_sum(self):
         """should sum a table"""
-        self.assertRaises(TableException, self.t1.sum)
+        #self.assertRaises(TableException, self.t1.sum)
+        self.assertEqual(self.t1.sum(), 0)
 
     def test_reduce(self):
         """Should throw an exception on an empty table"""

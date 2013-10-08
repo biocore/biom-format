@@ -97,6 +97,9 @@ class ScipySparseMat(object):
         return transposed
     T = property(transpose)
 
+    def sum(self):
+        return self._matrix.sum()
+
     def getRow(self, row_idx):
         num_rows, num_cols = self.shape
 
@@ -236,7 +239,9 @@ class ScipySparseMat(object):
             else:
                 raise IndexError("Can only handle full : slices per axis.")
         else:
-            self.convert('csr')
+            if self.fmt == 'coo':
+                self.convert('csr')
+
             return self._matrix[row,col]
 
 
