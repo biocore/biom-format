@@ -22,4 +22,4 @@ $ cd doc; make html
 If you have nose installed, you can run the unit tests with:
 
 $ cd python-code/
-$ nosetests -P
+$ nosetests

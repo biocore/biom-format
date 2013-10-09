@@ -3,7 +3,7 @@
 from numpy import zeros, ndarray, array
 from biom.unit_test import TestCase, main
 from biom.table import flatten
-from biom.csmat import CSMat, to_csmat, \
+from biom.backends.csmat import CSMat, to_csmat, \
     list_nparray_to_csmat, list_list_to_csmat, \
     list_csmat_to_csmat, nparray_to_csmat, \
     dict_to_csmat, list_dict_to_csmat

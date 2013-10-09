@@ -4,7 +4,7 @@
 Sparse matrix backends
 ======================
 
-As the BIOM project evolves, so do the underlying data structures, leading to potential runtime trade offs between implementations. Currently, there are three distinct sparse matrix backends to BIOM: the ``CSMat`` (default as of BIOM v1.1), the ``SparseMat`` and the ``SparseDict``. Specific differences are discussed below.
+As the BIOM project evolves, so do the underlying data structures, leading to potential runtime trade offs between implementations. Currently, ``CSMat`` is the only sparse matrix backend supported in BIOM.
 
 How to check what sparse backend is in use
 ==========================================
@@ -28,9 +28,9 @@ To check what sparse backend is in use, simply execute ``biom show-install-info`
  biom-format package information
  ===============================
  biom-format version:	1.2.0
-      SparseObj type:	biom.csmat.CSMat
+      SparseObj type:	biom.backends.csmat.CSMat
 
-The last line indicates that the ``CSMat`` object is in use.
+The last line indicates that the ``CSMat`` sparse backend is in use.
 
 Changing the sparse backend
 ===========================
@@ -51,14 +51,4 @@ Different sparse matrix backends have different performance characteristics. As 
 CSMat
 -----
 
-The default sparse backend is the ``CSMat``. ``CSMat`` implements coordinate list, compressed sparse row and compressed sparse column formats and facilitates interaction with these representations. This backend will have the lowest memory footprint. In general, this backend should be the fastest. However, it has been observed that under certain circumstances, this backend may not perform the best.
-
-SparseMat
----------
-
-The ``SparseMat`` is built using a combination of Python objects, a Cython wrapper and C++. It implements the dictionary of keys sparse matrix representation. This method performs pretty well, but has an increasing memory footprint as the number of nonzero values increases. Under some situations, specifically those that require a large number of ``Table`` creations, this backend has about a 15-20% reduced runtime over ``CSMat``.
-
-SparseDict
-----------
-
-The ``SparseDict`` is the naive pure Python implementation. This was first implemented as a test backend, and it is not advised to use this object.
+The default sparse backend is ``CSMat``. ``CSMat`` is a pure-Python implementation of coordinate list, compressed sparse row and compressed sparse column formats and facilitates interaction with these representations.
