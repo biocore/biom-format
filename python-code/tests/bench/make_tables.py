@@ -2,7 +2,7 @@
 
 from math import ceil
 from biom.table import table_factory, SparseObj
-from biom.csmat import CSMat
+from biom.backends.csmat import CSMat
 
 def n_nonzero_items(n,m,p):
     """get the number of nonzero items"""
