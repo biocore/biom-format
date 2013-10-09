@@ -46,8 +46,5 @@ setup(name='biom-format',
               'biom/interfaces/optparse',
               'biom/interfaces/optparse/config'
               ],
-    scripts=glob('scripts/*'),
-    package_dir={'':'python-code'},
-    package_data={},
-    data_files={}
+    scripts=glob('scripts/*')
 )
