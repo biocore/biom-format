@@ -31,12 +31,10 @@ Installing the biom-format project
 To install the ``biom-format`` project, you can download the release version `biom-format-1.2.0 <ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.2.0.tar.gz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
 
 The biom-format project has the following dependencies:
-	* Python >= 2.7 and < 3.0
-	* numpy >= 1.3.0
+	* `Python <http://www.python.org/>`_ >= 2.7 and < 3.0
+	* `numpy <http://www.numpy.org/>`_ >= 1.3.0
 	* `pyqi <http://bipy.github.io/pyqi>`_ 0.2.0
-	* gcc >= 4.1.2 (optional; used for more efficient sparse table representations)
-	* cython >= 0.14.1 (optional; used for more efficient sparse table representations)
-	* dateutil (optional; must be installed if using the ``biom validate-table`` command)
+	* `dateutil <http://labix.org/python-dateutil>`_ (optional; must be installed if using the ``biom validate-table`` command)
 
 We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
 
@@ -120,5 +118,3 @@ Development team
 ================
 
 The biom-format project was conceived of and developed by the `QIIME <http://www.qiime.org>`_, `MG-RAST <http://metagenomics.anl.gov>`_, and `VAMPS <http://vamps.mbl.edu/>`_ development groups to support interoperability of our software packages. If you have questions about the biom-format project you can contact gregcaporaso@gmail.com.
-
-

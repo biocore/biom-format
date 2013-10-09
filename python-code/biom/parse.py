@@ -8,7 +8,6 @@ from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
         DenseGeneTable, SparseMetaboliteTable, DenseMetaboliteTable,\
         SparseTaxonTable, DenseTaxonTable, table_factory, to_sparse,\
         nparray_to_sparseobj, SparseObj
-from biom.csmat import CSMat
 import json
 from numpy import zeros, asarray, uint32, float64
 from string import strip
