@@ -8,7 +8,7 @@ from biom.parse import get_axis_indices, direct_slice_data, direct_parse_key
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2013, The BIOM-Format project"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __author__ = "Daniel McDonald"

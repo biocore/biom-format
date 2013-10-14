@@ -3,7 +3,7 @@
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2013, The BIOM-Format project"
 __credits__ = ["Jai Ram Rideout", "Greg Caporaso"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Jai Ram Rideout"

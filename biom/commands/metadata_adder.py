@@ -9,7 +9,7 @@ from biom.table import Table
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2013, The BIOM-Format project"
 __credits__ = ["Greg Caporaso", "Morgan Langille", "Jai Ram Rideout"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Greg Caporaso"

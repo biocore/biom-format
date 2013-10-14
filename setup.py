@@ -7,7 +7,7 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente",
                "Jai Ram Rideout"]
-__license__ = "GPL"
+__license__ = "BSD"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
