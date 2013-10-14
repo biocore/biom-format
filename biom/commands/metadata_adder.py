@@ -7,7 +7,7 @@ from biom.parse import MetadataMap
 from biom.table import Table
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2013, The BIOM-Format project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Morgan Langille", "Jai Ram Rideout"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"

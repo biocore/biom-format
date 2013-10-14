@@ -8,7 +8,7 @@ from pyqi.core.interfaces.optparse.output_handler import print_list_of_strings
 from biom.commands.installation_informer import CommandConstructor
 
 __author__ = "Jai Ram Rideout"
-__copyright__ = "Copyright 2013, The BIOM-Format project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Jai Ram Rideout", "Greg Caporaso"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"

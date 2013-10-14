@@ -5,7 +5,7 @@ from sys import platform, version as python_version, executable
 from pyqi.core.command import Command, Parameter, ParameterCollection
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2013, The BIOM-Format project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso",
                "Jai Ram Rideout", "Justin Kuczynski", "Andreas Wilke",
                "Tobias Paczian", "Rob Knight", "Folker Meyer", "Sue Huse"]

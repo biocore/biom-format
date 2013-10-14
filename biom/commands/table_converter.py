@@ -13,7 +13,7 @@ from biom.parse import (parse_biom_table, MetadataMap, convert_biom_to_table,
                         convert_table_to_biom, generatedby)
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2013, The BIOM-Format project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald",
                "Jose Carlos Clemente Litran", "Jai Ram Rideout"]
 __license__ = "BSD"
