@@ -13,7 +13,7 @@ from numpy import zeros, asarray, uint32, float64
 from string import strip
 
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso", "Jose Carlos Clemente Litran"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"

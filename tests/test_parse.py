@@ -21,7 +21,7 @@ from biom.table import SparseOTUTable, DenseOTUTable
 from biom.exception import BiomParseException
 
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Justin Kuczynski","Daniel McDonald"] #remember to add yourself
 __license__ = "GPL"
 __url__ = "http://biom-format.org"

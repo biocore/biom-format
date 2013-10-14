@@ -24,7 +24,7 @@ SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
         list_list_to_sparseobj = get_sparse_backend()
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "GPL"

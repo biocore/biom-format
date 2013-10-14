@@ -6,7 +6,7 @@ from biom.unit_test import TestCase, main
 from sys import exc_info
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
                             "Zongzhi Liu", "Micah Hamady", "Daniel McDonald"]
 __license__ = "GPL"

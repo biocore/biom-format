@@ -8,7 +8,7 @@ from biom.exception import TableException
 from itertools import izip
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"

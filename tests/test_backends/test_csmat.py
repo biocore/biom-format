@@ -9,7 +9,7 @@ from biom.backends.csmat import CSMat, to_csmat, \
     dict_to_csmat, list_dict_to_csmat
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"

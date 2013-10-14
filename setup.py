@@ -4,7 +4,7 @@ from distutils.core import setup
 from glob import glob
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, The BIOM Format"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente",
                "Jai Ram Rideout"]
 __license__ = "GPL"
