@@ -1,7 +1,7 @@
 .. _biom_license:
 
-BIOM License
-================
+The BIOM Format License
+=======================
 
 ::
 
