@@ -8,7 +8,7 @@ Changes
 -------
 
 * Sparse backends ```SparseDict``` and ```SparseMat``` have been removed in favor of ```CSMat```. Cython is no longer a dependency.
-* The BIOM Format project license is now Modified BSD (see COPYING.txt for more details).
+* The BIOM Format project license is now Modified BSD (see COPYING.txt for more details) and is no longer GPL.
 
 Bug Fixes
 ---------
