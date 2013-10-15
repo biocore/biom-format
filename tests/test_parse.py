@@ -278,7 +278,13 @@ class ParseTests(TestCase):
         self.assertEqual(obs,exp)
 
     def test_MetadataMap(self):
-        """MetadataMap functions as expected"""
+        """MetadataMap functions as expected
+        
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
+        """
         s1 = ['#sample\ta\tb', '#comment line to skip',\
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
         exp = ([['x','y','z'],['i','j','k']],\
@@ -295,7 +301,13 @@ class ParseTests(TestCase):
         self.assertEqual(obs, exp)
 
     def test_MetadataMap_w_map_fs(self):
-        """MetadataMap functions as expected w process_fns"""
+        """MetadataMap functions as expected w process_fns
+        
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
+        """
         s1 = ['#sample\ta\tb', '#comment line to skip',\
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
         exp = ([['x','y','z'],['i','j','k']],\
@@ -307,7 +319,13 @@ class ParseTests(TestCase):
         self.assertEqual(obs, exp)
 
     def test_MetadataMap_w_header(self):
-        """MetadataMap functions as expected w user-provided header"""
+        """MetadataMap functions as expected w user-provided header
+        
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
+        """
         # number of user-provided headers matches number of columns, and no
         # header line in file
         s1 = ['#comment line to skip',
@@ -569,7 +587,13 @@ class ParseTests(TestCase):
         pass
 
     def test_parse_classic_table(self):
-        """Parses a classic table"""
+        """Parses a classic table
+        
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
+        """
         input = legacy_otu_table1.splitlines()
         samp_ids = ['Fing','Key','NA']
         obs_ids = ['0','1','7','3','4']

@@ -27,6 +27,10 @@ class TestCaseTests(TestCase):
     """Tests for extension of the built-in unittest framework.
 
     For each test, includes an example of success and failure.
+
+    This class is ported from PyCogent (http://www.pycogent.org). PyCogent is a
+    GPL project, but we obtained permission from the authors of this class to
+    port it to the BIOM Format project (and keep it under BIOM's BSD license).
     """
     unequal_pairs = [
                     (1, 0),
