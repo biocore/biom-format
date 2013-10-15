@@ -667,6 +667,11 @@ def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None, \
 
     NOTE: this is intended to be close to how QIIME classic OTU tables are
     parsed with the exception of the additional md_name field
+
+    This function is ported from QIIME (http://www.qiime.org), previously named
+    parse_classic_otu_table. QIIME is a GPL project, but we obtained permission
+    from the authors of this function to port it to the BIOM Format project
+    (and keep it under BIOM's BSD license).
     """
     if not isinstance(lines, list):
         try:
@@ -767,7 +772,11 @@ class MetadataMap(dict):
 
         Assumes the first column in the mapping file is the id.
 
-        NOTE: code pulled and modified from QIIME (http://www.qiime.org).
+        This method is ported from QIIME (http://www.qiime.org), previously
+        named parse_mapping_file/parse_mapping_file_to_dict. QIIME is a GPL
+        project, but we obtained permission from the authors of this method
+        to port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
         """
         if hasattr(lines,"upper"):
             # Try opening if a string was passed

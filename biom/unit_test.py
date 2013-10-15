@@ -27,7 +27,9 @@ __email__ = "daniel.mcdonald@colorado.edu"
 class TestCase(TestCaseOriginal):
     """Add in some support for numpy vectors
 
-    Methods pulled from PyCogent (http://pycogent.sourceforge.net)
+    This class is ported from PyCogent (http://www.pycogent.org). PyCogent is a
+    GPL project, but we obtained permission from the authors of this class to
+    port it to the BIOM Format project (and keep it under BIOM's BSD license).
     """
     def assertFloatEqualRel(self, obs, exp, eps=1e-6):
         """Tests whether two floating point numbers/arrays are approx. equal.
