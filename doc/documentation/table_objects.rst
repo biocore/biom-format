@@ -94,7 +94,7 @@ The container classes implement required private member variable interfaces as d
 ``SparseTable``
 ^^^^^^^^^^^^^^^
 
-The subclass ``SparseTable`` can be derived for use with table data. This object implemented all of the required private interfaces specified by the ``Table`` base class. The object contains a ``_data`` private member variable that is an instance of ``biom.table.SparseDict``. It is advised to used derived objects of SparseTable if the data being operated on is sparse.
+The subclass ``SparseTable`` can be derived for use with table data. This object implemented all of the required private interfaces specified by the ``Table`` base class. The object contains a ``_data`` private member variable that is an instance of the current sparse backend. It is advised to used derived objects of SparseTable if the data being operated on is sparse.
 
 .. autoclass:: biom.table.SparseTable
    :members:

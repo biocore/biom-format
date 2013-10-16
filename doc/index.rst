@@ -7,7 +7,7 @@ The `BIOM file format <http://www.biom-format.org>`_ (canonically pronounced `bi
 
 The `BIOM format <http://www.biom-format.org>`_ is designed for general use in broad areas of comparative -omics. For example, in marker-gene surveys, the primary use of this format is to represent OTU tables: the observations in this case are OTUs and the matrix contains counts corresponding to the number of times each OTU is observed in each sample. With respect to metagenome data, this format would be used to represent metagenome tables: the observations in this case might correspond to SEED subsystems, and the matrix would contain counts corresponding to the number of times each subsystem is observed in each metagenome. Similarly, with respect to genome data, this format may be used to represent a set of genomes: the observations in this case again might correspond to SEED subsystems, and the counts would correspond to the number of times each subsystem is observed in each genome.
 
-There are two components to the BIOM project: first is `definition of the BIOM format <./documentation/biom_format.html>`_, and second is `development of support objects <./documentation/table_objects.html>`_ in multiple programming languages to support the use of BIOM in diverse bioinformatics applications. The version of the BIOM file format is independent of the version of the `biom-format` software.
+There are two components to the BIOM project: first is the `definition of the BIOM format <./documentation/biom_format.html>`_, and second is `development of support objects <./documentation/table_objects.html>`_ in multiple programming languages to support the use of BIOM in diverse bioinformatics applications. The version of the BIOM file format is independent of the version of the `biom-format` software.
 
 There are official implementations of BIOM format support objects (APIs) in the Python and R programming languages. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python ``biom-format`` API. For more details about the R API, please see the `CRAN biom package <http://cran.r-project.org/web/packages/biom/index.html>`_.
 
@@ -31,12 +31,10 @@ Installing the biom-format project
 To install the ``biom-format`` project, you can download the release version `biom-format-1.2.0 <ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.2.0.tar.gz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
 
 The biom-format project has the following dependencies:
-	* Python >= 2.7 and < 3.0
-	* numpy >= 1.3.0
+	* `Python <http://www.python.org/>`_ >= 2.7 and < 3.0
+	* `numpy <http://www.numpy.org/>`_ >= 1.3.0
 	* `pyqi <http://bipy.github.io/pyqi>`_ 0.2.0
-	* gcc >= 4.1.2 (optional; used for more efficient sparse table representations)
-	* cython >= 0.14.1 (optional; used for more efficient sparse table representations)
-	* dateutil (optional; must be installed if using the ``biom validate-table`` command)
+	* `dateutil <http://labix.org/python-dateutil>`_ (optional; must be installed if using the ``biom validate-table`` command)
 
 We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
 
@@ -48,7 +46,7 @@ To install the release version, download from `biom-format-1.2.0 <ftp://thebeast
 	tar -xvzf biom-format-1.2.0.tar.gz
 	cd $HOME/code/biom-format-1.2.0
 
-Alternatively, to install the development version, pull it from github, and change to the resulting directory::
+Alternatively, to install the development version, pull it from GitHub, and change to the resulting directory::
 
 	git clone git://github.com/biom-format/biom-format.git
 	cd $HOME/code/biom-format
@@ -87,15 +85,15 @@ The ``biom`` command referenced in the previous section is a driver for commands
 To enable tab completion, follow the steps outlined under `Configuring bash completion <http://bipy.github.io/pyqi/doc/tutorials/defining_your_command_driver.html#configuring-bash-completion>`_ in the pyqi install documentation, substituting ``biom`` for ``my-project`` and ``my_project`` in all commands. After completing those steps and closing and re-opening your terminal, auto-completion should be enabled.
 
 BIOM format in R
-=======================
+================
 
-There is also a BIOM-format package for R, called ``biom``. This package includes basic tools for reading biom-format files, accessing and subsetting data tables from a biom object, as well as limited support for writing a biom-object back to a biom-format file. The design of this API is intended to match the python API and other tools included with the biom-format project, but with a decidedly "R flavor" that should be familiar to R users. This includes S4 classes and methods, as well as extensions of common core functions/methods.
+There is also a BIOM format package for R, called ``biom``. This package includes basic tools for reading biom-format files, accessing and subsetting data tables from a biom object, as well as limited support for writing a biom-object back to a biom-format file. The design of this API is intended to match the python API and other tools included with the biom-format project, but with a decidedly "R flavor" that should be familiar to R users. This includes S4 classes and methods, as well as extensions of common core functions/methods.
 
-To install the latest stable release of the biom package enter the following command from within an R session::
+To install the latest stable release of the ``biom`` package enter the following command from within an R session::
 
 	install.packages("biom")
 
-To install the latest development version of the biom package, enter the following lines in an R session::
+To install the latest development version of the ``biom`` package, enter the following lines in an R session::
 
 	install.packages("devtools") # if not already installed
 	library("devtools")
@@ -105,7 +103,7 @@ Please post any support or feature requests and bugs to `the biom issue tracker 
 
 See `the biom project on GitHub <https://github.com/joey711/biom/>`_ for further details, or if you would like to contribute.
 
-Note that the licenses between the biom R package (GPL-2) and some of the other biom-format software are different.
+Note that the licenses between the ``biom`` R package (GPL-2) and the other biom-format software (Modified BSD) are different.
 
 Citing the BIOM project
 =======================
@@ -120,5 +118,3 @@ Development team
 ================
 
 The biom-format project was conceived of and developed by the `QIIME <http://www.qiime.org>`_, `MG-RAST <http://metagenomics.anl.gov>`_, and `VAMPS <http://vamps.mbl.edu/>`_ development groups to support interoperability of our software packages. If you have questions about the biom-format project you can contact gregcaporaso@gmail.com.
-
-
