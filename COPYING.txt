@@ -2,9 +2,8 @@
  The BIOM Format licensing terms
 ================================
 
-The BIOM Format project (including the file format, software, and associated
-documentation) is licensed under the terms of the Modified BSD License (also
-known as New or Revised BSD), as follows:
+The BIOM Format project is licensed under the terms of the Modified BSD License
+(also known as New or Revised BSD), as follows:
 
 Copyright (c) 2011-2013, The BIOM Format Development Team <gregcaporaso@gmail.com>
 
