@@ -1,6 +1,13 @@
 #!/usr/bin/env python
-
 """Core BIOM objects for dense and sparse tables"""
+
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
 
 from __future__ import division
 
@@ -24,10 +31,10 @@ SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
         list_list_to_sparseobj = get_sparse_backend()
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"

@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from __future__ import division
 from biom.exception import BiomParseException
 from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
@@ -13,9 +21,9 @@ from numpy import zeros, asarray, uint32, float64
 from string import strip
 
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso", "Jose Carlos Clemente Litran"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"
@@ -659,6 +667,11 @@ def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None, \
 
     NOTE: this is intended to be close to how QIIME classic OTU tables are
     parsed with the exception of the additional md_name field
+
+    This function is ported from QIIME (http://www.qiime.org), previously named
+    parse_classic_otu_table. QIIME is a GPL project, but we obtained permission
+    from the authors of this function to port it to the BIOM Format project
+    (and keep it under BIOM's BSD license).
     """
     if not isinstance(lines, list):
         try:
@@ -759,7 +772,11 @@ class MetadataMap(dict):
 
         Assumes the first column in the mapping file is the id.
 
-        NOTE: code pulled and modified from QIIME (http://www.qiime.org).
+        This method is ported from QIIME (http://www.qiime.org), previously
+        named parse_mapping_file/parse_mapping_file_to_dict. QIIME is a GPL
+        project, but we obtained permission from the authors of this method
+        to port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
         """
         if hasattr(lines,"upper"):
             # Try opening if a string was passed

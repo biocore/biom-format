@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from __future__ import division
 from pyqi.core.command import Command, Parameter, ParameterCollection
 from pyqi.core.exception import CommandError
@@ -7,9 +15,9 @@ from biom.parse import MetadataMap
 from biom.table import Table
 
 __author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2013, The BIOM-Format project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Morgan Langille", "Jai Ram Rideout"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Greg Caporaso"

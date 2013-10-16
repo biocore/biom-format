@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 import sys
 from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
@@ -10,9 +18,9 @@ from biom.commands.table_validator import CommandConstructor
 from biom.interfaces.optparse.input_handler import load_json_document
 
 __author__ = "Jai Ram Rideout"
-__copyright__ = "Copyright 2013, The BIOM-Format project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Jai Ram Rideout", "Daniel McDonald"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Jai Ram Rideout"

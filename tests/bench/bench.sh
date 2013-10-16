@@ -1,8 +1,14 @@
 #!/bin/sh
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 # Author: Daniel McDonald
-# Copyright 2012, BIOM Format
-# This code is licensed under the GPL
 
 #TIME_CMD='/usr/bin/time -f "%M %e"' # doesn't work on OS X
 TIME_CMD='time'
