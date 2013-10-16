@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from os.path import abspath, dirname, exists
 from tempfile import NamedTemporaryFile
 from biom.parse import parse_biom_table
@@ -9,18 +17,17 @@ from biom.util import (natsort, _natsort_key, flatten, unzip,
                        compute_counts_per_sample_stats, safe_md5)
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
                "Zongzhi Liu", "Micah Hamady", "Daniel McDonald",
                "Jai Ram Rideout"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
 class UtilTests(TestCase):
-    
     def setUp(self):
         self.biom_otu_table1_w_tax = \
          parse_biom_table(biom_otu_table1_w_tax.split('\n'))
@@ -28,7 +35,10 @@ class UtilTests(TestCase):
     def test_natsort(self):
         """natsort should perform numeric comparisons on strings
 
-        test pulled from QIIME (http://qiime.org)
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
         """
         # string with alpha and numerics sort correctly
         s = 'sample1 sample2 sample11 sample12'.split()
@@ -57,7 +67,10 @@ class UtilTests(TestCase):
     def test_unzip(self):
         """unzip(items) should be the inverse of zip(*items)
         
-        method pulled from PyCogent (http://pycogent.sourceforge.net)
+        This method is ported from PyCogent (http://www.pycogent.org). PyCogent
+        is a GPL project, but we obtained permission from the authors of this
+        method to port it to the BIOM Format project (and keep it under BIOM's
+        BSD license).
         """
         chars = [list('abcde'), list('ghijk')]
         numbers = [[1,2,3,4,5], [0,0,0,0,0]]
@@ -74,7 +87,10 @@ class UtilTests(TestCase):
     def test_flatten_no_change(self):
         """flatten should not change non-nested sequences (except to list)
 
-        test pulled from PyCogent (http://pycogent.sourceforge.net)
+        This method is ported from PyCogent (http://www.pycogent.org). PyCogent
+        is a GPL project, but we obtained permission from the authors of this
+        method to port it to the BIOM Format project (and keep it under BIOM's
+        BSD license).
         """
         self.assertEqual(flatten('abcdef'), list('abcdef')) #test identities
         self.assertEqual(flatten([]), []) #test empty sequence
@@ -83,7 +99,10 @@ class UtilTests(TestCase):
     def test_flatten(self):
         """flatten should remove one level of nesting from nested sequences
 
-        test pulled from PyCogent (http://pycogent.sourceforge.net)
+        This method is ported from PyCogent (http://www.pycogent.org). PyCogent
+        is a GPL project, but we obtained permission from the authors of this
+        method to port it to the BIOM Format project (and keep it under BIOM's
+        BSD license).
         """
         self.assertEqual(flatten(['aa', 'bb', 'cc']), list('aabbcc'))
         self.assertEqual(flatten([1,[2,3], [[4, [5]]]]), [1, 2, 3, [4,[5]]])
@@ -91,7 +110,10 @@ class UtilTests(TestCase):
     def test_get_biom_project_dir(self):
         """Getting the biom project directory functions as expected.
 
-        Test pulled from QIIME (http://qiime.org).
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
         """
         # Do an explicit check on whether the file system containing
         # the current file is case insensitive. This is in response
@@ -131,7 +153,10 @@ class UtilTests(TestCase):
     def test_parse_biom_config_files(self):
         """parse_biom_config_files functions as expected.
 
-        Test pulled from QIIME (http://qiime.org).
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
         """
         fake_file1 = ['key1\tval1', 'key2 val2']
         fake_file2 = ['key2\tval3']
@@ -147,6 +172,11 @@ class UtilTests(TestCase):
     
     def test_compute_counts_per_sample_stats(self):
         """compute_counts_per_sample_stats functions as expected
+
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
         """
         actual = compute_counts_per_sample_stats(self.biom_otu_table1_w_tax)
         self.assertEqual(actual[0],3)
@@ -158,6 +188,11 @@ class UtilTests(TestCase):
 
     def test_compute_counts_per_sample_stats_obs_counts(self):
         """compute_counts_per_sample_stats functions as expected
+
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
         """
         actual = compute_counts_per_sample_stats(self.biom_otu_table1_w_tax,
                                                  binary_counts=True)
@@ -170,8 +205,11 @@ class UtilTests(TestCase):
 
     def test_safe_md5(self):
         """Make sure we have the expected md5 with varied input types
-        
-        Modified from PyCogent (www.pycogent.org).
+
+        This method is ported from PyCogent (http://www.pycogent.org). PyCogent
+        is a GPL project, but we obtained permission from the authors of this
+        method to port it to the BIOM Format project (and keep it under BIOM's
+        BSD license).
         """
         exp = 'd3b07384d113edec49eaa6238ad5ff00'
 

@@ -1,16 +1,24 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 import numpy
 from numpy import testing, array, zeros, asarray
 from unittest import main, TestSuite, findTestCases, \
     TestCase as TestCaseOriginal
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
                "Zongzhi Liu", "Micah Hamady", "Daniel McDonald",
                "Jai Ram Rideout"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"
@@ -19,7 +27,9 @@ __email__ = "daniel.mcdonald@colorado.edu"
 class TestCase(TestCaseOriginal):
     """Add in some support for numpy vectors
 
-    Methods pulled from PyCogent (http://pycogent.sourceforge.net)
+    This class is ported from PyCogent (http://www.pycogent.org). PyCogent is a
+    GPL project, but we obtained permission from the authors of this class to
+    port it to the BIOM Format project (and keep it under BIOM's BSD license).
     """
     def assertFloatEqualRel(self, obs, exp, eps=1e-6):
         """Tests whether two floating point numbers/arrays are approx. equal.

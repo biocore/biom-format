@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from numpy import array, nan
 from StringIO import StringIO
 import json
@@ -21,9 +29,9 @@ from biom.table import SparseOTUTable, DenseOTUTable
 from biom.exception import BiomParseException
 
 __author__ = "Justin Kuczynski"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Justin Kuczynski","Daniel McDonald"] #remember to add yourself
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Justin Kuczynski"
@@ -270,7 +278,13 @@ class ParseTests(TestCase):
         self.assertEqual(obs,exp)
 
     def test_MetadataMap(self):
-        """MetadataMap functions as expected"""
+        """MetadataMap functions as expected
+        
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
+        """
         s1 = ['#sample\ta\tb', '#comment line to skip',\
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
         exp = ([['x','y','z'],['i','j','k']],\
@@ -287,7 +301,13 @@ class ParseTests(TestCase):
         self.assertEqual(obs, exp)
 
     def test_MetadataMap_w_map_fs(self):
-        """MetadataMap functions as expected w process_fns"""
+        """MetadataMap functions as expected w process_fns
+        
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
+        """
         s1 = ['#sample\ta\tb', '#comment line to skip',\
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
         exp = ([['x','y','z'],['i','j','k']],\
@@ -299,7 +319,13 @@ class ParseTests(TestCase):
         self.assertEqual(obs, exp)
 
     def test_MetadataMap_w_header(self):
-        """MetadataMap functions as expected w user-provided header"""
+        """MetadataMap functions as expected w user-provided header
+        
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
+        """
         # number of user-provided headers matches number of columns, and no
         # header line in file
         s1 = ['#comment line to skip',
@@ -561,7 +587,13 @@ class ParseTests(TestCase):
         pass
 
     def test_parse_classic_table(self):
-        """Parses a classic table"""
+        """Parses a classic table
+        
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
+        """
         input = legacy_otu_table1.splitlines()
         samp_ids = ['Fing','Key','NA']
         obs_ids = ['0','1','7','3','4']

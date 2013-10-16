@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 from sys import argv, stdout, stderr
 from collections import defaultdict
 from os import getenv
@@ -12,10 +20,10 @@ from pyqi.util import pyqi_system_call
 from pyqi.core.log import StdErrLogger
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso", 
                "Jose Clemente", "Justin Kuczynski"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"
@@ -46,7 +54,10 @@ def unzip(items):
     Always returns lists: does not check original data type, but will accept
     any sequence.
 
-    Method pulled from PyCogent (http://pycogent.sourceforge.net)
+    This function is ported from PyCogent (http://www.pycogent.org). PyCogent
+    is a GPL project, but we obtained permission from the authors of this
+    function to port it to the BIOM Format project (and keep it under BIOM's
+    BSD license).
     """
     if items:
         return map(list, zip(*items))
@@ -58,7 +69,10 @@ def flatten(items):
 
     items can be any sequence, but flatten always returns a list.
 
-    Method pulled from PyCogent (http://pycogent.sourceforge.net) 
+    This function is ported from PyCogent (http://www.pycogent.org). PyCogent
+    is a GPL project, but we obtained permission from the authors of this
+    function to port it to the BIOM Format project (and keep it under BIOM's
+    BSD license).
     """
     result = [] 
     for i in items:
@@ -71,8 +85,11 @@ def flatten(items):
 def _natsort_key(item):
     """Provides normalized version of item for sorting with digits.
 
-    Method pulled from QIIME (http://qiime.org), based on:
+    This function is ported from QIIME (http://www.qiime.org) and is based on:
     http://lists.canonical.org/pipermail/kragen-hacks/2005-October/000419.html
+    QIIME is a GPL project, but we obtained permission from the authors of this
+    function to port it to the BIOM Format project (and keep it under BIOM's
+    BSD license).
     """
     item = str(item)
     try:
@@ -94,8 +111,11 @@ def _natsort_key(item):
 def natsort(seq):
     """Sort a sequence of text strings in a reasonable order.
 
-    Method pulled from QIIME (http://qiime.org), based on:
+    This function is ported from QIIME (http://www.qiime.org) and is based on:
     http://lists.canonical.org/pipermail/kragen-hacks/2005-October/000419.html
+    QIIME is a GPL project, but we obtained permission from the authors of this
+    function to port it to the BIOM Format project (and keep it under BIOM's
+    BSD license).
     """
     alist = list(seq)
     alist.sort(key=_natsort_key)
@@ -112,7 +132,10 @@ def index_list(l):
 def load_biom_config():
     """Returns biom-format configuration read in from file.
 
-    Method pulled from QIIME (http://qiime.org).
+    This function is ported from QIIME (http://www.qiime.org), previously named
+    load_qiime_config. QIIME is a GPL project, but we obtained permission from
+    the authors of this function to port it to the BIOM Format project (and
+    keep it under BIOM's BSD license).
     """
     biom_config_fps = []
     biom_project_dir = get_biom_project_dir()
@@ -137,7 +160,10 @@ def load_biom_config():
 def get_biom_project_dir():
     """Returns the top-level biom-format directory.
 
-    Method pulled from QIIME (http://qiime.org).
+    This function is ported from QIIME (http://www.qiime.org), previously named
+    get_qiime_project_dir. QIIME is a GPL project, but we obtained permission
+    from the authors of this function to port it to the BIOM Format project
+    (and keep it under BIOM's BSD license).
     """
     # Get the full path of util.py.
     current_fp = abspath(__file__)
@@ -158,7 +184,10 @@ def parse_biom_config_files(biom_config_files):
     defined in earlier files will be overwritten if the same values are defined
     in later files.
 
-    Method pulled from QIIME (http://qiime.org).
+    This function is ported from QIIME (http://www.qiime.org), previously named
+    parse_qiime_config_files. QIIME is a GPL project, but we obtained
+    permission from the authors of this function to port it to the BIOM Format
+    project (and keep it under BIOM's BSD license).
     """
     # The biom_config object is a default dict: if keys are not present, None
     # is returned.
@@ -177,7 +206,10 @@ def parse_biom_config_files(biom_config_files):
 def parse_biom_config_file(biom_config_file):
     """Parses lines in a biom_config file.
 
-    Method pulled from QIIME (http://qiime.org).
+    This function is ported from QIIME (http://www.qiime.org), previously named
+    parse_qiime_config_file. QIIME is a GPL project, but we obtained permission
+    from the authors of this function to port it to the BIOM Format project
+    (and keep it under BIOM's BSD license).
     """
     result = {}
     for line in biom_config_file:
@@ -198,7 +230,11 @@ def compute_counts_per_sample_stats(table, binary_counts=False):
         binary_counts: count the number of unique observations per
          sample, rather than the sum of the total counts (i.e., counts
          are qualitative rather than quantitative)
-    
+
+    This function is ported from QIIME (http://www.qiime.org), previously named
+    compute_seqs_per_library_stats. QIIME is a GPL project, but we obtained
+    permission from the authors of this function to port it to the BIOM Format
+    project (and keep it under BIOM's BSD license).
     """
     if binary_counts:
         sample_counts = {}
@@ -222,8 +258,11 @@ def safe_md5(open_file, block_size=2**20):
     
     This method is based on the answers given in:
     http://stackoverflow.com/questions/1131220/get-md5-hash-of-a-files-without-open-it-in-python
-    
-    Modified from PyCogent (www.pycogent.org).
+
+    This function is ported from PyCogent (http://www.pycogent.org). PyCogent
+    is a GPL project, but we obtained permission from the authors of this
+    function to port it to the BIOM Format project (and keep it under BIOM's
+    BSD license).
     """
     data = True
     result = md5()
@@ -257,7 +296,9 @@ def is_gzip(fp):
     If the first two bytes of the file are 1f 8b (the "magic number" of a 
     gzip file), return True; otherwise, return false.
     
-    This code was copied from QIIME (www.qiime.org).
+    This function is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+    project, but we obtained permission from the authors of this function to
+    port it to the BIOM Format project (and keep it under BIOM's BSD license).
     """
     return open(fp, 'rb').read(2) == '\x1f\x8b'
 
@@ -273,7 +314,10 @@ def biom_open(fp, permission='U'):
     the mode); opening a binary file in text mode (e.g., in default mode 'U')
     will have unpredictable results.
     
-    This code was copied from QIIME (www.qiime.org).
+    This function is ported from QIIME (http://www.qiime.org), previously named
+    qiime_open. QIIME is a GPL project, but we obtained permission from the
+    authors of this function to port it to the BIOM Format project (and keep it
+    under BIOM's BSD license).
     """
     if is_gzip(fp):
         return gzip_open(fp,'rb')

@@ -1,15 +1,23 @@
 #!/usr/bin/env python
 
+#-----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
+#
+# Distributed under the terms of the Modified BSD License.
+#
+# The full license is in the file COPYING.txt, distributed with this software.
+#-----------------------------------------------------------------------------
+
 import numpy
 from numpy import testing, zeros, array
 from biom.unit_test import TestCase, main
 from sys import exc_info
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2012, BIOM-Format Project"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
                             "Zongzhi Liu", "Micah Hamady", "Daniel McDonald"]
-__license__ = "GPL"
+__license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"
@@ -19,6 +27,10 @@ class TestCaseTests(TestCase):
     """Tests for extension of the built-in unittest framework.
 
     For each test, includes an example of success and failure.
+
+    This class is ported from PyCogent (http://www.pycogent.org). PyCogent is a
+    GPL project, but we obtained permission from the authors of this class to
+    port it to the BIOM Format project (and keep it under BIOM's BSD license).
     """
     unequal_pairs = [
                     (1, 0),
