@@ -18,7 +18,7 @@ from types import NoneType
 from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
-from numpy import ndarray, asarray, array, newaxis, zeros
+from numpy import ndarray, asarray, array, newaxis, squeeze, zeros
 
 from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID
@@ -1683,7 +1683,7 @@ class SparseTable(Table):
         Always returns a row vector for consistancy with numpy iteration over
         arrays
         """
-        return v._matrix.todense()
+        #return squeeze(asarray(v._matrix.todense()))
         vals = v.items()
 
         num_rows, num_cols = v.shape
