@@ -1680,24 +1680,7 @@ class SparseTable(Table):
         Always returns a row vector for consistancy with numpy iteration over
         arrays
         """
-        try:
-            return squeeze(asarray(v._matrix.todense()))
-        except:
-            pass
-
-        vals = v.items()
-
-        num_rows, num_cols = v.shape
-
-        if num_rows > num_cols:
-            new_v = zeros(num_rows, dtype=self._dtype)
-            for (row,col),val in vals:
-                new_v[row] = val
-        else:
-            new_v = zeros(num_cols, dtype=self._dtype)
-            for (row,col),val in vals:
-                new_v[col] = val
-        return new_v
+        return SparseObj.convertVectorToDense(v)
 
     def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""

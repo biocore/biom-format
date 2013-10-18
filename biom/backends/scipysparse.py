@@ -30,6 +30,22 @@ from biom.util import flatten
 class ScipySparseMat(object):
     """Based on CSMat implementation by Daniel McDonald."""
 
+    @staticmethod
+    def convertVectorToDense(vec):
+        """Converts a ScipySparseMat row/column vector to a dense numpy array.
+
+        The numpy array that is returned will always be a 1-dimensional row
+        vector.
+        """
+        if not isinstance(vec, ScipySparseMat):
+            raise TypeError("Can only convert ScipySparseMat vectors to a "
+                            "dense representation.")
+        if 1 not in vec.shape:
+            raise ValueError("Can only convert row or column vectors to a "
+                             "dense representation.")
+
+        return squeeze(asarray(vec._matrix.todense()))
+
     def __init__(self, num_rows, num_cols, dtype=float, data=None):
         # I hate myself for having the empty special case throughout the
         # code... makes it much less elegant. However, scipy doesn't support

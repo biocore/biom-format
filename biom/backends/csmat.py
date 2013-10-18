@@ -38,6 +38,27 @@ class CSMat():
     enable_indices is ignored.
     """
 
+    @staticmethod
+    def convertVectorToDense(vec):
+        """Converts a CSMat row/column vector to a dense numpy array.
+
+        The numpy array that is returned will always be a 1-dimensional row
+        vector.
+        """
+        vals = vec.items()
+        num_rows, num_cols = vec.shape
+
+        if num_rows > num_cols:
+            new_vec = zeros(num_rows, dtype=vec.dtype)
+            for (row,col),val in vals:
+                new_vec[row] = val
+        else:
+            new_vec = zeros(num_cols, dtype=vec.dtype)
+            for (row,col),val in vals:
+                new_vec[col] = val
+
+        return new_vec
+
     def __init__(self, rows, cols, dtype=float, enable_indices=True):
         self.shape = (rows, cols) 
         self.dtype = dtype # casting is minimal, trust the programmer...
