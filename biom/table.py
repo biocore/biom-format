@@ -249,14 +249,11 @@ class Table(object):
         ``observation`` : return a vector with a sum for each observation
         """
         if axis == 'whole':
-            try:
-                return self._data.sum()
-            except AttributeError:
-                return sum(self.reduce(add, 'sample'))
+            return self._data.sum()
         elif axis == 'sample':
-            return self.reduce(add, 'sample')
+            return self._data.sum(axis=0)
         elif axis == 'observation':
-            return self.reduce(add, 'observation')
+            return self._data.sum(axis=1)
         else:
             raise TableException, "Unknown axis %s" % axis
 
@@ -1683,7 +1680,11 @@ class SparseTable(Table):
         Always returns a row vector for consistancy with numpy iteration over
         arrays
         """
-        #return squeeze(asarray(v._matrix.todense()))
+        try:
+            return squeeze(asarray(v._matrix.todense()))
+        except:
+            pass
+
         vals = v.items()
 
         num_rows, num_cols = v.shape

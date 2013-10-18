@@ -22,7 +22,7 @@ __email__ = "jai.rideout@gmail.com"
 from itertools import izip
 from operator import itemgetter
 
-from numpy import ndarray
+from numpy import asarray, ndarray, squeeze
 from scipy.sparse import coo_matrix
 
 from biom.util import flatten
@@ -106,8 +106,12 @@ class ScipySparseMat(object):
         return transposed
     T = property(transpose)
 
-    def sum(self):
-        return self._matrix.sum()
+    def sum(self, axis=None):
+        """Sum entire matrix or along rows/columns.
+        
+        ``axis`` can be ``None``, 0, or 1.
+        """
+        return squeeze(asarray(self._matrix.sum(axis=axis)))
 
     def getRow(self, row_idx):
         num_rows, num_cols = self.shape
