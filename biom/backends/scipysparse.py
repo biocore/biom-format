@@ -145,9 +145,15 @@ class ScipySparseMat(object):
         ``axis`` can be ``None``, 0, or 1.
         """
         if self.is_empty:
-            return 0
+            matrix_sum = 0
         else:
-            return squeeze(asarray(self._matrix.sum(axis=axis)))
+            matrix_sum = squeeze(asarray(self._matrix.sum(axis=axis)))
+
+            # We only want to return a scalar if the whole matrix was summed.
+            if axis is not None and matrix_sum.shape == ():
+                matrix_sum = matrix_sum.reshape(1)
+
+        return matrix_sum
 
     def getRow(self, row_idx):
         """Return the row at ``row_idx`` as a ``ScipySparseMat``.

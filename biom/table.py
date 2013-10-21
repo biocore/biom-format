@@ -255,7 +255,7 @@ class Table(object):
         elif axis == 'observation':
             return self._data.sum(axis=1)
         else:
-            raise TableException, "Unknown axis %s" % axis
+            raise TableException, "Unknown axis '%s'" % axis
 
     def transpose(self):
         """Return a new table that is the transpose of this table.

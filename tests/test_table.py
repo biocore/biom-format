@@ -280,6 +280,9 @@ class TableTests(TestCase):
         self.assertEqual(self.t1.sum(axis='sample'), 0)
         self.assertEqual(self.simple_derived.sum(), 26)
         self.assertEqual(self.simple_derived.sum(axis='sample'), [12, 14])
+        self.assertEqual(self.simple_derived.sum(axis='observation'), [11, 15])
+        with self.assertRaises(TableException):
+            _ = self.simple_derived.sum(axis='foo')
 
     def test_reduce(self):
         """Should throw an exception on an empty table"""
@@ -682,6 +685,14 @@ class DenseTableTests(TestCase):
         self.assertEqual(self.dt1.sum('whole'), 26)
         self.assertEqual(self.dt1.sum('sample'), array([12,14]))
         self.assertEqual(self.dt1.sum('observation'), array([11,15]))
+
+        exp = array([3.0])
+        obs = self.single_sample_dt.sum('sample')
+        self.assertEqual(obs, exp)
+
+        exp = array([3.0])
+        obs = self.single_obs_dt.sum('observation')
+        self.assertEqual(obs, exp)
 
     def test_reduce(self):
         """Reduce method"""
@@ -1839,6 +1850,14 @@ class SparseTableTests(TestCase):
         self.assertEqual(self.st1.sum('whole'), 26)
         self.assertEqual(self.st1.sum('sample'), array([12,14]))
         self.assertEqual(self.st1.sum('observation'), array([11,15]))
+
+        exp = array([3.0])
+        obs = self.single_sample_st.sum('sample')
+        self.assertEqual(obs, exp)
+
+        exp = array([3.0])
+        obs = self.single_obs_st.sum('observation')
+        self.assertEqual(obs, exp)
 
     def test_reduce(self):
         """Reduce method"""
