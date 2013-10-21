@@ -28,7 +28,12 @@ from scipy.sparse import coo_matrix
 from biom.util import flatten
 
 class ScipySparseMat(object):
-    """Based on CSMat implementation by Daniel McDonald."""
+    """Sparse matrix backend that utilizes scipy.sparse representations.
+
+    Changes between coo, csr, csc, and lil sparse formats as necessary.
+    
+    Based on CSMat implementation by Daniel McDonald.
+    """
 
     @staticmethod
     def convertVectorToDense(vec):
@@ -49,31 +54,32 @@ class ScipySparseMat(object):
     def __init__(self, num_rows, num_cols, dtype=float, data=None):
         # I hate myself for having the empty special case throughout the
         # code... makes it much less elegant. However, scipy doesn't support
-        # empty sparse matrices, but we do...
+        # empty (i.e., 0x0) sparse matrices, but we do.
         if num_rows == 0 and num_cols == 0:
             self._matrix = None
         else:
-            # TODO: possible optimization is to allow data to be a preexisting
-            # scipy.sparse matrix.
             if data is None:
                 self._matrix = coo_matrix((num_rows, num_cols), dtype=dtype)
             else:
                 # coo_matrix allows zeros to be added as data, and this affects
                 # nnz, items, and iteritems. Clean them out here, as this is
                 # the only time these zeros can creep in.
-                # TODO: do we also want to handle duplicate entries? coo_matrix
-                # allows for this, and the entries will be summed when
-                # converted, which could be misleading/wrong...
+                # Note: coo_matrix allows duplicate entries; the entries will
+                # be summed when converted. Not really sure how we want to
+                # handle this generally within BIOM- I'm okay with leaving it
+                # as undefined behavior for now.
                 self._matrix = coo_matrix(data, shape=(num_rows, num_cols),
                                           dtype=dtype)
                 self.convert('csr')
                 self._matrix.eliminate_zeros()
 
     def _is_empty(self):
+        """Return ``True`` if the matrix is empty (0x0 special case)."""
         return self._matrix is None
     is_empty = property(_is_empty)
 
     def _get_shape(self):
+        """Return a two-element tuple indicating the shape of the matrix."""
         if self.is_empty:
             return 0,0
         else:
@@ -81,6 +87,7 @@ class ScipySparseMat(object):
     shape = property(_get_shape)
 
     def _get_dtype(self):
+        """Return the type of data being stored in the matrix."""
         if self.is_empty:
             return None
         else:
@@ -88,6 +95,7 @@ class ScipySparseMat(object):
     dtype = property(_get_dtype)
 
     def _get_format(self):
+        """Return the current sparse format as a string."""
         if self.is_empty:
             return None
         else:
@@ -103,7 +111,7 @@ class ScipySparseMat(object):
     size = property(_get_size)
 
     def convert(self, fmt=None):
-        """
+        """Convert the matrix to the specified sparse format.
 
         If ``fmt`` is ``None`` or we're already in the specified format, do
         nothing.
@@ -112,7 +120,7 @@ class ScipySparseMat(object):
             self._matrix = self._matrix.asformat(fmt)
 
     def transpose(self):
-        """Return a transposed copy of self."""
+        """Return a transposed copy of ``self``."""
         transposed = self.__class__(self.shape[1], self.shape[0],
                                     dtype=self.dtype)
 
@@ -123,13 +131,17 @@ class ScipySparseMat(object):
     T = property(transpose)
 
     def sum(self, axis=None):
-        """Sum entire matrix or along rows/columns.
-        
+        """Sum the entire matrix or along rows/columns.
+
         ``axis`` can be ``None``, 0, or 1.
         """
         return squeeze(asarray(self._matrix.sum(axis=axis)))
 
     def getRow(self, row_idx):
+        """Return the row at ``row_idx`` as a ``ScipySparseMat``.
+
+        A row vector will be returned in csr format.
+        """
         num_rows, num_cols = self.shape
 
         if row_idx >= num_rows or row_idx < 0:
@@ -143,6 +155,10 @@ class ScipySparseMat(object):
         return row_vector
 
     def getCol(self, col_idx):
+        """Return the column at ``col_idx`` as a ``ScipySparseMat``.
+
+        A column vector will be returned in csc format.
+        """
         num_rows, num_cols = self.shape
 
         if col_idx >= num_cols or col_idx < 0:
@@ -156,11 +172,11 @@ class ScipySparseMat(object):
         return col_vector
 
     def items(self):
-        """Return [((r,c),v)]. No guaranteed ordering!"""
+        """Return ``[((r,c),v)]``. No guaranteed ordering!"""
         return list(self.iteritems())
 
     def iteritems(self):
-        """Generator yielding ((r,c),v). No guaranteed ordering!"""
+        """Generator yielding ``((r,c),v)``. No guaranteed ordering!"""
         if not self.is_empty:
             self.convert('coo')
 
@@ -169,7 +185,7 @@ class ScipySparseMat(object):
                 yield (r, c), v
 
     def copy(self):
-        """Return a deep copy of self."""
+        """Return a deep copy of ``self``."""
         new_self = self.__class__(*self.shape, dtype=self.dtype)
 
         if not self.is_empty:
@@ -178,8 +194,8 @@ class ScipySparseMat(object):
         return new_self
 
     def __eq__(self, other):
-        """Return True if both matrices are equal.
-        
+        """Return ``True`` if both matrices are equal.
+
         Matrices are equal iff the following items are equal:
         - type
         - shape
@@ -187,9 +203,9 @@ class ScipySparseMat(object):
         - size (nnz)
         - matrix data (more expensive, so checked last)
 
-        Sparse format does not need to be the same. ``self`` and ``other`` will
-        be converted to csr format if necessary before performing the final
-        comparison.
+        The sparse format does not need to be the same between the two
+        matrices. ``self`` and ``other`` will be converted to csr format if
+        necessary before performing the final comparison.
         """
         if not isinstance(other, self.__class__):
             return False
@@ -215,7 +231,7 @@ class ScipySparseMat(object):
         return True
 
     def __ne__(self, other):
-        """Return True if both matrices are not equal."""
+        """Return ``True`` if both matrices are not equal."""
         return not (self == other)
 
     def __str__(self):
@@ -225,6 +241,10 @@ class ScipySparseMat(object):
             return str(self._matrix)
 
     def __setitem__(self, args, value):
+        """Set the element at the specified row and column.
+
+        Currently does not support setting a non-zero element to zero.
+        """
         if self.is_empty:
             raise IndexError("Cannot set an element on a 0x0 matrix.")
 
@@ -236,8 +256,9 @@ class ScipySparseMat(object):
 
         self.convert('lil')
         if value == 0:
-            # TODO: we can support this, but need to watch out for efficiency
-            # issues and nnz.
+            # We can support this with scipy.sparse, but need to watch out for
+            # efficiency issues and nnz. Leaving this unsupported for now to
+            # match CSMat.
             if self._matrix[row,col] != 0:
                 raise ValueError("Cannot set an existing non-zero element to "
                                  "zero.")
@@ -245,7 +266,7 @@ class ScipySparseMat(object):
             self._matrix[row,col] = value
 
     def __getitem__(self, args):
-        """Handles slices."""
+        """Handles row or column slices."""
         if self.is_empty:
             raise IndexError("Cannot retrieve an element from a 0x0 matrix.")
 
@@ -275,7 +296,7 @@ class ScipySparseMat(object):
 
 
 def to_scipy(values, transpose=False, dtype=float):
-    """Try to return a populated ScipySparseMat object.
+    """Try to return a populated ``ScipySparseMat`` object.
 
     NOTE: assumes the max value observed in row and col defines the size of the
     matrix.
@@ -328,7 +349,7 @@ def to_scipy(values, transpose=False, dtype=float):
         raise TableException("Unknown input type")
 
 def list_list_to_scipy(data, dtype=float, shape=None):
-    """Convert a list of lists into a ScipySparseMat.
+    """Convert a list of lists into a ``ScipySparseMat``.
 
     [[row, col, value], ...]
     """
@@ -340,11 +361,10 @@ def list_list_to_scipy(data, dtype=float, shape=None):
     else:
         n_rows, n_cols = shape
 
-    # TODO: the CSMat code doesn't respect dtype. Should we pass it here?
     return ScipySparseMat(n_rows, n_cols, data=(values,(rows,cols)))
 
 def nparray_to_scipy(data, dtype=float):
-    """Convert a numpy array to a ScipySparseMat."""
+    """Convert a numpy array to a ``ScipySparseMat``."""
     if len(data.shape) == 1:
         shape = (1, data.shape[0])
     else:
@@ -353,11 +373,11 @@ def nparray_to_scipy(data, dtype=float):
     return ScipySparseMat(*shape, dtype=dtype, data=data)
 
 def list_nparray_to_scipy(data, dtype=float):
-    """Takes a list of numpy arrays and creates a ScipySparseMat."""
+    """Takes a list of numpy arrays and creates a ``ScipySparseMat``."""
     return ScipySparseMat(len(data), len(data[0]), dtype=dtype, data=data)
 
 def list_scipy_to_scipy(data, dtype=float):
-    """Takes a list of ScipySparseMats and creates a ScipySparseMat."""
+    """Takes a list of ``ScipySparseMat``s and creates a ``ScipySparseMat``."""
     if isinstance(data[0], ScipySparseMat):
         if data[0].shape[0] > data[0].shape[1]:
             is_col = True
@@ -368,8 +388,6 @@ def list_scipy_to_scipy(data, dtype=float):
             n_rows = len(data)
             n_cols = data[0].shape[1]
     else:
-        # TODO: Is this needed here? I thought this was supposed to take a list
-        # of sparse matrices, not a list of dicts.
         all_keys = flatten([d.keys() for d in data])
         n_rows = max(all_keys, key=itemgetter(0))[0] + 1
         n_cols = max(all_keys, key=itemgetter(1))[1] + 1
@@ -384,7 +402,6 @@ def list_scipy_to_scipy(data, dtype=float):
     cols = []
     vals = []
     for row_idx,row in enumerate(data):
-        # TODO: items() is inefficient. Should use iteritems().
         for (foo,col_idx),val in row.items():
             if is_col:
                 # transpose
@@ -398,9 +415,8 @@ def list_scipy_to_scipy(data, dtype=float):
 
     return ScipySparseMat(n_rows, n_cols, dtype=dtype, data=(vals,(rows,cols)))
 
-# TODO: this seems like the same function as above
 def list_dict_to_scipy(data, dtype=float):
-    """Takes a list of dict {(row,col):val} and creates a ScipySparseMat."""
+    """Takes a list of dict {(row,col):val} and creates a ``ScipySparseMat``."""
     if isinstance(data[0], ScipySparseMat):
         if data[0].shape[0] > data[0].shape[1]:
             is_col = True
@@ -439,9 +455,7 @@ def list_dict_to_scipy(data, dtype=float):
     return ScipySparseMat(n_rows, n_cols, dtype=dtype, data=(vals,(rows,cols)))
 
 def dict_to_scipy(data, dtype=float):
-    """Takes a dict {(row,col):val} and creates a ScipySparseMat."""
-    # TODO: this shape inferring code should be centralized somewhere. It is
-    # heavily duplicated.
+    """Takes a dict {(row,col):val} and creates a ``ScipySparseMat``."""
     n_rows = max(data.keys(), key=itemgetter(0))[0] + 1
     n_cols = max(data.keys(), key=itemgetter(1))[1] + 1
 

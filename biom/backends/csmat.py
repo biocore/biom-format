@@ -107,7 +107,7 @@ class CSMat():
     T = property(transpose)
 
     def sum(self, axis=None):
-        """Sum entire matrix or along rows/columns.
+        """Sum the entire matrix or along rows/columns.
         
         ``axis`` can be ``None``, 0, or 1.
         """
