@@ -2058,6 +2058,13 @@ class SparseTableTests(TestCase):
         obs = self.st1._conv_to_np(input_col)
         self.assertEqual(obs, exp)
 
+        # 1x1
+        input_vec = SparseObj(1,1)
+        input_vec[(0,0)] = 42
+        exp = array([42.0])
+        obs = self.st1._conv_to_np(input_vec)
+        self.assertEqual(obs, exp)
+
     def test_conv_to_self_type(self):
         """Should convert other to SparseObj type"""
         exp = SparseObj(2,2)
