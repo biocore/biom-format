@@ -97,6 +97,7 @@ class ScipySparseMatTests(TestCase):
         self.assertEqual(self.null.fmt, None)
         self.assertEqual(self.empty.fmt, 'coo')
         self.assertEqual(self.mat1.fmt, 'csr')
+        self.assertEqual(self.single_ele.fmt, 'lil')
 
     def test_size(self):
         """What is your NNZ?"""
@@ -105,6 +106,30 @@ class ScipySparseMatTests(TestCase):
         self.assertEqual(self.single_ele.size, 1)
         self.assertEqual(self.mat1.size, 4)
         self.assertEqual(self.explicit_zeros.size, 4)
+
+    def test_convert(self):
+        """Test sparse format conversion."""
+        self.assertEqual(self.mat1.fmt, 'csr')
+        self.mat1.convert('coo')
+        self.assertEqual(self.mat1.fmt, 'coo')
+
+        self.assertEqual(self.null.fmt, None)
+        self.null.convert('coo')
+        self.assertEqual(self.null.fmt, None)
+
+    def test_transpose(self):
+        """Test transposition."""
+        obs = self.null.T
+        self.assertEqual(obs, self.null)
+        self.assertFalse(obs is self.null)
+
+        obs = self.single_ele.T
+        self.assertEqual(obs, self.single_ele)
+        self.assertFalse(obs is self.single_ele)
+
+        exp = ScipySparseMat(3,2,data=array([[1,3],[0,0],[2,4]]))
+        obs = self.mat1.T
+        self.assertEqual(obs, exp)
 
 
 if __name__ == '__main__':

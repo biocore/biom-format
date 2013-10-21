@@ -126,6 +126,11 @@ class ScipySparseMat(object):
                                     dtype=self.dtype)
 
         if not self.is_empty:
+            # lil's transpose method doesn't have the copy kwarg, but all of
+            # the others do.
+            if self.fmt == 'lil':
+                self.convert('csr')
+
             transposed._matrix = self._matrix.transpose(copy=True)
 
         return transposed
