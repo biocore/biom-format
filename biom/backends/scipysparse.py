@@ -42,17 +42,9 @@ class ScipySparseMat(object):
         The numpy array that is returned will always be a 1-dimensional row
         vector.
         """
-        if not isinstance(vec, ScipySparseMat):
-            raise TypeError("Can only convert ScipySparseMat vectors to a "
-                            "dense representation.")
-
-        shape = vec.shape
-        if 1 not in shape:
-            raise ValueError("Can only convert row or column vectors to a "
-                             "dense representation.")
-
         dense_vec = asarray(vec._matrix.todense())
-        if shape == (1, 1):
+
+        if vec.shape == (1, 1):
             # Handle the special case where we only have a single element, but
             # we don't want to return a numpy scalar / 0-d array. We still want
             # to return a vector of length 1.
@@ -242,8 +234,7 @@ class ScipySparseMat(object):
             other.convert('csr')
 
             # From http://mail.scipy.org/pipermail/scipy-user/2008-April/016276.html
-            # TODO: Do we need abs here?
-            if (self._matrix - other._matrix).nnz > 0:
+            if abs(self._matrix - other._matrix).nnz > 0:
                 return False
 
         return True
