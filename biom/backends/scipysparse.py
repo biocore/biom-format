@@ -45,11 +45,20 @@ class ScipySparseMat(object):
         if not isinstance(vec, ScipySparseMat):
             raise TypeError("Can only convert ScipySparseMat vectors to a "
                             "dense representation.")
-        if 1 not in vec.shape:
+
+        shape = vec.shape
+        if 1 not in shape:
             raise ValueError("Can only convert row or column vectors to a "
                              "dense representation.")
 
-        return squeeze(asarray(vec._matrix.todense()))
+        dense_vec = asarray(vec._matrix.todense())
+        if shape == (1, 1):
+            # Handle the special case where we only have a single element, but
+            # we don't want to return a numpy scalar / 0-d array. We still want
+            # to return a vector of length 1.
+            return dense_vec.reshape(1)
+        else:
+            return squeeze(dense_vec)
 
     def __init__(self, num_rows, num_cols, dtype=float, data=None):
         # I hate myself for having the empty special case throughout the
@@ -135,7 +144,10 @@ class ScipySparseMat(object):
 
         ``axis`` can be ``None``, 0, or 1.
         """
-        return squeeze(asarray(self._matrix.sum(axis=axis)))
+        if self.is_empty:
+            return 0
+        else:
+            return squeeze(asarray(self._matrix.sum(axis=axis)))
 
     def getRow(self, row_idx):
         """Return the row at ``row_idx`` as a ``ScipySparseMat``.

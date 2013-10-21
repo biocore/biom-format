@@ -275,9 +275,11 @@ class TableTests(TestCase):
         self.simple_derived = Table(array([[5,6],[7,8]]), [1,2],[3,4])
 
     def test_sum(self):
-        """should sum a table"""
-        #self.assertRaises(TableException, self.t1.sum)
+        """Should sum a table"""
         self.assertEqual(self.t1.sum(), 0)
+        self.assertEqual(self.t1.sum(axis='sample'), 0)
+        self.assertEqual(self.simple_derived.sum(), 26)
+        self.assertEqual(self.simple_derived.sum(axis='sample'), [12, 14])
 
     def test_reduce(self):
         """Should throw an exception on an empty table"""
@@ -670,6 +672,10 @@ class DenseTableTests(TestCase):
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
         self.empty_dt = DenseTable(array([]), [], [])
+        self.single_sample_dt = DenseTable(array([[2.0],[0.0],[1.0]]), ['S1'],
+                                           ['O1','O2','O3'])
+        self.single_obs_dt = DenseTable(array([[2.0,0.0,1.0]]),
+                                        ['S1','S2','S3'], ['O1'])
 
     def test_sum(self):
         """Test of sum!"""
@@ -924,6 +930,15 @@ class DenseTableTests(TestCase):
         obs = list(gen)
         self.assertEqual(obs, exp)
 
+    def test_iterSampleData_single_obs(self):
+        """Iterates data by samples with a single observation."""
+        exp = [array([2.0]), array([0.0]), array([1.0])]
+        obs = list(self.single_obs_dt.iterSampleData())
+        # We test this way to make sure the observed value is a single element
+        # array instead of a numpy scalar.
+        for o, e in zip(obs, exp):
+            self.assertEqual(o, e)
+
     def test_iterObservationData(self):
         """Iterates data by observations"""
         gen = self.dt1.iterObservationData()
@@ -935,6 +950,13 @@ class DenseTableTests(TestCase):
         exp = [array([5,6]), array([7,8])]
         obs = list(gen)
         self.assertEqual(obs, exp)
+
+    def test_iterObservationData_single_sample(self):
+        """Iterates data by observations from a single sample."""
+        exp = [array([2.0]), array([0.0]), array([1.0])]
+        obs = list(self.single_sample_dt.iterObservationData())
+        for o, e in zip(obs, exp):
+            self.assertEqual(o, e)
 
     def test_filterSamples(self):
         """Filters samples by arbitrary function"""
@@ -1806,6 +1828,12 @@ class SparseTableTests(TestCase):
         self.vals7 = to_sparse({(0,0):5,(0,1):7,(1,0):8,(1,1):0})
         self.st7 = SparseTable(self.vals7, ['a','b'],['5','6'])
 
+        self.single_sample_st = SparseTable(
+                to_sparse(array([[2.0],[0.0],[1.0]])), ['S1'],
+                ['O1','O2','O3'])
+        self.single_obs_st = SparseTable(to_sparse(array([[2.0,0.0,1.0]])),
+                                         ['S1','S2','S3'], ['O1'])
+
     def test_sum(self):
         """Test of sum!"""
         self.assertEqual(self.st1.sum('whole'), 26)
@@ -2155,6 +2183,15 @@ class SparseTableTests(TestCase):
         obs = list(gen)
         self.assertEqual(obs, exp)
 
+    def test_iterSampleData_single_obs(self):
+        """Iterates data by samples with a single observation."""
+        exp = [array([2.0]), array([0.0]), array([1.0])]
+        obs = list(self.single_obs_st.iterSampleData())
+        # We test this way to make sure the observed value is a single element
+        # array instead of a numpy scalar.
+        for o, e in zip(obs, exp):
+            self.assertEqual(o, e)
+
     def test_iterObservationData(self):
         """Iterates data by observations"""
         gen = self.st1.iterObservationData()
@@ -2166,6 +2203,13 @@ class SparseTableTests(TestCase):
         exp = [array([5,6]), array([7,8])]
         obs = list(gen)
         self.assertEqual(obs, exp)
+
+    def test_iterObservationData_single_sample(self):
+        """Iterates data by observations from a single sample."""
+        exp = [array([2.0]), array([0.0]), array([1.0])]
+        obs = list(self.single_sample_st.iterObservationData())
+        for o, e in zip(obs, exp):
+            self.assertEqual(o, e)
 
     def test_filterSamples(self):
         """Filters samples by arbitrary function"""
