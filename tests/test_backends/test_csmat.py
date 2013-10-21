@@ -564,6 +564,41 @@ class CSMatTests(TestCase):
         obs = self.empty.T
         self.assertEqual(obs, exp)
 
+    def test_sum(self):
+        """test sum"""
+        obs = self.obj.sum()
+        self.assertEqual(obs, 10)
+
+        exp = array([1,2,3,4])
+        obs = self.obj.sum(0)
+        self.assertEqual(obs, exp)
+
+        exp = array([3,3,4])
+        obs = self.obj.sum(1)
+        self.assertEqual(obs, exp)
+
+        obs = self.row_vec.sum()
+        self.assertEqual(obs, 4)
+
+        exp = array([1,0,3])
+        obs = self.row_vec.sum(0)
+        self.assertEqual(obs, exp)
+
+        exp = array([4])
+        obs = self.row_vec.sum(1)
+        self.assertEqual(obs, exp)
+
+        obs = self.single_ele.sum()
+        self.assertEqual(obs, 42)
+
+        exp = array([42])
+        obs = self.single_ele.sum(0)
+        self.assertEqual(obs, exp)
+
+        exp = array([42])
+        obs = self.single_ele.sum(1)
+        self.assertEqual(obs, exp)
+
     def test_bulkCOOUpdate(self):
         """Stages data"""
         self.obj.convert("csr")
