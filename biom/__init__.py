@@ -69,8 +69,6 @@ def get_sparse_backend():
 
     valid_backend = False
     if backend == 'ScipySparseMat':
-        # TODO: make sure this handles the case where the user doesn't have
-        # scipy installed.
         try:
             from biom.backends.scipysparse import ScipySparseMat, to_scipy, \
                 dict_to_scipy, list_dict_to_scipy, list_nparray_to_scipy, \

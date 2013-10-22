@@ -4,6 +4,8 @@ BIOM-Format 1.2.0-dev (changes since BIOM-Format 1.2.0 go here)
 New Features
 ------------
 
+* Added new sparse matrix backend ``ScipySparseMat``, which requires that [scipy](http://www.scipy.org/) is installed if this backend is in use. This backend will generally yield improvements in both runtime and memory consumption, especially with larger sparse tables. The default sparse matrix backend is still ``CSMat`` (this means that scipy is an optional dependency of the biom-format project).
+
 Changes
 -------
 
