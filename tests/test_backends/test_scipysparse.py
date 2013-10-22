@@ -164,6 +164,73 @@ class ScipySparseMatTests(TestCase):
 
         self.assertEqual(self.col_vec.getCol(0), self.col_vec)
 
+    def test_items_iteritems(self):
+        """Test getting a list of non-zero elements."""
+        exp = []
+        self.assertEqual(self.null.items(), exp)
+        self.assertEqual(list(self.null.iteritems()), exp)
+
+        exp = []
+        self.assertEqual(self.empty.items(), exp)
+        self.assertEqual(list(self.empty.iteritems()), exp)
+
+        exp = [((0,0),1),((0,2),2),((1,0),3),((1,2),4)]
+        self.assertEqual(sorted(self.mat1.items()), exp)
+        self.assertEqual(sorted(self.mat1.iteritems()), exp)
+
+    def test_copy(self):
+        """Test copying the matrix."""
+        copy = self.mat1.copy()
+        self.assertEqual(copy, self.mat1)
+        self.assertFalse(copy is self.mat1)
+
+        copy[1,1] = 42
+        self.assertNotEqual(copy, self.mat1)
+
+    def test_eq(self):
+        """Test whether two matrices are equal."""
+        self.assertTrue(self.null == ScipySparseMat(0,0))
+        self.assertTrue(self.empty == ScipySparseMat(2,2))
+
+        mat2 = ScipySparseMat(2,3,data=array([[1,0,2],[3,0,4]]))
+        self.assertTrue(self.mat1 == mat2)
+
+        # Sparse format shouldn't matter.
+        mat2.convert('lil')
+        self.assertNotEqual(self.mat1.fmt, mat2.fmt)
+        self.assertTrue(self.mat1 == mat2)
+
+        # Equality works in both directions.
+        self.assertTrue(mat2 == self.mat1)
+
+    def test_ne(self):
+        """Test whether two matrices are not equal."""
+        # Wrong type.
+        self.assertTrue(self.null != array([]))
+
+        # Wrong shape.
+        self.assertTrue(self.empty != ScipySparseMat(2,1))
+
+        # Wrong dtype.
+        self.assertTrue(self.empty != ScipySparseMat(2,2,dtype=int))
+
+        # Wrong size.
+        wrong_size = ScipySparseMat(2,2)
+        self.assertTrue(self.empty == wrong_size)
+        wrong_size[1,0] = 42
+        self.assertTrue(self.empty != wrong_size)
+
+        # Wrong size.
+        wrong_data = self.mat1.copy()
+        self.assertTrue(self.mat1 == wrong_data)
+        wrong_data[0,2] = 42
+        self.assertTrue(self.mat1 != wrong_data)
+        self.assertTrue(wrong_data != self.mat1)
+
+    def test_str(self):
+        """Test getting string representation of the matrix."""
+        self.assertEqual(str(self.null), '<0x0 sparse matrix>')
+
 
 if __name__ == '__main__':
     main()
