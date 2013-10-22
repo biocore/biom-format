@@ -370,7 +370,7 @@ def list_list_to_scipy(data, dtype=float, shape=None):
 
     [[row, col, value], ...]
     """
-    rows, cols, values = zip(*data)
+    rows, cols, values = izip(*data)
 
     if shape is None:
         n_rows = max(rows) + 1
