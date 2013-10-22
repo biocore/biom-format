@@ -1822,7 +1822,7 @@ class SparseTableTests(TestCase):
         self.vals4 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
         self.st3 = SparseTable(self.vals3, ['b','c'],['2','3'])
         self.st4 = SparseTable(self.vals4, ['c','d'],['3','4'])
-        self._to_dict_f = lambda x: x.items()
+        self._to_dict_f = lambda x: sorted(x.items())
         self.st_rich = SparseTable(to_sparse(self.vals), 
                 ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
@@ -2140,7 +2140,7 @@ class SparseTableTests(TestCase):
         exp = map(self._to_dict_f, [r1, r2])
         obs = map(self._to_dict_f, self.st1._iter_obs())
 
-        self.assertEqual(sorted(obs), sorted(exp))
+        self.assertEqual(obs, exp)
 
     def test_iter_samp(self):
         """Iterate over samples of sparse matrix"""
@@ -2528,7 +2528,6 @@ class DenseSparseInteractionTests(TestCase):
         self.vals4 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
         self.st3 = SparseTable(self.vals3, ['b','c'],['2','3'])
         self.st4 = SparseTable(self.vals4, ['c','d'],['3','4'])
-        self._to_dict_f = lambda x: x.items()
         self.st_rich = SparseTable(to_sparse(self.vals), 
                 ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
