@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+"""scipy sparse matrix backend"""
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
@@ -22,16 +23,17 @@ __email__ = "jai.rideout@gmail.com"
 from itertools import izip
 from operator import itemgetter
 
-from numpy import asarray, ndarray, squeeze
+from numpy import asarray, ndarray, newaxis, squeeze
 from scipy.sparse import coo_matrix
 
+from biom.exception import TableException
 from biom.util import flatten
 
 class ScipySparseMat(object):
     """Sparse matrix backend that utilizes scipy.sparse representations.
 
     Changes between coo, csr, csc, and lil sparse formats as necessary.
-    
+
     Based on CSMat implementation by Daniel McDonald.
     """
 
@@ -82,7 +84,7 @@ class ScipySparseMat(object):
     def _get_shape(self):
         """Return a two-element tuple indicating the shape of the matrix."""
         if self.is_empty:
-            return 0,0
+            return 0, 0
         else:
             return self._matrix.shape
     shape = property(_get_shape)
@@ -238,7 +240,8 @@ class ScipySparseMat(object):
             self.convert('csr')
             other.convert('csr')
 
-            # From http://mail.scipy.org/pipermail/scipy-user/2008-April/016276.html
+            # From:
+            # http://mail.scipy.org/pipermail/scipy-user/2008-April/016276.html
             if abs(self._matrix - other._matrix).nnz > 0:
                 return False
 
@@ -273,11 +276,11 @@ class ScipySparseMat(object):
             # We can support this with scipy.sparse, but need to watch out for
             # efficiency issues and nnz. Leaving this unsupported for now to
             # match CSMat.
-            if self._matrix[row,col] != 0:
+            if self._matrix[row, col] != 0:
                 raise ValueError("Cannot set an existing non-zero element to "
                                  "zero.")
         else:
-            self._matrix[row,col] = value
+            self._matrix[row, col] = value
 
     def __getitem__(self, args):
         """Handles row or column slices."""
@@ -306,7 +309,7 @@ class ScipySparseMat(object):
             if self.fmt == 'coo':
                 self.convert('csr')
 
-            return self._matrix[row,col]
+            return self._matrix[row, col]
 
 
 def to_scipy(values, transpose=False, dtype=float):
@@ -318,7 +321,7 @@ def to_scipy(values, transpose=False, dtype=float):
     # if it is a vector
     if isinstance(values, ndarray) and len(values.shape) == 1:
         if transpose:
-            mat = nparray_to_scipy(values[:,newaxis], dtype)
+            mat = nparray_to_scipy(values[:, newaxis], dtype)
         else:
             mat = nparray_to_scipy(values, dtype)
         return mat
@@ -375,7 +378,7 @@ def list_list_to_scipy(data, dtype=float, shape=None):
     else:
         n_rows, n_cols = shape
 
-    return ScipySparseMat(n_rows, n_cols, data=(values,(rows,cols)))
+    return ScipySparseMat(n_rows, n_cols, data=(values, (rows, cols)))
 
 def nparray_to_scipy(data, dtype=float):
     """Convert a numpy array to a ``ScipySparseMat``."""
@@ -415,8 +418,8 @@ def list_scipy_to_scipy(data, dtype=float):
     rows = []
     cols = []
     vals = []
-    for row_idx,row in enumerate(data):
-        for (foo,col_idx),val in row.items():
+    for row_idx, row in enumerate(data):
+        for (foo, col_idx), val in row.items():
             if is_col:
                 # transpose
                 rows.append(foo)
@@ -427,7 +430,8 @@ def list_scipy_to_scipy(data, dtype=float):
                 cols.append(col_idx)
                 vals.append(val)
 
-    return ScipySparseMat(n_rows, n_cols, dtype=dtype, data=(vals,(rows,cols)))
+    return ScipySparseMat(n_rows, n_cols, dtype=dtype,
+                          data=(vals, (rows, cols)))
 
 def list_dict_to_scipy(data, dtype=float):
     """Takes a list of dict {(row,col):val} and creates a ``ScipySparseMat``."""
@@ -454,8 +458,8 @@ def list_dict_to_scipy(data, dtype=float):
     rows = []
     cols = []
     vals = []
-    for row_idx,row in enumerate(data):
-        for (foo,col_idx),val in row.items():
+    for row_idx, row in enumerate(data):
+        for (foo, col_idx), val in row.items():
             if is_col:
                 # transpose
                 rows.append(foo)
@@ -466,7 +470,8 @@ def list_dict_to_scipy(data, dtype=float):
                 cols.append(col_idx)
                 vals.append(val)
 
-    return ScipySparseMat(n_rows, n_cols, dtype=dtype, data=(vals,(rows,cols)))
+    return ScipySparseMat(n_rows, n_cols, dtype=dtype,
+                          data=(vals, (rows, cols)))
 
 def dict_to_scipy(data, dtype=float):
     """Takes a dict {(row,col):val} and creates a ``ScipySparseMat``."""
@@ -476,9 +481,10 @@ def dict_to_scipy(data, dtype=float):
     rows = []
     cols = []
     vals = []
-    for (r,c),v in data.items():
+    for (r, c), v in data.items():
         rows.append(r)
         cols.append(c)
         vals.append(v)
 
-    return ScipySparseMat(n_rows, n_cols, dtype=dtype, data=(vals,(rows,cols)))
+    return ScipySparseMat(n_rows, n_cols, dtype=dtype,
+                          data=(vals, (rows, cols)))
