@@ -131,6 +131,39 @@ class ScipySparseMatTests(TestCase):
         obs = self.mat1.T
         self.assertEqual(obs, exp)
 
+    def test_sum(self):
+        """Test summing a matrix."""
+        self.assertEqual(self.null.sum(), 0)
+        self.assertEqual(self.mat1.sum(), 10)
+        self.assertEqual(self.mat1.sum(0), array([4,0,6]))
+        self.assertEqual(self.mat1.sum(1), array([3,7]))
+        self.assertEqual(self.row_vec.sum(1), array([4]))
+        self.assertEqual(self.col_vec.sum(0), array([4]))
+        with self.assertRaises(ValueError):
+            _ = self.mat1.sum(3)
+
+    def test_getRow(self):
+        """Test grabbing a row from the matrix."""
+        with self.assertRaises(IndexError):
+            _ = self.null.getRow(0)
+
+        exp = ScipySparseMat(1,3,data=array([[1,0,2]]))
+        obs = self.mat1.getRow(0)
+        self.assertEqual(obs, exp)
+
+        self.assertEqual(self.row_vec.getRow(0), self.row_vec)
+
+    def test_getCol(self):
+        """Test grabbing a column from the matrix."""
+        with self.assertRaises(IndexError):
+            _ = self.null.getCol(0)
+
+        exp = ScipySparseMat(2,1,data=array([[1],[3]]))
+        obs = self.mat1.getCol(0)
+        self.assertEqual(obs, exp)
+
+        self.assertEqual(self.col_vec.getCol(0), self.col_vec)
+
 
 if __name__ == '__main__':
     main()
