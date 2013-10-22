@@ -8,7 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
-from numpy import array, float64
+from numpy import array
 from biom.unit_test import TestCase, main
 from biom.backends.scipysparse import (ScipySparseMat, to_scipy,
                                        list_nparray_to_scipy,
@@ -18,7 +18,7 @@ from biom.backends.scipysparse import (ScipySparseMat, to_scipy,
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Jai Ram Rideout"]
+__credits__ = ["Jai Ram Rideout", "Daniel McDonald"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
@@ -303,6 +303,148 @@ class ScipySparseMatTests(TestCase):
 
         with self.assertRaises(IndexError):
             _ = self.mat1[1,3]
+
+
+# These tests are pretty much copied from CSMat's conversion tests...
+class SupportTests(TestCase):
+    def test_list_list_to_scipy(self):
+        """convert [[row,col,value], ...] to scipy"""
+        input = [[0,0,1],[1,1,5.0],[0,2,6]]
+        exp = ScipySparseMat(2,3)
+        exp[0,0] = 1.0
+        exp[1,1] = 5.0
+        exp[0,2] = 6
+        obs = list_list_to_scipy(input)
+        self.assertEqual(obs, exp)
+
+    def test_nparray_to_scipy(self):
+        """Convert nparray to scipy"""
+        input = array([[1,2,3,4],[-1,6,7,8],[9,10,11,12]])
+        exp = ScipySparseMat(3,4)
+        exp[0,0] = 1
+        exp[0,1] = 2
+        exp[0,2] = 3
+        exp[0,3] = 4
+        exp[1,0] = -1
+        exp[1,1] = 6
+        exp[1,2] = 7
+        exp[1,3] = 8
+        exp[2,0] = 9
+        exp[2,1] = 10
+        exp[2,2] = 11
+        exp[2,3] = 12
+        obs = nparray_to_scipy(input)
+        self.assertEqual(obs, exp)
+
+    def test_list_dict_to_scipy(self):
+        """Take a list of dicts and condense down to a single dict"""
+        input = [{(0,0):10,(0,1):2}, {(1,2):15}, {(0,3):7}]
+        exp = ScipySparseMat(3,4)
+        exp[0,0] = 10
+        exp[0,1] = 2
+        exp[1,2] = 15
+        exp[2,3] = 7
+        obs = list_dict_to_scipy(input)
+        self.assertEqual(obs,exp)
+
+    def test_dict_to_scipy(self):
+        """Take a dict and convert to scipy"""
+        input = {(0,1):5,(1,0):2,(2,1):6}
+        exp = ScipySparseMat(3,2)
+        exp[(0,1)] = 5
+        exp[(1,0)] = 2
+        exp[(2,1)] = 6
+        obs = dict_to_scipy(input)
+        self.assertEqual(obs,exp)
+
+    def test_to_scipy(self):
+        """Convert to expected scipy types"""
+        vals = {(0,0):5,(0,1):6,(1,0):7,(1,1):8}
+        obs = to_scipy(vals)
+        exp = ScipySparseMat(2,2)
+        exp[(0,0)] = 5
+        exp[(0,1)] = 6
+        exp[(1,0)] = 7
+        exp[(1,1)] = 8
+        self.assertEqual(obs,exp)
+
+        input = {(0,1):5,(10,8):-1.23}
+
+        exp = ScipySparseMat(11,9)
+        exp[(0,1)] = 5
+        exp[(10,8)] = -1.23
+        obs = to_scipy(input)
+        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
+
+        # test transpose
+        exp = ScipySparseMat(9,11)
+        exp[(1,0)] = 5
+        exp[(8,10)] = -1.23
+        obs = to_scipy(input, transpose=True)
+        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
+
+        # passing a list of dicts, transpose
+        exp = ScipySparseMat(3,2)
+        exp[(0,0)] = 5.0
+        exp[(1,0)] = 6.0
+        exp[(2,0)] = 7.0
+        exp[(0,1)] = 8.0
+        exp[(1,1)] = 9.0
+        exp[(2,1)] = 10.0
+        obs = to_scipy([{(0,0):5,(0,1):6,(0,2):7},
+                                           {(1,0):8,(1,1):9,(1,2):10}],
+                                           transpose=True)
+        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
+
+        # passing a list of ScipySparseMats
+        exp = ScipySparseMat(2,3)
+        exp[(0,0)] = 5
+        exp[(0,1)] = 6
+        exp[(0,2)] = 7
+        exp[(1,0)] = 8
+        exp[(1,1)] = 9
+        exp[(1,2)] = 10
+        row1 = ScipySparseMat(1,3)
+        row1[(0,0)] = 5
+        row1[(0,1)] = 6
+        row1[(0,2)] = 7
+        row2 = ScipySparseMat(1,3)
+        row2[(0,0)] = 8
+        row2[(0,1)] = 9
+        row2[(0,2)] = 10
+        obs = to_scipy([row1, row2])
+        self.assertEqual(sorted(obs.items()), sorted(exp.items())) 
+
+        # test empty set
+        exp = ScipySparseMat(0,0)
+        obs = to_scipy([])
+        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
+
+    def test_list_nparray_to_scipy(self):
+        """lists of nparrays to scipy"""
+        ins = [array([0,2,1,0]), array([1,0,0,1])]
+        exp = ScipySparseMat(2,4)
+        exp[0,1] = 2
+        exp[0,2] = 1
+        exp[1,0] = 1
+        exp[1,3] = 1
+        obs = list_nparray_to_scipy(ins)
+        self.assertEqual(obs,exp)
+
+    def test_list_scipy_to_scipy(self):
+        """list of ScipySparseMats to ScipySparseMat"""
+        ins = [ScipySparseMat(1,4), ScipySparseMat(1,4)]
+        ins[0][0,0] = 5
+        ins[0][0,1] = 10
+        ins[1][0,2] = 1
+        ins[1][0,3] = 2
+        exp = ScipySparseMat(2,4)
+        exp[0,0] = 5
+        exp[0,1] = 10
+        exp[1,2] = 1
+        exp[1,3] = 2
+        obs = list_scipy_to_scipy(ins)
+        self.assertEqual(obs,exp)
 
 
 if __name__ == '__main__':
