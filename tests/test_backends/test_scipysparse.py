@@ -231,6 +231,79 @@ class ScipySparseMatTests(TestCase):
         """Test getting string representation of the matrix."""
         self.assertEqual(str(self.null), '<0x0 sparse matrix>')
 
+    def test_setitem(self):
+        """Test setting an element in the matrix."""
+        with self.assertRaises(IndexError):
+            self.null[0,0] = 42
+
+        with self.assertRaises(IndexError):
+            self.empty[0] = [42,42]
+
+        with self.assertRaises(ValueError):
+            self.mat1[0,0] = 0
+
+        with self.assertRaises(ValueError):
+            self.mat1[0,0] = 0.0
+
+        # Setting existing zero element doesn't change matrix.
+        copy = self.mat1.copy()
+        copy[0,1] = 0.0
+        self.assertEqual(copy, self.mat1)
+
+        # Setting existing nonzero element to the same thing doesn't change
+        # matrix.
+        copy = self.mat1.copy()
+        copy[0,0] = 1.0
+        self.assertEqual(copy, self.mat1)
+
+        # nonzero element -> nonzero element
+        copy = self.mat1.copy()
+        copy[0,0] = 42
+        self.assertNotEqual(copy, self.mat1)
+        self.assertEqual(copy[0,0], 42)
+
+        # zero element -> nonzero element
+        copy = self.mat1.copy()
+        copy[0,1] = 42
+        self.assertNotEqual(copy, self.mat1)
+        self.assertEqual(copy[0,1], 42)
+
+    def test_getitem(self):
+        """Test getting an element from the matrix."""
+        with self.assertRaises(IndexError):
+            _ = self.null[0,0]
+
+        with self.assertRaises(IndexError):
+            _ = self.empty[0]
+
+        with self.assertRaises(IndexError):
+            _ = self.empty[:,:]
+
+        with self.assertRaises(IndexError):
+            _ = self.empty[0:1,0]
+
+        with self.assertRaises(IndexError):
+            _ = self.empty[0,0:1]
+
+        exp = ScipySparseMat(2,1)
+        obs = self.empty[:,0]
+        self.assertEqual(obs, exp)
+
+        # Extracting a column.
+        obs = self.mat1[:,2]
+        self.assertEqual(obs, self.mat1.getCol(2))
+
+        # Extracting a row.
+        obs = self.mat1[1,:]
+        self.assertEqual(obs, self.mat1.getRow(1))
+
+        # Extracting a single element.
+        self.assertEqual(self.empty[1,1], 0)
+        self.assertEqual(self.mat1[1,2], 4)
+
+        with self.assertRaises(IndexError):
+            _ = self.mat1[1,3]
+
 
 if __name__ == '__main__':
     main()
