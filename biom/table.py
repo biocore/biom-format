@@ -18,7 +18,7 @@ from types import NoneType
 from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
-from numpy import ndarray, asarray, array, newaxis, squeeze, zeros
+from numpy import ndarray, asarray, array, newaxis, zeros
 
 from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID

@@ -446,6 +446,5 @@ class SupportTests(TestCase):
         obs = list_scipy_to_scipy(ins)
         self.assertEqual(obs,exp)
 
-
 if __name__ == '__main__':
     main()

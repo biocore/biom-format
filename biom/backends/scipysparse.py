@@ -311,7 +311,6 @@ class ScipySparseMat(object):
 
             return self._matrix[row, col]
 
-
 def to_scipy(values, transpose=False, dtype=float):
     """Try to return a populated ``ScipySparseMat`` object.
 
