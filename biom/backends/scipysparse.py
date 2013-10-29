@@ -56,10 +56,13 @@ class ScipySparseMat(object):
 
     def __init__(self, num_rows, num_cols, dtype=float, data=None):
         # I hate myself for having the empty special case throughout the
-        # code... makes it much less elegant. However, scipy doesn't support
-        # empty (i.e., 0x0) sparse matrices, but we do.
-        if num_rows == 0 and num_cols == 0:
+        # code... makes it much less elegant. However, versions of scipy prior
+        # to 0.13.0 don't support empty (i.e., 0x0, 0xn, nx0) sparse matrices,
+        # but we do. We'll treat these types of matrices as empty/null but
+        # still keep track of their shape.
+        if num_rows == 0 or num_cols == 0:
             self._matrix = None
+            self._empty_shape = (num_rows, num_cols)
         else:
             if data is None:
                 self._matrix = coo_matrix((num_rows, num_cols), dtype=dtype)
@@ -77,14 +80,18 @@ class ScipySparseMat(object):
                 self._matrix.eliminate_zeros()
 
     def _is_empty(self):
-        """Return ``True`` if the matrix is empty (0x0 special case)."""
+        """Return ``True`` if the matrix is empty/null.
+
+        A matrix is empty/null if the either the number of rows or columns (or
+        both) are zero.
+        """
         return self._matrix is None
     is_empty = property(_is_empty)
 
     def _get_shape(self):
         """Return a two-element tuple indicating the shape of the matrix."""
         if self.is_empty:
-            return 0, 0
+            return self._empty_shape
         else:
             return self._matrix.shape
     shape = property(_get_shape)
@@ -159,6 +166,10 @@ class ScipySparseMat(object):
 
         A row vector will be returned in csr format.
         """
+        if self.is_empty:
+            raise IndexError("Cannot retrieve a row from an "
+                             "empty/null matrix.")
+
         num_rows, num_cols = self.shape
 
         if row_idx >= num_rows or row_idx < 0:
@@ -176,6 +187,10 @@ class ScipySparseMat(object):
 
         A column vector will be returned in csc format.
         """
+        if self.is_empty:
+            raise IndexError("Cannot retrieve a column from an empty/null "
+                             "matrix.")
+
         num_rows, num_cols = self.shape
 
         if col_idx >= num_cols or col_idx < 0:
@@ -253,7 +268,7 @@ class ScipySparseMat(object):
 
     def __str__(self):
         if self.is_empty:
-            return '<0x0 sparse matrix>'
+            return '<%dx%d empty/null sparse matrix>' % self.shape
         else:
             return str(self._matrix)
 
@@ -263,7 +278,7 @@ class ScipySparseMat(object):
         Currently does not support setting a non-zero element to zero.
         """
         if self.is_empty:
-            raise IndexError("Cannot set an element on a 0x0 matrix.")
+            raise IndexError("Cannot set an element on an empty/null matrix.")
 
         try:
             row, col = args
@@ -285,7 +300,8 @@ class ScipySparseMat(object):
     def __getitem__(self, args):
         """Handles row or column slices."""
         if self.is_empty:
-            raise IndexError("Cannot retrieve an element from a 0x0 matrix.")
+            raise IndexError("Cannot retrieve an element from an empty/null "
+                             "matrix.")
 
         try:
             row, col = args

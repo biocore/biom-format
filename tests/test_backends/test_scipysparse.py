@@ -31,8 +31,11 @@ class ScipySparseMatTests(TestCase):
         # 3 0 4
         self.mat1 = ScipySparseMat(2,3,data=array([[1,0,2],[3,0,4]]))
 
-        # 0x0 case
-        self.null = ScipySparseMat(0,0)
+        # Empty/null cases (i.e., 0x0, 0xn, nx0).
+        self.null1 = ScipySparseMat(0,0)
+        self.null2 = ScipySparseMat(0,42)
+        self.null3 = ScipySparseMat(42,0)
+        self.nulls = [self.null1, self.null2, self.null3]
 
         # 0 0
         # 0 0
@@ -73,13 +76,17 @@ class ScipySparseMatTests(TestCase):
         self.assertEqual(obs, exp)
 
     def test_is_empty(self):
-        """Differentiate empty (0x0) matrix from non-empty matrix."""
-        self.assertTrue(self.null.is_empty)
+        """Differentiate empty matrix from non-empty matrix."""
+        for m in self.nulls:
+            self.assertTrue(m.is_empty)
+
         self.assertFalse(self.mat1.is_empty)
 
     def test_shape(self):
         """What kind of shape are you in?"""
-        self.assertEqual(self.null.shape, (0,0))
+        self.assertEqual(self.null1.shape, (0,0))
+        self.assertEqual(self.null2.shape, (0,42))
+        self.assertEqual(self.null3.shape, (42,0))
         self.assertEqual(self.mat1.shape, (2,3))
         self.assertEqual(self.empty.shape, (2,2))
         self.assertEqual(self.row_vec.shape, (1,3))
@@ -88,20 +95,26 @@ class ScipySparseMatTests(TestCase):
 
     def test_dtype(self):
         """What's your type?"""
-        self.assertEqual(self.null.dtype, None)
+        for m in self.nulls:
+            self.assertEqual(m.dtype, None)
+
         self.assertEqual(self.empty.dtype, float)
         self.assertEqual(self.row_vec.dtype, float)
 
     def test_fmt(self):
         """What format are you in?"""
-        self.assertEqual(self.null.fmt, None)
+        for m in self.nulls:
+            self.assertEqual(m.fmt, None)
+
         self.assertEqual(self.empty.fmt, 'coo')
         self.assertEqual(self.mat1.fmt, 'csr')
         self.assertEqual(self.single_ele.fmt, 'lil')
 
     def test_size(self):
         """What is your NNZ?"""
-        self.assertEqual(self.null.size, 0)
+        for m in self.nulls:
+            self.assertEqual(m.size, 0)
+
         self.assertEqual(self.empty.size, 0)
         self.assertEqual(self.single_ele.size, 1)
         self.assertEqual(self.mat1.size, 4)
@@ -113,15 +126,24 @@ class ScipySparseMatTests(TestCase):
         self.mat1.convert('coo')
         self.assertEqual(self.mat1.fmt, 'coo')
 
-        self.assertEqual(self.null.fmt, None)
-        self.null.convert('coo')
-        self.assertEqual(self.null.fmt, None)
+        for m in self.nulls:
+            self.assertEqual(m.fmt, None)
+            m.convert('coo')
+            self.assertEqual(m.fmt, None)
 
     def test_transpose(self):
         """Test transposition."""
-        obs = self.null.T
-        self.assertEqual(obs, self.null)
-        self.assertFalse(obs is self.null)
+        obs = self.null1.T
+        self.assertEqual(obs, self.null1)
+        self.assertFalse(obs is self.null1)
+
+        obs = self.null2.T
+        self.assertEqual(obs, self.null3)
+        self.assertFalse(obs is self.null3)
+
+        obs = self.null3.T
+        self.assertEqual(obs, self.null2)
+        self.assertFalse(obs is self.null2)
 
         obs = self.single_ele.T
         self.assertEqual(obs, self.single_ele)
@@ -133,7 +155,9 @@ class ScipySparseMatTests(TestCase):
 
     def test_sum(self):
         """Test summing a matrix."""
-        self.assertEqual(self.null.sum(), 0)
+        for m in self.nulls:
+            self.assertEqual(m.sum(), 0)
+
         self.assertEqual(self.mat1.sum(), 10)
         self.assertEqual(self.mat1.sum(0), array([4,0,6]))
         self.assertEqual(self.mat1.sum(1), array([3,7]))
@@ -144,8 +168,9 @@ class ScipySparseMatTests(TestCase):
 
     def test_getRow(self):
         """Test grabbing a row from the matrix."""
-        with self.assertRaises(IndexError):
-            _ = self.null.getRow(0)
+        for m in self.nulls:
+            with self.assertRaises(IndexError):
+                _ = m.getRow(0)
 
         exp = ScipySparseMat(1,3,data=array([[1,0,2]]))
         obs = self.mat1.getRow(0)
@@ -155,8 +180,9 @@ class ScipySparseMatTests(TestCase):
 
     def test_getCol(self):
         """Test grabbing a column from the matrix."""
-        with self.assertRaises(IndexError):
-            _ = self.null.getCol(0)
+        for m in self.nulls:
+            with self.assertRaises(IndexError):
+                _ = m.getCol(0)
 
         exp = ScipySparseMat(2,1,data=array([[1],[3]]))
         obs = self.mat1.getCol(0)
@@ -167,12 +193,9 @@ class ScipySparseMatTests(TestCase):
     def test_items_iteritems(self):
         """Test getting a list of non-zero elements."""
         exp = []
-        self.assertEqual(self.null.items(), exp)
-        self.assertEqual(list(self.null.iteritems()), exp)
-
-        exp = []
-        self.assertEqual(self.empty.items(), exp)
-        self.assertEqual(list(self.empty.iteritems()), exp)
+        for m in self.nulls + [self.empty]:
+            self.assertEqual(m.items(), exp)
+            self.assertEqual(list(m.iteritems()), exp)
 
         exp = [((0,0),1),((0,2),2),((1,0),3),((1,2),4)]
         self.assertEqual(sorted(self.mat1.items()), exp)
@@ -180,6 +203,11 @@ class ScipySparseMatTests(TestCase):
 
     def test_copy(self):
         """Test copying the matrix."""
+        for m in self.nulls:
+            copy = m.copy()
+            self.assertEqual(copy, m)
+            self.assertFalse(copy is m)
+
         copy = self.mat1.copy()
         self.assertEqual(copy, self.mat1)
         self.assertFalse(copy is self.mat1)
@@ -189,7 +217,9 @@ class ScipySparseMatTests(TestCase):
 
     def test_eq(self):
         """Test whether two matrices are equal."""
-        self.assertTrue(self.null == ScipySparseMat(0,0))
+        self.assertTrue(self.null1 == ScipySparseMat(0,0))
+        self.assertTrue(self.null2 == ScipySparseMat(0,42))
+        self.assertTrue(self.null3 == ScipySparseMat(42,0))
         self.assertTrue(self.empty == ScipySparseMat(2,2))
 
         mat2 = ScipySparseMat(2,3,data=array([[1,0,2],[3,0,4]]))
@@ -206,9 +236,10 @@ class ScipySparseMatTests(TestCase):
     def test_ne(self):
         """Test whether two matrices are not equal."""
         # Wrong type.
-        self.assertTrue(self.null != array([]))
+        self.assertTrue(self.null1 != array([]))
 
         # Wrong shape.
+        self.assertTrue(self.null2 != self.null3)
         self.assertTrue(self.empty != ScipySparseMat(2,1))
 
         # Wrong dtype.
@@ -229,12 +260,15 @@ class ScipySparseMatTests(TestCase):
 
     def test_str(self):
         """Test getting string representation of the matrix."""
-        self.assertEqual(str(self.null), '<0x0 sparse matrix>')
+        for m in self.nulls:
+            self.assertEqual(str(m), '<%dx%d empty/null sparse matrix>' %
+                             (m.shape[0], m.shape[1]))
 
     def test_setitem(self):
         """Test setting an element in the matrix."""
-        with self.assertRaises(IndexError):
-            self.null[0,0] = 42
+        for m in self.nulls:
+            with self.assertRaises(IndexError):
+                m[0,0] = 42
 
         with self.assertRaises(IndexError):
             self.empty[0] = [42,42]
@@ -270,8 +304,9 @@ class ScipySparseMatTests(TestCase):
 
     def test_getitem(self):
         """Test getting an element from the matrix."""
-        with self.assertRaises(IndexError):
-            _ = self.null[0,0]
+        for m in self.nulls:
+            with self.assertRaises(IndexError):
+                _ = m[0,0]
 
         with self.assertRaises(IndexError):
             _ = self.empty[0]
