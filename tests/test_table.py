@@ -275,8 +275,14 @@ class TableTests(TestCase):
         self.simple_derived = Table(array([[5,6],[7,8]]), [1,2],[3,4])
 
     def test_sum(self):
-        """should sum a table"""
-        self.assertRaises(TableException, self.t1.sum)
+        """Should sum a table"""
+        self.assertEqual(self.t1.sum(), 0)
+        self.assertEqual(self.t1.sum(axis='sample'), 0)
+        self.assertEqual(self.simple_derived.sum(), 26)
+        self.assertEqual(self.simple_derived.sum(axis='sample'), [12, 14])
+        self.assertEqual(self.simple_derived.sum(axis='observation'), [11, 15])
+        with self.assertRaises(TableException):
+            _ = self.simple_derived.sum(axis='foo')
 
     def test_reduce(self):
         """Should throw an exception on an empty table"""
@@ -669,12 +675,24 @@ class DenseTableTests(TestCase):
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
         self.empty_dt = DenseTable(array([]), [], [])
+        self.single_sample_dt = DenseTable(array([[2.0],[0.0],[1.0]]), ['S1'],
+                                           ['O1','O2','O3'])
+        self.single_obs_dt = DenseTable(array([[2.0,0.0,1.0]]),
+                                        ['S1','S2','S3'], ['O1'])
 
     def test_sum(self):
         """Test of sum!"""
         self.assertEqual(self.dt1.sum('whole'), 26)
         self.assertEqual(self.dt1.sum('sample'), array([12,14]))
         self.assertEqual(self.dt1.sum('observation'), array([11,15]))
+
+        exp = array([3.0])
+        obs = self.single_sample_dt.sum('sample')
+        self.assertEqual(obs, exp)
+
+        exp = array([3.0])
+        obs = self.single_obs_dt.sum('observation')
+        self.assertEqual(obs, exp)
 
     def test_reduce(self):
         """Reduce method"""
@@ -923,6 +941,15 @@ class DenseTableTests(TestCase):
         obs = list(gen)
         self.assertEqual(obs, exp)
 
+    def test_iterSampleData_single_obs(self):
+        """Iterates data by samples with a single observation."""
+        exp = [array([2.0]), array([0.0]), array([1.0])]
+        obs = list(self.single_obs_dt.iterSampleData())
+        # We test this way to make sure the observed value is a single element
+        # array instead of a numpy scalar.
+        for o, e in zip(obs, exp):
+            self.assertEqual(o, e)
+
     def test_iterObservationData(self):
         """Iterates data by observations"""
         gen = self.dt1.iterObservationData()
@@ -934,6 +961,13 @@ class DenseTableTests(TestCase):
         exp = [array([5,6]), array([7,8])]
         obs = list(gen)
         self.assertEqual(obs, exp)
+
+    def test_iterObservationData_single_sample(self):
+        """Iterates data by observations from a single sample."""
+        exp = [array([2.0]), array([0.0]), array([1.0])]
+        obs = list(self.single_sample_dt.iterObservationData())
+        for o, e in zip(obs, exp):
+            self.assertEqual(o, e)
 
     def test_filterSamples(self):
         """Filters samples by arbitrary function"""
@@ -1788,7 +1822,7 @@ class SparseTableTests(TestCase):
         self.vals4 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
         self.st3 = SparseTable(self.vals3, ['b','c'],['2','3'])
         self.st4 = SparseTable(self.vals4, ['c','d'],['3','4'])
-        self._to_dict_f = lambda x: x.items()
+        self._to_dict_f = lambda x: sorted(x.items())
         self.st_rich = SparseTable(to_sparse(self.vals), 
                 ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
@@ -1805,11 +1839,25 @@ class SparseTableTests(TestCase):
         self.vals7 = to_sparse({(0,0):5,(0,1):7,(1,0):8,(1,1):0})
         self.st7 = SparseTable(self.vals7, ['a','b'],['5','6'])
 
+        self.single_sample_st = SparseTable(
+                to_sparse(array([[2.0],[0.0],[1.0]])), ['S1'],
+                ['O1','O2','O3'])
+        self.single_obs_st = SparseTable(to_sparse(array([[2.0,0.0,1.0]])),
+                                         ['S1','S2','S3'], ['O1'])
+
     def test_sum(self):
         """Test of sum!"""
         self.assertEqual(self.st1.sum('whole'), 26)
         self.assertEqual(self.st1.sum('sample'), array([12,14]))
         self.assertEqual(self.st1.sum('observation'), array([11,15]))
+
+        exp = array([3.0])
+        obs = self.single_sample_st.sum('sample')
+        self.assertEqual(obs, exp)
+
+        exp = array([3.0])
+        obs = self.single_obs_st.sum('observation')
+        self.assertEqual(obs, exp)
 
     def test_reduce(self):
         """Reduce method"""
@@ -2029,6 +2077,13 @@ class SparseTableTests(TestCase):
         obs = self.st1._conv_to_np(input_col)
         self.assertEqual(obs, exp)
 
+        # 1x1
+        input_vec = SparseObj(1,1)
+        input_vec[(0,0)] = 42
+        exp = array([42.0])
+        obs = self.st1._conv_to_np(input_vec)
+        self.assertEqual(obs, exp)
+
     def test_conv_to_self_type(self):
         """Should convert other to SparseObj type"""
         exp = SparseObj(2,2)
@@ -2085,7 +2140,7 @@ class SparseTableTests(TestCase):
         exp = map(self._to_dict_f, [r1, r2])
         obs = map(self._to_dict_f, self.st1._iter_obs())
 
-        self.assertEqual(sorted(obs), sorted(exp))
+        self.assertEqual(obs, exp)
 
     def test_iter_samp(self):
         """Iterate over samples of sparse matrix"""
@@ -2154,6 +2209,15 @@ class SparseTableTests(TestCase):
         obs = list(gen)
         self.assertEqual(obs, exp)
 
+    def test_iterSampleData_single_obs(self):
+        """Iterates data by samples with a single observation."""
+        exp = [array([2.0]), array([0.0]), array([1.0])]
+        obs = list(self.single_obs_st.iterSampleData())
+        # We test this way to make sure the observed value is a single element
+        # array instead of a numpy scalar.
+        for o, e in zip(obs, exp):
+            self.assertEqual(o, e)
+
     def test_iterObservationData(self):
         """Iterates data by observations"""
         gen = self.st1.iterObservationData()
@@ -2165,6 +2229,13 @@ class SparseTableTests(TestCase):
         exp = [array([5,6]), array([7,8])]
         obs = list(gen)
         self.assertEqual(obs, exp)
+
+    def test_iterObservationData_single_sample(self):
+        """Iterates data by observations from a single sample."""
+        exp = [array([2.0]), array([0.0]), array([1.0])]
+        obs = list(self.single_sample_st.iterObservationData())
+        for o, e in zip(obs, exp):
+            self.assertEqual(o, e)
 
     def test_filterSamples(self):
         """Filters samples by arbitrary function"""
@@ -2457,7 +2528,6 @@ class DenseSparseInteractionTests(TestCase):
         self.vals4 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
         self.st3 = SparseTable(self.vals3, ['b','c'],['2','3'])
         self.st4 = SparseTable(self.vals4, ['c','d'],['3','4'])
-        self._to_dict_f = lambda x: x.items()
         self.st_rich = SparseTable(to_sparse(self.vals), 
                 ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],

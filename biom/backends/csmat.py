@@ -8,8 +8,9 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
-from numpy import array, ndarray, concatenate, argsort, searchsorted, uint32, \
-        zeros
+import numpy as np
+from numpy import (array, ndarray, concatenate, argsort, searchsorted, uint32,
+                   zeros)
 from operator import itemgetter
 from biom.util import flatten
 from biom.exception import TableException
@@ -36,6 +37,27 @@ class CSMat():
 
     enable_indices is ignored.
     """
+
+    @staticmethod
+    def convertVectorToDense(vec):
+        """Converts a CSMat row/column vector to a dense numpy array.
+
+        The numpy array that is returned will always be a 1-dimensional row
+        vector.
+        """
+        vals = vec.items()
+        num_rows, num_cols = vec.shape
+
+        if num_rows > num_cols:
+            new_vec = zeros(num_rows, dtype=vec.dtype)
+            for (row,col),val in vals:
+                new_vec[row] = val
+        else:
+            new_vec = zeros(num_cols, dtype=vec.dtype)
+            for (row,col),val in vals:
+                new_vec[col] = val
+
+        return new_vec
 
     def __init__(self, rows, cols, dtype=float, enable_indices=True):
         self.shape = (rows, cols) 
@@ -83,6 +105,36 @@ class CSMat():
 
         return new_self
     T = property(transpose)
+
+    def sum(self, axis=None):
+        """Sum the entire matrix or along rows/columns.
+        
+        ``axis`` can be ``None``, 0, or 1.
+        """
+        if axis is None:
+            if self._order != 'coo':
+                self.convert('coo')
+
+            return np.sum(self._coo_values)
+        elif axis == 0:
+            num_cols = self.shape[1]
+            col_sums = zeros(num_cols)
+
+            for col_idx in range(num_cols):
+                col_sums[col_idx] = self.getCol(col_idx).sum()
+
+            return col_sums
+        elif axis == 1:
+            num_rows = self.shape[0]
+            row_sums = zeros(num_rows)
+
+            for row_idx in range(num_rows):
+                row_sums[row_idx] = self.getRow(row_idx).sum()
+
+            return row_sums
+        else:
+            raise ValueError("Invalid axis to sum over. Must be None, 0, or "
+                             "1.")
 
     def update(self, data):
         """Update from a dict"""
@@ -634,7 +686,7 @@ def list_list_to_csmat(data, dtype=float, shape=None):
 
     [[row, col, value], ...]
     """
-    rows, cols, values = zip(*data)
+    rows, cols, values = izip(*data)
 
     if shape is None:
         n_rows = max(rows) + 1

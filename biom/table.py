@@ -249,13 +249,13 @@ class Table(object):
         ``observation`` : return a vector with a sum for each observation
         """
         if axis == 'whole':
-            return sum(self.reduce(add, 'sample'))
+            return self._data.sum()
         elif axis == 'sample':
-            return self.reduce(add, 'sample')
+            return self._data.sum(axis=0)
         elif axis == 'observation':
-            return self.reduce(add, 'observation')
+            return self._data.sum(axis=1)
         else:
-            raise TableException, "Unknown axis %s" % axis
+            raise TableException, "Unknown axis '%s'" % axis
 
     def transpose(self):
         """Return a new table that is the transpose of this table.
@@ -1680,19 +1680,7 @@ class SparseTable(Table):
         Always returns a row vector for consistancy with numpy iteration over
         arrays
         """
-        vals = v.items()
-
-        num_rows, num_cols = v.shape
-
-        if num_rows > num_cols:
-            new_v = zeros(num_rows, dtype=self._dtype)
-            for (row,col),val in vals:
-                new_v[row] = val
-        else:
-            new_v = zeros(num_cols, dtype=self._dtype)
-            for (row,col),val in vals:
-                new_v[col] = val
-        return new_v
+        return SparseObj.convertVectorToDense(v)
 
     def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
@@ -1720,7 +1708,6 @@ class SparseTable(Table):
     def _iter_obs(self):
         """Return observation vectors of data matrix"""
         for r in range(self._data.shape[0]):
-            #yield self._data[r,:]
             yield self._data.getRow(r)
 
     def getTableDensity(self):

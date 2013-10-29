@@ -35,6 +35,7 @@ The biom-format project has the following dependencies:
 	* `numpy <http://www.numpy.org/>`_ >= 1.3.0
 	* `pyqi <http://bipy.github.io/pyqi>`_ 0.2.0
 	* `dateutil <http://labix.org/python-dateutil>`_ (optional; must be installed if using the ``biom validate-table`` command)
+	* `scipy <http://www.scipy.org/>`_ (optional; must be installed if using the ``ScipySparseMat`` sparse matrix backend)
 
 We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
 

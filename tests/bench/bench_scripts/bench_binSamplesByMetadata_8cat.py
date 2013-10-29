@@ -7,7 +7,7 @@ from biom.parse import parse_biom_table
 if __name__ == '__main__':
     table = parse_biom_table(gzip_open(argv[1]))
     
-    md = [{'FOO': i % 8} for i in range(len(table.SampleIds))]
-    table.SampleMetadata = md
+    md = dict([(s_id, {'FOO': i % 8}) for i, s_id in enumerate(table.SampleIds)])
+    table.addSampleMetadata(md)
 
     foo = table.binSamplesByMetadata(lambda x: x['FOO'])

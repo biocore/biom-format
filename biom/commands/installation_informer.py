@@ -58,10 +58,12 @@ class InstallationInformer(Command):
                 ("Python executable", executable))
 
     def getDependencyVersionInfo(self):
+        not_installed_msg = "Not installed"
+
         try:
             from pyqi import __version__ as pyqi_lib_version
         except ImportError:
-            pyqi_lib_version = "Not installed"
+            pyqi_lib_version = not_installed_msg
 
         try:
             from numpy import __version__ as numpy_lib_version
@@ -71,12 +73,18 @@ class InstallationInformer(Command):
                                  "not be importable.)")
 
         try:
+            from scipy import __version__ as scipy_lib_version
+        except ImportError:
+            scipy_lib_version = not_installed_msg
+
+        try:
             from dateutil import __version__ as dateutil_lib_version
         except ImportError:
-            dateutil_lib_version = "Not installed"
+            dateutil_lib_version = not_installed_msg
 
         return (("pyqi version", pyqi_lib_version),
                 ("NumPy version", numpy_lib_version),
+                ("SciPy version", scipy_lib_version),
                 ("dateutil version", dateutil_lib_version))
 
     def getPackageInfo(self):

@@ -116,6 +116,40 @@ class CSMatTests(TestCase):
         # 0 0 0 0
         self.empty = CSMat(3, 4)
 
+        # 1 0 3
+        self.row_vec = CSMat(1,3)
+        self.row_vec._coo_rows = [0, 0]
+        self.row_vec._coo_cols = [0, 2]
+        self.row_vec._coo_values = [1, 3]
+
+        # 1
+        # 0
+        # 3
+        self.col_vec = CSMat(3,1)
+        self.col_vec._coo_rows = [0, 2]
+        self.col_vec._coo_cols = [0, 0]
+        self.col_vec._coo_values = [1, 3]
+
+        # 1x1
+        self.single_ele = CSMat(1,1)
+        self.single_ele._coo_rows = [0]
+        self.single_ele._coo_cols = [0]
+        self.single_ele._coo_values = [42]
+
+    def test_convertVectorToDense(self):
+        """Test properly converts CSMat vectors to dense numpy repr."""
+        exp = array([1, 0, 3])
+        obs = CSMat.convertVectorToDense(self.row_vec)
+        self.assertEqual(obs, exp)
+
+        exp = array([1, 0, 3])
+        obs = CSMat.convertVectorToDense(self.col_vec)
+        self.assertEqual(obs, exp)
+
+        exp = array([42])
+        obs = CSMat.convertVectorToDense(self.single_ele)
+        self.assertEqual(obs, exp)
+
     def test_copy(self):
         """copy thy self"""
         obs = self.obj.copy()
@@ -528,6 +562,41 @@ class CSMatTests(TestCase):
         exp.convert("csr")
         self.empty.convert("csr")
         obs = self.empty.T
+        self.assertEqual(obs, exp)
+
+    def test_sum(self):
+        """test sum"""
+        obs = self.obj.sum()
+        self.assertEqual(obs, 10)
+
+        exp = array([1,2,3,4])
+        obs = self.obj.sum(0)
+        self.assertEqual(obs, exp)
+
+        exp = array([3,3,4])
+        obs = self.obj.sum(1)
+        self.assertEqual(obs, exp)
+
+        obs = self.row_vec.sum()
+        self.assertEqual(obs, 4)
+
+        exp = array([1,0,3])
+        obs = self.row_vec.sum(0)
+        self.assertEqual(obs, exp)
+
+        exp = array([4])
+        obs = self.row_vec.sum(1)
+        self.assertEqual(obs, exp)
+
+        obs = self.single_ele.sum()
+        self.assertEqual(obs, 42)
+
+        exp = array([42])
+        obs = self.single_ele.sum(0)
+        self.assertEqual(obs, exp)
+
+        exp = array([42])
+        obs = self.single_ele.sum(1)
         self.assertEqual(obs, exp)
 
     def test_bulkCOOUpdate(self):
