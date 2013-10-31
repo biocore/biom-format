@@ -38,10 +38,26 @@ Daniel McDonald, Jose C Clemente, Justin Kuczynski, Jai Ram Rideout, Jesse Stomb
 GigaScience 2012, 1:7.
 """
 
+classes = """
+    Development Status :: 4 - Beta
+    License :: OSI Approved :: BSD License
+    Topic :: Scientific/Engineering :: Bio-Informatics
+    Topic :: Software Development :: Libraries :: Application Frameworks
+    Topic :: Software Development :: Libraries :: Python Modules
+    Programming Language :: Python
+    Programming Language :: Python :: 2.7
+    Programming Language :: Python :: Implementation :: CPython
+    Operating System :: OS Independent
+    Operating System :: POSIX :: Linux
+    Operating System :: MacOS :: MacOS X
+"""
+classifiers = [s.strip() for s in classes.split('\n') if s]
+
 setup(name='biom-format',
     version=__version__,
     description='Biological Observation Matrix (BIOM) format',
     long_description=long_description,
+    license=__license__,
     author=__maintainer__,
     author_email=__email__,
     maintainer=__maintainer__,
@@ -54,5 +70,11 @@ setup(name='biom-format',
               'biom/interfaces/optparse',
               'biom/interfaces/optparse/config'
               ],
-    scripts=glob('scripts/*')
+    scripts=glob('scripts/*'),
+    install_requires=["numpy >= 1.5.1"],
+    extras_require={'scipy_sparse':["scipy >= 0.13.0"],
+                    'test':["nose >= 0.10.1",
+                            "tox >= 1.6.1"]
+                   },
+    classifiers=classifiers
 )
