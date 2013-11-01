@@ -25,7 +25,7 @@ __version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
-class CSMat():
+class CSMat(object):
     """Compressed sparse (CSR/CSC) and coordinate list (COO) formats.
 
     Builds sparse matrix in COO format first (good for incremental
