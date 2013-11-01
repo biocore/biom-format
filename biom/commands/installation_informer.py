@@ -99,13 +99,14 @@ class InstallationInformer(Command):
         try:
             from biom.exception import InvalidSparseBackendException
             from biom.table import SparseObj
+            backend_name = SparseObj(0, 0).__class__.__name__
         except ImportError:
-            SparseObj = import_error_msg
+            backend_name = import_error_msg
         except InvalidSparseBackendException as e:
-            SparseObj = "ERROR: %s" % e
+            backend_name = "ERROR: %s" % e
 
         return (("biom-format version", biom_lib_version),
-                ("SparseObj type", SparseObj))
+                ("SparseObj type", backend_name))
 
     def _format_info(self, info, title):
         max_len = self._get_max_length(info)

@@ -28,7 +28,7 @@ To check what sparse matrix backend is in use, simply execute ``biom show-instal
  biom-format package information
  ===============================
  biom-format version:	1.2.0
-      SparseObj type:	biom.backends.csmat.CSMat
+      SparseObj type:	CSMat
 
 The last line indicates that the ``CSMat`` sparse matrix backend is in use.
 
