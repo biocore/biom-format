@@ -11,8 +11,8 @@
 from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
                                            OptparseResult)
-from pyqi.core.command import (make_parameter_command_in_lookup_f,
-                               make_parameter_command_out_lookup_f)
+from pyqi.core.command import (make_command_in_collection_lookup_f,
+                               make_command_out_collection_lookup_f)
 from pyqi.core.interfaces.optparse.input_handler import (load_file_contents,
                                                          load_file_lines)
 from pyqi.core.interfaces.optparse.output_handler import write_list_of_strings
