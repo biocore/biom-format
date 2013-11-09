@@ -80,7 +80,7 @@ class MetadataAdder(Command):
     ])
 
     CommandOuts = ParameterCollection([
-            CommandOut(Name='result', DataType=Table,
+            CommandOut(Name='table', DataType=Table,
                        Description='Table with added metadata')
             ])
 

@@ -101,7 +101,7 @@ inputs = [
 ]
 
 outputs = [
-    OptparseResult(Parameter=cmd_out_lookup('result'),
+    OptparseResult(Parameter=cmd_out_lookup('table'),
                    Handler=write_biom_table,
                    InputName='output-fp')
 ]
