@@ -9,14 +9,16 @@
 #-----------------------------------------------------------------------------
 
 from __future__ import division
-from pyqi.core.command import Command, Parameter, ParameterCollection
+from pyqi.core.command import (Command, CommandIn, CommandOut, 
+        ParameterCollection)
 from pyqi.core.exception import CommandError
 from biom.parse import MetadataMap
 from biom.table import Table
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Greg Caporaso", "Morgan Langille", "Jai Ram Rideout"]
+__credits__ = ["Greg Caporaso", "Morgan Langille", "Jai Ram Rideout",
+               "Daniel McDonald"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
@@ -29,45 +31,45 @@ class MetadataAdder(Command):
                        "BIOM-formatted files. Detailed usage examples can be "
                        "found here: http://biom-format.org/documentation/adding_metadata.html")
 
-    Parameters = ParameterCollection([
-        Parameter(Name='table', DataType=Table,
+    CommandIns = ParameterCollection([
+        CommandIn(Name='table', DataType=Table,
                   Description='the input BIOM table', Required=True),
         # sample_metadata and observation_metadata are currently files (or
         # file-like) because of the existing metadata map / processing function
         # support. Ideally, these two parameters should be MetadataMap
         # instances.
-        Parameter(Name='sample_metadata', DataType=file,
+        CommandIn(Name='sample_metadata', DataType=file,
                   Description='the sample metadata map (will add sample '
                   'metadata to the input BIOM table, if provided)'),
-        Parameter(Name='observation_metadata', DataType=file,
+        CommandIn(Name='observation_metadata', DataType=file,
                   Description='the observation metadata map (will add '
                   'observation metadata to the input BIOM table, if '
                   'provided)'),
-        Parameter(Name='sc_separated', DataType=list,
+        CommandIn(Name='sc_separated', DataType=list,
                   Description='list of the metadata fields to split on '
                   'semicolons. This is useful for hierarchical data such as '
                   'taxonomy or functional categories'),
-        Parameter(Name='sc_pipe_separated', DataType=list,
+        CommandIn(Name='sc_pipe_separated', DataType=list,
                   Description='list of the metadata fields to split on '
                   'semicolons and pipes ("|"). This is useful for '
                   'hierarchical data such as functional categories with '
                   'one-to-many mappings (e.g. x;y;z|x;y;w)'),
-        Parameter(Name='int_fields', DataType=list,
+        CommandIn(Name='int_fields', DataType=list,
                   Description='list of the metadata fields to cast to '
                   'integers. This is useful for integer data such as '
                   '"DaysSinceStart"'),
-        Parameter(Name='float_fields', DataType=list,
+        CommandIn(Name='float_fields', DataType=list,
                   Description='list of the metadata fields to cast to '
                   'floating point numbers. This is useful for real number '
                   'data such as "pH"'),
-        Parameter(Name='sample_header', DataType=list,
+        CommandIn(Name='sample_header', DataType=list,
                   Description='list of the sample metadata field names. This '
                   'is useful if a header line is not provided with the '
                   'metadata, if you want to rename the fields, or if you want '
                   'to include only the first n fields where n is the number '
                   'of entries provided here',
                   DefaultDescription='use header from sample metadata map'),
-        Parameter(Name='observation_header', DataType=list,
+        CommandIn(Name='observation_header', DataType=list,
                   Description='list of the observation metadata field names. '
                   'This is useful if a header line is not provided with the '
                   'metadata, if you want to rename the fields, or if you want '
@@ -76,6 +78,11 @@ class MetadataAdder(Command):
                   DefaultDescription='use header from observation metadata '
                   'map')
     ])
+
+    CommandOuts = ParameterCollection([
+            CommandOut(Name='result', DataType=Table,
+                       Description='Table with added metadata')
+            ])
 
     def run(self, **kwargs):
         table = kwargs['table']
