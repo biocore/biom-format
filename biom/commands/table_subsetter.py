@@ -9,9 +9,11 @@
 #-----------------------------------------------------------------------------
 
 from __future__ import division
-from pyqi.core.command import Command, Parameter, ParameterCollection
+from pyqi.core.command import (Command, CommandIn, CommandOut, 
+        ParameterCollection)
 from pyqi.core.exception import CommandError
 from biom.parse import get_axis_indices, direct_slice_data, direct_parse_key
+from types import GeneratorType
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -34,16 +36,22 @@ class TableSubsetter(Command):
                        "produce tables with rows or columns (observations or "
                        "samples) that are fully zeroed.")
 
-    Parameters = ParameterCollection([
-        Parameter(Name='table_str', DataType=str,
+    CommandIns = ParameterCollection([
+        CommandIn(Name='table_str', DataType=str,
                   Description='the input BIOM table as an unparsed string',
                   Required=True),
-        Parameter(Name='axis', DataType=str,
+        CommandIn(Name='axis', DataType=str,
                   Description='the axis to subset over, either ' +
                   ' or '.join(Axes), Required=True),
-        Parameter(Name='ids', DataType=list,
+        CommandIn(Name='ids', DataType=list,
                   Description='the IDs to retain (either sample IDs or '
                   'observation IDs, depending on the axis)', Required=True)
+    ])
+
+    CommandOuts = ParameterCollection([
+        CommandOut(Name='subset_generator',
+                   DataType=GeneratorType,
+                   Description='The subset generator')
     ])
 
     def run(self, **kwargs):

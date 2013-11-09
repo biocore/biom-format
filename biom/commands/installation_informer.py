@@ -10,7 +10,7 @@
 
 from __future__ import division
 from sys import platform, version as python_version, executable
-from pyqi.core.command import Command, Parameter, ParameterCollection
+from pyqi.core.command import Command, CommandOut, ParameterCollection
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -29,7 +29,12 @@ class InstallationInformer(Command):
                        "installation, including settings pulled from the "
                        "configuration file. For more details, see "
                        "http://biom-format.org")
-    Parameters = ParameterCollection([])
+    CommandIns = ParameterCollection([])
+    CommandOuts = ParameterCollection([
+        CommandOut(Name='install_info_lines',
+                   DataType='str',
+                   Description='Installation info')
+    ])
 
     def run(self, **kwargs):
         lines = []
