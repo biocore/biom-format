@@ -9,7 +9,8 @@
 #-----------------------------------------------------------------------------
 
 from __future__ import division
-from pyqi.core.command import Command, Parameter, ParameterCollection
+from pyqi.core.command import (Command, CommandIn, CommandOut, 
+        ParameterCollection)
 from pyqi.core.exception import CommandError
 from biom.table import (SparseOTUTable, DenseOTUTable, SparsePathwayTable,
                         DensePathwayTable, SparseFunctionTable,
@@ -55,7 +56,7 @@ class TableConverter(Command):
                        "table formats. Detailed usage examples can be found "
                        "here: http://biom-format.org/documentation/biom_conversion.html")
 
-    Parameters = ParameterCollection([
+    CommandIns = ParameterCollection([
         ### This is not an ideal usage of the pyqi framework because we are
         # expecting a file-like object here, and a lot of the parameters deal
         # with I/O-ish things, like converting between file formats. Even
@@ -66,54 +67,59 @@ class TableConverter(Command):
         # or a classic table. One possible solution is to split out different
         # types of conversions into their own (smaller and simpler) commands,
         # which would allow us to avoid some of this I/O-ish stuff.
-        Parameter(Name='table_file', DataType=file,
+        CommandIn(Name='table_file', DataType=file,
                   Description='the input table (file-like object), either in '
                   'BIOM or classic format', Required=True),
-        Parameter(Name='matrix_type', DataType=str,
+        CommandIn(Name='matrix_type', DataType=str,
                   Description='the type of BIOM file to create (dense or '
                   'sparse) when a classic table is supplied',
                   Default='sparse'),
-        Parameter(Name='biom_to_classic_table', DataType=bool,
+        CommandIn(Name='biom_to_classic_table', DataType=bool,
                   Description='convert BIOM table file to classic table file',
                   Default=False, DefaultDescription='convert classic table '
                   'file to BIOM table file'),
-        Parameter(Name='sparse_biom_to_dense_biom', DataType=bool,
+        CommandIn(Name='sparse_biom_to_dense_biom', DataType=bool,
                   Description='convert sparse BIOM table file to a dense BIOM '
                   'table file', Default=False, DefaultDescription='convert '
                   'classic table file to BIOM table file'),
-        Parameter(Name='dense_biom_to_sparse_biom', DataType=bool,
+        CommandIn(Name='dense_biom_to_sparse_biom', DataType=bool,
                   Description='convert dense BIOM table file to a sparse BIOM '
                   'table file', Default=False, DefaultDescription='convert '
                   'classic table file to BIOM table file'),
-        Parameter(Name='sample_metadata', DataType=MetadataMap,
+        CommandIn(Name='sample_metadata', DataType=MetadataMap,
                   Description='the sample metadata map (will add sample '
                   'metadata to the BIOM table, if provided). Only applies '
                   'when converting from classic table file to BIOM table '
                   'file'),
-        Parameter(Name='observation_metadata', DataType=MetadataMap,
+        CommandIn(Name='observation_metadata', DataType=MetadataMap,
                   Description='the observation metadata map (will add '
                   'observation metadata to the BIOM table, if provided). Only '
                   'applies when converting from classic table file to BIOM '
                   'table file'),
-        Parameter(Name='header_key', DataType=str,
+        CommandIn(Name='header_key', DataType=str,
                   Description='pull this key from observation metadata within '
                   'a BIOM table file when creating a classic table file',
                   DefaultDescription='no observation metadata will be '
                   'included'),
-        Parameter(Name='output_metadata_id', DataType=str,
+        CommandIn(Name='output_metadata_id', DataType=str,
                   Description='the name to be given to the observation '
                   'metadata column when creating a classic table from a BIOM-'
                   'formatted table', DefaultDescription='same name as in the '
                   'BIOM-formatted table'),
-        Parameter(Name='process_obs_metadata', DataType=str,
+        CommandIn(Name='process_obs_metadata', DataType=str,
                   Description='process metadata associated with observations '
                   'when converting from a classic table. Must be one of: %s' %
                   ', '.join(ObservationMetadataTypes.keys()), Default='naive'),
-        Parameter(Name='table_type', DataType=str,
+        CommandIn(Name='table_type', DataType=str,
                   Description='the BIOM table type to get converted into. '
                   'Required when converting a classic table file to a BIOM '
                   'table file. Must be one of: %s' %
                   ', '.join(TableTypes.keys()))
+    ])
+
+    CommandOuts = ParameterCollection([
+        CommandOut(Name='table_str', DataType=str,
+                   Description='The resulting table')
     ])
 
     def run(self, **kwargs):
