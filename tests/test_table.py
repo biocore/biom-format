@@ -1953,6 +1953,44 @@ class SparseTableTests(TestCase):
         obs = list(st.nonzero())
         self.assertEqual(obs, exp)
 
+    def test_nonzeroCounts(self):
+        """Returns nonzero counts over an axis"""
+        data = {(0,0):5,(0,1):6,(0,2):0,(0,3):3,
+                (1,0):0,(1,1):7,(1,2):0,(1,3):8,
+                (2,0):1,(2,1):-1,(2,2):0,(2,3):0}
+        st = SparseTable(to_sparse(data), ['a','b','c','d'],['1','2','3'])
+        
+        exp_samp = array([6, 12, 0, 11])
+        exp_obs = array([14, 15, 0])
+        exp_whole = array([29])
+
+        obs_samp = st.nonzeroCounts('sample')
+        obs_obs = st.nonzeroCounts('observation')
+        obs_whole = st.nonzeroCounts('whole')
+
+        self.assertEqual(obs_samp, exp_samp)
+        self.assertEqual(obs_obs, exp_obs)
+        self.assertEqual(obs_whole, exp_whole)
+
+    def test_nonzeroCounts_binary(self):
+        """Returns nonzero counts over an axis"""
+        data = {(0,0):5,(0,1):6,(0,2):0,(0,3):3,
+                (1,0):0,(1,1):7,(1,2):0,(1,3):8,
+                (2,0):1,(2,1):-1,(2,2):0,(2,3):0}
+        st = SparseTable(to_sparse(data), ['a','b','c','d'],['1','2','3'])
+        
+        exp_samp = array([2, 3, 0, 2])
+        exp_obs = array([3, 2, 2])
+        exp_whole = array([7])
+
+        obs_samp = st.nonzeroCounts('sample', binary=True)
+        obs_obs = st.nonzeroCounts('observation', binary=True)
+        obs_whole = st.nonzeroCounts('whole', binary=True)
+
+        self.assertEqual(obs_samp, exp_samp)
+        self.assertEqual(obs_obs, exp_obs)
+        self.assertEqual(obs_whole, exp_whole)
+    
     def test_merge(self):
         """Merge two tables"""
         u = 'union'
