@@ -78,15 +78,8 @@ class TableSummarizer(Command):
         qualitative = kwargs['qualitative']
         table, table_lines = kwargs['table']
        
-        ### compute_counts_per_sample_stats does a lot. suggest:
-        # sample_to_count = table.nonzero('sample', qualitative)
-        # counts = sample_to_count.values()
-        # min_count = min(counts)
-        # max_count = min(counts)
-        # median_count = min(counts)
-        # mean_count = min(counts)
         min_counts, max_counts, median_counts, mean_counts, counts_per_sample =\
-         compute_counts_per_sample_stats(table, qualitative)
+            compute_counts_per_sample_stats(table, qualitative)
         num_observations = len(table.ObservationIds)
         
         suppress_md5 = (table_lines is None) or kwargs['suppress_md5']
