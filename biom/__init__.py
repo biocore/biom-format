@@ -25,6 +25,16 @@ from sys import modules, stderr
 from biom.exception import InvalidSparseBackendException
 from biom.util import load_biom_config
 
+try:
+    import numpy
+except ImportError:
+    raise ImportError, "numpy cannot be found. Can't continue."
+
+try:
+    import pyqi
+except ImportError:
+    raise ImportError, "pyqi cannot be found. Can't continue."
+
 biom_config = load_biom_config()
 
 sparse_backends = ['CSMat', 'ScipySparseMat']
