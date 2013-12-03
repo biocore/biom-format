@@ -1179,6 +1179,38 @@ class Table(object):
             for s_idx in samp_vals.nonzero()[0]:
                 yield (self.ObservationIds[o_idx], self.SampleIds[s_idx])
 
+    def nonzeroCounts(self, axis, binary=False):
+        """Get nonzero summaries about an axis
+
+        axis : either 'sample', 'observation', or 'whole'
+        binary : sum of nonzero entries, or summing the values of the entries
+        
+        Returns a numpy array in index order to the axis
+        """
+        if binary:
+            dtype = 'int'
+            op = lambda x: x.nonzero()[0].size
+        else:
+            dtype = self._data.dtype
+            op = lambda x: x.sum()
+
+        if axis is 'sample':
+            # can use np.bincount for CSMat or ScipySparse
+            result = zeros(len(self.SampleIds), dtype=dtype)
+            for idx, vals in enumerate(self.iterSampleData()):
+                result[idx] = op(vals)
+        elif axis is 'observation':
+            # can use np.bincount for CSMat or ScipySparse
+            result = zeros(len(self.ObservationIds), dtype=dtype)
+            for idx, vals in enumerate(self.iterObservationData()):
+                result[idx] = op(vals)
+        else:
+            result = zeros(1, dtype=dtype)
+            for vals in self.iterSampleData():
+                result[0] += op(vals)
+
+        return result
+
     def _union_id_order(self, a, b):
         """Determines merge order for id lists A and B"""
         all_ids = list(a[:])
