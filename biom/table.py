@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Core BIOM objects for dense and sparse tables"""
+"""The BIOM Table API"""
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
@@ -33,7 +33,7 @@ SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
-               "Jose Clemente", "Justin Kuczynski"]
+               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
@@ -50,7 +50,7 @@ class Table(object):
     Code to simulate immutability taken from here:
         http://en.wikipedia.org/wiki/Immutable_object
     """
-    _biom_type = None
+    Type = None
     _biom_matrix_type = None
 
     def __setattr__(self, *args):
@@ -1752,152 +1752,6 @@ class SparseTable(Table):
 
         return density
 
-
-class DenseTable(Table):
-    _biom_matrix_type = "dense"
-    def __init__(self, *args, **kwargs):
-        super(DenseTable, self).__init__(*args, **kwargs)
-
-    def _data_equality(self, other):
-        """Checks if the data matrices are equal"""
-        if isinstance(self, other.__class__):
-            return (self._data == other._data).all()
-        
-        for s_v, o_v in izip(self.iterSampleData(),other.iterSampleData()):
-            if not (s_v == o_v).all():
-                return False
-    
-        return True
-
-    def _conv_to_np(self, v):
-        """Converts a vector to a numpy array"""
-        return asarray(v)
-
-    def _conv_to_self_type(self, vals, transpose=False, dtype=None):
-        """For converting vectors to a compatible self type"""
-        # dtype call ignored, numpy will handle implicitly
-        # expects row vector here...
-        if transpose:
-            return asarray(vals).T
-        else:
-            return asarray(vals)
-
-    def __iter__(self):
-        """Defined by subclass"""
-        return self.iterSamples()
-
-    def _iter_obs(self):
-        """Return observations of data matrix"""
-        for r in self._data:
-            yield r
-
-    def _iter_samp(self):
-        """Return samples of data matrix in row vectors"""  
-        for c in self._data.T:
-            yield c
-
-    def getTableDensity(self):
-        """Returns the fraction of nonzero elements in the table."""
-        density = 0.0
-
-        if not self.isEmpty():
-            density = (len(self._data.nonzero()[0]) /
-                       (len(self.SampleIds) * len(self.ObservationIds)))
-
-        return density
-
-
-class OTUTable(object):
-    """OTU table abstract class"""
-    _biom_type = "OTU table"
-    pass
-
-class PathwayTable(object):
-    """Pathway table abstract class"""
-    _biom_type = "Pathway table"
-    pass
-
-class FunctionTable(object):
-    """Function table abstract class"""
-    _biom_type = "Function table"
-    pass
-
-class OrthologTable(object):
-    """Ortholog table abstract class"""
-    _biom_type = "Ortholog table"
-    pass
-
-class GeneTable(object):
-    """Gene table abstract class"""
-    _biom_type = "Gene table"
-    pass
-
-class MetaboliteTable(object):
-    """Metabolite table abstract class"""
-    _biom_type = "Metabolite table"
-    pass
-
-class TaxonTable(object):
-    """Taxon table abstract class"""
-    _biom_type = "Taxon table"
-    pass
-
-class DenseOTUTable(OTUTable, DenseTable):
-    """Instantiatable dense OTU table"""
-    pass
-
-class SparseOTUTable(OTUTable, SparseTable):
-    """Instantiatable sparse OTU table"""
-    pass
-
-class DensePathwayTable(PathwayTable, DenseTable):
-    """Instantiatable dense pathway table"""
-    pass
-
-class SparsePathwayTable(PathwayTable, SparseTable):
-    """Instantiatable sparse pathway table"""
-    pass
-
-class DenseFunctionTable(FunctionTable, DenseTable):
-    """Instantiatable dense function table"""
-    pass
-
-class SparseFunctionTable(FunctionTable, SparseTable):
-    """Instantiatable sparse function table"""
-    pass
-
-class DenseOrthologTable(OrthologTable, DenseTable):
-    """Instantiatable dense ortholog table"""
-    pass
-
-class SparseOrthologTable(OrthologTable, SparseTable):
-    """Instantiatable sparse ortholog table"""
-    pass
-
-class DenseGeneTable(GeneTable, DenseTable):
-    """Instantiatable dense gene table"""
-    pass
-
-class SparseGeneTable(GeneTable, SparseTable):
-    """Instantiatable sparse gene table"""
-    pass
-
-class DenseMetaboliteTable(MetaboliteTable, DenseTable):
-    """Instantiatable dense metabolite table"""
-    pass
-
-class SparseMetaboliteTable(MetaboliteTable, SparseTable):
-    """Instantiatable sparse metabolite table"""
-    pass
-
-class DenseTaxonTable(TaxonTable, DenseTable):
-    """Instantiatable dense taxon table"""
-    pass
-
-class SparseTaxonTable(TaxonTable, SparseTable):
-    """Instantiatable sparse taxon table"""
-    pass
-
 def list_list_to_nparray(data, dtype=float):
     """Convert a list of lists into a nparray
 
@@ -1910,7 +1764,7 @@ def dict_to_nparray(data, dtype=float):
     rows, cols = zip(*data) # unzip
     mat = zeros((max(rows) + 1, max(cols) + 1), dtype=dtype)
 
-    for (row,col),val in data.items():
+    for (row,col),val in data.iteritems():
         mat[row,col] = val
 
     return mat
@@ -1926,18 +1780,16 @@ def list_dict_to_nparray(data, dtype=float):
     mat = zeros((n_rows, n_cols), dtype=dtype)
     
     for row_idx, row in enumerate(data):
-        for (foo,col_idx),val in row.items():
+        for (foo,col_idx),val in row.iteritems():
             mat[row_idx, col_idx] = val
 
     return mat
 
 def table_factory(data, sample_ids, observation_ids, sample_metadata=None, 
-                  observation_metadata=None, table_id=None, 
-                  constructor=SparseOTUTable, **kwargs):
+                  observation_metadata=None, table_id=None, **kwargs):
     """Construct a table
 
-    Attempts to make 'data' sane with respect to the constructor type through
-    various means of juggling. Data can be: 
+    Attempts to make 'data' through various means of juggling. Data can be: 
     
         - numpy.array       
         - list of numpy.array vectors 
@@ -1947,9 +1799,9 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
         - list of lists of sparse values [[row, col, value], ...]
         - list of lists of dense values [[value, value, ...], ...]
     
-    Example usage to create a SparseOTUTable object::
+    Example usage to create a Table object::
     
-        from biom.table import table_factory, SparseOTUTable
+        from biom.table import table_factory
         from numpy import array
 
         sample_ids = ['s1','s2','s3','s4']
@@ -1971,10 +1823,7 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
                           sample_ids,
                           observation_ids,
                           sample_md,
-                          observation_md,
-                          constructor=SparseOTUTable)
-    
-    
+                          observation_md)
     """
     if 'dtype' in kwargs:
         dtype = kwargs['dtype']
@@ -1986,60 +1835,32 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     else:
         shape = None
 
-    if constructor._biom_matrix_type is 'sparse':
-        # if we have a numpy array
-        if isinstance(data, ndarray):
-            data = nparray_to_sparseobj(data, dtype)
+    # if we have a numpy array
+    if isinstance(data, ndarray):
+        data = nparray_to_sparseobj(data, dtype)
 
-        # if we have a list of numpy vectors
-        elif isinstance(data, list) and isinstance(data[0], ndarray):
-            data = list_nparray_to_sparseobj(data, dtype)
+    # if we have a list of numpy vectors
+    elif isinstance(data, list) and isinstance(data[0], ndarray):
+        data = list_nparray_to_sparseobj(data, dtype)
 
-        # if we have a dict representation
-        elif isinstance(data, dict) and not isinstance(data, SparseObj):
-            data = dict_to_sparseobj(data, dtype)
+    # if we have a dict representation
+    elif isinstance(data, dict) and not isinstance(data, SparseObj):
+        data = dict_to_sparseobj(data, dtype)
 
-        elif isinstance(data, SparseObj):
-            pass
+    elif isinstance(data, SparseObj):
+        pass
 
-        # if we have a list of dicts
-        elif isinstance(data, list) and isinstance(data[0], dict):
-            data = list_dict_to_sparseobj(data, dtype)
+    # if we have a list of dicts
+    elif isinstance(data, list) and isinstance(data[0], dict):
+        data = list_dict_to_sparseobj(data, dtype)
 
-        # if we have a list of lists (like inputs from json biom)
-        elif isinstance(data, list) and isinstance(data[0], list):
-            data = list_list_to_sparseobj(data, dtype, shape=shape)
-        else:
-            raise TableException, "Cannot handle data!"
-    
-    elif constructor._biom_matrix_type is 'dense':
-        # if we have a numpy array
-        if isinstance(data, ndarray):
-            pass
-
-        # if we have a list of numpy vectors
-        elif isinstance(data, list) and isinstance(data[0], ndarray):
-            data = asarray(data, dtype)
-
-        # if we have a dict representation
-        elif isinstance(data, dict):
-            data = dict_to_nparray(data, dtype)
-
-        # if we have a list of dicts
-        elif isinstance(data, list) and isinstance(data[0], dict):
-            data = list_dict_to_nparray(data, dtype)
-
-        # if we have a list of lists (ie input from json biom)
-        elif isinstance(data, list) and isinstance(data[0], list):
-            data = list_list_to_nparray(data, dtype)
-
-        else:
-            raise TableException, "Cannot handle data!"
+    # if we have a list of lists (like inputs from json biom)
+    elif isinstance(data, list) and isinstance(data[0], list):
+        data = list_list_to_sparseobj(data, dtype, shape=shape)
     else:
-        raise TableException, "Constructor type specifies an unknown matrix " +\
-                              "type: %s" % constructor._biom_matrix_type
-
-    return constructor(data, sample_ids, observation_ids, 
+        raise TableException, "Cannot handle data!"
+    
+    return Table(data, sample_ids, observation_ids, 
             SampleMetadata=sample_metadata,
             ObservationMetadata=observation_metadata,
             TableId=table_id, **kwargs)
