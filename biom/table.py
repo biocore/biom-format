@@ -1754,12 +1754,10 @@ def list_dict_to_nparray(data, dtype=float):
     return mat
 
 def table_factory(data, sample_ids, observation_ids, sample_metadata=None, 
-                  observation_metadata=None, table_id=None, 
-                  constructor=SparseOTUTable, **kwargs):
+                  observation_metadata=None, table_id=None, **kwargs):
     """Construct a table
 
-    Attempts to make 'data' sane with respect to the constructor type through
-    various means of juggling. Data can be: 
+    Attempts to make 'data' through various means of juggling. Data can be: 
     
         - numpy.array       
         - list of numpy.array vectors 
@@ -1769,9 +1767,9 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
         - list of lists of sparse values [[row, col, value], ...]
         - list of lists of dense values [[value, value, ...], ...]
     
-    Example usage to create a SparseOTUTable object::
+    Example usage to create a Table object::
     
-        from biom.table import table_factory, SparseOTUTable
+        from biom.table import table_factory
         from numpy import array
 
         sample_ids = ['s1','s2','s3','s4']
@@ -1793,10 +1791,7 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
                           sample_ids,
                           observation_ids,
                           sample_md,
-                          observation_md,
-                          constructor=SparseOTUTable)
-    
-    
+                          observation_md)
     """
     if 'dtype' in kwargs:
         dtype = kwargs['dtype']
