@@ -10,8 +10,6 @@
 
 from distutils.core import setup
 from glob import glob
-import numpy
-import pyqi
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
