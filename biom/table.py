@@ -1962,7 +1962,8 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
         # if we have a list of things
         elif isinstance(data, list):
             if not data:
-                raise TableException("No data!")
+                raise TableException("No data was supplied. Cannot create "
+                                     "an empty table.")
 
             elif isinstance(data[0], ndarray):
                 data = list_nparray_to_sparseobj(data, dtype)
@@ -1974,7 +1975,7 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
                 data = list_list_to_sparseobj(data, dtype, shape=shape)
             
             else:
-                raise TableException("Unknown nest list type")
+                raise TableException("Unknown nested list type")
 
         # if we have a dict representation
         elif isinstance(data, dict) and not isinstance(data, SparseObj):
@@ -1983,13 +1984,6 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
         elif isinstance(data, SparseObj):
             pass
 
-        # if we have a list of dicts
-        elif isinstance(data, list) and isinstance(data[0], dict):
-            data = list_dict_to_sparseobj(data, dtype)
-
-        # if we have a list of lists (like inputs from json biom)
-        elif isinstance(data, list) and isinstance(data[0], list):
-            data = list_list_to_sparseobj(data, dtype, shape=shape)
         else:
             raise TableException, "Cannot handle data!"
     
