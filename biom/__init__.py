@@ -31,6 +31,11 @@ except ImportError:
     raise ImportError, "numpy cannot be found. Can't continue."
 
 try:
+    import scipy
+except ImportError:
+    raise ImportError, "scipy cannot be found. Can't continue."
+
+try:
     import pyqi
 except ImportError:
     raise ImportError, "pyqi cannot be found. Can't continue."
