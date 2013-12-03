@@ -97,9 +97,15 @@ class Table(object):
         super(Table, self).__setattr__('_obs_index',
                                        index_list(self.ObservationIds))
 
-    def _conv_to_self_type(self, vals, transpose=False):
+    def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
-        raise NotImplementedError
+        if dtype is None:
+            dtype = self._dtype
+            
+        if isinstance(vals, self._data.__class__):
+            return vals
+        else:
+            return to_sparse(vals, transpose, dtype)
 
     def _verify_metadata(self):
         """Obtain some notion of sanity on object construction with inputs"""
@@ -374,21 +380,33 @@ class Table(object):
         else:
             return False
 
-    def getTableDensity(self):
-        """Defined by subclass"""
-        raise NotImplementedError
-
     def __iter__(self):
         """Defined by subclass"""
-        raise NotImplementedError
-
-    def _iter_obs(self):
-        """Defined by subclass"""
-        raise NotImplementedError
+        return self.iterSamples()
 
     def _iter_samp(self):
-        """Defined by subclass"""
-        raise NotImplementedError
+        """Return sample vectors of data matrix vectors"""  
+        rows, cols = self._data.shape
+        for c in range(cols):
+            # this pulls out col vectors but need to convert to the expected row
+            # vector
+            colvec = self._data.getCol(c)
+            yield colvec.T
+
+    def _iter_obs(self):
+        """Return observation vectors of data matrix"""
+        for r in range(self._data.shape[0]):
+            yield self._data.getRow(r)
+
+    def getTableDensity(self):
+        """Returns the fraction of nonzero elements in the table."""
+        density = 0.0
+
+        if not self.isEmpty():
+            density = (self._data.size / (len(self.SampleIds) *
+                                          len(self.ObservationIds)))
+
+        return density
 
     def descriptiveEquality(self, other):
         """For use in testing, describe how the tables are not equal"""
@@ -420,16 +438,27 @@ class Table(object):
 
         return True
 
-    def _data_equality(self,other):
-        """Private method to determine equality of data"""
-        raise NotImplementedError
+    def _data_equality(self, other):
+        """Two SparseObj matrices are equal if the items are equal"""
+        if isinstance(self, other.__class__):
+            return sorted(self._data.items()) == sorted(other._data.items())
+        
+        for s_v, o_v in izip(self.iterSampleData(),other.iterSampleData()):
+            if not (s_v == o_v).all():
+                return False
+    
+        return True
 
     def __ne__(self,other):
         return not (self == other)
 
     def _conv_to_np(self, v):
-        """Convert values of v to numpy arrays"""
-        raise NotImplementedError
+        """Converts a vector to a numpy array
+
+        Always returns a row vector for consistancy with numpy iteration over
+        arrays
+        """
+        return SparseObj.convertVectorToDense(v)
 
     # _index objs are in place, can now do sampleData(self, sample_id) and observationData(self, obs_id)
     def sampleData(self, id_):
@@ -1689,68 +1718,6 @@ class Table(object):
         """
         return dumps(self.getBiomFormatObject(generated_by), sort_keys=True,
                      indent=4)
-
-class SparseTable(Table):
-    _biom_matrix_type = "sparse"
-    def __init__(self, *args, **kwargs):
-        super(SparseTable, self).__init__(*args, **kwargs)
-   
-    def _data_equality(self, other):
-        """Two SparseObj matrices are equal if the items are equal"""
-        if isinstance(self, other.__class__):
-            return sorted(self._data.items()) == sorted(other._data.items())
-        
-        for s_v, o_v in izip(self.iterSampleData(),other.iterSampleData()):
-            if not (s_v == o_v).all():
-                return False
-    
-        return True
-
-    def _conv_to_np(self, v):
-        """Converts a vector to a numpy array
-
-        Always returns a row vector for consistancy with numpy iteration over
-        arrays
-        """
-        return SparseObj.convertVectorToDense(v)
-
-    def _conv_to_self_type(self, vals, transpose=False, dtype=None):
-        """For converting vectors to a compatible self type"""
-        if dtype is None:
-            dtype = self._dtype
-            
-        if isinstance(vals, self._data.__class__):
-            return vals
-        else:
-            return to_sparse(vals, transpose, dtype)
-
-    def __iter__(self):
-        """Defined by subclass"""
-        return self.iterSamples()
-
-    def _iter_samp(self):
-        """Return sample vectors of data matrix vectors"""  
-        rows, cols = self._data.shape
-        for c in range(cols):
-            # this pulls out col vectors but need to convert to the expected row
-            # vector
-            colvec = self._data.getCol(c)
-            yield colvec.T
-
-    def _iter_obs(self):
-        """Return observation vectors of data matrix"""
-        for r in range(self._data.shape[0]):
-            yield self._data.getRow(r)
-
-    def getTableDensity(self):
-        """Returns the fraction of nonzero elements in the table."""
-        density = 0.0
-
-        if not self.isEmpty():
-            density = (self._data.size / (len(self.SampleIds) *
-                                          len(self.ObservationIds)))
-
-        return density
 
 def list_list_to_nparray(data, dtype=float):
     """Convert a list of lists into a nparray
