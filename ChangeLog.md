@@ -1,3 +1,22 @@
+BIOM-Format 1.2.0-dev (changes since BIOM-Format 1.2.0 go here)
+===============================================================
+
+New Features
+------------
+
+* Added new sparse matrix backend ``ScipySparseMat``, which requires that [scipy](http://www.scipy.org/) is installed if this backend is in use. This backend will generally yield improvements in both runtime and memory consumption, especially with larger sparse tables. The default sparse matrix backend is still ``CSMat`` (this means that scipy is an optional dependency of the biom-format project).
+
+Changes
+-------
+
+* Sparse backends ```SparseDict``` and ```SparseMat``` have been removed in favor of ```CSMat```. Cython is no longer a dependency.
+* The BIOM Format project license is now Modified BSD (see COPYING.txt for more details) and is no longer GPL. To change the license, we obtained written permission (by email) from all past and present developers on the biom-format project. The core developers, including @gregcaporaso, @wasade, @jrrideout, and @rob-knight were included on these emails. For code that was derived from the QIIME and PyCogent projects, which are under the GPL license, written permission was obtained (by email) from the developers of the original code (tracing through the commit history, as necessary). @gregcaporaso, @wasade, @jrrideout, and @rob-knight were included on these emails.
+* Removed the top-level ```python-code``` directory, moving all contents up one level. If you are installing the biom-format project by manually setting ```PYTHONPATH``` to ```<dir prefix>/biom-format/python-code```, you will need to change the path to ```<dir prefix>/biom-format``` instead. Please see the installation instructions for more details.
+* Reorganized sparse backend code into a new subpackage, ```biom.backends```. This change should not affect client code.
+
+Bug Fixes
+---------
+
 BIOM-Format 1.1.2 - 1.2.0
 =========================
 
@@ -52,6 +71,7 @@ Changes
         * ```--biom_fp``` is now ```--input-fp```
         * ```--output_fp``` is now ```--output-fp```
         * ```--ids_fp``` is now ```--ids```
+* ```biom.parse.parse_mapping``` has been replaced by ```biom.parse.MetadataMap```. ```biom.parse.MetadataMap.fromFile``` can be directly substituted in place of ```biom.parse.parse_mapping```.
 
 Bug Fixes
 ---------
