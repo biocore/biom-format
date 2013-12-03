@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Core BIOM objects for dense and sparse tables"""
+"""The BIOM Table API"""
 
 #-----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
