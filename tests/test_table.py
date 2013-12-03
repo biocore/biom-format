@@ -129,9 +129,6 @@ class SupportTests(TestCase):
         dict_input = {}
         dict_input[(0,1)] = 5
         dict_input[(1,2)] = 10
-        #print dict_input
-        #print samp_ids
-        #print obs_ids
         obs = table_factory(dict_input, samp_ids, obs_ids)
         self.assertEqual(obs, exp)
 
@@ -144,8 +141,8 @@ class SupportTests(TestCase):
         exp_data[0,1] = 5
         exp_data[1,2] = 10
         exp = SparseTable(exp_data, samp_ids, obs_ids)
-        input = [[0,1,5],[1,2,10]]
-        obs = table_factory(input, samp_ids, obs_ids, constructor=SparseTable)
+        input_ = [[0,1,5],[1,2,10]]
+        obs = table_factory(input_, samp_ids, obs_ids, constructor=SparseTable)
         self.assertEqual(obs, exp)
 
     def test_TableException(self):
@@ -156,30 +153,30 @@ class SupportTests(TestCase):
 
     def test_list_list_to_nparray(self):
         """Convert [[value, value, ... value], ...] to nparray"""
-        input = [[1,2,3,4,5],[6,7,8,9,0],[7,6,5,4,3]]
+        input_ = [[1,2,3,4,5],[6,7,8,9,0],[7,6,5,4,3]]
         exp = array([[1,2,3,4,5],[6,7,8,9,0],[7,6,5,4,3]], dtype=float)
-        obs = list_list_to_nparray(input)
+        obs = list_list_to_nparray(input_)
         self.assertEqual(obs,exp)
 
     def test_dict_to_nparray(self):
         """Take a dict -> array"""
-        input = {(0,0):1,(0,10):5,(100,23):-3}
+        input_ = {(0,0):1,(0,10):5,(100,23):-3}
         exp = zeros((101,24),dtype=float)
         exp[0,0] = 1
         exp[0,10] = 5
         exp[100,23] = -3
-        obs = dict_to_nparray(input)
+        obs = dict_to_nparray(input_)
         self.assertEqual(obs,exp)
 
     def test_list_dict_to_nparray(self):
         """List of dict -> nparray"""
-        input = [{(0,5):10,(10,10):2}, {(0,1):15}, {(0,3):7}]
+        input_ = [{(0,5):10,(10,10):2}, {(0,1):15}, {(0,3):7}]
         exp = zeros((3, 11),dtype=float)
         exp[0,5] = 10
         exp[0,10] = 2
         exp[1,1] = 15
         exp[2,3] = 7
-        obs = list_dict_to_nparray(input)
+        obs = list_dict_to_nparray(input_)
         self.assertEqual(obs,exp)
 
     def test_prefer_self(self):
@@ -201,7 +198,6 @@ class SupportTests(TestCase):
         exp = {'a':2,'b':0,'c':1}
         obs = index_list(['b','c','a'])
         self.assertEqual(obs,exp)
-
 
 class TableTests(TestCase):
     def setUp(self):
@@ -1334,85 +1330,6 @@ class SparseTableTests(TestCase):
 
         # Tables with some zeros explicitly defined.
         self.assertFloatEqual(self.st7.getTableDensity(), 0.75)
-
-
-class SparseOTUTableTests(TestCase):
-    def setUp(self):
-        self.vals = {(0,0):5,(1,0):7,(1,1):8}
-        self.sot_min = SparseOTUTable(to_sparse(self.vals,dtype=int), ['a','b'],['1','2'])
-        self.sot_rich = SparseOTUTable(to_sparse(self.vals,dtype=int), 
-                ['a','b'],['1','2'],
-                [{'barcode':'aatt'},{'barcode':'ttgg'}],
-                [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
-        self.float_table = SparseOTUTable(to_sparse({(0,1):2.5,(0,2):3.4,(1,0):9.3,
-            (1,1):10.23,(1,2):2.2}),['a','b','c'],['1','2'])
-
-    def test_getBiomFormatObject_no_generated_by(self):
-        """Should raise without a generated_by string"""
-        self.assertRaises(TableException, self.sot_min.getBiomFormatObject,None)
-        self.assertRaises(TableException, self.sot_min.getBiomFormatObject, 10)
-
-    def test_getBiomFormatObject_minimal(self):
-        """Should return a dictionary of the minimal table in Biom format."""
-        exp = {'rows': [{'id': '1', 'metadata': None},
-                        {'id': '2', 'metadata': None}],
-               'format': 'Biological Observation Matrix 1.0.0',
-               'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
-               'columns': [{'id': 'a', 'metadata': None},
-                           {'id': 'b', 'metadata': None}],
-                'matrix_type': 'sparse', 
-                'shape': [2, 2],
-                'format_url': __url__, 
-                'type': 'OTU table', 
-                'id': None,
-                'generated_by':'foo',
-                'matrix_element_type': 'int'}
-        obs = self.sot_min.getBiomFormatObject('foo')
-        del obs['date']
-        self.assertFloatEqual(obs, exp)
-
-    def test_getBiomFormatObject_rich(self):
-        """Should return a dictionary of the rich table in Biom format."""
-        exp = {'rows': [{'id':'1','metadata':{'taxonomy':['k__a', 'p__b']}},
-                        {'id':'2','metadata':{'taxonomy':['k__a', 'p__c']}}],
-               'format': 'Biological Observation Matrix 1.0.0',
-               'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
-               'columns': [{'id': 'a', 'metadata':{'barcode': 'aatt'}}, 
-                           {'id': 'b', 'metadata':{'barcode': 'ttgg'}}],
-                'matrix_type': 'sparse', 
-                'shape': [2, 2],
-                'format_url': __url__,
-                'type': 'OTU table', 
-                'id': None,
-                'generated_by':'foo',
-                'matrix_element_type': 'int'}
-        obs = self.sot_rich.getBiomFormatObject('foo')
-        del obs['date']
-        self.assertFloatEqual(obs, exp)
-
-    def test_getBiomFormatObject_float(self):
-        """Should return a dictionary of the table with float values."""
-        exp = {'rows': [{'id': '1', 'metadata': None},
-                        {'id': '2', 'metadata': None}], 
-               'format':'Biological Observation Matrix 1.0.0', 
-               'data':[[0, 1, 2.5], 
-                       [0, 2, 3.3999999999999999],
-                       [1, 0, 9.3000000000000007], 
-                       [1, 1, 10.23],
-                       [1, 2, 2.2000000000000002]], 
-               'columns':[{'id': 'a', 'metadata': None}, 
-                          {'id': 'b', 'metadata': None},
-                          {'id': 'c', 'metadata': None}], 
-               'matrix_type': 'sparse',
-               'shape': [2, 3], 
-               'format_url':__url__, 
-               'type': 'OTU table', 
-               'generated_by':'foo',
-               'id': None, 
-               'matrix_element_type': 'float'}
-        obs = self.float_table.getBiomFormatObject('foo')
-        del obs['date']
-        self.assertFloatEqual(obs, exp)
 
 if __name__ == '__main__':
     main()
