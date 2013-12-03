@@ -15,7 +15,7 @@ from string import strip
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2012, BIOM-Format Project"
-__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso", "Jose Carlos Clemente Litran"]
+__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso", "Jose Carlos Clemente Litran", "Morgan Langille"]
 __license__ = "GPL"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0"
@@ -873,14 +873,25 @@ def biom_meta_to_string(metadata, replace_str=':'):
     """ Determine which format the metadata is (e.g. str, list, or list of lists) and then convert to a string"""
 
     #Note that since ';' and '|' are used as seperators we must replace them if they exist
-    if type(metadata) ==str or type(metadata)==unicode:
-        return metadata.replace(';',replace_str)
-    elif type(metadata) == list:
-        if type(metadata[0]) == list:
-            return "|".join(";".join([y.replace(';',replace_str).replace('|',replace_str) for y in x]) for x in metadata)
-        else:
-            return ";".join(x.replace(';',replace_str) for x in metadata)
 
+    #metadata is just a string (not a list)
+    if type(metadata) is str or type(metadata) is unicode:
+        return metadata.replace(';',replace_str)
+
+    elif type(metadata) is list:
+        
+        #metadata is list of lists
+        if type(metadata[0]) is list:
+            new_metadata=[]
+            for x in metadata:
+                #replace erroneus delimiters
+                values=[y.replace(';',replace_str).replace('|',replace_str).strip() for y in x]
+                new_metadata.append("; ".join(values))
+            return "|".join(new_metadata)
+
+        #metadata is list (of strings)
+        else:
+            return "; ".join(x.replace(';',replace_str).strip() for x in metadata)
 
 def convert_biom_to_table(biom_f, header_key=None, header_value=None, \
         md_format=None):
