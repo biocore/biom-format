@@ -222,7 +222,7 @@ def get_axis_indices(biom_str, to_keep, axis):
 
     return idxs, json.dumps(subset)[1:-1] # trim off { and }
 
-def light_parse_biom_sparse(biom_str, constructor):
+def light_parse_biom_sparse(biom_str):
     """Light-weight BIOM parser for sparse objects
 
     Constructor must match the loaded table type
