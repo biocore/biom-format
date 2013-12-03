@@ -1720,61 +1720,6 @@ class SparseTable(Table):
 
         return density
 
-
-class DenseTable(Table):
-    _biom_matrix_type = "dense"
-    def __init__(self, *args, **kwargs):
-        super(DenseTable, self).__init__(*args, **kwargs)
-
-    def _data_equality(self, other):
-        """Checks if the data matrices are equal"""
-        if isinstance(self, other.__class__):
-            return (self._data == other._data).all()
-        
-        for s_v, o_v in izip(self.iterSampleData(),other.iterSampleData()):
-            if not (s_v == o_v).all():
-                return False
-    
-        return True
-
-    def _conv_to_np(self, v):
-        """Converts a vector to a numpy array"""
-        return asarray(v)
-
-    def _conv_to_self_type(self, vals, transpose=False, dtype=None):
-        """For converting vectors to a compatible self type"""
-        # dtype call ignored, numpy will handle implicitly
-        # expects row vector here...
-        if transpose:
-            return asarray(vals).T
-        else:
-            return asarray(vals)
-
-    def __iter__(self):
-        """Defined by subclass"""
-        return self.iterSamples()
-
-    def _iter_obs(self):
-        """Return observations of data matrix"""
-        for r in self._data:
-            yield r
-
-    def _iter_samp(self):
-        """Return samples of data matrix in row vectors"""  
-        for c in self._data.T:
-            yield c
-
-    def getTableDensity(self):
-        """Returns the fraction of nonzero elements in the table."""
-        density = 0.0
-
-        if not self.isEmpty():
-            density = (len(self._data.nonzero()[0]) /
-                       (len(self.SampleIds) * len(self.ObservationIds)))
-
-        return density
-
-
 class OTUTable(object):
     """OTU table abstract class"""
     _biom_type = "OTU table"
