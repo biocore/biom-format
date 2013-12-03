@@ -10,15 +10,16 @@
 
 from __future__ import division
 from biom.exception import BiomParseException
-from biom.table import SparseTable, table_factory, to_sparse,\
-        nparray_to_sparseobj, SparseObj
+from biom.table import (Table, table_factory, to_sparse,
+    nparray_to_sparseobj, SparseObj)
 import json
 from numpy import zeros, asarray, uint32, float64
 from string import strip
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso", "Jose Carlos Clemente Litran"]
+__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso",
+    "Jose Carlos Clemente Litran", "Adam Robbins-Pianka"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __version__ = "1.2.0-dev"
@@ -134,18 +135,10 @@ def direct_slice_data(biom_str, to_keep, axis):
     to_keep = set(to_keep) 
     new_data = []
 
-    if matrix_type == '"dense"':
-        if axis == 'observations':
-            new_data = _direct_slice_data_dense_obs(data_fields, to_keep)
-        elif axis == 'samples':
-            new_data = _direct_slice_data_dense_samp(data_fields, to_keep)
-    elif matrix_type == '"sparse"':
-        if axis == 'observations':
-            new_data = _direct_slice_data_sparse_obs(data_fields, to_keep)
-        elif axis == 'samples':
-            new_data = _direct_slice_data_sparse_samp(data_fields, to_keep)
-    else:
-        raise ValueError, "biom_str does not appear to be in BIOM format!"
+    if axis == 'observations':
+        new_data = _direct_slice_data_sparse_obs(data_fields, to_keep)
+    elif axis == 'samples':
+        new_data = _direct_slice_data_sparse_samp(data_fields, to_keep)
     
     return '"data": %s, "shape": %s' % (new_data, new_shape)
 
@@ -159,34 +152,6 @@ def _remap_axis_sparse_samp(rcv, lookup):
     """Remap a sparse sample axis"""
     row,col,value = map(STRIP_F, rcv.split(','))
     return "%s,%s,%s" % (row, lookup[col], value)    
-
-def _direct_slice_data_dense_obs(data, to_keep):
-    """slice observations from data
-    
-    data : raw data string from a biom file
-    to_keep : rows to keep
-    """
-    new_data = []
-    for row_count, row in enumerate(data.split('],')):
-        if row_count in to_keep:
-            new_data.append(STRIP_F(row))
-    return '[[%s]]' % '],['.join(new_data)
-
-def _direct_slice_data_dense_samp(data, to_keep):
-    """slice samples from data
-    
-    data : raw data string from a biom file
-    to_keep : columns to keep
-    """
-    new_data = []
-    for row in data.split('],'):
-        new_row = []
-        # dive into the cols and keep those specified
-        for col_idx,v in enumerate(row.split(',')):
-            if col_idx in to_keep:
-                new_row.append(STRIP_F(v))
-        new_data.append("%s" % ','.join(new_row))
-    return '[[%s]]' % '],['.join(new_data)
 
 def _direct_slice_data_sparse_obs(data, to_keep):
     """slice observations from data
@@ -301,11 +266,6 @@ def parse_biom_table(json_fh,constructor=None, try_light_parse=True):
 
     input is an open filehandle or compatable object (e.g. list of lines)
 
-    sparse/dense will be determined by "matrix_type" in biom file, and 
-    either a SparseOTUTable or DenseOTUTable object will be returned
-    note that sparse here refers to the compressed format of [row,col,count]
-    dense refers to the full / standard matrix representations
-
     If try_light_parse is True, the light_parse_biom_sparse call will be 
     attempted. If that parse fails, the code will fall back to the regular
     BIOM parser.
@@ -321,43 +281,11 @@ def parse_biom_table(json_fh,constructor=None, try_light_parse=True):
         t = parse_biom_table_str(table_str, constructor=constructor)
     return t
 
-def pick_constructor(mat_type, table_type, constructor, valid_constructors):
-    """Make sure constructor is sane, attempt to pick one if not specified
-
-    Excepts valid_constructors to be a list in the order of 
-    [SparseTable, DenseTable] in which the objects present must subclass the
-    objects respectively (eg [SparseOTUTable, DenseOTUTable])
-
-    We do not require the matrix type to be the same as the constructor if the 
-    passed in constructor is not None. The motivation is that there are use
-    cases for taking a table stored as dense but loaded as sparse.
-
-    Will raise BiomParseError if input_mat_type appears wrong or if the 
-    specified constructor appears to be incorrect
-    """
-    if constructor is None:
-        if mat_type.lower() == 'sparse':
-            constructor = valid_constructors[0]
-        elif mat_type.lower() == 'dense':
-            constructor = valid_constructors[1]
-        else:
-            raise BiomParseException, "Unknown matrix_type"
-
-    if constructor._biom_type.lower() != table_type.lower():
-        raise BiomParseException, "constructor must be a biom %s" % table_type
-
-    return constructor
-
-def parse_biom_otu_table(json_table, constructor=None, data_pump=None):
+def parse_biom_table(json_table, constructor=None, data_pump=None):
     """Parse a biom otu table type
 
     Constructor must have a _biom_type of "otu table"
     """
-    table_type = 'otu table'
-    mat_type = json_table['matrix_type']
-    constructors = [SparseOTUTable, DenseOTUTable]
-    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
-
     sample_ids = [col['id'] for col in json_table['columns']]
     sample_metadata = [col['metadata'] for col in json_table['columns']]
     obs_ids = [row['id'] for row in json_table['rows']]
@@ -367,211 +295,15 @@ def parse_biom_otu_table(json_table, constructor=None, data_pump=None):
     if data_pump is None:
         table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
                                   sample_metadata, obs_metadata, 
-                                  constructor=constructor, 
                                   shape=json_table['shape'], 
                                   dtype=dtype)
     else:
         table_obj = table_factory(data_pump, sample_ids, obs_ids, 
                                   sample_metadata, obs_metadata, 
-                                  constructor=constructor, 
                                   shape=json_table['shape'], 
                                   dtype=dtype)
 
     return table_obj
-
-def parse_biom_pathway_table(json_table, constructor=None, data_pump=None):
-    """Parse a biom pathway table
-    
-    Constructor must have a _biom_type of "pathway table"
-    """
-    mat_type = json_table['matrix_type']
-    table_type = 'pathway table'
-    constructors = [SparsePathwayTable, DensePathwayTable]
-    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
-
-    sample_ids = [col['id'] for col in json_table['columns']]
-    sample_metadata = [col['metadata'] for col in json_table['columns']]
-    obs_ids = [row['id'] for row in json_table['rows']]
-    obs_metadata = [row['metadata'] for row in json_table['rows']]
-    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
-
-    if data_pump is None:    
-        table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-    else:
-        table_obj = table_factory(data_pump, sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-
-    return table_obj
-
-def parse_biom_function_table(json_table, constructor=None, data_pump=None):
-    """Parse a biom function table
-    
-    Constructor must have a _biom_type of "function table"
-    """
-    mat_type = json_table['matrix_type']
-    table_type = 'function table'
-    constructors = [SparseFunctionTable, DenseFunctionTable]
-    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
-
-    sample_ids = [col['id'] for col in json_table['columns']]
-    sample_metadata = [col['metadata'] for col in json_table['columns']]
-    obs_ids = [row['id'] for row in json_table['rows']]
-    obs_metadata = [row['metadata'] for row in json_table['rows']]
-    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
-
-    if data_pump is None:
-        table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-    else:
-        table_obj = table_factory(data_pump, sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-
-    return table_obj
-
-def parse_biom_ortholog_table(json_table, constructor=None, data_pump=None):
-    """Parse a biom ortholog table
-
-    Constructor must have a _biom_type of "ortholog table"
-    """
-    mat_type = json_table['matrix_type']
-    table_type = 'ortholog table'
-    constructors = [SparseOrthologTable, DenseOrthologTable]
-    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
-
-    sample_ids = [col['id'] for col in json_table['columns']]
-    sample_metadata = [col['metadata'] for col in json_table['columns']]
-    obs_ids = [row['id'] for row in json_table['rows']]
-    obs_metadata = [row['metadata'] for row in json_table['rows']]
-    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
-
-    if data_pump is None:
-        table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-    else:
-        table_obj = table_factory(data_pump, sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-
-    return table_obj
-
-def parse_biom_gene_table(json_table, constructor=None, data_pump=None):
-    """Parse a biom gene table
-    
-    Constructor must have a _biom_type of "gene table"
-    """
-    mat_type = json_table['matrix_type']
-    table_type = 'gene table'
-    constructors = [SparseGeneTable, DenseGeneTable]
-    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
-    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
-
-    sample_ids = [col['id'] for col in json_table['columns']]
-    sample_metadata = [col['metadata'] for col in json_table['columns']]
-    obs_ids = [row['id'] for row in json_table['rows']]
-    obs_metadata = [row['metadata'] for row in json_table['rows']]
-    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
-
-    if data_pump is None:
-        table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-    else:
-        table_obj = table_factory(data_pump, sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-    return table_obj
-
-def parse_biom_metabolite_table(json_table, constructor=None, data_pump=None):
-    """Parse a biom metabolite table
-
-    Constructor must have a _biom_type of "metabolite table"
-    """
-    mat_type = json_table['matrix_type']
-    table_type = 'metabolite table'
-    constructors = [SparseMetaboliteTable, DenseMetaboliteTable]
-    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
-
-    sample_ids = [col['id'] for col in json_table['columns']]
-    sample_metadata = [col['metadata'] for col in json_table['columns']]
-    obs_ids = [row['id'] for row in json_table['rows']]
-    obs_metadata = [row['metadata'] for row in json_table['rows']]
-    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
-
-    if data_pump is None:
-        table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-    else:
-        table_obj = table_factory(data_pump, sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-    return table_obj
-
-def parse_biom_taxon_table(json_table, constructor=None, data_pump=None):
-    """Parse a biom taxon table
-
-    Constructor must have a _biom_type of "taxon table"
-    """
-    mat_type = json_table['matrix_type']
-    table_type = 'taxon table'
-    constructors = [SparseTaxonTable, DenseTaxonTable]
-    constructor = pick_constructor(mat_type,table_type,constructor,constructors)
-
-    sample_ids = [col['id'] for col in json_table['columns']]
-    sample_metadata = [col['metadata'] for col in json_table['columns']]
-    obs_ids = [row['id'] for row in json_table['rows']]
-    obs_metadata = [row['metadata'] for row in json_table['rows']]
-    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
-
-    if data_pump is None:
-        table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-    else:
-        table_obj = table_factory(data_pump, sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  constructor=constructor,
-                                  shape=json_table['shape'],
-                                  dtype=dtype)
-
-    return table_obj
-
-# map table types -> parsing methods
-BIOM_TYPES = {'otu table':parse_biom_otu_table,
-              'pathway table':parse_biom_pathway_table,
-              'function table':parse_biom_function_table,
-              'ortholog table':parse_biom_ortholog_table,
-              'gene table':parse_biom_gene_table,
-              'metabolite table':parse_biom_metabolite_table,
-              'taxon table':parse_biom_taxon_table}
 
 def parse_biom_table_str(json_str,constructor=None, data_pump=None):
     """Parses a JSON string of the Biom table into a rich table object.
@@ -583,33 +315,16 @@ def parse_biom_table_str(json_str,constructor=None, data_pump=None):
     """
     json_table = json.loads(json_str)
 
-    if constructor is None:
-        f = BIOM_TYPES.get(json_table['type'].lower(), None)
-    else:
-        f = BIOM_TYPES.get(constructor._biom_type.lower(), None)
+    f = parse_biom_table
 
-        # convert matrix data if the biom type doesn't match matrix type
-        # of the table objects
-        if constructor._biom_matrix_type != json_table['matrix_type'].lower():
-            if json_table['matrix_type'] == 'dense':
-                # dense -> sparse
-                conv_data = []
-                for row_idx,row in enumerate(json_table['data']):
-                    for col_idx, value in enumerate(row):
-                        if value == 0:
-                            continue
-                        conv_data.append([row_idx,col_idx,value])
-                json_table['data'] = conv_data
-
-            elif json_table['matrix_type'] == 'sparse':
-                # sparse -> dense
-                conv_data = zeros(json_table['shape'],dtype=float)
-                for r,c,v in json_table['data']:
-                    conv_data[r,c] = v
-                json_table['data'] = [list(row) for row in conv_data]
-
-            else:
-                raise BiomParseException, "Unknown matrix_type"
+    # convert matrix data if the biom type doesn't match matrix type
+    # of the table objects
+    if constructor._biom_matrix_type != json_table['matrix_type'].lower():
+        # sparse -> dense
+        conv_data = zeros(json_table['shape'],dtype=float)
+        for r,c,v in json_table['data']:
+            conv_data[r,c] = v
+        json_table['data'] = [list(row) for row in conv_data]
 
     if f is None:
         raise BiomParseException, 'Unknown table type'
@@ -621,8 +336,8 @@ OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
                   }
 OBS_META_TYPES['taxonomy'] = OBS_META_TYPES['sc_separated']
 
-def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping, process_func,
-        constructor, **kwargs):
+def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
+        process_func, constructor, **kwargs):
     """Parses an table (tab delimited) (observation x sample)
 
     sample_mapping : can be None or {'sample_id':something}
@@ -650,7 +365,7 @@ def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping, proces
         data = nparray_to_sparseobj(data)
     
     return table_factory(data, sample_ids, obs_ids, sample_metadata, 
-                         obs_metadata, constructor=constructor)
+                         obs_metadata)
 
 def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None, \
         md_parse=None):
@@ -876,8 +591,8 @@ def convert_table_to_biom(table_f,sample_mapping, obs_mapping, process_func, con
     dtype : type of table data
     """
     otu_table = parse_classic_table_to_rich_table(table_f, sample_mapping, 
-                                                  obs_mapping, process_func,
-                                                  constructor, **kwargs)
+        obs_mapping, process_func, **kwargs)
+
     return otu_table.getBiomFormatJsonString(generatedby())
 
 def convert_biom_to_table(biom_f, header_key=None, header_value=None, \
