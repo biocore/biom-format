@@ -240,22 +240,6 @@ class TableTests(TestCase):
         self.assertEqual(1, self.simple_derived.getObservationIndex(4))
         self.assertRaises(UnknownID, self.simple_derived.getObservationIndex,5)
 
-    def test_sortBySampleID(self):
-        """sort a table by samples ids"""
-        self.assertRaises(NotImplementedError, self.t1.sortBySampleId)
-
-    def test_sortByObservationID(self):
-        """sort a table by observation ids"""
-        self.assertRaises(NotImplementedError, self.t1.sortByObservationId)
-
-    def test_eq(self):
-        """eq Should raise in abstract baseclass"""
-        self.assertRaises(NotImplementedError, self.t1.__eq__, self.t2)
-
-    def test_data_equality(self):
-        """data equality isn't defined in baseclass"""
-        self.assertRaises(NotImplementedError, self.t1._data_equality, self.t2)
-
     def test_index_ids(self):
         """Index the all the ids!!!"""
         exp_samp = {1:0,2:1}
@@ -514,57 +498,10 @@ class TableTests(TestCase):
     def test_observationData(self):
         """tested in derived class"""
         self.assertRaises(UnknownID, self.t1.observationData, 'foo')
-
-    def test_iter(self):
-        """iter is dependent on derived class"""
-        self.assertRaises(NotImplementedError, iter, self.t1)
-
-    def test_iter_obs(self):
-        """iter_obs is dependent on derived class"""
-        self.assertRaises(NotImplementedError, self.t1._iter_obs)
-
-    def test_iter_samp(self):
-        """iter_samp is dependent on derived class"""
-        self.assertRaises(NotImplementedError, self.t1._iter_samp)
-
-    def test_conv_to_np(self):
-        """conv_to_np is dependent on derived class"""
-        self.assertRaises(NotImplementedError, self.t1._conv_to_np, 1)
-
-    def test_iterSamples(self):
-        """Iterates samples, not all called methods are implemented in base"""
-        gen = self.t1.iterSamples()
-        self.assertRaises(NotImplementedError, gen.next)
-
-    def test_iterObservations(self):
-        """Iterates obs, not all called methods are implemented in base"""
-        gen = self.t1.iterObservations()
-        self.assertRaises(NotImplementedError, gen.next)
-
-    def test_filterSamples(self):
-        """Filters samples, not all called methods are implemented in base"""
-        self.assertRaises(NotImplementedError, self.t1.filterSamples, 1)
-
-    def test_filterObservations(self):
-        """Filters obs, not all called methods are implemented in base"""
-        self.assertRaises(NotImplementedError, self.t1.filterObservations, 1)
-
-    def test_transformObservations(self):
-        """Transform obs, not all called methods are implemented in base"""
-        self.assertRaises(NotImplementedError, self.t1.transformObservations,1)
-    
-    def test_transformSamples(self):
-        """Transform samples, not all called methods are implemented in base"""
-        self.assertRaises(NotImplementedError, self.t1.transformSamples, 1)
    
     def test_delimitedSelf(self):
         """Test basic string functionality of self"""
         self.assertRaises(TableException, self.t1.delimitedSelf)
-
-    def test_nonzero(self):
-        """Returns nonzero indices within the matrix"""
-        gen = self.t1.nonzero()
-        self.assertRaises(NotImplementedError, gen.next)
 
     def test_merge(self):
         """General merge method"""
@@ -575,10 +512,6 @@ class TableTests(TestCase):
         """returns true if empty"""
         self.assertTrue(self.t1.isEmpty())
         self.assertFalse(self.simple_derived.isEmpty())
-
-    def test_getTableDensity(self):
-        """Test raises an error since it isn't implemented here."""
-        self.assertRaises(NotImplementedError, self.t1.getTableDensity)
 
     def test_immutability(self):
         """Test Table object immutability."""
@@ -1287,7 +1220,7 @@ class SparseTableTests(TestCase):
         obs_bins, obs_king = unzip(t.binObservationsByMetadata(func_king))
         self.assertEqual(obs_king, [exp_king])
         self.assertEqual(obs_bins, [tuple(['k__a'])])
-        self.assertEqual(type(obs_king[0]), SparseOTUTable)
+        self.assertEqual(type(obs_king[0]), Table)
 
         exp_phy1_obs_ids = ['a','b']
         exp_phy1_samp_ids = [1,2,3]
