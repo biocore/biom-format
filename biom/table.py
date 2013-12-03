@@ -50,7 +50,7 @@ class Table(object):
     Code to simulate immutability taken from here:
         http://en.wikipedia.org/wiki/Immutable_object
     """
-    _biom_type = None
+    Type = None
     _biom_matrix_type = None
 
     def __setattr__(self, *args):
