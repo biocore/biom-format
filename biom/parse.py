@@ -281,7 +281,7 @@ def parse_biom_table(json_fh,constructor=None, try_light_parse=True):
         t = parse_biom_table_str(table_str, constructor=constructor)
     return t
 
-def parse_biom_table(json_table, constructor=None, data_pump=None):
+def parse_biom_table_json(json_table, constructor=None, data_pump=None):
     """Parse a biom otu table type
 
     Constructor must have a _biom_type of "otu table"
@@ -315,19 +315,7 @@ def parse_biom_table_str(json_str,constructor=None, data_pump=None):
     """
     json_table = json.loads(json_str)
 
-    f = parse_biom_table
-
-    # convert matrix data if the biom type doesn't match matrix type
-    # of the table objects
-    if constructor._biom_matrix_type != json_table['matrix_type'].lower():
-        # sparse -> dense
-        conv_data = zeros(json_table['shape'],dtype=float)
-        for r,c,v in json_table['data']:
-            conv_data[r,c] = v
-        json_table['data'] = [list(row) for row in conv_data]
-
-    if f is None:
-        raise BiomParseException, 'Unknown table type'
+    f = parse_biom_table_json
 
     return f(json_table, constructor, data_pump)
 
