@@ -12,7 +12,8 @@ from __future__ import division
 import json
 import dateutil.parser
 from operator import and_
-from pyqi.core.command import Command, Parameter, ParameterCollection
+from pyqi.core.command import (Command, CommandIn, CommandOut, 
+    ParameterCollection)
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -31,17 +32,26 @@ class TableValidator(Command):
                        "Observation Matrix (BIOM) format specification. This "
                        "specification is defined at http://biom-format.org")
 
-    Parameters = ParameterCollection([
-        Parameter(Name='table_json', DataType=dict,
+    CommandIns = ParameterCollection([
+        CommandIn(Name='table_json', DataType=dict,
                   Description='the input BIOM JSON object (e.g., the output '
                   'of json.load)', Required=True),
-        Parameter(Name='format_version', DataType=str,
+        CommandIn(Name='format_version', DataType=str,
                   Description='the specific format version to validate '
                   'against', Required=False,
                   Default='Biological Observation Matrix 1.0.0'),
-        Parameter(Name='detailed_report', DataType=bool,
+        CommandIn(Name='detailed_report', DataType=bool,
                   Description='include more details in the output report',
                   Required=False, Default=False)
+    ])
+
+    CommandOuts = ParameterCollection([
+        CommandOut(Name='valid_table',
+                   Description='Is the table valid?',
+                   DataType=bool),
+        CommandOut(Name='report_lines',
+                   Description='Detailed report',
+                   DataType=list)
     ])
 
     FormatURL = "http://biom-format.org"

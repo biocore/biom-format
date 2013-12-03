@@ -236,16 +236,13 @@ def compute_counts_per_sample_stats(table, binary_counts=False):
     permission from the authors of this function to port it to the BIOM Format
     project (and keep it under BIOM's BSD license).
     """
-    if binary_counts:
-        sample_counts = {}
-        for count_vector, sample_id, metadata in table.iterSamples():
-            sample_counts[sample_id] = len([x for x in count_vector if x != 0])
-        counts = sample_counts.values()
-    else:
-        sample_counts = {}
-        for count_vector, sample_id, metadata in table.iterSamples():
+    sample_counts = {}
+    for count_vector, sample_id, metadata in table.iterSamples():
+        if binary_counts:
+            sample_counts[sample_id] = (count_vector != 0).sum()
+        else:
             sample_counts[sample_id] = count_vector.sum()
-        counts = sample_counts.values()
+    counts = sample_counts.values()
     
     return (min(counts),
             max(counts),
