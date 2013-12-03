@@ -10,11 +10,7 @@
 
 from __future__ import division
 from biom.exception import BiomParseException
-from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
-        DensePathwayTable, SparseFunctionTable, DenseFunctionTable, \
-        SparseOrthologTable, DenseOrthologTable, SparseGeneTable, \
-        DenseGeneTable, SparseMetaboliteTable, DenseMetaboliteTable,\
-        SparseTaxonTable, DenseTaxonTable, table_factory, to_sparse,\
+from biom.table import SparseTable, table_factory, to_sparse,\
         nparray_to_sparseobj, SparseObj
 import json
 from numpy import zeros, asarray, uint32, float64
