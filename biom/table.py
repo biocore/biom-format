@@ -1442,7 +1442,7 @@ class Table(object):
         optimizations are necessary or not (i.e. subclassing JSONEncoder, using
         generators, etc...).
         """
-        if self._biom_type is None:
+        if self.Type is None:
             raise TableException, "Unknown biom type"
 
         if (not isinstance(generated_by, str) and
@@ -1483,7 +1483,7 @@ class Table(object):
             raise TableException("Unsupported matrix data type.")
 
         # Fill in details about the matrix.
-        biom_format_obj["type"] = self._biom_type
+        biom_format_obj["type"] = self.Type
         biom_format_obj["matrix_type"] = self._biom_matrix_type
         biom_format_obj["matrix_element_type"] = "%s" % matrix_element_type
         biom_format_obj["shape"] = [num_rows, num_cols]
@@ -1528,7 +1528,7 @@ class Table(object):
         If direct_io is not None, the final output is written directly to
         direct_io during processing.
         """
-        if self._biom_type is None:
+        if self.Type is None:
             raise TableException, "Unknown biom type"
 
         if (not isinstance(generated_by, str) and
@@ -1576,12 +1576,12 @@ class Table(object):
 
         # Fill in details about the matrix.
         if direct_io:
-            direct_io.write('"type": "%s",' % self._biom_type)
+            direct_io.write('"type": "%s",' % self.Type)
             direct_io.write('"matrix_type": "%s",' % self._biom_matrix_type)
             direct_io.write('"matrix_element_type": "%s",' % matrix_element_type)
             direct_io.write('"shape": [%d, %d],' % (num_rows, num_cols))
         else:
-            type_ = '"type": "%s",' % self._biom_type
+            type_ = '"type": "%s",' % self.Type
             matrix_type = '"matrix_type": "%s",' % self._biom_matrix_type
             matrix_element_type = '"matrix_element_type": "%s",' % matrix_element_type
             shape = '"shape": [%d, %d],' % (num_rows, num_cols)
