@@ -1732,7 +1732,7 @@ def dict_to_nparray(data, dtype=float):
     rows, cols = zip(*data) # unzip
     mat = zeros((max(rows) + 1, max(cols) + 1), dtype=dtype)
 
-    for (row,col),val in data.items():
+    for (row,col),val in data.iteritems():
         mat[row,col] = val
 
     return mat
@@ -1748,7 +1748,7 @@ def list_dict_to_nparray(data, dtype=float):
     mat = zeros((n_rows, n_cols), dtype=dtype)
     
     for row_idx, row in enumerate(data):
-        for (foo,col_idx),val in row.items():
+        for (foo,col_idx),val in row.iteritems():
             mat[row_idx, col_idx] = val
 
     return mat
