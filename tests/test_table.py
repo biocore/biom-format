@@ -10,7 +10,7 @@
 
 from numpy import where, zeros, array, reshape, arange
 from biom.unit_test import TestCase, main
-from biom.table import (TableException, Table, SparseTable, UnknownID, 
+from biom.table import (TableException, Table, UnknownID, 
     prefer_self, index_list, dict_to_nparray, list_dict_to_nparray, 
     table_factory, list_list_to_nparray, flatten, unzip, natsort, to_sparse,
     nparray_to_sparseobj, list_nparray_to_sparseobj, SparseObj, 
@@ -52,8 +52,8 @@ class SupportTests(TestCase):
         obs_ids = ['a','b','c']
         nparray = array([[1,2,3,4],[-1,6,7,8],[9,10,11,12]])
         data = nparray_to_sparseobj(array([[1,2,3,4],[-1,6,7,8],[9,10,11,12]]))
-        exp = SparseTable(data, samp_ids, obs_ids)
-        obs = table_factory(nparray, samp_ids, obs_ids, constructor=SparseTable)
+        exp = Table(data, samp_ids, obs_ids)
+        obs = table_factory(nparray, samp_ids, obs_ids)
         self.assertEqual(obs,exp)
 
     def test_table_factory_sparse_list_nparray(self):
@@ -63,8 +63,8 @@ class SupportTests(TestCase):
         obs_ids = ['a','b','c']
         list_np = [array([1,2,3,4]), array([5,6,7,8]), array([9,10,11,12])]
         data = list_nparray_to_sparseobj(list_np)
-        exp = SparseTable(data, samp_ids, obs_ids)
-        obs = table_factory(list_np, samp_ids, obs_ids, constructor=SparseTable)
+        exp = Table(data, samp_ids, obs_ids)
+        obs = table_factory(list_np, samp_ids, obs_ids)
         self.assertEqual(obs,exp)
 
     def test_table_factory_sparse_dict(self):
@@ -78,8 +78,8 @@ class SupportTests(TestCase):
         d_input[0,10] = 5
         d_input[100,23] = -3
         data = nparray_to_sparseobj(d_input)
-        exp = SparseTable(data, samp_ids, obs_ids)
-        obs = table_factory(dict_input,samp_ids,obs_ids,constructor=SparseTable)
+        exp = Table(data, samp_ids, obs_ids)
+        obs = table_factory(dict_input,samp_ids,obs_ids)
         self.assertEqual(obs, exp)
 
     def test_table_factory_sparse_list_dict(self):
@@ -93,9 +93,9 @@ class SupportTests(TestCase):
         ld_input[1,1] = 15
         ld_input[2,3] = 7
         data = nparray_to_sparseobj(ld_input)
-        exp = SparseTable(data, samp_ids, obs_ids)
+        exp = Table(data, samp_ids, obs_ids)
         list_dict = [{(0,5):10,(10,10):2}, {(0,1):15}, {(0,3):7}]
-        obs = table_factory(list_dict, samp_ids,obs_ids,constructor=SparseTable)
+        obs = table_factory(list_dict, samp_ids,obs_ids)
         self.assertEqual(obs, exp)
 
     def test_table_factory_sparse_list_dict(self):
@@ -112,9 +112,8 @@ class SupportTests(TestCase):
         data = nparray_to_sparseobj(exp_table)
         samp_ids = range(3)
         obs_ids = range(2)
-        exp = SparseTable(data, samp_ids, obs_ids)
-        obs = table_factory(list_dict,samp_ids,obs_ids,
-                             constructor=SparseTable)
+        exp = Table(data, samp_ids, obs_ids)
+        obs = table_factory(list_dict,samp_ids,obs_ids)
         self.assertEqual(obs, exp)
 
     def test_table_factory_sparse_dict(self):
@@ -125,7 +124,7 @@ class SupportTests(TestCase):
         exp_data[0,1] = 5
         exp_data[1,2] = 10
         data = nparray_to_sparseobj(exp_data)
-        exp = SparseTable(data, samp_ids, obs_ids, constructor=SparseTable)
+        exp = Table(data, samp_ids, obs_ids)
         dict_input = {}
         dict_input[(0,1)] = 5
         dict_input[(1,2)] = 10
@@ -140,9 +139,9 @@ class SupportTests(TestCase):
         exp_data = SparseObj(2,3)
         exp_data[0,1] = 5
         exp_data[1,2] = 10
-        exp = SparseTable(exp_data, samp_ids, obs_ids)
+        exp = Table(exp_data, samp_ids, obs_ids)
         input_ = [[0,1,5],[1,2,10]]
-        obs = table_factory(input_, samp_ids, obs_ids, constructor=SparseTable)
+        obs = table_factory(input_, samp_ids, obs_ids)
         self.assertEqual(obs, exp)
 
     def test_TableException(self):
@@ -597,35 +596,35 @@ class TableTests(TestCase):
 class SparseTableTests(TestCase):
     def setUp(self):
         self.vals = {(0,0):5,(0,1):6,(1,0):7,(1,1):8}
-        self.st1 = SparseTable(to_sparse(self.vals),
+        self.st1 = Table(to_sparse(self.vals),
                                ['a','b'],['1','2'])
-        self.st2 = SparseTable(to_sparse(self.vals),
+        self.st2 = Table(to_sparse(self.vals),
                                ['a','b'],['1','2'])
         self.vals3 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
         self.vals4 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
-        self.st3 = SparseTable(self.vals3, ['b','c'],['2','3'])
-        self.st4 = SparseTable(self.vals4, ['c','d'],['3','4'])
+        self.st3 = Table(self.vals3, ['b','c'],['2','3'])
+        self.st4 = Table(self.vals4, ['c','d'],['3','4'])
         self._to_dict_f = lambda x: sorted(x.items())
-        self.st_rich = SparseTable(to_sparse(self.vals), 
+        self.st_rich = Table(to_sparse(self.vals), 
                 ['a','b'],['1','2'],
                 [{'barcode':'aatt'},{'barcode':'ttgg'}],
                 [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
 
-        self.empty_st = SparseTable(to_sparse([]), [], [])
+        self.empty_st = Table(to_sparse([]), [], [])
 
         self.vals5 = to_sparse({(0,1):2,(1,1):4})
-        self.st5 = SparseTable(self.vals5, ['a','b'],['5','6'])
+        self.st5 = Table(self.vals5, ['a','b'],['5','6'])
 
         self.vals6 = to_sparse({(0,0):0,(0,1):0,(1,0):0,(1,1):0})
-        self.st6 = SparseTable(self.vals6, ['a','b'],['5','6'])
+        self.st6 = Table(self.vals6, ['a','b'],['5','6'])
 
         self.vals7 = to_sparse({(0,0):5,(0,1):7,(1,0):8,(1,1):0})
-        self.st7 = SparseTable(self.vals7, ['a','b'],['5','6'])
+        self.st7 = Table(self.vals7, ['a','b'],['5','6'])
 
-        self.single_sample_st = SparseTable(
+        self.single_sample_st = Table(
                 to_sparse(array([[2.0],[0.0],[1.0]])), ['S1'],
                 ['O1','O2','O3'])
-        self.single_obs_st = SparseTable(to_sparse(array([[2.0,0.0,1.0]])),
+        self.single_obs_st = Table(to_sparse(array([[2.0,0.0,1.0]])),
                                          ['S1','S2','S3'], ['O1'])
 
     def test_sum(self):
@@ -673,7 +672,7 @@ class SparseTableTests(TestCase):
     def test_sortObservationOrder(self):
         """sort by observations arbitrary order"""
         vals = {(0,0):7,(0,1):8,(1,0):5,(1,1):6}
-        exp = SparseTable(to_sparse(vals),
+        exp = Table(to_sparse(vals),
                                ['a','b'],['2','1'])
         obs = self.st1.sortObservationOrder(['2','1'])
         self.assertEqual(obs,exp)
@@ -682,7 +681,7 @@ class SparseTableTests(TestCase):
         """sort by observations arbitrary order"""
         vals = {(0,0):6,(0,1):5,
                 (1,0):8,(1,1):7}
-        exp = SparseTable(to_sparse(vals),
+        exp = Table(to_sparse(vals),
                                ['b','a'],['1','2'])
         
         obs = self.st1.sortSampleOrder(['b','a'])
@@ -692,9 +691,9 @@ class SparseTableTests(TestCase):
         """sort by samples by a function"""
         sort_f = sorted
         data_in = nparray_to_sparseobj(array([[1,2,3,8],[4,5,6,9],[7,8,9,11]]))
-        t = SparseTable(data_in, ['c','a','b','d'],[2,1,3])
+        t = Table(data_in, ['c','a','b','d'],[2,1,3])
         exp_data = nparray_to_sparseobj(array([[2,3,1,8],[5,6,4,9],[8,9,7,11]]))
-        exp = SparseTable(exp_data,['a','b','c','d'], [2,1,3])
+        exp = Table(exp_data,['a','b','c','d'], [2,1,3])
         obs = t.sortBySampleId(sort_f=sort_f)
         self.assertEqual(obs,exp)
 
@@ -702,9 +701,9 @@ class SparseTableTests(TestCase):
         """sort by observation ids by a function"""
         sort_f = sorted
         data_in = nparray_to_sparseobj(array([[1,2,3,8],[4,5,6,9],[7,8,9,11]]), float)
-        t = SparseTable(data_in, ['c','a','b','d'],[2,1,3])
+        t = Table(data_in, ['c','a','b','d'],[2,1,3])
         exp_data = nparray_to_sparseobj(array([[4,5,6,9],[1,2,3,8],[7,8,9,11]]), float)
-        exp = SparseTable(exp_data,['c','a','b','d'],[1,2,3])
+        exp = Table(exp_data,['c','a','b','d'],[1,2,3])
         obs = t.sortByObservationId(sort_f=sort_f)
         self.assertEqual(obs,exp)
 
@@ -730,7 +729,7 @@ class SparseTableTests(TestCase):
         data = {(0,0):5,(0,1):6,(0,2):0,(0,3):3,
                 (1,0):0,(1,1):7,(1,2):0,(1,3):8,
                 (2,0):1,(2,1):-1,(2,2):0,(2,3):0}
-        st = SparseTable(to_sparse(data), ['a','b','c','d'],['1','2','3'])
+        st = Table(to_sparse(data), ['a','b','c','d'],['1','2','3'])
         exp = [('1','a'),('1','b'),('1','d'),('2','b'),('2','d'),('3','a'),
                ('3','b')]
         obs = list(st.nonzero())
@@ -741,7 +740,7 @@ class SparseTableTests(TestCase):
         data = {(0,0):5,(0,1):6,(0,2):0,(0,3):3,
                 (1,0):0,(1,1):7,(1,2):0,(1,3):8,
                 (2,0):1,(2,1):-1,(2,2):0,(2,3):0}
-        st = SparseTable(to_sparse(data), ['a','b','c','d'],['1','2','3'])
+        st = Table(to_sparse(data), ['a','b','c','d'],['1','2','3'])
         
         exp_samp = array([6, 12, 0, 11])
         exp_obs = array([14, 15, 0])
@@ -760,7 +759,7 @@ class SparseTableTests(TestCase):
         data = {(0,0):5,(0,1):6,(0,2):0,(0,3):3,
                 (1,0):0,(1,1):7,(1,2):0,(1,3):8,
                 (2,0):1,(2,1):-1,(2,2):0,(2,3):0}
-        st = SparseTable(to_sparse(data), ['a','b','c','d'],['1','2','3'])
+        st = Table(to_sparse(data), ['a','b','c','d'],['1','2','3'])
         
         exp_samp = array([2, 3, 0, 2])
         exp_obs = array([3, 2, 2])
@@ -781,14 +780,14 @@ class SparseTableTests(TestCase):
 
         # test 1
         data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
-        exp = SparseTable(data, ['a','b'],['1','2'])
+        exp = Table(data, ['a','b'],['1','2'])
         obs = self.st1.merge(self.st1, Sample=u, Observation=u)
         self.assertEqual(obs, exp)
         
         # test 2
         data = to_sparse({(0,0):5,(0,1):6,(0,2):0,(1,0):7,(1,1):9,(1,2):2,
                           (2,0):0,(2,1):3,(2,2):4})
-        exp = SparseTable(data, ['a','b','c'], ['1','2','3'])
+        exp = Table(data, ['a','b','c'], ['1','2','3'])
         obs = self.st1.merge(self.st3, Sample=u, Observation=u)
         self.assertEqual(obs, exp)
         
@@ -797,18 +796,18 @@ class SparseTableTests(TestCase):
                           (1,0):7,(1,1):8,(1,2):0,(1,3):0,
                           (2,0):0,(2,1):0,(2,2):1,(2,3):2,
                           (3,0):0,(3,1):0,(3,2):3,(3,3):4})
-        exp = SparseTable(data,['a','b','c','d'],['1','2','3','4'])
+        exp = Table(data,['a','b','c','d'],['1','2','3','4'])
         obs = self.st1.merge(self.st4, Sample=u, Observation=u)
         self.assertEqual(obs, exp)
 
         # test 4
         data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
-        exp = SparseTable(data, ['a','b'], ['1','2'])
+        exp = Table(data, ['a','b'], ['1','2'])
         obs = self.st1.merge(self.st1, Sample=i, Observation=i)
         self.assertEqual(obs, exp)
         
         # test 5
-        exp = SparseTable(to_sparse({(0,0):9}), ['b'], ['2'])
+        exp = Table(to_sparse({(0,0):9}), ['b'], ['2'])
         obs = self.st1.merge(self.st3, Sample=i, Observation=i)
         self.assertEqual(obs, exp)
         
@@ -817,13 +816,13 @@ class SparseTableTests(TestCase):
 
         # test 7
         data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
-        exp = SparseTable(data, ['a','b'],['1','2'])
+        exp = Table(data, ['a','b'],['1','2'])
         obs = self.st1.merge(self.st1, Sample=i, Observation=u)
         self.assertEqual(obs, exp)
 
         # test 8
         data = to_sparse({(0,0):6,(1,0):9,(2,0):3})
-        exp = SparseTable(data, ['b'],['1','2','3'])
+        exp = Table(data, ['b'],['1','2','3'])
         obs = self.st1.merge(self.st3, Sample=i, Observation=u)
         self.assertEqual(obs, exp)
 
@@ -832,13 +831,13 @@ class SparseTableTests(TestCase):
 
         # test 10
         data = to_sparse({(0,0):10,(0,1):12,(1,0):14,(1,1):16})
-        exp = SparseTable(data, ['a','b'],['1','2'])
+        exp = Table(data, ['a','b'],['1','2'])
         obs = self.st1.merge(self.st1, Sample=u, Observation=i)
         self.assertEqual(obs, exp)
 
         # test 11
         data = to_sparse({(0,0):7,(0,1):9,(0,2):2})
-        exp = SparseTable(data, ['a','b','c'],['2'])
+        exp = Table(data, ['a','b','c'],['2'])
         obs = self.st1.merge(self.st3, Sample=u, Observation=i)
         self.assertEqual(obs, exp)
         
@@ -991,7 +990,7 @@ class SparseTableTests(TestCase):
 
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
         vals = {(0,0):5,(0,1):6,(1,1):8}
-        st = SparseTable(to_sparse(vals), ['a','b'],['1','2'])
+        st = Table(to_sparse(vals), ['a','b'],['1','2'])
         gen = st.iterSamples()
         exp = [(array([5,0]), 'a', None), (array([6,8]), 'b', None)]
         obs = list(gen)
@@ -1024,7 +1023,7 @@ class SparseTableTests(TestCase):
 
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
         vals = {(0,0):5,(0,1):6,(1,1):8}
-        st = SparseTable(to_sparse(vals), ['a','b'],['1','2'])
+        st = Table(to_sparse(vals), ['a','b'],['1','2'])
         gen = st.iterSampleData()
         exp = [array([5,0]), array([6,8])]
         obs = list(gen)
@@ -1065,15 +1064,15 @@ class SparseTableTests(TestCase):
         f_md = lambda v,id_,md: md['barcode'] == 'ttgg'
 
         val_sd = to_sparse({(0,0):5,(1,0):7})
-        exp_value = SparseTable(val_sd, ['a'], ['1','2'], 
+        exp_value = Table(val_sd, ['a'], ['1','2'], 
                 [{'barcode':'aatt'}], [{'taxonomy':['k__a','p__b']},
                                        {'taxonomy':['k__a','p__c']}])
         id_sd = to_sparse({(0,0):5,(1,0):7})
-        exp_id = SparseTable(id_sd, ['a'], ['1','2'], 
+        exp_id = Table(id_sd, ['a'], ['1','2'], 
                 [{'barcode':'aatt'}], [{'taxonomy':['k__a','p__b']},
                                        {'taxonomy':['k__a','p__c']}])
         md_sd = to_sparse({(0,0):6,(1,0):8})
-        exp_md = SparseTable(md_sd, ['b'], ['1','2'], 
+        exp_md = Table(md_sd, ['b'], ['1','2'], 
                 [{'barcode':'ttgg'}], [{'taxonomy':['k__a','p__b']},
                                        {'taxonomy':['k__a','p__c']}])
        
@@ -1086,7 +1085,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs_md, exp_md)
 
         inv_sd = to_sparse({(0,0):6,(1,0):8})
-        exp_inv = SparseTable(inv_sd, ['b'], ['1','2'], 
+        exp_inv = Table(inv_sd, ['b'], ['1','2'], 
                 [{'barcode':'ttgg'}], [{'taxonomy':['k__a','p__b']},
                                        {'taxonomy':['k__a','p__c']}])
         obs_inv = self.st_rich.filterSamples(f_value, invert=True)
@@ -1101,15 +1100,15 @@ class SparseTableTests(TestCase):
         f_md = lambda v,id_,md: md['taxonomy'][1] == 'p__c'
 
         val_sd = to_sparse({(0,0):5,(0,1):6})
-        exp_value = SparseTable(val_sd, ['a','b'], ['1'], 
+        exp_value = Table(val_sd, ['a','b'], ['1'], 
                 [{'barcode':'aatt'},{'barcode':'ttgg'}], 
                 [{'taxonomy':['k__a','p__b']}])
         id_sd = to_sparse({(0,0):5,(0,1):6})
-        exp_id = SparseTable(id_sd, ['a','b'], ['1'], 
+        exp_id = Table(id_sd, ['a','b'], ['1'], 
                 [{'barcode':'aatt'},{'barcode':'ttgg'}], 
                 [{'taxonomy':['k__a','p__b']}])
         md_sd = to_sparse({(0,0):7,(0,1):8})
-        exp_md = SparseTable(md_sd, ['a','b'], ['2'], 
+        exp_md = Table(md_sd, ['a','b'], ['2'], 
                 [{'barcode':'aatt'},{'barcode':'ttgg'}], 
                 [{'taxonomy':['k__a','p__c']}])
         
@@ -1122,7 +1121,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs_md, exp_md)
 
         inv_sd = to_sparse({(0,0):7,(0,1):8})
-        exp_inv = SparseTable(inv_sd, ['a','b'], ['2'], 
+        exp_inv = Table(inv_sd, ['a','b'], ['2'], 
                 [{'barcode':'aatt'},{'barcode':'ttgg'}], 
                 [{'taxonomy':['k__a','p__c']}])
         obs_inv = self.st_rich.filterObservations(f_value, invert=True)
@@ -1135,7 +1134,7 @@ class SparseTableTests(TestCase):
         def transform_f(v, id, md):
             return where(v >= 7, 1, 0)
         sp_sd = to_sparse({(0,0):0,(0,1):0,(1,0):1,(1,1):1})
-        exp = SparseTable(sp_sd, ['a','b'], ['1','2'])
+        exp = Table(sp_sd, ['a','b'], ['1','2'])
         obs = self.st1.transformObservations(transform_f)
         self.assertEqual(obs, exp)
     
@@ -1144,7 +1143,7 @@ class SparseTableTests(TestCase):
         def transform_f(v, id, md):
             return where(v >= 6, 1, 0)
         sp_sd = to_sparse({(0,0):0,(0,1):1,(1,0):1,(1,1):1})
-        exp = SparseTable(sp_sd, ['a','b'], ['1','2'])
+        exp = Table(sp_sd, ['a','b'], ['1','2'])
         obs = self.st1.transformSamples(transform_f)
         self.assertEqual(obs, exp)
 
@@ -1152,8 +1151,8 @@ class SparseTableTests(TestCase):
         """normalize observations by sample"""
         data = to_sparse({(0,0):2,(0,1):0,(1,0):6,(1,1):1})
         data_exp = to_sparse({(0,0):0.25,(0,1):0.0,(1,0):0.75,(1,1):1.0})
-        st = SparseTable(data, ['a','b'],['1','2'])
-        exp = SparseTable(data_exp, ['a','b'], ['1','2'])
+        st = Table(data, ['a','b'],['1','2'])
+        exp = Table(data_exp, ['a','b'], ['1','2'])
         obs = st.normObservationBySample()
         self.assertEqual(obs, exp)
     
@@ -1161,8 +1160,8 @@ class SparseTableTests(TestCase):
         """normalize observations by sample"""
         data = to_sparse({(0,0):6,(0,1):0,(1,0):6,(1,1):1})
         data_exp = to_sparse({(0,0):2.,(0,1):0.0,(1,0):3.0,(1,1):0.5})
-        st = SparseTable(data, ['a','b'],['1','2'],[{},{}],[{'CopyNumber':3},{'CopyNumber':2}])
-        exp = SparseTable(data_exp, ['a','b'], ['1','2'],[{},{}],[{'CopyNumber':3},{'CopyNumber':2}])
+        st = Table(data, ['a','b'],['1','2'],[{},{}],[{'CopyNumber':3},{'CopyNumber':2}])
+        exp = Table(data_exp, ['a','b'], ['1','2'],[{},{}],[{'CopyNumber':3},{'CopyNumber':2}])
         obs = st.normObservationByMetadata('CopyNumber')
         self.assertEqual(obs, exp)
         
@@ -1170,8 +1169,8 @@ class SparseTableTests(TestCase):
         """normalize sample by observation"""
         data = to_sparse({(0,0):0,(0,1):2,(1,0):2,(1,1):6})
         data_exp = to_sparse({(0,0):0.0,(0,1):1.0,(1,0):0.25,(1,1):0.75})
-        st = SparseTable(data, ['a','b'],['1','2'])
-        exp = SparseTable(data_exp, ['a','b'], ['1','2'])
+        st = Table(data, ['a','b'],['1','2'])
+        exp = Table(data_exp, ['a','b'], ['1','2'])
         obs = st.normSampleByObservation()
         self.assertEqual(obs, exp)
 
@@ -1191,7 +1190,7 @@ class SparseTableTests(TestCase):
                 (3,0):12,(3,1):13,(3,2):14,(3,3):15}
         obs_md = [{},{},{},{}]
         samp_md = [{'age':2,'foo':10},{'age':4},{'age':2,'bar':5},{}]
-        t = SparseTable(to_sparse(data), samp_ids, obs_ids, samp_md, obs_md)
+        t = Table(to_sparse(data), samp_ids, obs_ids, samp_md, obs_md)
         obs_bins, obs_tables = unzip(t.binSamplesByMetadata(f))
 
         exp_bins = (2, 4, None)
@@ -1201,21 +1200,21 @@ class SparseTableTests(TestCase):
         exp1_samp_ids = ['1','3']
         exp1_obs_md = [{},{},{},{}]
         exp1_samp_md = [{'age':2,'foo':10},{'age':2,'bar':5}]
-        exp1 = SparseTable(exp1_data, exp1_samp_ids, exp1_obs_ids, exp1_samp_md, 
+        exp1 = Table(exp1_data, exp1_samp_ids, exp1_obs_ids, exp1_samp_md, 
                           exp1_obs_md)
         exp2_data = to_sparse({(0,0):2,(1,0):6,(2,0):9,(3,0):13})
         exp2_obs_ids = ['a','b','c','d']
         exp2_samp_ids = ['2']
         exp2_obs_md = [{},{},{},{}]
         exp2_samp_md = [{'age':4}]
-        exp2 = SparseTable(exp2_data, exp2_samp_ids, exp2_obs_ids, exp2_samp_md, 
+        exp2 = Table(exp2_data, exp2_samp_ids, exp2_obs_ids, exp2_samp_md, 
                           exp2_obs_md)
         exp3_data = to_sparse({(0,0):4,(1,0):8,(2,0):11,(3,0):15})
         exp3_obs_ids = ['a','b','c','d']
         exp3_samp_ids = ['4']
         exp3_obs_md = [{},{},{},{}]
         exp3_samp_md = [{'age':None}]
-        exp3 = SparseTable(exp3_data, exp3_samp_ids, exp3_obs_ids, exp3_samp_md, 
+        exp3 = Table(exp3_data, exp3_samp_ids, exp3_obs_ids, exp3_samp_md, 
                           exp3_obs_md)
         exp_tables = (exp1, exp2, exp3)
     
@@ -1230,22 +1229,21 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs_sort, exp_tables)
 
         # We should get the same table type back.
-        exp_types = (SparseTable, SparseTable, SparseTable)
+        exp_types = (Table, Table, Table)
         obs_sort = (type(obs_tables[exp1_idx]), type(obs_tables[exp2_idx]),
                     type(obs_tables[exp3_idx]))
         self.assertEqual(obs_sort, exp_types)
 
         # Test passing a different constructor. We should get the same data
         # equality, but different table types.
-        obs_bins, obs_tables = unzip(t.binSamplesByMetadata(f,
-                constructor=SparseOTUTable))
+        obs_bins, obs_tables = unzip(t.binSamplesByMetadata(f))
 
         obs_sort = (obs_bins[exp1_idx], obs_bins[exp2_idx], obs_bins[exp3_idx])
         self.assertEqual(obs_sort, exp_bins)
         obs_sort = (obs_tables[exp1_idx], obs_tables[exp2_idx], 
                     obs_tables[exp3_idx])
         self.assertEqual(obs_sort, exp_tables)
-        exp_types = (SparseOTUTable, SparseOTUTable, SparseOTUTable)
+        exp_types = (Table, Table, Table)
         obs_sort = (type(obs_tables[exp1_idx]), type(obs_tables[exp2_idx]),
                     type(obs_tables[exp3_idx]))
         self.assertEqual(obs_sort, exp_types)
@@ -1268,7 +1266,7 @@ class SparseTableTests(TestCase):
         obs_md = [{"taxonomy":['k__a','p__b','c__c']},
                   {"taxonomy":['k__a','p__b','c__d']},
                   {"taxonomy":['k__a','p__c','c__e']}]
-        t = SparseTable(data, samp_ids, obs_ids, ObservationMetadata=obs_md)
+        t = Table(data, samp_ids, obs_ids, ObservationMetadata=obs_md)
 
         exp_king_obs_ids = ['a','b','c']
         exp_king_samp_ids = [1,2,3]
@@ -1278,7 +1276,7 @@ class SparseTableTests(TestCase):
         exp_king_obs_md = [{"taxonomy":['k__a','p__b','c__c']},
                            {"taxonomy":['k__a','p__b','c__d']},
                            {"taxonomy":['k__a','p__c','c__e']}]
-        exp_king = SparseTable(data, exp_king_samp_ids, exp_king_obs_ids, 
+        exp_king = Table(data, exp_king_samp_ids, exp_king_obs_ids, 
                               ObservationMetadata=exp_king_obs_md)
         obs_bins, obs_king = unzip(t.binObservationsByMetadata(func_king))
 
@@ -1286,8 +1284,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs_bins, [tuple(['k__a'])])
         self.assertEqual(type(obs_king[0]), type(exp_king))
 
-        obs_bins, obs_king = unzip(t.binObservationsByMetadata(func_king,
-                constructor=SparseOTUTable))
+        obs_bins, obs_king = unzip(t.binObservationsByMetadata(func_king))
         self.assertEqual(obs_king, [exp_king])
         self.assertEqual(obs_bins, [tuple(['k__a'])])
         self.assertEqual(type(obs_king[0]), SparseOTUTable)
@@ -1299,14 +1296,14 @@ class SparseTableTests(TestCase):
                                    (1,0):4,(1,1):5,(1,2):6})
         exp_phy1_obs_md = [{"taxonomy":['k__a','p__b','c__c']},
                            {"taxonomy":['k__a','p__b','c__d']}]
-        exp_phy1 = SparseTable(exp_phy1_data, exp_phy1_samp_ids, 
+        exp_phy1 = Table(exp_phy1_data, exp_phy1_samp_ids, 
                               exp_phy1_obs_ids, 
                               ObservationMetadata=exp_phy1_obs_md)
         exp_phy2_obs_ids = ['c']
         exp_phy2_samp_ids = [1,2,3]
         exp_phy2_data = to_sparse({(0,0):7,(0,1):8,(0,2):9})
         exp_phy2_obs_md = [{"taxonomy":['k__a','p__c','c__e']}]
-        exp_phy2 = SparseTable(exp_phy2_data, exp_phy2_samp_ids,exp_phy2_obs_ids,
+        exp_phy2 = Table(exp_phy2_data, exp_phy2_samp_ids,exp_phy2_obs_ids,
                                ObservationMetadata=exp_phy2_obs_md)
         obs_bins, obs_phy = unzip(t.binObservationsByMetadata(func_phy))
         self.assertEqual(obs_phy, [exp_phy1, exp_phy2])
