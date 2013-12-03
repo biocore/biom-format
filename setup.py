@@ -63,8 +63,8 @@ setup(name='biom-format',
               'biom/interfaces/optparse/config'
               ],
     scripts=glob('scripts/*'),
-    install_requires=["numpy >= 1.5.1"],
-    extras_require={'scipy_sparse':["scipy >= 0.13.0"],
+    install_requires=["numpy >= 1.3.0"],
+    extras_require={'scipy_sparse':["scipy >= 0.9.0"],
                     'test':["nose >= 0.10.1",
                             "tox >= 1.6.1"]
                    },
