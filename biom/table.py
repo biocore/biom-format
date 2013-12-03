@@ -1803,60 +1803,32 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     else:
         shape = None
 
-    if constructor._biom_matrix_type is 'sparse':
-        # if we have a numpy array
-        if isinstance(data, ndarray):
-            data = nparray_to_sparseobj(data, dtype)
+    # if we have a numpy array
+    if isinstance(data, ndarray):
+        data = nparray_to_sparseobj(data, dtype)
 
-        # if we have a list of numpy vectors
-        elif isinstance(data, list) and isinstance(data[0], ndarray):
-            data = list_nparray_to_sparseobj(data, dtype)
+    # if we have a list of numpy vectors
+    elif isinstance(data, list) and isinstance(data[0], ndarray):
+        data = list_nparray_to_sparseobj(data, dtype)
 
-        # if we have a dict representation
-        elif isinstance(data, dict) and not isinstance(data, SparseObj):
-            data = dict_to_sparseobj(data, dtype)
+    # if we have a dict representation
+    elif isinstance(data, dict) and not isinstance(data, SparseObj):
+        data = dict_to_sparseobj(data, dtype)
 
-        elif isinstance(data, SparseObj):
-            pass
+    elif isinstance(data, SparseObj):
+        pass
 
-        # if we have a list of dicts
-        elif isinstance(data, list) and isinstance(data[0], dict):
-            data = list_dict_to_sparseobj(data, dtype)
+    # if we have a list of dicts
+    elif isinstance(data, list) and isinstance(data[0], dict):
+        data = list_dict_to_sparseobj(data, dtype)
 
-        # if we have a list of lists (like inputs from json biom)
-        elif isinstance(data, list) and isinstance(data[0], list):
-            data = list_list_to_sparseobj(data, dtype, shape=shape)
-        else:
-            raise TableException, "Cannot handle data!"
-    
-    elif constructor._biom_matrix_type is 'dense':
-        # if we have a numpy array
-        if isinstance(data, ndarray):
-            pass
-
-        # if we have a list of numpy vectors
-        elif isinstance(data, list) and isinstance(data[0], ndarray):
-            data = asarray(data, dtype)
-
-        # if we have a dict representation
-        elif isinstance(data, dict):
-            data = dict_to_nparray(data, dtype)
-
-        # if we have a list of dicts
-        elif isinstance(data, list) and isinstance(data[0], dict):
-            data = list_dict_to_nparray(data, dtype)
-
-        # if we have a list of lists (ie input from json biom)
-        elif isinstance(data, list) and isinstance(data[0], list):
-            data = list_list_to_nparray(data, dtype)
-
-        else:
-            raise TableException, "Cannot handle data!"
+    # if we have a list of lists (like inputs from json biom)
+    elif isinstance(data, list) and isinstance(data[0], list):
+        data = list_list_to_sparseobj(data, dtype, shape=shape)
     else:
-        raise TableException, "Constructor type specifies an unknown matrix " +\
-                              "type: %s" % constructor._biom_matrix_type
-
-    return constructor(data, sample_ids, observation_ids, 
+        raise TableException, "Cannot handle data!"
+    
+    return Table(data, sample_ids, observation_ids, 
             SampleMetadata=sample_metadata,
             ObservationMetadata=observation_metadata,
             TableId=table_id, **kwargs)
