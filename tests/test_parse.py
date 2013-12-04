@@ -693,7 +693,7 @@ class ParseTests(TestCase):
         """
         # parse the classic otu table with complex metadata
         parsed_table = parse_classic_table(self.classic_table_with_complex_metadata)
-
+      
         # convert the classic otu table to a biom file, and then convert the biom file
         # to a classic otu table (i.e., roundtrip the file)
         roundtripped_table =\
@@ -751,11 +751,11 @@ OTU ID	Fing	Key	NA	Consensus Lineage
 
 classic_table_with_complex_metadata="""# some comment
 #OTU ID	sample1	sample2	KEGG_Pathways
-K05842	1.0	3.5	rank1A;rank2A|rank1B;rank2B
+K05842	1.0	3.5	rank1A; rank2A|rank1B; rank2B
 K05841	2.0	4.5	Environmental Information Processing;
-K00508	0.0	0.0	Metabolism;Lipid Metabolism;Linoleic acid metabolism
-K00500	0.5	0.5	Metabolism;Amino Acid Metabolism;Phenylalanine metabolism|Metabolism;Amino Acid Metabolism;Phenylalanine, tyrosine and tryptophan biosynthesis
-K00507	0.0	0.0	Metabolism;Lipid Metabolism;Biosynthesis of unsaturated fatty acids|Organismal Systems;Endocrine System;PPAR signaling pathway
+K00508	0.0	0.0	Metabolism; Lipid Metabolism; Linoleic acid metabolism
+K00500	0.5	0.5	Metabolism; Amino Acid Metabolism; Phenylalanine metabolism|Metabolism; Amino Acid Metabolism; Phenylalanine, tyrosine and tryptophan biosynthesis
+K00507	0.0	0.0	Metabolism; Lipid Metabolism; Biosynthesis of unsaturated fatty acids|Organismal Systems; Endocrine System; PPAR signaling pathway
 """
 biom_minimal_dense = """
 

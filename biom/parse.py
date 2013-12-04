@@ -620,8 +620,11 @@ def parse_biom_table_str(json_str,constructor=None, data_pump=None):
 
     return f(json_table, constructor, data_pump)
 
+def sc_pipe_separated(x):
+    return [[e.strip() for e in y.split(';')] for y in x.split('|')]
+
 OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
-                  'naive': lambda x: x, 'sc_pipe_separated': lambda x: [[e.strip() for e in y.split(';')] for y in x.split('|')]
+                  'naive': lambda x: x, 'sc_pipe_separated': sc_pipe_separated
                   }
 OBS_META_TYPES['taxonomy'] = OBS_META_TYPES['sc_separated']
 
@@ -889,15 +892,15 @@ def biom_meta_to_string(metadata, replace_str=':'):
     """ Determine which format the metadata is (e.g. str, list, or list of lists) and then convert to a string"""
 
     #Note that since ';' and '|' are used as seperators we must replace them if they exist
-
+  
     #metadata is just a string (not a list)
-    if type(metadata) is str or type(metadata) is unicode:
+    if isinstance(metadata,str) or isinstance(metadata,unicode):
         return metadata.replace(';',replace_str)
 
-    elif type(metadata) is list:
+    elif isinstance(metadata,list):
         
         #metadata is list of lists
-        if type(metadata[0]) is list:
+        if isinstance(metadata[0], list):
             new_metadata=[]
             for x in metadata:
                 #replace erroneus delimiters
