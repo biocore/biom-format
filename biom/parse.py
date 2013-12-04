@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 from __future__ import division
+from biom import __version__
 from biom.exception import BiomParseException
 from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
         DensePathwayTable, SparseFunctionTable, DenseFunctionTable, \

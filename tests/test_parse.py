@@ -8,6 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
+from biom import __version__
 from numpy import array, nan
 from StringIO import StringIO
 import json
