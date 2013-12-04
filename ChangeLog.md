@@ -1,10 +1,10 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 1.3.0-dev
---------------
+biom 1.3.1
+----------
 
-Changes since 1.3.0 go here.
+Documentation release, released on December 4th 2013
 
 New Features:
 
