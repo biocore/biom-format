@@ -37,11 +37,13 @@ The biom-format project has the following dependencies:
 	* `dateutil <http://labix.org/python-dateutil>`_ (optional; must be installed if using the ``biom validate-table`` command)
 	* `scipy <http://www.scipy.org/>`_ (optional; must be installed if using the ``ScipySparseMat`` sparse matrix backend)
 
-To install the latest version of BIOM, we recommend using pip::
+The easiest way to install the latest version of the biom-format project and its required dependencies is via pip::
 
 	pip install biom-format
 
-It is also possible to manually install the latest release. We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
+That's it!
+
+If you decided not to install biom-format using pip, it is also possible to manually install the latest release. We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
 
 	cd $HOME/code
 
