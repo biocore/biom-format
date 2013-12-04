@@ -1,6 +1,19 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 1.3.0-dev
+--------------
+
+Changes since 1.3.0 go here.
+
+New Features:
+
+* biom-format is now installable via pip! Simply run ``pip install biom-format``.
+
+Changes:
+
+* Fixed installation instructions to be clearer about the various ways of installing biom-format. Also fixed a couple of minor formatting issues.
+
 biom 1.3.0
 ----------
 
