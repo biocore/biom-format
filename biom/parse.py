@@ -621,7 +621,14 @@ def parse_biom_table_str(json_str,constructor=None, data_pump=None):
     return f(json_table, constructor, data_pump)
 
 def sc_pipe_separated(x):
-    return [[e.strip() for e in y.split(';')] for y in x.split('|')]
+    complex_metadata=[]
+    for y in x.split('|'):
+        simple_metadata=[]
+        for e in y.split(';'):
+            simple_metadata.append(e.strip())
+        complex_metadata.append(simple_metadata)
+    return complex_metadata
+
 
 OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
                   'naive': lambda x: x, 'sc_pipe_separated': sc_pipe_separated
@@ -918,7 +925,7 @@ def convert_biom_to_table(biom_f, header_key=None, header_value=None, \
     table = parse_biom_table(biom_f)
 
     if md_format is None:
-         md_format = biom_meta_to_string
+        md_format = biom_meta_to_string
 
     if table.ObservationMetadata is None:
         return table.delimitedSelf()
