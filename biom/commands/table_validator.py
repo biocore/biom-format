@@ -22,7 +22,6 @@ __credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso",
                "Tobias Paczian", "Rob Knight", "Folker Meyer", "Sue Huse"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
-__version__ = "1.2.0-dev"
 __author__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 

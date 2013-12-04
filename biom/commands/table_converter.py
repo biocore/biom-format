@@ -27,7 +27,6 @@ __credits__ = ["Greg Caporaso", "Daniel McDonald",
                "Jose Carlos Clemente Litran", "Jai Ram Rideout"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
-__version__ = "1.2.0-dev"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
