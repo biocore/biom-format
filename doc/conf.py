@@ -47,8 +47,6 @@ copyright = u'2011-2013, The BIOM Format Development Team'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-# The short X.Y version.
-version = "1.2"
 # The full version, including alpha/beta/rc tags.
 release = "1.2.0-dev"
 
