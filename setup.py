@@ -61,10 +61,12 @@ setup(name='biom-format',
               'biom/interfaces/optparse/config'
               ],
     scripts=glob('scripts/*'),
-    install_requires=["numpy >= 1.3.0"],
+    install_requires=["numpy >= 1.3.0",
+                      "pyqi == 0.3.1"],
     extras_require={'scipy_sparse':["scipy >= 0.9.0"],
                     'test':["nose >= 0.10.1",
-                            "tox >= 1.6.1"]
+                            "tox >= 1.6.1"],
+                    'validator':['dateutil >= 2.1']
                    },
     classifiers=classifiers
 )
