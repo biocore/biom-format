@@ -28,12 +28,12 @@ The latest official version of the biom-format project is |release| and of the B
 Installing the biom-format project
 ==================================
 
-To install the ``biom-format`` project, you can download the release version `biom-format-1.2.0 <ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.2.0.tar.gz>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
+To install the ``biom-format`` project, you can download the latest version `here <https://pypi.python.org/pypi/biom-format/>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
 
 The biom-format project has the following dependencies:
 	* `Python <http://www.python.org/>`_ >= 2.7 and < 3.0
 	* `numpy <http://www.numpy.org/>`_ >= 1.3.0
-	* `pyqi <http://bipy.github.io/pyqi>`_ 0.2.0
+	* `pyqi <http://bipy.github.io/pyqi>`_ 0.3.1
 	* `dateutil <http://labix.org/python-dateutil>`_ (optional; must be installed if using the ``biom validate-table`` command)
 	* `scipy <http://www.scipy.org/>`_ (optional; must be installed if using the ``ScipySparseMat`` sparse matrix backend)
 
@@ -41,11 +41,14 @@ We'll illustrate the install process in the ``$HOME/code`` directory. You can ei
 
 	cd $HOME/code
 
-To install the release version, download from `biom-format-1.2.0 <ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.2.0.tar.gz>`_, uncompress the file, and change to the resulting directory::
+To install the latest version of BIOM, we recommend using pip: 
 
-	wget ftp://thebeast.colorado.edu/pub/biom-format-releases/biom-format-1.2.0.tar.gz
-	tar -xvzf biom-format-1.2.0.tar.gz
-	cd $HOME/code/biom-format-1.2.0
+    pip install biom-format
+
+It is possible to download the latest release directly as well, which can be found `here <https://pypi.python.org/pypi/biom-format>`_. After downloading, unpack and install (note: x.y.z refers to the downloaded version):
+
+	tar xzf biom-format-x.y.z.tar.gz
+	cd $HOME/code/biom-format-x.y.z
 
 Alternatively, to install the development version, pull it from GitHub, and change to the resulting directory::
 
