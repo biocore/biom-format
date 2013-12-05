@@ -1,6 +1,13 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 1.3.1-dev
+--------------
+
+Changes:
+
+* No longer dependent on dateutil
+
 biom 1.3.1
 ----------
 

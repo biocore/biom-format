@@ -223,14 +223,6 @@ class TableValidatorTests(TestCase):
         obs = self.cmd._valid_datetime(table)
         self.assertTrue(len(obs) == 0)
 
-        table['date'] = "10-11-1999 10:11:12"
-        obs = self.cmd._valid_datetime(table)
-        self.assertTrue(len(obs) == 0)
-
-        table['date'] = "10-11-1asdfasd:12"
-        obs = self.cmd._valid_datetime(table)
-        self.assertTrue(len(obs) > 0)
-
     def test_valid_sparse_data(self):
         """Takes a sparse matrix field and validates"""
         table = self.min_sparse_otu

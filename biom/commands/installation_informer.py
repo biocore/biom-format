@@ -81,15 +81,9 @@ class InstallationInformer(Command):
         except ImportError:
             scipy_lib_version = not_installed_msg
 
-        try:
-            from dateutil import __version__ as dateutil_lib_version
-        except ImportError:
-            dateutil_lib_version = not_installed_msg
-
         return (("pyqi version", pyqi_lib_version),
                 ("NumPy version", numpy_lib_version),
-                ("SciPy version", scipy_lib_version),
-                ("dateutil version", dateutil_lib_version))
+                ("SciPy version", scipy_lib_version))
 
     def getPackageInfo(self):
         import_error_msg = ("ERROR: Can't find the BIOM library code (or "
