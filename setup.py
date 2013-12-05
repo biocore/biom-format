@@ -65,8 +65,7 @@ setup(name='biom-format',
                       "pyqi == 0.3.1"],
     extras_require={'scipy_sparse':["scipy >= 0.9.0"],
                     'test':["nose >= 0.10.1",
-                            "tox >= 1.6.1"],
-                    'validator':['dateutil >= 2.1']
+                            "tox >= 1.6.1"]
                    },
     classifiers=classifiers
 )
