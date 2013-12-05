@@ -1,6 +1,13 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 1.3.1-dev
+--------------
+
+Changes:
+
+* No longer dependent on dateutil
+
 biom 1.3.1
 ----------
 
@@ -13,7 +20,6 @@ New Features:
 Changes:
 
 * Fixed installation instructions to be clearer about the various ways of installing biom-format. Also fixed a couple of minor formatting issues.
-* No longer dependent on dateutil
 
 biom 1.3.0
 ----------
