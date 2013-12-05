@@ -17,10 +17,11 @@ __email__ = "gregcaporaso@gmail.com"
 
 from pyqi.core.command import (make_command_in_collection_lookup_f,
                                make_command_out_collection_lookup_f)
-from pyqi.core.interfaces.optparse.output_handler import write_list_of_strings
 from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
                                            OptparseOption, OptparseResult)
+from biom.interfaces.optparse.output_handler import (
+        write_or_print_list_of_strings)
 from biom.commands.table_summarizer import CommandConstructor
 from biom.interfaces.optparse.input_handler import (
         load_biom_table_with_file_contents)
@@ -50,12 +51,13 @@ inputs = [
                    Type='new_filepath',
                    ShortName='o',
                    Name='output-fp',
-                   Required=True,
+                   Required=False,
+                   Default=None,
                    Help='the output filepath')
 ]
 
 outputs = [
     OptparseResult(Parameter=cmd_out_lookup('biom_summary'),
-                   Handler=write_list_of_strings,
+                   Handler=write_or_print_list_of_strings,
                    InputName='output-fp')
 ]
