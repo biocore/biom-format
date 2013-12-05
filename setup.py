@@ -58,7 +58,9 @@ setup(name='biom-format',
               'biom/commands',
               'biom/interfaces',
               'biom/interfaces/optparse',
-              'biom/interfaces/optparse/config'
+              'biom/interfaces/optparse/config',
+              'biom/interfaces/html',
+              'biom/interfaces/html/config'
               ],
     scripts=glob('scripts/*'),
     install_requires=["numpy >= 1.3.0",
