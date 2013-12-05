@@ -34,7 +34,6 @@ The biom-format project has the following dependencies:
 	* `Python <http://www.python.org/>`_ >= 2.7 and < 3.0
 	* `numpy <http://www.numpy.org/>`_ >= 1.3.0
 	* `pyqi <http://bipy.github.io/pyqi>`_ 0.3.1
-	* `dateutil <http://labix.org/python-dateutil>`_ (optional; must be installed if using the ``biom validate-table`` command)
 	* `scipy <http://www.scipy.org/>`_ (optional; must be installed if using the ``ScipySparseMat`` sparse matrix backend)
 
 The easiest way to install the latest version of the biom-format project and its required dependencies is via pip::
