@@ -18,6 +18,7 @@ __email__ = "gregcaporaso@gmail.com"
 from os.path import exists
 from pyqi.core.exception import IncompetentDeveloperError
 from biom.parse import generatedby
+import sys
 
 def write_biom_table(result_key, data, option_value=None):
     """Write a string to a file"""
@@ -30,3 +31,19 @@ def write_biom_table(result_key, data, option_value=None):
 
     with open(option_value, 'w') as f:
         f.write(data.getBiomFormatJsonString(generatedby()))
+
+def write_or_print_list_of_strings(result_key, data, option_value=None):
+    """Write a list of strings to a file, one per line.
+
+    A newline will be added to the end of the file.
+    """
+    if option_value is None:
+        print '\n'.join(data)
+    else:
+        if os.path.exists(option_value):
+            raise IOError("Output path '%s' already exists." % option_value)
+
+        with open(option_value, 'w') as f:
+            for line in data:
+                f.write(line)
+                f.write('\n')
