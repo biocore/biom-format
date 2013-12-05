@@ -10,7 +10,7 @@
 
 from __future__ import division
 import json
-import dateutil.parser
+from datetime import datetime
 from operator import and_
 from pyqi.core.command import (Command, CommandIn, CommandOut, 
     ParameterCollection)
@@ -164,7 +164,7 @@ class TableValidator(Command):
                                           and time)
         """
         try:
-            _ = dateutil.parser.parse(table_json['date'])
+            _ = datetime.strptime(table_json['date'], "%Y-%m-%dT%H:%M:%S")
         except:
             return "Timestamp does not appear to be ISO 8601"
         else:
