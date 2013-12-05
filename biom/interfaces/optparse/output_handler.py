@@ -40,7 +40,7 @@ def write_or_print_list_of_strings(result_key, data, option_value=None):
     if option_value is None:
         print '\n'.join(data)
     else:
-        if os.path.exists(option_value):
+        if exists(option_value):
             raise IOError("Output path '%s' already exists." % option_value)
 
         with open(option_value, 'w') as f:
