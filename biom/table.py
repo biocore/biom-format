@@ -1460,6 +1460,38 @@ class Table(object):
         return self.__class__(self._conv_to_self_type(vals), sample_ids[:], 
                 obs_ids[:], sample_md, obs_md)
 
+    def writeHDF5(self, fp, generated_by):
+        """ """
+        # from Jai's protobiom.hdf5
+        out_f = h5py.File(fp, 'w')
+
+        out_f.attrs['id'] = self.TableId
+        out_f.attrs['format'] = "Biological Observation Matrix 2.0.0"
+        out_f.attrs['format_url'] = "http://biom-format.org"
+        out_f.attrs['type'] = self._biom_type
+        out_f.attrs['generated_by'] = generated_by
+        out_f.attrs['date'] = datetime.now().isoformat()
+        out_f.attrs['matrix_element_type'] = self._data._matrix.dtype.name
+        out_f.attrs['shape'] = self._data.shape
+
+        obs_grp = out_f.create_group('observations')
+        obs_grp['ids'] = asarray(map(str, self.ObservationIds))
+        if self.ObservationMetadata is not None:
+            obs_grp['metadata'] = dumps(self.ObservationMetadata)
+
+        samp_grp = out_f.create_group('samples')
+        samp_grp['ids'] = asarray(map(str, self.SampleIds))
+        if self.SampleMetadata is not None:
+            samp_grp['metadata'] = dumps(self.SampleMetadata)
+
+        self._data._matrix = self._data._matrix.tocoo()
+        data_grp = out_f.create_group('data')
+        data_grp.create_dataset('rows', data=self._data._matrix.row)
+        data_grp.create_dataset('columns', data=self._data._matrix.col)
+        data_grp.create_dataset('values', data=self._data._matrix.data)
+
+        out_f.close()
+
     def getBiomFormatObject(self, generated_by):
         """Returns a dictionary representing the table in BIOM format.
 
