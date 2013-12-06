@@ -36,7 +36,6 @@ __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
-__version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"   
 
@@ -1179,6 +1178,38 @@ class Table(object):
             for s_idx in samp_vals.nonzero()[0]:
                 yield (self.ObservationIds[o_idx], self.SampleIds[s_idx])
 
+    def nonzeroCounts(self, axis, binary=False):
+        """Get nonzero summaries about an axis
+
+        axis : either 'sample', 'observation', or 'whole'
+        binary : sum of nonzero entries, or summing the values of the entries
+        
+        Returns a numpy array in index order to the axis
+        """
+        if binary:
+            dtype = 'int'
+            op = lambda x: x.nonzero()[0].size
+        else:
+            dtype = self._data.dtype
+            op = lambda x: x.sum()
+
+        if axis is 'sample':
+            # can use np.bincount for CSMat or ScipySparse
+            result = zeros(len(self.SampleIds), dtype=dtype)
+            for idx, vals in enumerate(self.iterSampleData()):
+                result[idx] = op(vals)
+        elif axis is 'observation':
+            # can use np.bincount for CSMat or ScipySparse
+            result = zeros(len(self.ObservationIds), dtype=dtype)
+            for idx, vals in enumerate(self.iterObservationData()):
+                result[idx] = op(vals)
+        else:
+            result = zeros(1, dtype=dtype)
+            for vals in self.iterSampleData():
+                result[0] += op(vals)
+
+        return result
+
     def _union_id_order(self, a, b):
         """Determines merge order for id lists A and B"""
         all_ids = list(a[:])
@@ -1807,9 +1838,23 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     if isinstance(data, ndarray):
         data = nparray_to_sparseobj(data, dtype)
 
-    # if we have a list of numpy vectors
-    elif isinstance(data, list) and isinstance(data[0], ndarray):
-        data = list_nparray_to_sparseobj(data, dtype)
+    # if we have a list of things
+    elif isinstance(data, list):
+        if not data:
+            raise TableException("No data was supplied. Cannot create "
+                                 "an empty table.")
+
+        elif isinstance(data[0], ndarray):
+            data = list_nparray_to_sparseobj(data, dtype)
+        
+        elif isinstance(data[0], dict):
+            data = list_dict_to_sparseobj(data, dtype)
+        
+        elif isinstance(data[0], list):
+            data = list_list_to_sparseobj(data, dtype, shape=shape)
+        
+        else:
+            raise TableException("Unknown nested list type")
 
     # if we have a dict representation
     elif isinstance(data, dict) and not isinstance(data, SparseObj):
@@ -1818,13 +1863,6 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     elif isinstance(data, SparseObj):
         pass
 
-    # if we have a list of dicts
-    elif isinstance(data, list) and isinstance(data[0], dict):
-        data = list_dict_to_sparseobj(data, dtype)
-
-    # if we have a list of lists (like inputs from json biom)
-    elif isinstance(data, list) and isinstance(data[0], list):
-        data = list_list_to_sparseobj(data, dtype, shape=shape)
     else:
         raise TableException, "Cannot handle data!"
     

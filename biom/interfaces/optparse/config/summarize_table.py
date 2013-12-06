@@ -10,22 +10,24 @@
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Greg Caporaso", "Jai Ram Rideout"]
+__credits__ = ["Greg Caporaso", "Jai Ram Rideout", "Daniel McDonald"]
 __license__ = "BSD"
-__version__ = "1.2.0-dev"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
-from pyqi.core.command import make_parameter_collection_lookup_f
-from pyqi.core.interfaces.optparse.output_handler import write_list_of_strings
+from pyqi.core.command import (make_command_in_collection_lookup_f,
+                               make_command_out_collection_lookup_f)
 from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
                                            OptparseOption, OptparseResult)
+from biom.interfaces.optparse.output_handler import (
+        write_or_print_list_of_strings)
 from biom.commands.table_summarizer import CommandConstructor
 from biom.interfaces.optparse.input_handler import (
         load_biom_table_with_file_contents)
 
-param_lookup = make_parameter_collection_lookup_f(CommandConstructor)
+cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
+cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 
 usage_examples = [
     OptparseUsageExample(ShortDesc="Basic script usage",
@@ -34,27 +36,28 @@ usage_examples = [
 ]
 
 inputs = [
-    OptparseOption(Parameter=param_lookup('table'),
-                   InputType="existing_filepath",
-                   InputHandler=load_biom_table_with_file_contents,
+    OptparseOption(Parameter=cmd_in_lookup('table'),
+                   Type="existing_filepath",
+                   Handler=load_biom_table_with_file_contents,
                    ShortName='i',
                    Name='input-fp'),
-    OptparseOption(Parameter=param_lookup('qualitative'),
-                   InputType=None,
-                   InputAction="store_true"),
-    OptparseOption(Parameter=param_lookup('suppress_md5'),
-                   InputType=None,
-                   InputAction="store_true"),
+    OptparseOption(Parameter=cmd_in_lookup('qualitative'),
+                   Type=None,
+                   Action="store_true"),
+    OptparseOption(Parameter=cmd_in_lookup('suppress_md5'),
+                   Type=None,
+                   Action="store_true"),
     OptparseOption(Parameter=None,
-                   InputType='new_filepath',
+                   Type='new_filepath',
                    ShortName='o',
                    Name='output-fp',
-                   Required=True,
+                   Required=False,
+                   Default=None,
                    Help='the output filepath')
 ]
 
 outputs = [
-    OptparseResult(ResultKey='biom-summary',
-                   OutputHandler=write_list_of_strings,
-                   OptionName='output-fp')
+    OptparseResult(Parameter=cmd_out_lookup('biom_summary'),
+                   Handler=write_or_print_list_of_strings,
+                   InputName='output-fp')
 ]

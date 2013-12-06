@@ -13,7 +13,6 @@ __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Jai Ram Rideout"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
-__version__ = "1.2.0-dev"
 __maintainer__ = "Jai Ram Rideout"
 __email__ = "jai.rideout@gmail.com"
 
@@ -223,14 +222,6 @@ class TableValidatorTests(TestCase):
         table['date'] = "1999-11-11T10:11:12"
         obs = self.cmd._valid_datetime(table)
         self.assertTrue(len(obs) == 0)
-
-        table['date'] = "10-11-1999 10:11:12"
-        obs = self.cmd._valid_datetime(table)
-        self.assertTrue(len(obs) == 0)
-
-        table['date'] = "10-11-1asdfasd:12"
-        obs = self.cmd._valid_datetime(table)
-        self.assertTrue(len(obs) > 0)
 
     def test_valid_sparse_data(self):
         """Takes a sparse matrix field and validates"""

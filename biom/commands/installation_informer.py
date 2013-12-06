@@ -10,7 +10,7 @@
 
 from __future__ import division
 from sys import platform, version as python_version, executable
-from pyqi.core.command import Command, Parameter, ParameterCollection
+from pyqi.core.command import Command, CommandOut, ParameterCollection
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -19,7 +19,6 @@ __credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso",
                "Tobias Paczian", "Rob Knight", "Folker Meyer", "Sue Huse"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
-__version__ = "1.2.0-dev"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
@@ -29,7 +28,12 @@ class InstallationInformer(Command):
                        "installation, including settings pulled from the "
                        "configuration file. For more details, see "
                        "http://biom-format.org")
-    Parameters = ParameterCollection([])
+    CommandIns = ParameterCollection([])
+    CommandOuts = ParameterCollection([
+        CommandOut(Name='install_info_lines',
+                   DataType='str',
+                   Description='Installation info')
+    ])
 
     def run(self, **kwargs):
         lines = []
@@ -77,15 +81,9 @@ class InstallationInformer(Command):
         except ImportError:
             scipy_lib_version = not_installed_msg
 
-        try:
-            from dateutil import __version__ as dateutil_lib_version
-        except ImportError:
-            dateutil_lib_version = not_installed_msg
-
         return (("pyqi version", pyqi_lib_version),
                 ("NumPy version", numpy_lib_version),
-                ("SciPy version", scipy_lib_version),
-                ("dateutil version", dateutil_lib_version))
+                ("SciPy version", scipy_lib_version))
 
     def getPackageInfo(self):
         import_error_msg = ("ERROR: Can't find the BIOM library code (or "

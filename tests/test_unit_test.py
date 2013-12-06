@@ -19,7 +19,6 @@ __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
                             "Zongzhi Liu", "Micah Hamady", "Daniel McDonald"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
-__version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 

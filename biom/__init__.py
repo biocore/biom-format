@@ -14,7 +14,7 @@ __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
-__version__ = "1.2.0-dev"
+__version__ = "1.3.1-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
@@ -24,6 +24,16 @@ from sys import modules, stderr
 
 from biom.exception import InvalidSparseBackendException
 from biom.util import load_biom_config
+
+try:
+    import numpy
+except ImportError:
+    raise ImportError("numpy cannot be found. Can't continue.")
+
+try:
+    import pyqi
+except ImportError:
+    raise ImportError("pyqi cannot be found. Can't continue.")
 
 biom_config = load_biom_config()
 

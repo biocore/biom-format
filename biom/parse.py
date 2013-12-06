@@ -9,6 +9,7 @@
 #-----------------------------------------------------------------------------
 
 from __future__ import division
+from biom import __version__
 from biom.exception import BiomParseException
 from biom.table import SparseOTUTable, DenseOTUTable, SparsePathwayTable, \
         DensePathwayTable, SparseFunctionTable, DenseFunctionTable, \
@@ -22,10 +23,9 @@ from string import strip
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso", "Jose Carlos Clemente Litran"]
+__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso", "Jose Carlos Clemente Litran","Morgan Langille"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
-__version__ = "1.2.0-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
@@ -620,10 +620,21 @@ def parse_biom_table_str(json_str,constructor=None, data_pump=None):
 
     return f(json_table, constructor, data_pump)
 
+def sc_pipe_separated(x):
+    complex_metadata=[]
+    for y in x.split('|'):
+        simple_metadata=[]
+        for e in y.split(';'):
+            simple_metadata.append(e.strip())
+        complex_metadata.append(simple_metadata)
+    return complex_metadata
+
+
 OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
-                  'naive': lambda x: x
+                  'naive': lambda x: x, 'sc_pipe_separated': sc_pipe_separated
                   }
 OBS_META_TYPES['taxonomy'] = OBS_META_TYPES['sc_separated']
+
 
 def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping, process_func,
         constructor, **kwargs):
@@ -884,13 +895,37 @@ def convert_table_to_biom(table_f,sample_mapping, obs_mapping, process_func, con
                                                   constructor, **kwargs)
     return otu_table.getBiomFormatJsonString(generatedby())
 
+def biom_meta_to_string(metadata, replace_str=':'):
+    """ Determine which format the metadata is (e.g. str, list, or list of lists) and then convert to a string"""
+
+    #Note that since ';' and '|' are used as seperators we must replace them if they exist
+  
+    #metadata is just a string (not a list)
+    if isinstance(metadata,str) or isinstance(metadata,unicode):
+        return metadata.replace(';',replace_str)
+
+    elif isinstance(metadata,list):
+        
+        #metadata is list of lists
+        if isinstance(metadata[0], list):
+            new_metadata=[]
+            for x in metadata:
+                #replace erroneus delimiters
+                values=[y.replace(';',replace_str).replace('|',replace_str).strip() for y in x]
+                new_metadata.append("; ".join(values))
+            return "|".join(new_metadata)
+
+        #metadata is list (of strings)
+        else:
+            return "; ".join(x.replace(';',replace_str).strip() for x in metadata)
+
 def convert_biom_to_table(biom_f, header_key=None, header_value=None, \
         md_format=None):
     """Convert a biom table to a contigency table"""
     table = parse_biom_table(biom_f)
 
     if md_format is None:
-        md_format = lambda x: '; '.join(x)
+        md_format = biom_meta_to_string
 
     if table.ObservationMetadata is None:
         return table.delimitedSelf()
