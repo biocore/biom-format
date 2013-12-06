@@ -16,6 +16,8 @@ from biom.table import Table, table_factory, to_sparse,\
 import json
 from numpy import zeros, asarray, uint32, float64
 from string import strip
+import h5py
+from scipy.sparse import coo_matrix
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"

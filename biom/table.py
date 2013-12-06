@@ -19,6 +19,7 @@ from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, array, newaxis, zeros
+import h5py
 
 from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID
