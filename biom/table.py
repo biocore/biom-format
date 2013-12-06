@@ -49,9 +49,6 @@ class Table(object):
     Code to simulate immutability taken from here:
         http://en.wikipedia.org/wiki/Immutable_object
     """
-    _biom_type = None
-    _biom_matrix_type = None
-
     def __setattr__(self, *args):
         raise TypeError("A Table object cannot be modified once created.")
     __delattr__ = __setattr__
@@ -61,7 +58,7 @@ class Table(object):
         if Type is None:
             Type = 'Unspecified'
         
-        super(Table, self).__setattr__('_biom_type', Type)
+        super(Table, self).__setattr__('Type', Type)
         super(Table, self).__setattr__('TableId', TableId)
         super(Table, self).__setattr__('_data', Data)
         super(Table, self).__setattr__('_dtype', Data.dtype)
@@ -430,6 +427,34 @@ class Table(object):
         else:
             return False
 
+    def __iter__(self):
+        """Defined by subclass"""
+        return self.iterSamples()
+
+    def _iter_samp(self):
+        """Return sample vectors of data matrix vectors"""  
+        rows, cols = self._data.shape
+        for c in range(cols):
+            # this pulls out col vectors but need to convert to the expected row
+            # vector
+            colvec = self._data.getCol(c)
+            yield colvec.T
+
+    def _iter_obs(self):
+        """Return observation vectors of data matrix"""
+        for r in range(self._data.shape[0]):
+            yield self._data.getRow(r)
+
+    def getTableDensity(self):
+        """Returns the fraction of nonzero elements in the table."""
+        density = 0.0
+
+        if not self.isEmpty():
+            density = (self._data.size / (len(self.SampleIds) *
+                                          len(self.ObservationIds)))
+
+        return density
+
     def descriptiveEquality(self, other):
         """For use in testing, describe how the tables are not equal"""
         if self.ObservationIds != other.ObservationIds:
@@ -463,7 +488,28 @@ class Table(object):
     def __ne__(self,other):
         return not (self == other)
 
-    # _index objs are in place, can now do sampleData(self, sample_id) and observationData(self, obs_id)
+    def _data_equality(self, other):
+        """Two SparseObj matrices are equal if the items are equal"""
+        if isinstance(self, other.__class__):
+            return sorted(self._data.items()) == sorted(other._data.items())
+        
+        for s_v, o_v in izip(self.iterSampleData(),other.iterSampleData()):
+            if not (s_v == o_v).all():
+                return False
+    
+        return True
+
+    def __ne__(self,other):
+        return not (self == other)
+
+    def _conv_to_np(self, v):
+        """Converts a vector to a numpy array
+
+        Always returns a row vector for consistancy with numpy iteration over
+        arrays
+        """
+        return SparseObj.convertVectorToDense(v)
+
     def sampleData(self, id_):
         """Return observations associated with sample id ``id_``"""
         if id_ not in self._sample_index:
@@ -1474,6 +1520,9 @@ class Table(object):
         optimizations are necessary or not (i.e. subclassing JSONEncoder, using
         generators, etc...).
         """
+        if self.Type is None:
+            raise TableException, "Unknown biom type"
+
         if (not isinstance(generated_by, str) and
             not isinstance(generated_by, unicode)):
             raise TableException, "Must specify a generated_by string"
@@ -1512,7 +1561,7 @@ class Table(object):
             raise TableException("Unsupported matrix data type.")
 
         # Fill in details about the matrix.
-        biom_format_obj["type"] = self._biom_type
+        biom_format_obj["type"] = self.Type
         biom_format_obj["matrix_type"] = 'sparse'
         biom_format_obj["matrix_element_type"] = "%s" % matrix_element_type
         biom_format_obj["shape"] = [num_rows, num_cols]
@@ -1553,6 +1602,9 @@ class Table(object):
         If direct_io is not None, the final output is written directly to
         direct_io during processing.
         """
+        if self.Type is None:
+            raise TableException, "Unknown biom type"
+
         if (not isinstance(generated_by, str) and
             not isinstance(generated_by, unicode)):
             raise TableException, "Must specify a generated_by string"
@@ -1598,12 +1650,12 @@ class Table(object):
 
         # Fill in details about the matrix.
         if direct_io:
-            direct_io.write('"type": "%s",' % self._biom_type)
+            direct_io.write('"type": "%s",' % self.Type)
             direct_io.write('"matrix_type": "%s",' % self._biom_matrix_type)
             direct_io.write('"matrix_element_type": "%s",' % matrix_element_type)
             direct_io.write('"shape": [%d, %d],' % (num_rows, num_cols))
         else:
-            type_ = '"type": "%s",' % self._biom_type
+            type_ = '"type": "%s",' % self.Type
             matrix_type = '"matrix_type": "%s",' % self._biom_matrix_type
             matrix_element_type = '"matrix_element_type": "%s",' % matrix_element_type
             shape = '"shape": [%d, %d],' % (num_rows, num_cols)
@@ -1826,7 +1878,7 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
 
     else:
         raise TableException, "Cannot handle data!"
-    
+
     return Table(data, sample_ids, observation_ids, 
             SampleMetadata=sample_metadata,
             ObservationMetadata=observation_metadata,

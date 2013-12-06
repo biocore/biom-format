@@ -16,15 +16,14 @@ from biom.unit_test import TestCase,main
 from biom.parse import (parse_biom_table_json, parse_biom_table, 
         parse_classic_table_to_rich_table, 
         convert_biom_to_table, convert_table_to_biom, 
-        parse_classic_table, generatedby, MetadataMap, 
-        OBS_META_TYPES)
+        parse_classic_table, generatedby, MetadataMap)
 
 from biom.table import Table
 from biom.exception import BiomParseException
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Justin Kuczynski","Daniel McDonald"] #remember to add yourself
+__credits__ = ["Justin Kuczynski","Daniel McDonald", "Adam Robbins-Pianka"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Justin Kuczynski"
@@ -221,6 +220,7 @@ K00508	0.0	0.0	Metabolism; Lipid Metabolism; Linoleic acid metabolism
 K00500	0.5	0.5	Metabolism; Amino Acid Metabolism; Phenylalanine metabolism|Metabolism; Amino Acid Metabolism; Phenylalanine, tyrosine and tryptophan biosynthesis
 K00507	0.0	0.0	Metabolism; Lipid Metabolism; Biosynthesis of unsaturated fatty acids|Organismal Systems; Endocrine System; PPAR signaling pathway
 """
+
 biom_minimal_sparse="""
     {
         "id":null,

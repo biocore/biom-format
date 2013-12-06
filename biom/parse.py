@@ -11,15 +11,16 @@
 from __future__ import division
 from biom import __version__
 from biom.exception import BiomParseException
-from biom.table import Table, table_factory, to_sparse,\
-        nparray_to_sparseobj, SparseObj
+from biom.table import (Table, table_factory, to_sparse,
+    nparray_to_sparseobj, SparseObj)
 import json
 from numpy import zeros, asarray, uint32, float64
 from string import strip
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso", "Jose Carlos Clemente Litran","Morgan Langille"]
+__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso",
+    "Jose Carlos Clemente Litran", "Adam Robbins-Pianka"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -27,6 +28,199 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 MATRIX_ELEMENT_TYPE = {'int':int,'float':float,'unicode':unicode,
                        u'int':int,u'float':float,u'unicode':unicode}
+
+QUOTE = '"'
+JSON_OPEN = set(["[", "{"])
+JSON_CLOSE = set(["]", "}"])
+JSON_SKIP = set([" ","\t","\n",","])
+JSON_START = set(["0","1","2","3","4","5","6","7","8","9","{","[",'"'])
+def direct_parse_key(biom_str, key):
+    """Returns key:value from the biom string, or ""
+    
+    This method pulls an arbitrary key/value pair out from a BIOM string
+    """
+    base_idx = biom_str.find('"%s":' % key)
+    if base_idx == -1:
+        return ""
+    else:
+        start_idx = base_idx + len(key) + 3 # shift over "key":
+
+    # find the start token
+    cur_idx = start_idx 
+    while biom_str[cur_idx] not in JSON_START:  
+        cur_idx += 1
+    
+    if biom_str[cur_idx] not in JSON_OPEN:
+        # do we have a number?
+        while biom_str[cur_idx] not in [",","{","}"]:
+            cur_idx += 1
+            
+    else:
+        # we have an object
+        stack = [biom_str[cur_idx]]
+        cur_idx += 1
+        while stack:
+            cur_char = biom_str[cur_idx]
+            
+            if cur_char == QUOTE:
+                if stack[-1] == QUOTE:
+                    stack.pop()
+                else:
+                    stack.append(cur_char)
+            elif cur_char in JSON_CLOSE:
+                try:
+                    stack.pop()
+                except IndexError: # got an int or float?
+                    cur_idx -= 1
+                    break
+            elif cur_char in JSON_OPEN:
+                stack.append(cur_char)
+            cur_idx += 1
+
+    return biom_str[base_idx:cur_idx]
+
+def direct_slice_data(biom_str, to_keep, axis):
+    """Pull out specific slices from a BIOM string
+
+    biom_str : JSON-formatted BIOM string
+    to_keep  : indices to keep
+    axis     : either 'samples' or 'observations'
+    
+    Will raise IndexError if the inices are out of bounds. Fully zerod rows
+    or columns are possible and this is _not_ checked. 
+    """
+    if axis not in ['observations','samples']:
+        raise IndexError, "Unknown axis type"
+
+    # it would be nice if all of these lookups could be done in a single
+    # traversal of biom_str, but it likely is at the cost of code complexity
+    shape_kv_pair = direct_parse_key(biom_str, "shape")
+    if shape_kv_pair == "":
+        raise ValueError, "biom_str does not appear to be in BIOM format!"
+
+    data_fields = direct_parse_key(biom_str, "data")
+    if data_fields == "":
+        raise ValueError, "biom_str does not appear to be in BIOM format!"
+
+    matrix_type_kv_pair = direct_parse_key(biom_str, "matrix_type")
+    if matrix_type_kv_pair == "":
+        raise ValueError, "biom_str does not appear to be in BIOM format!"
+
+    # determine shape
+    raw_shape = shape_kv_pair.split(':')[-1].replace("[","").replace("]","")
+    n_rows, n_cols = map(int, raw_shape.split(","))
+   
+    # slice to just data
+    data_start = data_fields.find('[') +1
+    data_fields = data_fields[data_start:len(data_fields)-1] # trim trailing ]
+    
+    # determine matrix type
+    matrix_type = matrix_type_kv_pair.split(':')[-1].strip()
+
+    # bounds check
+    if min(to_keep) < 0:
+        raise IndexError, "Observations to keep are out of bounds!"
+    
+    # more bounds check and set new shape
+    new_shape = "[%d, %d]"
+    if axis == 'observations':
+        if max(to_keep) >= n_rows:
+            raise IndexError, "Observations to keep are out of bounds!"
+        new_shape = new_shape % (len(to_keep), n_cols)
+    elif axis == 'samples':
+        if max(to_keep) >= n_cols:
+            raise IndexError, "Samples to keep are out of bounds!"
+        new_shape = new_shape % (n_rows, len(to_keep))
+
+    to_keep = set(to_keep) 
+    new_data = []
+
+    if axis == 'observations':
+        new_data = _direct_slice_data_sparse_obs(data_fields, to_keep)
+    elif axis == 'samples':
+        new_data = _direct_slice_data_sparse_samp(data_fields, to_keep)
+    
+    return '"data": %s, "shape": %s' % (new_data, new_shape)
+
+STRIP_F = lambda x: x.strip("[] \n\t")
+def _remap_axis_sparse_obs(rcv, lookup):
+    """Remap a sparse observation axis"""
+    row,col,value = map(STRIP_F, rcv.split(','))
+    return "%s,%s,%s" % (lookup[row], col, value)    
+
+def _remap_axis_sparse_samp(rcv, lookup):
+    """Remap a sparse sample axis"""
+    row,col,value = map(STRIP_F, rcv.split(','))
+    return "%s,%s,%s" % (row, lookup[col], value)    
+
+def _direct_slice_data_sparse_obs(data, to_keep):
+    """slice observations from data
+    
+    data : raw data string from a biom file
+    to_keep : rows to keep
+    """
+    # interogate all the datas
+    new_data = []
+    remap_lookup = dict([(str(v),i) for i,v in enumerate(sorted(to_keep))])
+    for rcv in data.split('],'):
+        r,c,v = STRIP_F(rcv).split(',')
+        if r in remap_lookup:
+            new_data.append(_remap_axis_sparse_obs(rcv, remap_lookup))
+    return '[[%s]]' % '],['.join(new_data)
+
+def _direct_slice_data_sparse_samp(data, to_keep):
+    """slice samples from data
+    
+    data : raw data string from a biom file
+    to_keep : columns to keep
+    """
+    # could do sparse obs/samp in one forloop, but then theres the 
+    # expense of the additional if-statement in the loop
+    new_data = []
+    remap_lookup = dict([(str(v),i) for i,v in enumerate(sorted(to_keep))])
+    for rcv in data.split('],'):
+        r,c,v = rcv.split(',')
+        if c in remap_lookup:
+            new_data.append(_remap_axis_sparse_samp(rcv, remap_lookup))
+    return '[[%s]]' % '],['.join(new_data)
+
+def get_axis_indices(biom_str, to_keep, axis):
+    """Returns the indices for the associated ids to keep
+
+    biom_str : a BIOM formatted JSON string
+    to_keep  : a list of IDs to get indices for
+    axis     : either 'samples' or 'observations'
+    
+    Raises KeyError if unknown key is specified
+    """
+    to_keep = set(to_keep)
+    if axis == 'observations':
+        axis_key = 'rows'
+        axis_data = direct_parse_key(biom_str, axis_key)
+    elif axis == "samples":
+        axis_key = 'columns'
+        axis_data = direct_parse_key(biom_str, axis_key)
+    else:
+        raise ValueError, "Unknown axis!"
+
+    if axis_data == "":
+        raise ValueError, "biom_str does not appear to be in BIOM format!"
+
+    axis_data = json.loads("{%s}" % axis_data)
+
+    all_ids = set([v['id'] for v in axis_data[axis_key]])
+    if not to_keep.issubset(all_ids):
+        raise KeyError, "Not all of the to_keep ids are in biom_str!"
+
+    idxs = [i for i,v in enumerate(axis_data[axis_key]) if v['id'] in to_keep]
+    idxs_lookup = set(idxs)
+
+    subset = {axis_key:[]}
+    for i,v in enumerate(axis_data[axis_key]):
+        if i in idxs_lookup:
+            subset[axis_key].append(v)
+
+    return idxs, json.dumps(subset)[1:-1] # trim off { and }
 
 def parse_biom_table(fp):
     if hasattr(fp, 'read'):
@@ -68,14 +262,20 @@ def sc_pipe_separated(x):
         complex_metadata.append(simple_metadata)
     return complex_metadata
 
+def parse_biom_table_str(json_str,constructor=None, data_pump=None):
+    """Parses a JSON string of the Biom table into a rich table object.
+   
+    If constructor is none, the constructor is determined based on BIOM
+    information
 
-OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
-                  'naive': lambda x: x, 'sc_pipe_separated': sc_pipe_separated
-                  }
-OBS_META_TYPES['taxonomy'] = OBS_META_TYPES['sc_separated']
+    data_pump is to allow the injection of a pre-parsed data object
+    """
+    json_table = json.loads(json_str)
 
-def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping, 
-        process_func, **kwargs):
+    f = parse_biom_table_json
+
+def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
+        process_func, constructor, **kwargs):
     """Parses an table (tab delimited) (observation x sample)
 
     sample_mapping : can be None or {'sample_id':something}

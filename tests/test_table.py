@@ -10,18 +10,18 @@
 
 from numpy import where, zeros, array, reshape, arange
 from biom.unit_test import TestCase, main
-from biom.table import TableException, Table, \
-    UnknownID, prefer_self, index_list, dict_to_nparray, \
-    list_dict_to_nparray, table_factory, list_list_to_nparray, flatten, unzip, \
-    natsort, to_sparse, nparray_to_sparseobj, list_nparray_to_sparseobj, \
-    SparseObj, get_zerod_matrix
+from biom.table import (TableException, Table, UnknownID, 
+    prefer_self, index_list, dict_to_nparray, list_dict_to_nparray, 
+    table_factory, list_list_to_nparray, flatten, unzip, natsort, to_sparse,
+    nparray_to_sparseobj, list_nparray_to_sparseobj, SparseObj, 
+    get_zerod_matrix)
 from biom.parse import parse_biom_table 
 from StringIO import StringIO
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
-               "Greg Caporaso", "Jose Clemente"]
+               "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -139,8 +139,8 @@ class SupportTests(TestCase):
         exp_data[0,1] = 5
         exp_data[1,2] = 10
         exp = Table(exp_data, samp_ids, obs_ids)
-        input = [[0,1,5],[1,2,10]]
-        obs = table_factory(input, samp_ids, obs_ids)
+        input_ = [[0,1,5],[1,2,10]]
+        obs = table_factory(input_, samp_ids, obs_ids)
         self.assertEqual(obs, exp)
 
     def test_TableException(self):
@@ -151,30 +151,30 @@ class SupportTests(TestCase):
 
     def test_list_list_to_nparray(self):
         """Convert [[value, value, ... value], ...] to nparray"""
-        input = [[1,2,3,4,5],[6,7,8,9,0],[7,6,5,4,3]]
+        input_ = [[1,2,3,4,5],[6,7,8,9,0],[7,6,5,4,3]]
         exp = array([[1,2,3,4,5],[6,7,8,9,0],[7,6,5,4,3]], dtype=float)
-        obs = list_list_to_nparray(input)
+        obs = list_list_to_nparray(input_)
         self.assertEqual(obs,exp)
 
     def test_dict_to_nparray(self):
         """Take a dict -> array"""
-        input = {(0,0):1,(0,10):5,(100,23):-3}
+        input_ = {(0,0):1,(0,10):5,(100,23):-3}
         exp = zeros((101,24),dtype=float)
         exp[0,0] = 1
         exp[0,10] = 5
         exp[100,23] = -3
-        obs = dict_to_nparray(input)
+        obs = dict_to_nparray(input_)
         self.assertEqual(obs,exp)
 
     def test_list_dict_to_nparray(self):
         """List of dict -> nparray"""
-        input = [{(0,5):10,(10,10):2}, {(0,1):15}, {(0,3):7}]
+        input_ = [{(0,5):10,(10,10):2}, {(0,1):15}, {(0,3):7}]
         exp = zeros((3, 11),dtype=float)
         exp[0,5] = 10
         exp[0,10] = 2
         exp[1,1] = 15
         exp[2,3] = 7
-        obs = list_dict_to_nparray(input)
+        obs = list_dict_to_nparray(input_)
         self.assertEqual(obs,exp)
 
     def test_prefer_self(self):
@@ -491,17 +491,9 @@ class TableTests(TestCase):
         self.assertEqual(self.simple_derived[1,1], 8)
         self.assertRaises(IndexError, self.simple_derived.__getitem__, [1,2])
 
-    def test_sampleData(self):
-        """tested in derived class"""
-        self.assertRaises(UnknownID, self.st1.sampleData, 'foo')
-
-    def test_observationData(self):
-        """tested in derived class"""
-        self.assertRaises(UnknownID, self.st1.observationData, 'foo')
-
     def test_isEmpty(self):
         """returns true if empty"""
-        self.assertTrue(Table(array([]),[],[]).isEmpty())
+        self.assertTrue(Table(array([]), [], []).isEmpty())
         self.assertFalse(self.simple_derived.isEmpty())
 
     def test_immutability(self):
@@ -516,6 +508,40 @@ class TableTests(TestCase):
         self.assertRaises(TypeError, self.st1.__setattr__,
                           'ObservationMetadata', [{'foo':'bar'},
                                                   {'bar':'baz'}])
+
+class SparseTableTests(TestCase):
+    def setUp(self):
+        self.vals = {(0,0):5,(0,1):6,(1,0):7,(1,1):8}
+        self.st1 = Table(to_sparse(self.vals),
+                               ['a','b'],['1','2'])
+        self.st2 = Table(to_sparse(self.vals),
+                               ['a','b'],['1','2'])
+        self.vals3 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
+        self.vals4 = to_sparse({(0,0):1,(0,1):2,(1,0):3,(1,1):4})
+        self.st3 = Table(self.vals3, ['b','c'],['2','3'])
+        self.st4 = Table(self.vals4, ['c','d'],['3','4'])
+        self._to_dict_f = lambda x: sorted(x.items())
+        self.st_rich = Table(to_sparse(self.vals), 
+                ['a','b'],['1','2'],
+                [{'barcode':'aatt'},{'barcode':'ttgg'}],
+                [{'taxonomy':['k__a','p__b']},{'taxonomy':['k__a','p__c']}])
+
+        self.empty_st = Table(to_sparse([]), [], [])
+
+        self.vals5 = to_sparse({(0,1):2,(1,1):4})
+        self.st5 = Table(self.vals5, ['a','b'],['5','6'])
+
+        self.vals6 = to_sparse({(0,0):0,(0,1):0,(1,0):0,(1,1):0})
+        self.st6 = Table(self.vals6, ['a','b'],['5','6'])
+
+        self.vals7 = to_sparse({(0,0):5,(0,1):7,(1,0):8,(1,1):0})
+        self.st7 = Table(self.vals7, ['a','b'],['5','6'])
+
+        self.single_sample_st = Table(
+                to_sparse(array([[2.0],[0.0],[1.0]])), ['S1'],
+                ['O1','O2','O3'])
+        self.single_obs_st = Table(to_sparse(array([[2.0,0.0,1.0]])),
+                                         ['S1','S2','S3'], ['O1'])
 
     def test_sum(self):
         """Test of sum!"""
@@ -733,20 +759,6 @@ class TableTests(TestCase):
         
         # test 12
         self.assertRaises(TableException, self.st1.merge, self.st4, u, i)
-
-    def test_sampleData(self):
-        """tested in derived class"""
-        exp = array([5,7])
-        obs = self.dt1.sampleData('a')
-        self.assertEqual(obs, exp)
-        self.assertRaises(UnknownID, self.dt1.sampleData, 'asdasd')
-
-    def test_observationData(self):
-        """tested in derived class"""
-        exp = array([5,6])
-        obs = self.dt1.observationData('1')
-        self.assertEqual(obs, exp)
-        self.assertRaises(UnknownID, self.dt1.observationData, 'asdsad')
 
     def test_sampleData(self):
         """tested in derived class"""
@@ -1212,7 +1224,6 @@ class TableTests(TestCase):
 
         # Tables with some zeros explicitly defined.
         self.assertFloatEqual(self.st7.getTableDensity(), 0.75)
-
 
 class SparseOTUTableTests(TestCase):
     def setUp(self):
