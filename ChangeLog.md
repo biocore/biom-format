@@ -6,6 +6,7 @@ biom 1.3.1-dev
 
 Changes:
 
+* New HTML interface
 * No longer dependent on dateutil
 
 biom 1.3.1

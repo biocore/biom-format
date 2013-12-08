@@ -44,11 +44,9 @@ def load_json_document(f):
 def load_metadata(lines):
     """Parse a sample/observation metadata file, return a ``MetadataMap``.
     
-    If ``fp`` is ``None``, this function will return ``None``.
+    If ``lines`` is ``None``, this function will return ``None``.
     """
-
     if lines is not None:
         return MetadataMap.fromFile(lines)
 
     return None
-   
