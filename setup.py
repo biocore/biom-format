@@ -8,7 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
-from distutils.core import setup
+from setuptools import setup
 from glob import glob
 
 __author__ = "Daniel McDonald"
