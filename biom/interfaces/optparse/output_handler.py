@@ -31,19 +31,3 @@ def write_biom_table(result_key, data, option_value=None):
 
     with open(option_value, 'w') as f:
         f.write(data.getBiomFormatJsonString(generatedby()))
-
-def write_or_print_list_of_strings(result_key, data, option_value=None):
-    """Write a list of strings to a file, one per line.
-
-    A newline will be added to the end of the file.
-    """
-    if option_value is None:
-        print '\n'.join(data)
-    else:
-        if exists(option_value):
-            raise IOError("Output path '%s' already exists." % option_value)
-
-        with open(option_value, 'w') as f:
-            for line in data:
-                f.write(line)
-                f.write('\n')
