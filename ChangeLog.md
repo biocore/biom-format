@@ -6,6 +6,8 @@ biom 1.3.1-dev
 
 Changes:
 
+* Requires PyQi 0.3.1-dev
+* New HTML interface
 * No longer dependent on dateutil
 
 biom 1.3.1
