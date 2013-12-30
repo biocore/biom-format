@@ -19,7 +19,7 @@ __email__ = "jai.rideout@gmail.com"
 from pyqi.core.exception import CommandError
 from biom.commands.table_converter import TableConverter
 from biom.parse import MetadataMap, parse_biom_table
-from biom.table import SparseOTUTable
+from biom.table import Table
 from biom.unit_test import TestCase, main
 
 class TableConverterTests(TestCase):
@@ -27,7 +27,7 @@ class TableConverterTests(TestCase):
         """Set up data for use in unit tests."""
         self.cmd = TableConverter()
 
-        self.biom_lines1 = biom1.split('\n')
+        self.biom_lines1 = biom1
         self.biom_table1 = parse_biom_table(self.biom_lines1)
 
         self.classic_lines1 = classic1.split('\n')
@@ -36,11 +36,11 @@ class TableConverterTests(TestCase):
 
     def test_classic_to_biom(self):
         """Correctly converts classic to biom."""
-        obs = self.cmd(table_file=self.classic_lines1, table_type='otu table')
+        obs = self.cmd(table_file=self.classic_lines1)
         self.assertEqual(obs.keys(), ['table_str'])
 
         obs = parse_biom_table(obs['table_str'])
-        self.assertEqual(type(obs), SparseOTUTable)
+        self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.SampleIds), 9)
         self.assertEqual(len(obs.ObservationIds), 14)
         self.assertEqual(obs.SampleMetadata, None)
@@ -49,12 +49,12 @@ class TableConverterTests(TestCase):
     def test_classic_to_biom_with_metadata(self):
         """Correctly converts classic to biom with metadata."""
         # No processing of metadata.
-        obs = self.cmd(table_file=self.classic_lines1, table_type='otu table',
+        obs = self.cmd(table_file=self.classic_lines1,
                        sample_metadata=self.sample_md1)
         self.assertEqual(obs.keys(), ['table_str'])
 
         obs = parse_biom_table(obs['table_str'])
-        self.assertEqual(type(obs), SparseOTUTable)
+        self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.SampleIds), 9)
         self.assertEqual(len(obs.ObservationIds), 14)
         self.assertNotEqual(obs.SampleMetadata, None)
@@ -68,13 +68,13 @@ class TableConverterTests(TestCase):
                 {'taxonomy': 'Unclassified'})
 
         # With processing of metadata (currently only supports observation md).
-        obs = self.cmd(table_file=self.classic_lines1, table_type='otu table',
+        obs = self.cmd(table_file=self.classic_lines1, 
                        sample_metadata=self.sample_md1,
                        process_obs_metadata='sc_separated')
         self.assertEqual(obs.keys(), ['table_str'])
 
         obs = parse_biom_table(obs['table_str'])
-        self.assertEqual(type(obs), SparseOTUTable)
+        self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.SampleIds), 9)
         self.assertEqual(len(obs.ObservationIds), 14)
         self.assertNotEqual(obs.SampleMetadata, None)
@@ -103,14 +103,13 @@ class TableConverterTests(TestCase):
     def test_dense_to_sparse(self):
         """Correctly converts dense biom to sparse biom."""
         # classic -> dense -> sparse
-        dense = self.cmd(table_file=self.classic_lines1,
-                         table_type='otu table', matrix_type='dense')
+        dense = self.cmd(table_file=self.classic_lines1)
         obs = self.cmd(table_file=dense['table_str'].split('\n'),
                        dense_biom_to_sparse_biom=True)
         self.assertEqual(obs.keys(), ['table_str'])
 
         obs = parse_biom_table(obs['table_str'])
-        self.assertEqual(type(obs), SparseOTUTable)
+        self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.SampleIds), 9)
         self.assertEqual(len(obs.ObservationIds), 14)
         self.assertEqual(obs.SampleMetadata, None)
@@ -143,25 +142,14 @@ class TableConverterTests(TestCase):
         with self.assertRaises(CommandError):
             _ = self.cmd(table_file=self.classic_lines1)
 
-        # Unknown table type.
-        with self.assertRaises(CommandError):
-            _ = self.cmd(table_file=self.classic_lines1, table_type='foo')
-
-        # Unknown matrix type.
-        with self.assertRaises(CommandError):
-            _ = self.cmd(table_file=self.classic_lines1,
-                         table_type='oTu tABLe', matrix_type='foo')
-
         # Unknown observation processor.
         with self.assertRaises(CommandError):
             _ = self.cmd(table_file=self.classic_lines1,
-                         table_type='oTu tABLe', matrix_type='dense',
                          process_obs_metadata='foo')
 
         # classic -> biom, but supply biom
         with self.assertRaises(CommandError):
-            _ = self.cmd(table_file=self.biom_lines1, table_type='oTu tABLe',
-                         matrix_type='dense',
+            _ = self.cmd(table_file=self.biom_lines1,
                          process_obs_metadata='sc_separated')
 
 

@@ -12,12 +12,7 @@ from __future__ import division
 from pyqi.core.command import (Command, CommandIn, CommandOut, 
         ParameterCollection)
 from pyqi.core.exception import CommandError
-from biom.table import (SparseOTUTable, DenseOTUTable, SparsePathwayTable,
-                        DensePathwayTable, SparseFunctionTable,
-                        DenseFunctionTable, SparseOrthologTable,
-                        DenseOrthologTable, SparseGeneTable, DenseGeneTable,
-                        SparseMetaboliteTable, DenseMetaboliteTable,
-                        SparseTaxonTable, DenseTaxonTable, table_factory)
+from biom.table import (Table, table_factory)
 from biom.parse import (parse_biom_table, MetadataMap, convert_biom_to_table,
                         convert_table_to_biom, generatedby)
 
@@ -32,16 +27,6 @@ __email__ = "gregcaporaso@gmail.com"
 
 class TableConverter(Command):
     MatrixTypes = ['sparse', 'dense']
-
-    TableTypes = {
-            'otu table': [SparseOTUTable, DenseOTUTable],
-            'pathway table': [SparsePathwayTable, DensePathwayTable],
-            'function table': [SparseFunctionTable, DenseFunctionTable],
-            'ortholog table': [SparseOrthologTable, DenseOrthologTable],
-            'gene table': [SparseGeneTable, DenseGeneTable],
-            'metabolite table': [SparseMetaboliteTable, DenseMetaboliteTable],
-            'taxon table': [SparseTaxonTable, DenseTaxonTable]
-    }
 
     ObservationMetadataTypes = {
             'sc_separated': lambda x: [e.strip() for e in x.split(';')],
@@ -69,10 +54,6 @@ class TableConverter(Command):
         CommandIn(Name='table_file', DataType=file,
                   Description='the input table (file-like object), either in '
                   'BIOM or classic format', Required=True),
-        CommandIn(Name='matrix_type', DataType=str,
-                  Description='the type of BIOM file to create (dense or '
-                  'sparse) when a classic table is supplied',
-                  Default='sparse'),
         CommandIn(Name='biom_to_classic_table', DataType=bool,
                   Description='convert BIOM table file to classic table file',
                   Default=False, DefaultDescription='convert classic table '
@@ -108,12 +89,7 @@ class TableConverter(Command):
         CommandIn(Name='process_obs_metadata', DataType=str,
                   Description='process metadata associated with observations '
                   'when converting from a classic table. Must be one of: %s' %
-                  ', '.join(ObservationMetadataTypes.keys()), Default='naive'),
-        CommandIn(Name='table_type', DataType=str,
-                  Description='the BIOM table type to get converted into. '
-                  'Required when converting a classic table file to a BIOM '
-                  'table file. Must be one of: %s' %
-                  ', '.join(TableTypes.keys()))
+                  ', '.join(ObservationMetadataTypes.keys()), Default='naive')
     ])
 
     CommandOuts = ParameterCollection([
@@ -123,7 +99,6 @@ class TableConverter(Command):
 
     def run(self, **kwargs):
         table_file = kwargs['table_file']
-        matrix_type = kwargs['matrix_type']
         biom_to_classic_table = kwargs['biom_to_classic_table']
         sparse_biom_to_dense_biom = kwargs['sparse_biom_to_dense_biom']
         dense_biom_to_sparse_biom = kwargs['dense_biom_to_sparse_biom']
@@ -132,7 +107,6 @@ class TableConverter(Command):
         header_key = kwargs['header_key']
         output_metadata_id = kwargs['output_metadata_id']
         process_obs_metadata = kwargs['process_obs_metadata']
-        table_type = kwargs['table_type']
 
         if sum([biom_to_classic_table, sparse_biom_to_dense_biom,
                 dense_biom_to_sparse_biom]) > 1:
@@ -153,56 +127,34 @@ class TableConverter(Command):
             try:
                 result = convert_biom_to_table(table_file, header_key,
                                                output_metadata_id)
-            except ValueError:
+            except (ValueError, TypeError):
                 raise CommandError(convert_error_msg)
         elif sparse_biom_to_dense_biom:
             try:
                 table = parse_biom_table(table_file)
-            except ValueError:
+            except (ValueError, TypeError):
                 raise CommandError(convert_error_msg)
 
-            conv_constructor = self.TableTypes[table._biom_type.lower()][1]
             conv_table = table_factory(table._data, table.SampleIds,
                             table.ObservationIds, table.SampleMetadata,
-                            table.ObservationMetadata, table.TableId,
-                            constructor=conv_constructor)
+                            table.ObservationMetadata, table.TableId)
             result = conv_table.getBiomFormatJsonString(generatedby())
         elif dense_biom_to_sparse_biom:
             try:
                 table = parse_biom_table(table_file)
-            except ValueError:
+            except (ValueError, TypeError):
                 raise CommandError(convert_error_msg)
 
-            conv_constructor = self.TableTypes[table._biom_type.lower()][0]
             conv_table = table_factory(table._data, table.SampleIds, 
                             table.ObservationIds, table.SampleMetadata, 
-                            table.ObservationMetadata, table.TableId, 
-                            constructor=conv_constructor)
+                            table.ObservationMetadata, table.TableId)
             result = conv_table.getBiomFormatJsonString(generatedby())
         else:
-            if table_type is None:
-                raise CommandError("Must specify the BIOM table type: %s" %
-                                   ', '.join(self.TableTypes.keys()))
-            else:
-                table_type = table_type.lower()
-
-            if table_type not in self.TableTypes:
-                raise CommandError("Unknown BIOM table type, must be one of: "
-                                   "%s" % ', '.join(self.TableTypes.keys()))
-
-            if matrix_type not in self.MatrixTypes:
-                raise CommandError("Unknown BIOM matrix type, must be one of: "
-                                   "%s" % ', '.join(self.MatrixTypes))
-
             if process_obs_metadata not in \
                     self.ObservationMetadataTypes.keys():
                 raise CommandError("Unknown observation metadata processing "
                         "method, must be one of: %s" %
                         ', '.join(self.ObservationMetadataTypes.keys()))
-
-            idx = 0 if matrix_type == 'sparse' else 1
-            constructor = self.TableTypes[table_type][idx]
-
 
             convert_error_msg = ("Input does not look like a classic table. "
                                  "Did you forget to specify that a classic "
@@ -211,11 +163,10 @@ class TableConverter(Command):
             try:
                 result = convert_table_to_biom(table_file, sample_metadata,
                         observation_metadata,
-                        self.ObservationMetadataTypes[process_obs_metadata],
-                        constructor)
-            except ValueError:
+                        self.ObservationMetadataTypes[process_obs_metadata])
+            except (ValueError, TypeError):
                 raise CommandError(convert_error_msg)
-            except IndexError:
+            except (ValueError, TypeError):
                 raise CommandError(convert_error_msg)
 
         return {'table_str': result}
