@@ -225,6 +225,8 @@ def get_axis_indices(biom_str, to_keep, axis):
 def parse_biom_table(fp):
     if hasattr(fp, 'read'):
         return parse_biom_table_json(json.load(fp))
+    elif isinstance(fp, list):
+        return parse_biom_table_json(json.loads(''.join(fp)))
     else:
         return parse_biom_table_json(json.loads(fp))
 
