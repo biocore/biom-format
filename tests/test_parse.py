@@ -13,25 +13,17 @@ from numpy import array, nan
 from StringIO import StringIO
 import json
 from biom.unit_test import TestCase,main
-from biom.parse import parse_biom_table_str, \
-        parse_biom_table, parse_biom_otu_table, \
-        parse_classic_table_to_rich_table, convert_biom_to_table, \
-        convert_table_to_biom, parse_classic_table, generatedby, \
-        MetadataMap, pick_constructor, parse_biom_pathway_table,\
-        parse_biom_function_table, parse_biom_ortholog_table, \
-        parse_biom_gene_table, parse_biom_metabolite_table, \
-        parse_biom_taxon_table, OBS_META_TYPES, light_parse_biom_sparse, \
-        direct_parse_key, direct_slice_data, get_axis_indices, \
-        _direct_slice_data_dense_obs, _direct_slice_data_dense_samp, \
-        _direct_slice_data_sparse_obs, _direct_slice_data_sparse_samp, \
-        _remap_axis_sparse_obs, _remap_axis_sparse_samp
+from biom.parse import (parse_biom_table_json, parse_biom_table, 
+        parse_classic_table_to_rich_table, 
+        convert_biom_to_table, convert_table_to_biom, 
+        parse_classic_table, generatedby, MetadataMap)
 
-from biom.table import SparseOTUTable, DenseOTUTable
+from biom.table import Table
 from biom.exception import BiomParseException
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Justin Kuczynski","Daniel McDonald"] #remember to add yourself
+__credits__ = ["Justin Kuczynski","Daniel McDonald", "Adam Robbins-Pianka"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Justin Kuczynski"
@@ -46,231 +38,11 @@ class ParseTests(TestCase):
         self.otu_table1 = otu_table1
         self.otu_table1_floats=otu_table1_floats
         self.files_to_remove = []
-        self.biom_minimal_dense = biom_minimal_dense
         self.biom_minimal_sparse = biom_minimal_sparse
         
         self.classic_otu_table1_w_tax = classic_otu_table1_w_tax.split('\n')
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
-        self.biom_otu_table1_w_tax = biom_otu_table1_w_tax.split('\n')
-        self.biom_otu_table1_no_tax = biom_otu_table1_no_tax.split('\n')
         self.classic_table_with_complex_metadata = classic_table_with_complex_metadata.split('\n')
-
-    def test_direct_parse_key_object(self):
-        """Parse a specific key (eg column, rows, etc)"""
-        exp = '''"rows":[
-                {"id":"GG_OTU_1", "metadata":null},
-                {"id":"GG_OTU_2", "metadata":null},
-                {"id":"GG_OTU_3", "metadata":null},
-                {"id":"GG_OTU_4", "metadata":null},
-                {"id":"GG_OTU_5", "metadata":null}
-            ]'''  
-        obs = direct_parse_key(biom_minimal_sparse, "rows")
-        self.assertEqual(obs, exp)
-
-    def test_direct_parse_key_non_existant(self):
-        """test a non existant key"""
-        exp = ""
-        obs = direct_parse_key(biom_minimal_sparse, "does not exist")
-        self.assertEqual(obs, exp)
-
-    def test_direct_parse_key_string(self):
-        """direct parse a key:string pair"""
-        exp = '"generated_by": "QIIME revision XYZ"'
-        obs = direct_parse_key(biom_minimal_sparse, "generated_by")
-        self.assertEqual(obs, exp)
-
-    def test_direct_parse_key_int(self):
-        """direct parse a key:int pair"""
-        test_str = '{"a":{"b":[1,2]},"X":10}'
-        exp = '"X":10'
-        obs = direct_parse_key(test_str, "X")
-        self.assertEqual(obs, exp)
-
-    def test_direct_parse_key_float(self):
-        """direct parse a key:float pair"""
-        test_str = '{"a":{"b":[1,2]},"X":10.123}'
-        exp = '"X":10.123'
-        obs = direct_parse_key(test_str, "X")
-        self.assertEqual(obs, exp)
-
-    def test_direct_slice_data_dense_obs(self):
-        """Directly slice data entries"""
-        keep = [1,3]
-        exp = """"data": [[5,1,0,2,3,1],[2,1,1,0,0,1]], "shape": [2, 6]"""
-        obs = direct_slice_data(biom_minimal_dense, keep, 'observations')
-        self.assertEqual(obs, exp)
-
-    def test_direct_slice_data_dense_samp(self):
-        """Directly slice data entries"""
-        keep = [1,3]
-        exp = """"data": [[0,0],[1,2],[0,4],[1,0],[1,0]], "shape": [5, 2]"""
-        obs = direct_slice_data(biom_minimal_dense, keep, 'samples')
-        self.assertEqual(obs, exp)
-
-    def test_direct_slice_data_dense_idxerr(self):
-        """Directly slice data entries"""
-        keep = [1,7]
-        self.assertRaises(IndexError, direct_slice_data, biom_minimal_dense, 
-                          keep, 'samples')
-
-    def test_direct_slice_data_sparse_obs(self):
-        """Directly slice data entries"""
-        keep = [1,3]
-        exp = '"data": [[0,0,5],[0,1,1],[0,3,2],[0,4,3],[0,5,1],' \
-                       '[1,0,2],[1,1,1],[1,2,1],[1,5,1]], "shape": [2, 6]'
-        obs = direct_slice_data(biom_minimal_sparse, keep, 'observations')
-        self.assertEqual(obs, exp)
-
-    def test_direct_slice_data_sparse_samp(self):
-        """Directly slice data entries"""
-        keep = [1,3]
-        exp = '"data": [[1,0,1],[1,1,2],[2,1,4],[3,0,1],[4,0,1]], '\
-                '"shape": [5, 2]'
-        obs = direct_slice_data(biom_minimal_sparse, keep, 'samples')
-        self.assertEqual(obs, exp)
-
-    def test_direct_slice_data_sparse_idxerr(self):
-        """Directly slice data entries"""
-        keep = ['1','7']
-        self.assertRaises(IndexError, direct_slice_data, biom_minimal_sparse, 
-                          keep, 'samples')
-
-    def test__remap_axis_sparse_obs(self):
-        """remap row idx based off of a lookup"""
-        lookup = {'5':'3','10':'0'}
-        in_tuple1 = "5,2,3"
-        in_tuple2 = "10,5,10"
-        in_tuple3 = "5,4,6"
-        exp1 = "3,2,3"
-        exp2 = "0,5,10"
-        exp3 = "3,4,6"
-        obs1 = _remap_axis_sparse_obs(in_tuple1, lookup)
-        obs2 = _remap_axis_sparse_obs(in_tuple2, lookup)
-        obs3 = _remap_axis_sparse_obs(in_tuple3, lookup)
-        self.assertEqual(obs1, exp1)
-        self.assertEqual(obs2, exp2)
-        self.assertEqual(obs3, exp3)
-
-    def test__remap_axis_sparse_samp(self):
-        """remap row idx based off of a lookup"""
-        lookup = {'5':'3','10':'0'}
-        in_tuple1 = "5,5,3"
-        in_tuple2 = "10,10,10"
-        in_tuple3 = "doesn't matter,10,6"
-        exp1 = "5,3,3"
-        exp2 = "10,0,10"
-        exp3 = "doesn't matter,0,6"
-        obs1 = _remap_axis_sparse_samp(in_tuple1, lookup)
-        obs2 = _remap_axis_sparse_samp(in_tuple2, lookup)
-        obs3 = _remap_axis_sparse_samp(in_tuple3, lookup)
-        self.assertEqual(obs1, exp1)
-        self.assertEqual(obs2, exp2)
-        self.assertEqual(obs3, exp3)
-
-    def test__direct_slice_data_dense_obs(self):
-        """keep some data by row"""
-        input_chunk = """[[0,0,1,0,0,0], 
-                  [5,1,0,2,3,1],[0,0,1,4,2,0],
-                  [2,1,1,0,0,1], [0,1,1,0,0,0]]"""
-        to_keep = set([1,2])
-        exp = "[[5,1,0,2,3,1],[0,0,1,4,2,0]]"
-        obs = _direct_slice_data_dense_obs(input_chunk, to_keep)
-        self.assertEqual(obs, exp)
-
-    def test__direct_slice_data_dense_samp(self):
-        """keep some data by column"""
-        input_chunk = """[[0,0,1,0,0,0], 
-                  [5,1,0,2,3,1],[0,0,1,4,2,0],
-                  [2,1,1,0,0,1], [0,1,1,0,0,0]]"""
-        to_keep = set([1,2])
-        exp = "[[0,1],[1,0],[0,1],[1,1],[1,1]]"
-        obs = _direct_slice_data_dense_samp(input_chunk, to_keep)
-        self.assertEqual(obs, exp)
-
-    def test__direct_slice_data_sparse_obs(self):
-        """keep some data by row"""
-        input_chunk = """[[0,2,1], [1,0,5], [1,1,1],
-             [1,3,2],[1,4,3],[1,5,1],   [2,2,1],
-                [2,3,4],
-            [2,4,2],[3,0,2],[3,1,1],[4,1,1], [4,2,1]]"""
-        to_keep = set([2,1])
-        exp = "[[0,0,5],[0,1,1],[0,3,2],[0,4,3],[0,5,1],"\
-               "[1,2,1],[1,3,4],[1,4,2]]"
-        obs = _direct_slice_data_sparse_obs(input_chunk, to_keep)
-        self.assertEqual(obs, exp)
-
-    def test__direct_slice_data_sparse_samp(self):
-        """keep some data by column"""
-        input_chunk = """[[0,2,1], [1,0,5], [1,1,1],
-             [1,3,2],[1,4,3],[1,5,1],   [2,2,1],
-                [2,3,4],
-            [2,4,2],[3,0,2],[3,1,1],[4,1,1], [4,2,1]]"""
-        to_keep = set([2,1])
-        exp = "[[0,1,1],[1,0,1],[2,1,1],[3,0,1],[4,0,1],[4,1,1]]"
-        obs = _direct_slice_data_sparse_samp(input_chunk, to_keep)
-        self.assertEqual(obs, exp)
-
-    def test_get_axis_indices_obs(self):
-        """directly slice either the rows or columns"""
-        keep = ['GG_OTU_1','GG_OTU_4']
-        exp = ([0,3], '"rows": [{"id": "GG_OTU_1", "metadata": null}, '
-                               '{"id": "GG_OTU_4", "metadata": null}]')
-        obs = get_axis_indices(biom_minimal_dense, keep, 'observations')
-        self.assertEqual(obs, exp)
-
-        self.assertRaises(KeyError, get_axis_indices, biom_minimal_dense, 
-                         ['X'], 'observations')
-
-    def test_get_axis_indices_samp(self):
-        """directly slice either the rows or columns"""
-        keep = ['Sample2','Sample1']
-        exp = ([0,1], '"columns": [{"id": "Sample1", "metadata": null}, '\
-                                  '{"id": "Sample2", "metadata": null}]')
-        obs = get_axis_indices(biom_minimal_dense, keep, 'samples')
-        self.assertEqual(obs, exp)
-        
-        self.assertRaises(KeyError, get_axis_indices, biom_minimal_dense,
-                         ['X'], 'samples')
-
-    def test_light_parse_biom_sparse(self):
-        """Parse a table more direct"""
-        self.assertRaises(AttributeError, light_parse_biom_sparse, \
-                          self.biom_minimal_dense, DenseOTUTable)
-
-        from string import strip
-        biomstr = ''.join(map(strip, self.biom_minimal_sparse.splitlines()))
-        t = light_parse_biom_sparse(biomstr,SparseOTUTable)
-        t2 = parse_biom_table_str(biomstr,SparseOTUTable)
-        self.assertEqual(t,t2)
-
-    def test_pick_constructor(self):
-        """Pick a sane constructor"""
-        exp = SparseOTUTable
-        mat_type = 'SpARsE'
-        table_type = 'oTU taBLe'
-        obs = pick_constructor(mat_type,table_type,None,\
-                    [SparseOTUTable, DenseOTUTable])
-        self.assertEqual(obs,exp)
-
-        mat_type = 'dense'
-        exp = DenseOTUTable
-        obs = pick_constructor(mat_type,table_type,None,\
-                    [SparseOTUTable, DenseOTUTable])
-        self.assertEqual(obs,exp)
-
-        obs = pick_constructor(mat_type,table_type,DenseOTUTable,\
-                    [SparseOTUTable, DenseOTUTable])
-        self.assertEqual(obs,exp)
-
-        table_type = 'something'
-        self.assertRaises(BiomParseException, pick_constructor, mat_type,
-                          table_type, DenseOTUTable, 
-                          [SparseOTUTable, DenseOTUTable])
-
-        table_type = 'otu table'
-        mat_type = 'foo'
-        self.assertRaises(BiomParseException, pick_constructor, mat_type,
-                          table_type, None, [SparseOTUTable, DenseOTUTable])
 
     def test_generatedby(self):
         """get a generatedby string"""
@@ -363,225 +135,19 @@ class ParseTests(TestCase):
         obs = MetadataMap.fromFile(s1,header=header)
         self.assertEqual(obs, exp)
 
-    def test_parse_classic_table_to_rich_table(self):
-        tab1_fh = StringIO(self.otu_table1)
-        md_parse = lambda x: x.split('; ')
-        #sparse_rich = parse_classic_table_to_rich_table(tab1_fh, None, None,\
-        #        DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
-        sparse_rich = parse_classic_table_to_rich_table(tab1_fh, None, None,\
-                OBS_META_TYPES['naive'], DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
-        self.assertEqual(sorted(sparse_rich.SampleIds),sorted(['Fing','Key','NA']))
-        self.assertEqual(sorted(sparse_rich.ObservationIds),map(str,[0,1,3,4,7]))
-        for i, obs_id in enumerate(sparse_rich.ObservationIds):
-            if obs_id == '0':
-                self.assertEqual(sparse_rich.ObservationMetadata[i],
-                {'Consensus Lineage':'Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium'.split('; ')})
-            elif obs_id == '1':
-                self.assertEqual(sparse_rich.ObservationMetadata[i],
-                {'Consensus Lineage':'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillales; Lactobacillales; Streptococcaceae; Streptococcus'.split('; ')})
-            elif obs_id == '7':
-                self.assertEqual(sparse_rich.ObservationMetadata[i],
-                {'Consensus Lineage':'Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Corynebacteriaceae'.split('; ')})
-            elif obs_id in ['3','4']: 
-                pass # got lazy
-            else: 
-                raise RuntimeError('obs_id incorrect?')
-
-        self.assertEquals(sparse_rich.SampleMetadata,None)
-
-        for i, obs_id in enumerate(sparse_rich.ObservationIds):
-            for j, sample_id in enumerate(sparse_rich.SampleIds):
-                if obs_id == '1' and sample_id == 'Key':
-                    self.assertEqual(True,True) # should test some abundance data
-
-    def test_parse_classic_table_to_rich_table_dense(self):
-        tab1_fh = StringIO(self.otu_table1)
-        md_parse = lambda x: x.split('; ')
-        #sparse_rich = parse_classic_table_to_rich_table(tab1_fh.readlines(),None,None, DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
-        sparse_rich = parse_classic_table_to_rich_table(tab1_fh.readlines(),None,None, OBS_META_TYPES['naive'], DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
-        self.assertEqual(sorted(sparse_rich.SampleIds),sorted(['Fing','Key','NA']))
-        self.assertEqual(sorted(sparse_rich.ObservationIds),map(str,[0,1,3,4,7]))
-        for i, obs_id in enumerate(sparse_rich.ObservationIds):
-            if obs_id == '0':
-                self.assertEqual(sparse_rich.ObservationMetadata[i],
-                {'Consensus Lineage':'Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium'.split('; ')})
-            elif obs_id == '1':
-                self.assertEqual(sparse_rich.ObservationMetadata[i],
-                {'Consensus Lineage':'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillales; Lactobacillales; Streptococcaceae; Streptococcus'.split('; ')})
-            elif obs_id == '7':
-                self.assertEqual(sparse_rich.ObservationMetadata[i],
-                {'Consensus Lineage':'Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Corynebacteriaceae'.split('; ')})
-            elif obs_id in ['3','4']: 
-                pass # got lazy
-            else: 
-                raise RuntimeError('obs_id incorrect?')
-
-        self.assertEquals(sparse_rich.SampleMetadata,None)
-
-        for i, obs_id in enumerate(sparse_rich.ObservationIds):
-            for j, sample_id in enumerate(sparse_rich.SampleIds):
-                if obs_id == '1' and sample_id == 'Key':
-                    self.assertEqual(True,True) # should test some abundance data
-
-    def test_parse_biom_gene_table(self):
-        """test for the biom gene table parser"""
-        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
-        tab1_fh['type'] = 'gene table'
-        tab = parse_biom_gene_table(tab1_fh)
-        exp_data = array([[0,0,1,0,0,0], 
-                    [5,1,0,2,3,1],
-                    [0,0,1,4,2,0],
-                    [2,1,1,0,0,1],
-                    [0,1,1,0,0,0]])
-
-        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-        self.assertEqual(tab.SampleMetadata,None)
-        self.assertEqual(tab.ObservationMetadata,None)
-        self.assertEqual(tab._data, exp_data)
-
-    def test_parse_biom_function_table(self):
-        """test for the biom function table parser"""
-        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
-        tab1_fh['type'] = 'function table'
-        tab = parse_biom_function_table(tab1_fh)
-        exp_data = array([[0,0,1,0,0,0], 
-                    [5,1,0,2,3,1],
-                    [0,0,1,4,2,0],
-                    [2,1,1,0,0,1],
-                    [0,1,1,0,0,0]])
-
-        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-        self.assertEqual(tab.SampleMetadata,None)
-        self.assertEqual(tab.ObservationMetadata,None)
-        self.assertEqual(tab._data, exp_data)
-
-    def test_parse_biom_metabolite_table(self):
-        """test for the biom metabolite table parser"""
-        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
-        tab1_fh['type'] = 'metabolite table'
-        tab = parse_biom_metabolite_table(tab1_fh)
-        exp_data = array([[0,0,1,0,0,0], 
-                    [5,1,0,2,3,1],
-                    [0,0,1,4,2,0],
-                    [2,1,1,0,0,1],
-                    [0,1,1,0,0,0]])
-
-        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-        self.assertEqual(tab.SampleMetadata,None)
-        self.assertEqual(tab.ObservationMetadata,None)
-        self.assertEqual(tab._data, exp_data)
-
-    def test_parse_biom_pathway_table(self):
-        """test for the biom pathway table parser"""
-        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
-        tab1_fh['type'] = 'pathway table'
-        tab = parse_biom_pathway_table(tab1_fh)
-        exp_data = array([[0,0,1,0,0,0], 
-                    [5,1,0,2,3,1],
-                    [0,0,1,4,2,0],
-                    [2,1,1,0,0,1],
-                    [0,1,1,0,0,0]])
-
-        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-        self.assertEqual(tab.SampleMetadata,None)
-        self.assertEqual(tab.ObservationMetadata,None)
-        self.assertEqual(tab._data, exp_data)
-
-    def test_parse_biom_taxon_table(self):
-        """test for the biom taxon table parser"""
-        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
-        tab1_fh['type'] = 'taxon table'
-        tab = parse_biom_function_table(tab1_fh)
-        exp_data = array([[0,0,1,0,0,0], 
-                    [5,1,0,2,3,1],
-                    [0,0,1,4,2,0],
-                    [2,1,1,0,0,1],
-                    [0,1,1,0,0,0]])
-
-        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-        self.assertEqual(tab.SampleMetadata,None)
-        self.assertEqual(tab.ObservationMetadata,None)
-        self.assertEqual(tab._data, exp_data)
-
-    def test_parse_biom_ortholog_table(self):
-        """test for the biom ortholog table parser"""
-        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
-        tab1_fh['type'] = 'ortholog table'
-        tab = parse_biom_ortholog_table(tab1_fh)
-        exp_data = array([[0,0,1,0,0,0], 
-                    [5,1,0,2,3,1],
-                    [0,0,1,4,2,0],
-                    [2,1,1,0,0,1],
-                    [0,1,1,0,0,0]])
-
-        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-        self.assertEqual(tab.SampleMetadata,None)
-        self.assertEqual(tab.ObservationMetadata,None)
-        self.assertEqual(tab._data, exp_data)
-
-    def test_parse_biom_otu_table(self):
+    def test_parse_biom_json(self):
         """test the biom otu table parser"""
         # light test. this code is used thoroughly within the other 
         # parse_biom_table methods
-        tab1_fh = json.load(StringIO(self.biom_minimal_dense))
-        tab = parse_biom_otu_table(tab1_fh)
+        tab1_fh = json.load(StringIO(self.biom_minimal_sparse))
+        tab = parse_biom_table_json(tab1_fh)
         self.assertEqual((tab.SampleIds),('Sample1','Sample2',
             'Sample3','Sample4','Sample5','Sample6',))
         self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
             'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
         self.assertEqual(tab.SampleMetadata,None)
         self.assertEqual(tab.ObservationMetadata,None)
-        
-    def test_parse_biom_table_minimal_dense(self):
-        tab1_fh = StringIO(self.biom_minimal_dense)
-        tab = parse_biom_table(tab1_fh)
-        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-        self.assertEqual(tab.SampleMetadata,None)
-        self.assertEqual(tab.ObservationMetadata,None)
-
-    def test_parse_biom_table_compare_sparse_dense(self):
-        tab1_fh = StringIO(self.biom_minimal_dense)
-        tab1 = parse_biom_table(tab1_fh)
-        tab2_fh = StringIO(self.biom_minimal_sparse)
-        tab2 = parse_biom_table(tab2_fh)
-        assert(isinstance(tab1,DenseOTUTable))
-        assert(isinstance(tab2,SparseOTUTable))
-
-        tab1_sams = [sam[0] for sam in tab1.iterSamples()]
-        tab2_sams = [sam[0] for sam in tab2.iterSamples()]
-
-        self.assertFloatEqual(tab1_sams,tab2_sams)
-
-        self.assertEqual((tab1.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab1.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-        self.assertEqual((tab2.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab2.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-
+    
     def test_parse_biom_table_str(self):
         """tests for parse_biom_table_str"""
         # this method is tested through parse_biom_table tests
@@ -610,103 +176,6 @@ class ParseTests(TestCase):
         obs = parse_classic_table(input,dtype=int)
         self.assertEqual(obs, exp)
 
-    def test_parse_sparse_biom_table_to_dense_object(self):
-        """ parsing a sparse biom table to a dense object functions as expected """
-        dense_biom_fh = StringIO(self.biom_minimal_dense)
-        ## dd = dense object from dense biom
-        dd = parse_biom_table(dense_biom_fh)
-        sparse_biom_fh = StringIO(self.biom_minimal_sparse)
-        ## sd = dense object from sparse biom
-        sd = parse_biom_table(sparse_biom_fh,DenseOTUTable)
-        assert(isinstance(dd, DenseOTUTable))
-        assert(isinstance(sd, DenseOTUTable))
-
-        dd_data = [sam[0] for sam in dd.iterSamples()]
-        sd_data = [sam[0] for sam in sd.iterSamples()]
-        self.assertFloatEqual(dd_data,sd_data)
-
-        self.assertEqual((dd.SampleIds),(dd.SampleIds))
-        self.assertEqual((dd.ObservationIds),(dd.ObservationIds))
-
-    def test_parse_dense_biom_table_to_sparse_object(self):
-        """ parsing a dense biom table to a sparse object functions as expected """
-        dense_biom_fh = StringIO(self.biom_minimal_dense)
-        ## sd = sparse object from dense biom
-        sd = parse_biom_table(dense_biom_fh,SparseOTUTable)
-        sparse_biom_fh = StringIO(self.biom_minimal_sparse)
-        ## ss = sparse object from sparse biom
-        ss = parse_biom_table(sparse_biom_fh)
-        assert(isinstance(sd, SparseOTUTable))
-        assert(isinstance(ss, SparseOTUTable))
-
-        sd_data = [sam[0] for sam in sd.iterSamples()]
-        ss_data = [sam[0] for sam in ss.iterSamples()]
-        self.assertFloatEqual(sd_data,ss_data)
-
-        self.assertEqual((sd.SampleIds),(ss.SampleIds))
-        self.assertEqual((sd.ObservationIds),(ss.ObservationIds))
-
-    def test_otu_table_biom_conversions_with_taxonomy(self):
-        """ converting between classic otu table and biom is roundtrip-able (w taxonomy)
-        """
-        # parse the classic otu table (w tax)
-        parsed_classic_otu_table1_w_tax = parse_classic_table(self.classic_otu_table1_w_tax)
-        
-        # convert the classic otu table to a biom file, and then convert the biom file
-        # to a classic otu table (i.e., roundtrip the file)
-        roundtripped_classic_otu_table1_w_tax =\
-          convert_biom_to_table(
-            convert_table_to_biom(self.classic_otu_table1_w_tax, None, None,
-                                  OBS_META_TYPES['naive'], DenseOTUTable),
-            'Consensus Lineage','Consensus Lineage', lambda x: x)
-
-        # parse the roundtripped file
-        parsed_roundtripped_classic_otu_table1_w_tax = \
-         parse_classic_table(roundtripped_classic_otu_table1_w_tax.split('\n'))
-        
-        # compare the parsed roundtripped file to the parsed input file
-        self.assertEqual(parsed_roundtripped_classic_otu_table1_w_tax,
-                         parsed_classic_otu_table1_w_tax)
-
-    def test_otu_table_biom_conversions_no_taxonomy(self):
-        """ converting between classic otu table and biom is roundtrip-able (no taxonomy)
-        """
-        # parse the classic otu table (no tax)
-        parsed_classic_otu_table1_no_tax = parse_classic_table(self.classic_otu_table1_no_tax)
-        
-        # convert the classic otu table to a biom file, and then convert the biom file
-        # to a classic otu table (i.e., roundtrip the file)
-        roundtripped_classic_otu_table1_no_tax =\
-          convert_biom_to_table(
-            convert_table_to_biom(self.classic_otu_table1_no_tax, None, None, 
-                                  OBS_META_TYPES['naive'], DenseOTUTable))
-        # parse the roundtripped file
-        parsed_roundtripped_classic_otu_table1_no_tax = \
-         parse_classic_table(roundtripped_classic_otu_table1_no_tax.split('\n'))
-        
-        # compare the parsed roundtripped file to the parsed input file
-        self.assertEqual(parsed_roundtripped_classic_otu_table1_no_tax,
-                         parsed_classic_otu_table1_no_tax)
-
-    def test_otu_table_biom_conversions_complex_metadata(self):
-        """ converting between classic otu table and biom is roundtrip-able using complex metadata (e.g. list of lists)
-        """
-        # parse the classic otu table with complex metadata
-        parsed_table = parse_classic_table(self.classic_table_with_complex_metadata)
-      
-        # convert the classic otu table to a biom file, and then convert the biom file
-        # to a classic otu table (i.e., roundtrip the file)
-        roundtripped_table =\
-          convert_biom_to_table(
-            convert_table_to_biom(self.classic_table_with_complex_metadata, None, None, OBS_META_TYPES['sc_pipe_separated'], DenseOTUTable),'KEGG_Pathways', 'KEGG_Pathways')
-        # parse the roundtripped file
-        parsed_roundtripped_table = parse_classic_table(roundtripped_table.split('\n'))
-
-        # compare the parsed roundtripped file to the parsed input file
-        self.assertEqual(parsed_roundtripped_table,
-                         parsed_table)
-
-
 legacy_otu_table1 = """# some comment goes here
 #OTU ID	Fing	Key	NA	Consensus Lineage
 0	19111	44536	42	Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium
@@ -718,9 +187,6 @@ legacy_otu_table1 = """# some comment goes here
 """
 
 otu_table1 = """# Some comment
-
-
-
 
 OTU ID	Fing	Key	NA	Consensus Lineage
 0	19111	44536	42	Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium
@@ -734,9 +200,6 @@ OTU ID	Fing	Key	NA	Consensus Lineage
 """
 
 otu_table1_floats = """# Some comment
-
-
-
 
 OTU ID	Fing	Key	NA	Consensus Lineage
 0	19111.0	44536.0	42.0	Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium
@@ -756,40 +219,6 @@ K05841	2.0	4.5	Environmental Information Processing;
 K00508	0.0	0.0	Metabolism; Lipid Metabolism; Linoleic acid metabolism
 K00500	0.5	0.5	Metabolism; Amino Acid Metabolism; Phenylalanine metabolism|Metabolism; Amino Acid Metabolism; Phenylalanine, tyrosine and tryptophan biosynthesis
 K00507	0.0	0.0	Metabolism; Lipid Metabolism; Biosynthesis of unsaturated fatty acids|Organismal Systems; Endocrine System; PPAR signaling pathway
-"""
-biom_minimal_dense = """
-
-    {
-        "id":null,
-        "format": "Biological Observation Matrix v0.9",
-        "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html",
-        "type": "OTU table",
-        "generated_by": "QIIME revision XYZ",
-        "date": "2011-12-19T19:00:00",
-        "rows":[
-                {"id":"GG_OTU_1", "metadata":null},
-                {"id":"GG_OTU_2", "metadata":null},
-                {"id":"GG_OTU_3", "metadata":null},
-                {"id":"GG_OTU_4", "metadata":null},
-                {"id":"GG_OTU_5", "metadata":null}
-            ],  
-        "columns": [
-                {"id":"Sample1", "metadata":null},
-                {"id":"Sample2", "metadata":null},
-                {"id":"Sample3", "metadata":null},
-                {"id":"Sample4", "metadata":null},
-                {"id":"Sample5", "metadata":null},
-                {"id":"Sample6", "metadata":null}
-            ],  
-        "matrix_type": "dense",
-        "matrix_element_type": "int",
-        "shape": [5,6],
-        "data":  [[0,0,1,0,0,0], 
-                  [5,1,0,2,3,1],
-                  [0,0,1,4,2,0],
-                  [2,1,1,0,0,1],
-                  [0,1,1,0,0,0]]
-    }
 """
 
 biom_minimal_sparse="""
@@ -1676,12 +1105,6 @@ classic_otu_table1_no_tax = """#Full OTU Counts
 414	1	0	1	0	0	0	0	0	0
 415	0	0	0	0	0	7	0	2	2
 416	0	1	0	0	1	0	0	0	0"""
-
-biom_otu_table1_w_tax = """{"rows": [{"id": "0", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "1", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "2", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Porphyromonadaceae", "Parabacteroides"]}}, {"id": "3", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "4", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "5", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "6", "metadata": {"taxonomy": ["Root", "Bacteria", "Actinobacteria", "Actinobacteria"]}}, {"id": "7", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "8", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Bacilli", "Lactobacillales", "Lactobacillaceae", "Lactobacillus"]}}, {"id": "9", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "10", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "11", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "12", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "13", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "14", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "15", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "16", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "17", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "18", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "19", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "20", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "21", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "22", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "23", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Bacilli", "Lactobacillales", "Lactobacillaceae", "Lactobacillus"]}}, {"id": "24", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "25", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "26", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "27", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "28", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "29", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "30", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes"]}}, {"id": "31", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "32", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "33", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "34", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "35", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "36", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "37", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "38", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "39", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Rikenellaceae", "Alistipes"]}}, {"id": "40", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "41", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "42", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes"]}}, {"id": "43", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "44", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "45", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Erysipelotrichi", "Erysipelotrichales", "Erysipelotrichaceae", "Coprobacillus"]}}, {"id": "46", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "47", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "48", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "49", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "50", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "51", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "52", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "53", "metadata": {"taxonomy": ["Root", "Bacteria", "Proteobacteria", "Deltaproteobacteria"]}}, {"id": "54", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Porphyromonadaceae", "Parabacteroides"]}}, {"id": "55", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Rikenellaceae", "Alistipes"]}}, {"id": "56", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "57", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "58", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "59", "metadata": {"taxonomy": ["Root", "Bacteria", "Deferribacteres", "Deferribacteres", "Deferribacterales", "Deferribacteraceae", "Mucispirillum"]}}, {"id": "60", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "61", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "62", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "63", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "64", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "65", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "66", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "67", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "68", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "69", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "70", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "71", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "72", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "73", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "74", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "75", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "76", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "77", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "78", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "79", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "80", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Porphyromonadaceae", "Parabacteroides"]}}, {"id": "81", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "82", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "83", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "84", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae", "Ruminococcus"]}}, {"id": "85", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Rikenellaceae", "Alistipes"]}}, {"id": "86", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "87", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "88", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "89", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "90", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Erysipelotrichi", "Erysipelotrichales", "Erysipelotrichaceae", "Turicibacter"]}}, {"id": "91", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Butyrivibrio"]}}, {"id": "92", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "93", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "94", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "95", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "96", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "97", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "98", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "99", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "100", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "101", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "102", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "103", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "104", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "105", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "106", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "107", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "108", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Incertae Sedis XIII", "Anaerovorax"]}}, {"id": "109", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Rikenellaceae", "Alistipes"]}}, {"id": "110", "metadata": {"taxonomy": ["Root", "Bacteria", "Actinobacteria", "Actinobacteria", "Coriobacteridae", "Coriobacteriales", "Coriobacterineae", "Coriobacteriaceae", "Olsenella"]}}, {"id": "111", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "112", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "113", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "114", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "115", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes"]}}, {"id": "116", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "117", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "118", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "119", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "120", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "121", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "122", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "123", "metadata": {"taxonomy": ["Root", "Bacteria", "Actinobacteria", "Actinobacteria", "Coriobacteridae", "Coriobacteriales", "Coriobacterineae", "Coriobacteriaceae"]}}, {"id": "124", "metadata": {"taxonomy": ["Root", "Bacteria", "Actinobacteria", "Actinobacteria", "Coriobacteridae", "Coriobacteriales", "Coriobacterineae", "Coriobacteriaceae"]}}, {"id": "125", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "126", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "127", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "128", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "129", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "130", "metadata": {"taxonomy": ["Root", "Bacteria", "Proteobacteria", "Epsilonproteobacteria", "Campylobacterales", "Helicobacteraceae", "Helicobacter"]}}, {"id": "131", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "132", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "133", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "134", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "135", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "136", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "137", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "138", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "139", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "140", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "141", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "142", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "143", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "144", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "145", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "146", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "147", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "148", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes"]}}, {"id": "149", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "150", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "151", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "152", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "153", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "154", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "155", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Rikenellaceae", "Alistipes"]}}, {"id": "156", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "157", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "158", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "159", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "160", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "161", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "162", "metadata": {"taxonomy": ["Root", "Bacteria", "Deferribacteres", "Deferribacteres", "Deferribacterales", "Deferribacteraceae", "Mucispirillum"]}}, {"id": "163", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "164", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "165", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "166", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "167", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "168", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "169", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "170", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "171", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "172", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "173", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "174", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Peptostreptococcaceae", "Peptostreptococcaceae Incertae Sedis"]}}, {"id": "175", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "176", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "177", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia"]}}, {"id": "178", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "179", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "180", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "181", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "182", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "183", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia"]}}, {"id": "184", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "185", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "186", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "187", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "188", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "189", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "190", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "191", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "192", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Bacilli", "Lactobacillales", "Streptococcaceae", "Streptococcus"]}}, {"id": "193", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Butyrivibrio"]}}, {"id": "194", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae", "Acetanaerobacterium"]}}, {"id": "195", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "196", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "197", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "198", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales"]}}, {"id": "199", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "200", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "201", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "202", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "203", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Rikenellaceae", "Alistipes"]}}, {"id": "204", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "205", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "206", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "207", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "208", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "209", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "210", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "211", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "212", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "213", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes"]}}, {"id": "214", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "215", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "216", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "217", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "218", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "219", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "220", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "221", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes"]}}, {"id": "222", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "223", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "224", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "225", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "226", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "227", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "228", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "229", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Incertae Sedis XIII"]}}, {"id": "230", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "231", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "232", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "233", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "234", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Bacilli", "Lactobacillales", "Lactobacillaceae", "Lactobacillus"]}}, {"id": "235", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "236", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales"]}}, {"id": "237", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "238", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Rikenellaceae", "Alistipes"]}}, {"id": "239", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "240", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "241", "metadata": {"taxonomy": ["Root", "Bacteria", "TM7", "TM7_genera_incertae_sedis"]}}, {"id": "242", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "243", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "244", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "245", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "246", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "247", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "248", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Bacilli", "Lactobacillales", "Lactobacillaceae", "Lactobacillus"]}}, {"id": "249", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "250", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "251", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "252", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "253", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "254", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "255", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "256", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "257", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Rikenellaceae", "Alistipes"]}}, {"id": "258", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "259", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "260", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "261", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "262", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Bryantella"]}}, {"id": "263", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "264", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "265", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "266", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Rikenellaceae", "Alistipes"]}}, {"id": "267", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "268", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "269", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "270", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "271", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "272", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "273", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "274", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "275", "metadata": {"taxonomy": ["Root", "Bacteria", "Verrucomicrobia", "Verrucomicrobiae", "Verrucomicrobiales", "Verrucomicrobiaceae", "Akkermansia"]}}, {"id": "276", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "277", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "278", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "279", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "280", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "281", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "282", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Porphyromonadaceae", "Parabacteroides"]}}, {"id": "283", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "284", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "285", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "286", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "287", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "288", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "289", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "290", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Bacilli", "Bacillales", "Staphylococcaceae", "Staphylococcus"]}}, {"id": "291", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "292", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "293", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "294", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "295", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "296", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "297", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "298", "metadata": {"taxonomy": ["Root", "Bacteria", "Actinobacteria", "Actinobacteria"]}}, {"id": "299", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "300", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia"]}}, {"id": "301", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "302", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "303", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "304", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "305", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "306", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "307", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "308", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae", "Ruminococcaceae Incertae Sedis"]}}, {"id": "309", "metadata": {"taxonomy": ["Root", "Bacteria", "Actinobacteria", "Actinobacteria", "Coriobacteridae", "Coriobacteriales", "Coriobacterineae", "Coriobacteriaceae", "Denitrobacterium"]}}, {"id": "310", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "311", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "312", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "313", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Porphyromonadaceae", "Parabacteroides"]}}, {"id": "314", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "315", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "316", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "317", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "318", "metadata": {"taxonomy": ["Root", "Bacteria", "Proteobacteria"]}}, {"id": "319", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "320", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "321", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "322", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "323", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "324", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "325", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "326", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Erysipelotrichi", "Erysipelotrichales", "Erysipelotrichaceae", "Erysipelotrichaceae Incertae Sedis"]}}, {"id": "327", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "328", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "329", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "330", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes"]}}, {"id": "331", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes"]}}, {"id": "332", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "333", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "334", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "335", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "336", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "337", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "338", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "339", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "340", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "341", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "342", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "343", "metadata": {"taxonomy": ["Root", "Bacteria", "Actinobacteria", "Actinobacteria", "Coriobacteridae", "Coriobacteriales", "Coriobacterineae", "Coriobacteriaceae"]}}, {"id": "344", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "345", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "346", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "347", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "348", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "349", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "350", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "351", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "352", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "353", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "354", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "355", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "356", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "357", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "358", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "359", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "360", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "361", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "362", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "363", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Rikenellaceae"]}}, {"id": "364", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "365", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "366", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Roseburia"]}}, {"id": "367", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "368", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "369", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "370", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "371", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "372", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "373", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Clostridiaceae", "Clostridiaceae 1", "Clostridium"]}}, {"id": "374", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "375", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Erysipelotrichi", "Erysipelotrichales", "Erysipelotrichaceae", "Erysipelotrichaceae Incertae Sedis"]}}, {"id": "376", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "377", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "378", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "379", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Ruminococcaceae"]}}, {"id": "380", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Bacilli", "Bacillales", "Staphylococcaceae", "Staphylococcus"]}}, {"id": "381", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "382", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "383", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "384", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "385", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Bacilli", "Lactobacillales", "Carnobacteriaceae", "Carnobacteriaceae 1"]}}, {"id": "386", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "387", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "388", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "389", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "390", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "391", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes"]}}, {"id": "392", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "393", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "394", "metadata": {"taxonomy": ["Root", "Bacteria"]}}, {"id": "395", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "396", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "397", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "398", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "399", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Bacteroidaceae", "Bacteroides"]}}, {"id": "400", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "401", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "402", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "403", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes", "Bacteroidetes", "Bacteroidales", "Prevotellaceae"]}}, {"id": "404", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae", "Lachnospiraceae Incertae Sedis"]}}, {"id": "405", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "406", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "407", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "408", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "409", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "410", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "411", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "412", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "413", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}, {"id": "414", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales", "Lachnospiraceae"]}}, {"id": "415", "metadata": {"taxonomy": ["Root", "Bacteria", "Bacteroidetes"]}}, {"id": "416", "metadata": {"taxonomy": ["Root", "Bacteria", "Firmicutes", "Clostridia", "Clostridiales"]}}], "format": "Biological Observation Matrix v0.9", "data": [[0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [2, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 2, 0, 0, 0, 0, 0, 2], [1, 1, 0, 2, 4, 0, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [1, 0, 0, 1, 0, 1, 0, 0, 0], [0, 0, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [1, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 4, 10, 37], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 3, 2], [0, 0, 0, 0, 2, 0, 1, 0, 0], [14, 1, 14, 1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0, 0, 0, 0], [6, 0, 4, 0, 2, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 8, 10, 2], [1, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0, 1], [0, 0, 0, 0, 0, 0, 5, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 6, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 5, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 1, 1, 0, 0, 0, 0, 0], [2, 3, 8, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, 0, 0, 2, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 2, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 9, 0, 0, 3, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 2, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 1, 0, 1, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 3, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 1, 5, 2], [0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 2, 0, 0, 6, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 3, 1, 2, 1, 9, 2, 4, 5], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 2, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 2, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 5, 2, 0, 0, 0], [0, 0, 1, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 3, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 2, 0, 2, 0, 3], [0, 1, 0, 1, 1, 0, 0, 0, 3], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 1, 2, 19], [0, 2, 1, 2, 0, 0, 1, 1, 1], [2, 18, 0, 1, 0, 0, 21, 4, 4], [0, 0, 0, 0, 0, 5, 9, 5, 3], [0, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 3, 5, 2, 6], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [2, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 2, 0, 7, 0, 0, 0, 2, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 10, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [1, 4, 2, 6, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 3, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [2, 1, 10, 2, 24, 0, 0, 1, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 1, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 2, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 2, 2, 4, 0, 5, 1, 5, 0], [1, 4, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 2, 0, 2, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 2, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 2, 0, 1, 0], [0, 0, 0, 0, 9, 1, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [1, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 2, 2], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 2, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 2, 0, 9, 1, 1, 1, 3], [16, 0, 0, 0, 12, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 19, 2, 0, 2, 0, 3, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 1, 1, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 1, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 4, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0, 5, 0], [11, 13, 6, 13, 2, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 5, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0], [1, 0, 0, 5, 17, 20, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0, 0], [0, 0, 0, 0, 0, 0, 2, 1, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 2, 3, 1, 4, 0, 5, 0, 4], [0, 0, 0, 0, 0, 0, 1, 1, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 3, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [29, 1, 10, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 3, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 2, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 4, 0, 0, 0, 2], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [2, 2, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 6, 0, 3, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 1, 4, 1], [3, 0, 0, 0, 0, 0, 0, 0, 0], [0, 4, 4, 0, 1, 2, 0, 2, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 4, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 1, 1], [2, 0, 2, 1, 0, 0, 0, 0, 0], [1, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 1, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [2, 1, 0, 5, 0, 1, 0, 0, 0], [1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 3, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 4, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [4, 9, 0, 2, 0, 0, 0, 2, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 13, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 4, 0, 0, 0], [1, 5, 3, 2, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 7, 0, 2, 2], [0, 1, 0, 0, 1, 0, 0, 0, 0]], "columns": [{"id": "PC.354", "metadata": null}, {"id": "PC.355", "metadata": null}, {"id": "PC.356", "metadata": null}, {"id": "PC.481", "metadata": null}, {"id": "PC.593", "metadata": null}, {"id": "PC.607", "metadata": null}, {"id": "PC.634", "metadata": null}, {"id": "PC.635", "metadata": null}, {"id": "PC.636", "metadata": null}], "generated_by": "QIIME 1.4.0-dev, svn revision 2604", "matrix_type": "dense", "shape": [417, 9], "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html", "date": "2011-12-22T11:28:38.642265", "type": "OTU table", "id": null, "matrix_element_type": "int"}"""
-
-biom_otu_table1_no_tax = """{"rows": [{"id": "0", "metadata": null}, {"id": "1", "metadata": null}, {"id": "2", "metadata": null}, {"id": "3", "metadata": null}, {"id": "4", "metadata": null}, {"id": "5", "metadata": null}, {"id": "6", "metadata": null}, {"id": "7", "metadata": null}, {"id": "8", "metadata": null}, {"id": "9", "metadata": null}, {"id": "10", "metadata": null}, {"id": "11", "metadata": null}, {"id": "12", "metadata": null}, {"id": "13", "metadata": null}, {"id": "14", "metadata": null}, {"id": "15", "metadata": null}, {"id": "16", "metadata": null}, {"id": "17", "metadata": null}, {"id": "18", "metadata": null}, {"id": "19", "metadata": null}, {"id": "20", "metadata": null}, {"id": "21", "metadata": null}, {"id": "22", "metadata": null}, {"id": "23", "metadata": null}, {"id": "24", "metadata": null}, {"id": "25", "metadata": null}, {"id": "26", "metadata": null}, {"id": "27", "metadata": null}, {"id": "28", "metadata": null}, {"id": "29", "metadata": null}, {"id": "30", "metadata": null}, {"id": "31", "metadata": null}, {"id": "32", "metadata": null}, {"id": "33", "metadata": null}, {"id": "34", "metadata": null}, {"id": "35", "metadata": null}, {"id": "36", "metadata": null}, {"id": "37", "metadata": null}, {"id": "38", "metadata": null}, {"id": "39", "metadata": null}, {"id": "40", "metadata": null}, {"id": "41", "metadata": null}, {"id": "42", "metadata": null}, {"id": "43", "metadata": null}, {"id": "44", "metadata": null}, {"id": "45", "metadata": null}, {"id": "46", "metadata": null}, {"id": "47", "metadata": null}, {"id": "48", "metadata": null}, {"id": "49", "metadata": null}, {"id": "50", "metadata": null}, {"id": "51", "metadata": null}, {"id": "52", "metadata": null}, {"id": "53", "metadata": null}, {"id": "54", "metadata": null}, {"id": "55", "metadata": null}, {"id": "56", "metadata": null}, {"id": "57", "metadata": null}, {"id": "58", "metadata": null}, {"id": "59", "metadata": null}, {"id": "60", "metadata": null}, {"id": "61", "metadata": null}, {"id": "62", "metadata": null}, {"id": "63", "metadata": null}, {"id": "64", "metadata": null}, {"id": "65", "metadata": null}, {"id": "66", "metadata": null}, {"id": "67", "metadata": null}, {"id": "68", "metadata": null}, {"id": "69", "metadata": null}, {"id": "70", "metadata": null}, {"id": "71", "metadata": null}, {"id": "72", "metadata": null}, {"id": "73", "metadata": null}, {"id": "74", "metadata": null}, {"id": "75", "metadata": null}, {"id": "76", "metadata": null}, {"id": "77", "metadata": null}, {"id": "78", "metadata": null}, {"id": "79", "metadata": null}, {"id": "80", "metadata": null}, {"id": "81", "metadata": null}, {"id": "82", "metadata": null}, {"id": "83", "metadata": null}, {"id": "84", "metadata": null}, {"id": "85", "metadata": null}, {"id": "86", "metadata": null}, {"id": "87", "metadata": null}, {"id": "88", "metadata": null}, {"id": "89", "metadata": null}, {"id": "90", "metadata": null}, {"id": "91", "metadata": null}, {"id": "92", "metadata": null}, {"id": "93", "metadata": null}, {"id": "94", "metadata": null}, {"id": "95", "metadata": null}, {"id": "96", "metadata": null}, {"id": "97", "metadata": null}, {"id": "98", "metadata": null}, {"id": "99", "metadata": null}, {"id": "100", "metadata": null}, {"id": "101", "metadata": null}, {"id": "102", "metadata": null}, {"id": "103", "metadata": null}, {"id": "104", "metadata": null}, {"id": "105", "metadata": null}, {"id": "106", "metadata": null}, {"id": "107", "metadata": null}, {"id": "108", "metadata": null}, {"id": "109", "metadata": null}, {"id": "110", "metadata": null}, {"id": "111", "metadata": null}, {"id": "112", "metadata": null}, {"id": "113", "metadata": null}, {"id": "114", "metadata": null}, {"id": "115", "metadata": null}, {"id": "116", "metadata": null}, {"id": "117", "metadata": null}, {"id": "118", "metadata": null}, {"id": "119", "metadata": null}, {"id": "120", "metadata": null}, {"id": "121", "metadata": null}, {"id": "122", "metadata": null}, {"id": "123", "metadata": null}, {"id": "124", "metadata": null}, {"id": "125", "metadata": null}, {"id": "126", "metadata": null}, {"id": "127", "metadata": null}, {"id": "128", "metadata": null}, {"id": "129", "metadata": null}, {"id": "130", "metadata": null}, {"id": "131", "metadata": null}, {"id": "132", "metadata": null}, {"id": "133", "metadata": null}, {"id": "134", "metadata": null}, {"id": "135", "metadata": null}, {"id": "136", "metadata": null}, {"id": "137", "metadata": null}, {"id": "138", "metadata": null}, {"id": "139", "metadata": null}, {"id": "140", "metadata": null}, {"id": "141", "metadata": null}, {"id": "142", "metadata": null}, {"id": "143", "metadata": null}, {"id": "144", "metadata": null}, {"id": "145", "metadata": null}, {"id": "146", "metadata": null}, {"id": "147", "metadata": null}, {"id": "148", "metadata": null}, {"id": "149", "metadata": null}, {"id": "150", "metadata": null}, {"id": "151", "metadata": null}, {"id": "152", "metadata": null}, {"id": "153", "metadata": null}, {"id": "154", "metadata": null}, {"id": "155", "metadata": null}, {"id": "156", "metadata": null}, {"id": "157", "metadata": null}, {"id": "158", "metadata": null}, {"id": "159", "metadata": null}, {"id": "160", "metadata": null}, {"id": "161", "metadata": null}, {"id": "162", "metadata": null}, {"id": "163", "metadata": null}, {"id": "164", "metadata": null}, {"id": "165", "metadata": null}, {"id": "166", "metadata": null}, {"id": "167", "metadata": null}, {"id": "168", "metadata": null}, {"id": "169", "metadata": null}, {"id": "170", "metadata": null}, {"id": "171", "metadata": null}, {"id": "172", "metadata": null}, {"id": "173", "metadata": null}, {"id": "174", "metadata": null}, {"id": "175", "metadata": null}, {"id": "176", "metadata": null}, {"id": "177", "metadata": null}, {"id": "178", "metadata": null}, {"id": "179", "metadata": null}, {"id": "180", "metadata": null}, {"id": "181", "metadata": null}, {"id": "182", "metadata": null}, {"id": "183", "metadata": null}, {"id": "184", "metadata": null}, {"id": "185", "metadata": null}, {"id": "186", "metadata": null}, {"id": "187", "metadata": null}, {"id": "188", "metadata": null}, {"id": "189", "metadata": null}, {"id": "190", "metadata": null}, {"id": "191", "metadata": null}, {"id": "192", "metadata": null}, {"id": "193", "metadata": null}, {"id": "194", "metadata": null}, {"id": "195", "metadata": null}, {"id": "196", "metadata": null}, {"id": "197", "metadata": null}, {"id": "198", "metadata": null}, {"id": "199", "metadata": null}, {"id": "200", "metadata": null}, {"id": "201", "metadata": null}, {"id": "202", "metadata": null}, {"id": "203", "metadata": null}, {"id": "204", "metadata": null}, {"id": "205", "metadata": null}, {"id": "206", "metadata": null}, {"id": "207", "metadata": null}, {"id": "208", "metadata": null}, {"id": "209", "metadata": null}, {"id": "210", "metadata": null}, {"id": "211", "metadata": null}, {"id": "212", "metadata": null}, {"id": "213", "metadata": null}, {"id": "214", "metadata": null}, {"id": "215", "metadata": null}, {"id": "216", "metadata": null}, {"id": "217", "metadata": null}, {"id": "218", "metadata": null}, {"id": "219", "metadata": null}, {"id": "220", "metadata": null}, {"id": "221", "metadata": null}, {"id": "222", "metadata": null}, {"id": "223", "metadata": null}, {"id": "224", "metadata": null}, {"id": "225", "metadata": null}, {"id": "226", "metadata": null}, {"id": "227", "metadata": null}, {"id": "228", "metadata": null}, {"id": "229", "metadata": null}, {"id": "230", "metadata": null}, {"id": "231", "metadata": null}, {"id": "232", "metadata": null}, {"id": "233", "metadata": null}, {"id": "234", "metadata": null}, {"id": "235", "metadata": null}, {"id": "236", "metadata": null}, {"id": "237", "metadata": null}, {"id": "238", "metadata": null}, {"id": "239", "metadata": null}, {"id": "240", "metadata": null}, {"id": "241", "metadata": null}, {"id": "242", "metadata": null}, {"id": "243", "metadata": null}, {"id": "244", "metadata": null}, {"id": "245", "metadata": null}, {"id": "246", "metadata": null}, {"id": "247", "metadata": null}, {"id": "248", "metadata": null}, {"id": "249", "metadata": null}, {"id": "250", "metadata": null}, {"id": "251", "metadata": null}, {"id": "252", "metadata": null}, {"id": "253", "metadata": null}, {"id": "254", "metadata": null}, {"id": "255", "metadata": null}, {"id": "256", "metadata": null}, {"id": "257", "metadata": null}, {"id": "258", "metadata": null}, {"id": "259", "metadata": null}, {"id": "260", "metadata": null}, {"id": "261", "metadata": null}, {"id": "262", "metadata": null}, {"id": "263", "metadata": null}, {"id": "264", "metadata": null}, {"id": "265", "metadata": null}, {"id": "266", "metadata": null}, {"id": "267", "metadata": null}, {"id": "268", "metadata": null}, {"id": "269", "metadata": null}, {"id": "270", "metadata": null}, {"id": "271", "metadata": null}, {"id": "272", "metadata": null}, {"id": "273", "metadata": null}, {"id": "274", "metadata": null}, {"id": "275", "metadata": null}, {"id": "276", "metadata": null}, {"id": "277", "metadata": null}, {"id": "278", "metadata": null}, {"id": "279", "metadata": null}, {"id": "280", "metadata": null}, {"id": "281", "metadata": null}, {"id": "282", "metadata": null}, {"id": "283", "metadata": null}, {"id": "284", "metadata": null}, {"id": "285", "metadata": null}, {"id": "286", "metadata": null}, {"id": "287", "metadata": null}, {"id": "288", "metadata": null}, {"id": "289", "metadata": null}, {"id": "290", "metadata": null}, {"id": "291", "metadata": null}, {"id": "292", "metadata": null}, {"id": "293", "metadata": null}, {"id": "294", "metadata": null}, {"id": "295", "metadata": null}, {"id": "296", "metadata": null}, {"id": "297", "metadata": null}, {"id": "298", "metadata": null}, {"id": "299", "metadata": null}, {"id": "300", "metadata": null}, {"id": "301", "metadata": null}, {"id": "302", "metadata": null}, {"id": "303", "metadata": null}, {"id": "304", "metadata": null}, {"id": "305", "metadata": null}, {"id": "306", "metadata": null}, {"id": "307", "metadata": null}, {"id": "308", "metadata": null}, {"id": "309", "metadata": null}, {"id": "310", "metadata": null}, {"id": "311", "metadata": null}, {"id": "312", "metadata": null}, {"id": "313", "metadata": null}, {"id": "314", "metadata": null}, {"id": "315", "metadata": null}, {"id": "316", "metadata": null}, {"id": "317", "metadata": null}, {"id": "318", "metadata": null}, {"id": "319", "metadata": null}, {"id": "320", "metadata": null}, {"id": "321", "metadata": null}, {"id": "322", "metadata": null}, {"id": "323", "metadata": null}, {"id": "324", "metadata": null}, {"id": "325", "metadata": null}, {"id": "326", "metadata": null}, {"id": "327", "metadata": null}, {"id": "328", "metadata": null}, {"id": "329", "metadata": null}, {"id": "330", "metadata": null}, {"id": "331", "metadata": null}, {"id": "332", "metadata": null}, {"id": "333", "metadata": null}, {"id": "334", "metadata": null}, {"id": "335", "metadata": null}, {"id": "336", "metadata": null}, {"id": "337", "metadata": null}, {"id": "338", "metadata": null}, {"id": "339", "metadata": null}, {"id": "340", "metadata": null}, {"id": "341", "metadata": null}, {"id": "342", "metadata": null}, {"id": "343", "metadata": null}, {"id": "344", "metadata": null}, {"id": "345", "metadata": null}, {"id": "346", "metadata": null}, {"id": "347", "metadata": null}, {"id": "348", "metadata": null}, {"id": "349", "metadata": null}, {"id": "350", "metadata": null}, {"id": "351", "metadata": null}, {"id": "352", "metadata": null}, {"id": "353", "metadata": null}, {"id": "354", "metadata": null}, {"id": "355", "metadata": null}, {"id": "356", "metadata": null}, {"id": "357", "metadata": null}, {"id": "358", "metadata": null}, {"id": "359", "metadata": null}, {"id": "360", "metadata": null}, {"id": "361", "metadata": null}, {"id": "362", "metadata": null}, {"id": "363", "metadata": null}, {"id": "364", "metadata": null}, {"id": "365", "metadata": null}, {"id": "366", "metadata": null}, {"id": "367", "metadata": null}, {"id": "368", "metadata": null}, {"id": "369", "metadata": null}, {"id": "370", "metadata": null}, {"id": "371", "metadata": null}, {"id": "372", "metadata": null}, {"id": "373", "metadata": null}, {"id": "374", "metadata": null}, {"id": "375", "metadata": null}, {"id": "376", "metadata": null}, {"id": "377", "metadata": null}, {"id": "378", "metadata": null}, {"id": "379", "metadata": null}, {"id": "380", "metadata": null}, {"id": "381", "metadata": null}, {"id": "382", "metadata": null}, {"id": "383", "metadata": null}, {"id": "384", "metadata": null}, {"id": "385", "metadata": null}, {"id": "386", "metadata": null}, {"id": "387", "metadata": null}, {"id": "388", "metadata": null}, {"id": "389", "metadata": null}, {"id": "390", "metadata": null}, {"id": "391", "metadata": null}, {"id": "392", "metadata": null}, {"id": "393", "metadata": null}, {"id": "394", "metadata": null}, {"id": "395", "metadata": null}, {"id": "396", "metadata": null}, {"id": "397", "metadata": null}, {"id": "398", "metadata": null}, {"id": "399", "metadata": null}, {"id": "400", "metadata": null}, {"id": "401", "metadata": null}, {"id": "402", "metadata": null}, {"id": "403", "metadata": null}, {"id": "404", "metadata": null}, {"id": "405", "metadata": null}, {"id": "406", "metadata": null}, {"id": "407", "metadata": null}, {"id": "408", "metadata": null}, {"id": "409", "metadata": null}, {"id": "410", "metadata": null}, {"id": "411", "metadata": null}, {"id": "412", "metadata": null}, {"id": "413", "metadata": null}, {"id": "414", "metadata": null}, {"id": "415", "metadata": null}, {"id": "416", "metadata": null}], "format": "Biological Observation Matrix v0.9", "data": [[0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [2, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 2, 0, 0, 0, 0, 0, 2], [1, 1, 0, 2, 4, 0, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [1, 0, 0, 1, 0, 1, 0, 0, 0], [0, 0, 1, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [1, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 4, 10, 37], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 3, 2], [0, 0, 0, 0, 2, 0, 1, 0, 0], [14, 1, 14, 1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0, 0, 0, 0], [6, 0, 4, 0, 2, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 8, 10, 2], [1, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 2, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0, 1], [0, 0, 0, 0, 0, 0, 5, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 6, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 5, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 1, 1, 0, 0, 0, 0, 0], [2, 3, 8, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, 0, 0, 2, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 2, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 9, 0, 0, 3, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 2, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 1, 0, 1, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 3, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 1, 5, 2], [0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 2, 0, 0, 6, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 3, 1, 2, 1, 9, 2, 4, 5], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 2, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 2, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 5, 2, 0, 0, 0], [0, 0, 1, 3, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 3, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 2, 0, 2, 0, 3], [0, 1, 0, 1, 1, 0, 0, 0, 3], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 1, 2, 19], [0, 2, 1, 2, 0, 0, 1, 1, 1], [2, 18, 0, 1, 0, 0, 21, 4, 4], [0, 0, 0, 0, 0, 5, 9, 5, 3], [0, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 3, 5, 2, 6], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [2, 1, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 2, 0, 7, 0, 0, 0, 2, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 10, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [1, 4, 2, 6, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 3, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [2, 1, 10, 2, 24, 0, 0, 1, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 1, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 2, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 2, 2, 4, 0, 5, 1, 5, 0], [1, 4, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 2, 0, 2, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [1, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 2, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 2, 0, 1, 0], [0, 0, 0, 0, 9, 1, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [1, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 2, 2], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 2, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 2, 0, 9, 1, 1, 1, 3], [16, 0, 0, 0, 12, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 19, 2, 0, 2, 0, 3, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 1, 1, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 1, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 1, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 4, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0, 5, 0], [11, 13, 6, 13, 2, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 5, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 1, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 2, 0, 0, 0, 0, 0], [1, 0, 0, 5, 17, 20, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0, 0], [0, 0, 0, 0, 0, 0, 2, 1, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 2, 3, 1, 4, 0, 5, 0, 4], [0, 0, 0, 0, 0, 0, 1, 1, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 3, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 2], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [29, 1, 10, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 2, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 3, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 2, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 4, 0, 0, 0, 2], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [2, 2, 0, 1, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 6, 0, 3, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 1], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 2, 1, 4, 1], [3, 0, 0, 0, 0, 0, 0, 0, 0], [0, 4, 4, 0, 1, 2, 0, 2, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 4, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 1, 1], [2, 0, 2, 1, 0, 0, 0, 0, 0], [1, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 1, 0], [1, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 2, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [2, 1, 0, 5, 0, 1, 0, 0, 0], [1, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 3, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 0, 0, 0, 0, 0, 4, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 2, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [4, 9, 0, 2, 0, 0, 0, 2, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 0, 1], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [0, 0, 1, 0, 0, 0, 0, 0, 0], [1, 1, 1, 0, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 13, 0, 0], [0, 0, 0, 0, 0, 0, 1, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 1, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [0, 0, 0, 0, 0, 1, 0, 0, 0], [1, 0, 0, 0, 0, 4, 0, 0, 0], [1, 5, 3, 2, 0, 0, 0, 0, 1], [0, 0, 0, 0, 0, 0, 0, 1, 1], [0, 0, 0, 0, 1, 0, 0, 0, 0], [0, 0, 0, 1, 0, 0, 0, 0, 0], [0, 0, 0, 0, 2, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 1, 0], [1, 0, 1, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 7, 0, 2, 2], [0, 1, 0, 0, 1, 0, 0, 0, 0]], "columns": [{"id": "PC.354", "metadata": null}, {"id": "PC.355", "metadata": null}, {"id": "PC.356", "metadata": null}, {"id": "PC.481", "metadata": null}, {"id": "PC.593", "metadata": null}, {"id": "PC.607", "metadata": null}, {"id": "PC.634", "metadata": null}, {"id": "PC.635", "metadata": null}, {"id": "PC.636", "metadata": null}], "generated_by": "QIIME 1.4.0-dev, svn revision 2604", "matrix_type": "dense", "shape": [417, 9], "format_url": "http://www.qiime.org/svn_documentation/documentation/biom_format.html", "date": "2011-12-22T11:28:47.373680", "type": "OTU table", "id": null, "matrix_element_type": "int"}"""
-
-
 
 if __name__ =='__main__':
     main()

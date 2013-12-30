@@ -24,7 +24,7 @@ class TableSummarizerTests(TestCase):
     
     def setUp(self):
         """ initialize objects for use in tests """
-        self.biom1_lines = biom1.split('\n')
+        self.biom1_lines = biom1
         self.summary_default_lines = summary_default.split('\n')
         self.summary_suppress_md5_lines = summary_suppress_md5.split('\n')
         self.summary_qualitative_lines = summary_qualitative.split('\n')
@@ -34,7 +34,8 @@ class TableSummarizerTests(TestCase):
         
         """
         t = TableSummarizer()
-        actual = t(table=(parse_biom_table(self.biom1_lines),self.biom1_lines),
+        actual = t(table=(parse_biom_table(self.biom1_lines),
+                          self.biom1_lines.split('\n')),
                           qualitative=False,
                           suppress_md5=False)
         self.assertEqual(actual['biom_summary'],self.summary_default_lines)
@@ -49,6 +50,7 @@ class TableSummarizerTests(TestCase):
                                            self.biom1_lines),
                    qualitative=False,
                    suppress_md5=True)
+        
         self.assertEqual(actual['biom_summary'],
                          self.summary_suppress_md5_lines)
         # suppress md5 by passing None as the second value in table
@@ -70,7 +72,8 @@ class TableSummarizerTests(TestCase):
         
         """
         t = TableSummarizer()
-        actual = t(table=(parse_biom_table(self.biom1_lines),self.biom1_lines),
+        actual = t(table=(parse_biom_table(self.biom1_lines),
+                          self.biom1_lines.split('\n')),
                    qualitative=True,
                    suppress_md5=False)
         self.assertEqual(actual['biom_summary'],self.summary_qualitative_lines)

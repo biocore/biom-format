@@ -28,8 +28,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 class UtilTests(TestCase):
     def setUp(self):
-        self.biom_otu_table1_w_tax = \
-         parse_biom_table(biom_otu_table1_w_tax.split('\n'))
+        self.biom_otu_table1_w_tax = parse_biom_table(biom_otu_table1_w_tax)
     
     def test_natsort(self):
         """natsort should perform numeric comparisons on strings
