@@ -18,7 +18,9 @@ from types import NoneType
 from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
-from numpy import ndarray, asarray, array, newaxis, zeros
+from numpy import ndarray, asarray, array, newaxis, zeros, int32
+from numpy.lib.recfunctions import merge_arrays
+import h5py
 
 from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID
@@ -1505,6 +1507,71 @@ class Table(object):
 
         return self.__class__(self._conv_to_self_type(vals), sample_ids[:], 
                 obs_ids[:], sample_md, obs_md)
+
+    def writeHDF5(self, fp, generated_by):
+        """ """
+        vlen_str = h5py.special_dtype(vlen=str)
+
+        # from Jai's protobiom.hdf5
+        out_f = h5py.File(fp, 'w')
+
+        # /
+        out_f.attrs['id'] = self.TableId if self.TableId else "No Table ID"
+        out_f.attrs['format'] = "Biological Observation Matrix 2.0.0"
+        out_f.attrs['format_url'] = "http://biom-format.org"
+        out_f.attrs['format_version'] = (2, 0)
+        out_f.attrs['generated_by'] = generated_by
+        out_f.attrs['date'] = datetime.now().isoformat()
+        out_f.attrs['shape'] = self._data.shape
+        out_f.attrs['nnz'] = self._data.size
+
+        # /observations
+        n_obs = len(self.ObservationIds)
+        obs_grp = out_f.create_group('observations')
+
+        # /observations/ids
+        obs_ids = obs_grp.create_dataset('ids', (n_obs,), dtype=vlen_str)
+        obs_ids[...] = self.ObservationIds
+
+        # /observations/metadata
+        if self.ObservationMetadata is not None:
+            obs_md = obs_grp.create_dataset('metadata', (1,), dtype=vlen_str)
+            obs_md_serial = dumps(self.ObservationMetadata)
+            obs_md[...] = obs_md_serial
+
+        # /samples
+        n_samp = len(self.SampleIds)
+        samp_grp = out_f.create_group('samples')
+
+        # /samples/ids
+        samp_ids = samp_grp.create_dataset('ids', (n_samp,), dtype=vlen_str)
+        samp_ids[...] = self.SampleIds
+
+        # /samples/metadata
+        if self.SampleMetadata is not None:
+            samp_md = samp_grp.create_dataset('metadata', (1,), dtype=vlen_str)
+            samp_md_serial = dumps(self.SampleMetadata)
+            samp_md[...] = samp_md_serial
+
+        # /data
+        data_grp = out_f.create_group('data')
+
+        for s_idx, (v, i, m) in enumerate(self.iterSamples(conv_to_np=False)):
+            coo = v._matrix.tocoo()
+            # /data/<sample_name>
+            samp_grp = data_grp.create_group(i)
+            samp_grp.attrs['sample_id_index'] = s_idx
+
+            # /data/<sample_name>/values
+            n_obs_in_sample = v.size
+            packed = merge_arrays([coo.col, coo.data])
+            packed.dtype.names = ("observation_index", "observation_value")
+            values = samp_grp.create_dataset('values',
+                                             shape=(n_obs_in_sample,),
+                                             data=packed,
+                                             dtype=packed.dtype)
+        
+        out_f.close()
 
     def getBiomFormatObject(self, generated_by):
         """Returns a dictionary representing the table in BIOM format.

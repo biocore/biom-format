@@ -9,12 +9,14 @@
 #-----------------------------------------------------------------------------
 
 from __future__ import division
+import h5py
 from biom import __version__
 from biom.exception import BiomParseException
 from biom.table import (Table, table_factory, to_sparse,
     nparray_to_sparseobj, SparseObj)
+from itertools import izip
 import json
-from numpy import zeros, asarray, uint32, float64
+from numpy import zeros, empty, asarray, int32, float64
 from string import strip
 
 __author__ = "Justin Kuczynski"
@@ -229,6 +231,46 @@ def parse_biom_table(fp):
         return parse_biom_table_json(json.loads(''.join(fp)))
     else:
         return parse_biom_table_json(json.loads(fp))
+
+def parse_biom_table_hdf5(fp):
+    table_f = h5py.File(fp, 'r')
+    nnz = table_f.attrs['nnz']
+    obs_ids = table_f['/observations/ids'][:]
+    samp_ids = table_f['/samples/ids'][:]
+
+    if '/observations/metadata' in table_f:
+        obs_md = json.loads(table_f['/observations/metadata'][0])
+    else:
+        obs_md = None
+
+    if '/samples/metadata' in table_f:
+        samp_md = json.loads(table_f['/samples/metadata'][0])
+    else:
+        samp_md = None
+   
+    rows = empty(nnz, dtype=int32)
+    cols = empty(nnz, dtype=int32)
+    vals = empty(nnz, dtype=float64)
+
+    start = 0
+    end = 0
+    for sample_name, sample in table_f['/data'].iteritems():
+        if 'sample_id_index' not in sample.attrs:
+            continue
+    
+        end = end + sample['values'].size
+        cols[start:end] = sample.attrs['sample_id_index']
+        rows[start:end] = sample['values']['observation_index']
+        vals[start:end] = sample['values']['observation_value']
+
+        start = end
+
+    ### need to support:
+    ### data = (vals, (rows, cols))
+    ### can feed that direct into coo_matrix via scipysparse backend 
+    ### constructor, table factory does not handle this yet
+    tmp_data = [[r,c,v] for r,c,v in izip(rows, cols, vals)]
+    return table_factory(tmp_data, samp_ids, obs_ids, samp_md, obs_md)
 
 def parse_biom_table_json(json_table, data_pump=None):
     """Parse a biom otu table type"""
