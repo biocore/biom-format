@@ -14,18 +14,17 @@ from __future__ import division
 from copy import deepcopy
 from datetime import datetime
 from json import dumps
-from types import NoneType
 from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
-from numpy import ndarray, asarray, array, newaxis, zeros, int32
+from numpy import ndarray, asarray, zeros, int32
 from numpy.lib.recfunctions import merge_arrays
 import h5py
 
 from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID
 from biom.util import get_biom_format_version_string, \
-    get_biom_format_url_string, unzip, flatten, _natsort_key, natsort, \
+    get_biom_format_url_string, flatten, _natsort_key, natsort, \
     prefer_self, index_list
 
 SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
@@ -39,7 +38,7 @@ __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
-__email__ = "daniel.mcdonald@colorado.edu"   
+__email__ = "daniel.mcdonald@colorado.edu"
 
 class Table(object):
     """Abstract base class representing a Table.
@@ -56,14 +55,13 @@ class Table(object):
     __delattr__ = __setattr__
 
     def __init__(self, Data, SampleIds, ObservationIds, SampleMetadata=None,
-                 ObservationMetadata=None, TableId=None, Type=None, **kwargs):
-        if Type is None:
-            Type = 'Unspecified'
-        
-        super(Table, self).__setattr__('Type', Type)
+                 ObservationMetadata=None, TableId=None, SampleExtLink=None, 
+                 H5Group=None, **kwargs):
         super(Table, self).__setattr__('TableId', TableId)
         super(Table, self).__setattr__('_data', Data)
         super(Table, self).__setattr__('_dtype', Data.dtype)
+        super(Table, self).__setattr__('SampleExtLink', SampleExtLink)
+        super(Table, self).__setattr__('H5Group', H5Group)
 
         # Cast to tuple for immutability.
         super(Table, self).__setattr__('SampleIds', tuple(SampleIds))
@@ -91,7 +89,7 @@ class Table(object):
 
     def _index_ids(self):
         """Sets lookups {id:index in _data}.
-        
+
         Should only be called in constructor as this modifies state.
         """
         super(Table, self).__setattr__('_sample_index',
@@ -103,8 +101,8 @@ class Table(object):
         """Two SparseObj matrices are equal if the items are equal"""
         if isinstance(self, other.__class__):
             return sorted(self._data.items()) == sorted(other._data.items())
-        
-        for s_v, o_v in izip(self.iterSampleData(),other.iterSampleData()):
+
+        for s_v, o_v in izip(self.iterSampleData(), other.iterSampleData()):
             if not (s_v == o_v).all():
                 return False
     
@@ -1431,16 +1429,6 @@ class Table(object):
         # length used for construction of new vectors
         vec_length = len(new_samp_order)
         
-        # The following lines of code allow for removing type conversions,
-        # however it should be noted that in testing as of 7.5.12, this 
-        # degraded performance due to the vastly higher performing numpy
-        # __setitem__ interface.
-        #if self._biom_matrix_type is 'sparse':
-        #    data_f = lambda: self._data.__class__(1, vec_length, dtype=float,\
-        #                                    enable_indices=False)
-        #else:
-        #    data_f = lambda: zeros(vec_length, dtype=float) 
-
         # walk over observations in our new order
         for obs_id, new_obs_idx in new_obs_order:
             # create new vector for matrix values
@@ -1508,70 +1496,102 @@ class Table(object):
         return self.__class__(self._conv_to_self_type(vals), sample_ids[:], 
                 obs_ids[:], sample_md, obs_md)
 
-    def writeHDF5(self, fp, generated_by):
-        """ """
+    def formatHDF5(self, h5grp, generated_by):
+        """Format data within an HDF5 group
+
+        h5grp : a HDF5 group
+        generated_by : who/what generated the data
+
+        Data are stored in h5grp relative to the group, absolute paths are
+        not used. This allows for the data to be embedded in another HDF5
+        file without issue
+        
+        This code based on Jai Ram Rideout's protobiom.hdf5
+        """
+        # Define a variable length string type
         vlen_str = h5py.special_dtype(vlen=str)
 
-        # from Jai's protobiom.hdf5
-        out_f = h5py.File(fp, 'w')
+        # ./
+        h5grp.attrs['id'] = self.TableId if self.TableId else "No Table ID"
+        h5grp.attrs['format'] = "Biological Observation Matrix 2.0.0"
+        h5grp.attrs['format_url'] = "http://biom-format.org"
+        h5grp.attrs['format_version'] = (2, 0)
+        h5grp.attrs['generated_by'] = generated_by
+        h5grp.attrs['date'] = datetime.now().isoformat()
+        h5grp.attrs['shape'] = self._data.shape
+        h5grp.attrs['nnz'] = self._data.size
 
-        # /
-        out_f.attrs['id'] = self.TableId if self.TableId else "No Table ID"
-        out_f.attrs['format'] = "Biological Observation Matrix 2.0.0"
-        out_f.attrs['format_url'] = "http://biom-format.org"
-        out_f.attrs['format_version'] = (2, 0)
-        out_f.attrs['generated_by'] = generated_by
-        out_f.attrs['date'] = datetime.now().isoformat()
-        out_f.attrs['shape'] = self._data.shape
-        out_f.attrs['nnz'] = self._data.size
-
-        # /observations
+        # ./observations
         n_obs = len(self.ObservationIds)
-        obs_grp = out_f.create_group('observations')
+        obs_grp = h5grp.create_group('observations')
 
-        # /observations/ids
+        # ./observations/ids
         obs_ids = obs_grp.create_dataset('ids', (n_obs,), dtype=vlen_str)
         obs_ids[...] = self.ObservationIds
 
-        # /observations/metadata
+        # ./observations/metadata
         if self.ObservationMetadata is not None:
             obs_md = obs_grp.create_dataset('metadata', (1,), dtype=vlen_str)
             obs_md_serial = dumps(self.ObservationMetadata)
             obs_md[...] = obs_md_serial
 
-        # /samples
+        # ./samples
         n_samp = len(self.SampleIds)
-        samp_grp = out_f.create_group('samples')
+        samp_grp = h5grp.create_group('samples')
 
-        # /samples/ids
+        # ./samples/ids
         samp_ids = samp_grp.create_dataset('ids', (n_samp,), dtype=vlen_str)
         samp_ids[...] = self.SampleIds
 
-        # /samples/metadata
+        # ./samples/metadata
         if self.SampleMetadata is not None:
             samp_md = samp_grp.create_dataset('metadata', (1,), dtype=vlen_str)
             samp_md_serial = dumps(self.SampleMetadata)
             samp_md[...] = samp_md_serial
 
-        # /data
-        data_grp = out_f.create_group('data')
+        # ./data
+        data_grp = h5grp.create_group('data')
 
+        # A new group will be created for each sample of the form:
+        #
+        # ./data/<sample_name>
+        #
+        # Two attributes are decorated indicating the sample_id_index with a
+        # SoftLink through sample_ids to the specific dataset containing the 
+        # SampleIds. Sample ExternalLinks are decorated on as well when 
+        # they are available.
+        #
+        # Since the sample is implicitly stored, we then only need to
+        # explicitly store the columns (observation indices) and the values. 
+        # These are stored together in a single multiple typed array, the 
+        # advantage here is to limit the number of datasets in h5grp to O(N)
+        # where N is the number of samples. In addition, it explicitly keeps
+        # the values and observation indices in index order. 
         for s_idx, (v, i, m) in enumerate(self.iterSamples(conv_to_np=False)):
+            ### would benefit from iterSamples doing direct slices here
             coo = v._matrix.tocoo()
-            # /data/<sample_name>
-            samp_grp = data_grp.create_group(i)
-            samp_grp.attrs['sample_id_index'] = s_idx
 
-            # /data/<sample_name>/values
+            # ./data/<sample_name>
+            samp_grp = data_grp.create_group(i)
+            samp_grp.attrs['sample_id_index'] = int32(s_idx)
+
+            # A sample may have an external link to tie against the observation
+            # map which would allow back tracking to determine the specific 
+            # sequences associated with a (sample, observation).
+            if self.SampleExtLink is not None:
+                f, p = self.SampleExtLink[s_idx] # f -> file, p -> path
+                samp_grp['ext_link'] = h5py.ExternalLink(f, p)
+
+            # ./data/<sample_name>/values
             n_obs_in_sample = v.size
             packed = merge_arrays([coo.col, coo.data])
-            packed.dtype.names = ("observation_index", "observation_value")
-            values = samp_grp.create_dataset('values',
-                                             shape=(n_obs_in_sample,),
-                                             data=packed,
-                                             dtype=packed.dtype)
-        
-        out_f.close()
+            packed.dtype.names = ("observation_id_index", "observation_value")
+            samp_grp.create_dataset('values',
+                                    shape=(n_obs_in_sample,),
+                                    data=packed,
+                                    dtype=packed.dtype)
+
+        h5grp.flush()
 
     def getBiomFormatObject(self, generated_by):
         """Returns a dictionary representing the table in BIOM format.
@@ -1587,9 +1607,6 @@ class Table(object):
         optimizations are necessary or not (i.e. subclassing JSONEncoder, using
         generators, etc...).
         """
-        if self.Type is None:
-            raise TableException, "Unknown biom type"
-
         if (not isinstance(generated_by, str) and
             not isinstance(generated_by, unicode)):
             raise TableException, "Must specify a generated_by string"
@@ -1628,8 +1645,6 @@ class Table(object):
             raise TableException("Unsupported matrix data type.")
 
         # Fill in details about the matrix.
-        biom_format_obj["type"] = self.Type
-        biom_format_obj["matrix_type"] = 'sparse'
         biom_format_obj["matrix_element_type"] = "%s" % matrix_element_type
         biom_format_obj["shape"] = [num_rows, num_cols]
 
@@ -1669,9 +1684,6 @@ class Table(object):
         If direct_io is not None, the final output is written directly to
         direct_io during processing.
         """
-        if self.Type is None:
-            raise TableException, "Unknown biom type"
-
         if (not isinstance(generated_by, str) and
             not isinstance(generated_by, unicode)):
             raise TableException, "Must specify a generated_by string"
@@ -1717,13 +1729,9 @@ class Table(object):
 
         # Fill in details about the matrix.
         if direct_io:
-            direct_io.write('"type": "%s",' % self.Type)
-            direct_io.write('"matrix_type": "%s",' % self._biom_matrix_type)
             direct_io.write('"matrix_element_type": "%s",' % matrix_element_type)
             direct_io.write('"shape": [%d, %d],' % (num_rows, num_cols))
         else:
-            type_ = '"type": "%s",' % self.Type
-            matrix_type = '"matrix_type": "%s",' % self._biom_matrix_type
             matrix_element_type = '"matrix_element_type": "%s",' % matrix_element_type
             shape = '"shape": [%d, %d],' % (num_rows, num_cols)
 
@@ -1747,54 +1755,40 @@ class Table(object):
                 rows.append('{"id": "%s", "metadata": %s}],' % (obs[1],
                                                                 dumps(obs[2])))
 
-            # If the matrix is dense, simply convert the numpy array to a list
-            # of data values. If the matrix is sparse, we need to store the
-            # data in sparse format, as it is given to us in a numpy array in
-            # dense format (i.e. includes zeroes) by iterObservations().
-            if self._biom_matrix_type == "dense":
-                if direct_io:
-                    # if we are not on the last row
-                    if obs_index != max_row_idx:
-                        direct_io.write("[%s]," % ','.join(map(repr, obs[0])))
-                    else:
-                        direct_io.write("[%s]]," % ','.join(map(repr, obs[0])))
-                else:
-                    # if we are not on the last row
-                    if obs_index != max_row_idx:
-                        data.append("[%s]," % ','.join(map(repr, obs[0])))
-                    else:
-                        data.append("[%s]]," % ','.join(map(repr, obs[0])))
+            # if we are not on the last row
+            if obs_index != max_row_idx:
+                data.append("[%s]," % ','.join(map(repr, obs[0])))
+            else:
+                data.append("[%s]]," % ','.join(map(repr, obs[0])))
 
-            elif self._biom_matrix_type == "sparse":
-                # turns out its a pain to figure out when to place commas. the
-                # simple work around, at the expense of a little memory 
-                # (bound by the number of samples) is to build of what will be
-                # written, and then add in the commas where necessary.
-                built_row = []
-                for col_index, val in enumerate(obs[0]):
-                    if float(val) != 0.0:
-                        built_row.append("[%d,%d,%r]" % (obs_index, col_index,
-                                                         val))
-                if built_row:
-                    # if we have written a row already, its safe to add a comma
-                    if have_written:
-                        if direct_io:
-                            direct_io.write(',')
-                        else:
-                            data.append(',')
+            # turns out its a pain to figure out when to place commas. the
+            # simple work around, at the expense of a little memory 
+            # (bound by the number of samples) is to build of what will be
+            # written, and then add in the commas where necessary.
+            built_row = []
+            for col_index, val in enumerate(obs[0]):
+                if float(val) != 0.0:
+                    built_row.append("[%d,%d,%r]" % (obs_index, col_index,
+                                                     val))
+            if built_row:
+                # if we have written a row already, its safe to add a comma
+                if have_written:
                     if direct_io:
-                        direct_io.write(','.join(built_row))
+                        direct_io.write(',')
                     else:
-                        data.append(','.join(built_row))
+                        data.append(',')
+                if direct_io:
+                    direct_io.write(','.join(built_row))
+                else:
+                    data.append(','.join(built_row))
 
-                    have_written = True
+                have_written = True
 
         # finalize the data block
-        if self._biom_matrix_type == 'sparse':
-            if direct_io:
-                direct_io.write("],")
-            else:
-                data.append("],")
+        if direct_io:
+            direct_io.write("],")
+        else:
+            data.append("],")
 
         # Fill in details about the columns in the table.
         columns = ['"columns": [']
@@ -1814,9 +1808,9 @@ class Table(object):
             direct_io.write(columns); 
             direct_io.write('}')
         else:
-            return "{%s}" % ''.join([id_, format_, format_url, type_, 
+            return "{%s}" % ''.join([id_, format_, format_url, 
                                       generated_by, date, 
-                                      matrix_type, matrix_element_type, shape, 
+                                      matrix_element_type, shape, 
                                       ''.join(data), rows, columns])
 
     def getBiomFormatPrettyPrint(self,generated_by):

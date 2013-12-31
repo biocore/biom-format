@@ -232,45 +232,64 @@ def parse_biom_table(fp):
     else:
         return parse_biom_table_json(json.loads(fp))
 
-def parse_biom_table_hdf5(fp):
-    table_f = h5py.File(fp, 'r')
-    nnz = table_f.attrs['nnz']
-    obs_ids = table_f['/observations/ids'][:]
-    samp_ids = table_f['/samples/ids'][:]
+def parse_biom_table_hdf5(h5grp):
+    """Fetch a BIOM Table out of an h5grp"""
+    nnz = h5grp.attrs['nnz']
+    obs_ids = h5grp['observations/ids'][:]
+    samp_ids = h5grp['samples/ids'][:]
 
-    if '/observations/metadata' in table_f:
-        obs_md = json.loads(table_f['/observations/metadata'][0])
+    # parse observation metadata if available
+    if 'observations/metadata' in h5grp:
+        obs_md = json.loads(h5grp['observations/metadata'][0])
     else:
         obs_md = None
 
-    if '/samples/metadata' in table_f:
-        samp_md = json.loads(table_f['/samples/metadata'][0])
+    # parse sample metadata if available
+    if 'samples/metadata' in h5grp:
+        samp_md = json.loads(h5grp['samples/metadata'][0])
     else:
         samp_md = None
    
+    # allocate memory for the actual data
     rows = empty(nnz, dtype=int32)
     cols = empty(nnz, dtype=int32)
     vals = empty(nnz, dtype=float64)
 
+    ext_links = []
     start = 0
     end = 0
-    for sample_name, sample in table_f['/data'].iteritems():
+    for sample_name, sample in h5grp['data'].iteritems():
+        # ignore any other groups or datasets under data unless they
+        # resemble a BIOM sample
         if 'sample_id_index' not in sample.attrs:
             continue
-    
+
+        # retain any external link information
+        if 'ext_link' in sample.attrs:
+            x = sample.attrs['ext_link']
+            ext_links.append([(x.filename, x.path)])
+
+        # fetch the actual data
         end = end + sample['values'].size
         cols[start:end] = sample.attrs['sample_id_index']
-        rows[start:end] = sample['values']['observation_index']
+        rows[start:end] = sample['values']['observation_id_index']
         vals[start:end] = sample['values']['observation_value']
 
         start = end
 
-    ### need to support:
+    ### need to add ScipySparseBackend support for:
     ### data = (vals, (rows, cols))
     ### can feed that direct into coo_matrix via scipysparse backend 
     ### constructor, table factory does not handle this yet
     tmp_data = [[r,c,v] for r,c,v in izip(rows, cols, vals)]
-    return table_factory(tmp_data, samp_ids, obs_ids, samp_md, obs_md)
+
+    if not ext_links:
+        ext_links = None
+
+    ### shape information is not being fed to table_factory, and is
+    ### instead inferred. This is not necessary.
+    return table_factory(tmp_data, samp_ids, obs_ids, samp_md, obs_md,
+            SampleExtLink=ext_links, H5Group=h5grp)
 
 def parse_biom_table_json(json_table, data_pump=None):
     """Parse a biom otu table type"""

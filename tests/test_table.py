@@ -10,9 +10,10 @@
 
 from numpy import where, zeros, array, reshape, arange
 from biom.unit_test import TestCase, main
+from biom.util import unzip
 from biom.table import (TableException, Table, UnknownID, 
     prefer_self, index_list, dict_to_nparray, list_dict_to_nparray, 
-    table_factory, list_list_to_nparray, flatten, unzip, natsort, to_sparse,
+    table_factory, list_list_to_nparray, flatten, natsort, to_sparse,
     nparray_to_sparseobj, list_nparray_to_sparseobj, SparseObj, 
     get_zerod_matrix)
 from biom.parse import parse_biom_table 
@@ -1249,10 +1250,8 @@ class SparseOTUTableTests(TestCase):
                'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
                'columns': [{'id': 'a', 'metadata': None},
                            {'id': 'b', 'metadata': None}],
-                'matrix_type': 'sparse', 
                 'shape': [2, 2],
                 'format_url': __url__, 
-                'type': 'Unspecified', 
                 'id': None,
                 'generated_by':'foo',
                 'matrix_element_type': 'int'}
@@ -1268,10 +1267,8 @@ class SparseOTUTableTests(TestCase):
                'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
                'columns': [{'id': 'a', 'metadata':{'barcode': 'aatt'}}, 
                            {'id': 'b', 'metadata':{'barcode': 'ttgg'}}],
-                'matrix_type': 'sparse', 
                 'shape': [2, 2],
                 'format_url': __url__,
-                'type': 'Unspecified', 
                 'id': None,
                 'generated_by':'foo',
                 'matrix_element_type': 'int'}
@@ -1292,10 +1289,8 @@ class SparseOTUTableTests(TestCase):
                'columns':[{'id': 'a', 'metadata': None}, 
                           {'id': 'b', 'metadata': None},
                           {'id': 'c', 'metadata': None}], 
-               'matrix_type': 'sparse',
                'shape': [2, 3], 
                'format_url':__url__, 
-               'type': 'Unspecified', 
                'generated_by':'foo',
                'id': None, 
                'matrix_element_type': 'float'}
