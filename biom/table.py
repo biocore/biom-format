@@ -27,6 +27,9 @@ from biom.util import get_biom_format_version_string, \
     get_biom_format_url_string, flatten, _natsort_key, natsort, \
     prefer_self, index_list
 
+# Define a variable length string type
+H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
+
 SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
         list_nparray_to_sparseobj, nparray_to_sparseobj, \
         list_list_to_sparseobj = get_sparse_backend()
@@ -1496,6 +1499,19 @@ class Table(object):
         return self.__class__(self._conv_to_self_type(vals), sample_ids[:], 
                 obs_ids[:], sample_md, obs_md)
 
+    def _h5_axis(self, grp, axis_name, ids, metadata):
+        """Create and store axis metadata in a group"""
+        n_ids = len(ids)
+        axis_grp = grp.create_group(axis_name)
+
+        grp_ids = axis_grp.create_dataset('ids', (n_ids,), dtype=H5PY_VLEN_STR)
+        grp_ids[...] = ids
+
+        if metadata is not None:
+            md = axis_grp.create_dataset('metadata', (1,), dtype=H5PY_VLEN_STR)
+            md_serial = dumps(metadata)
+            md[...] = md_serial
+
     def formatHDF5(self, h5grp, generated_by):
         """Format data within an HDF5 group
 
@@ -1508,9 +1524,6 @@ class Table(object):
         
         This code based on Jai Ram Rideout's protobiom.hdf5
         """
-        # Define a variable length string type
-        vlen_str = h5py.special_dtype(vlen=str)
-
         # ./
         h5grp.attrs['id'] = self.TableId if self.TableId else "No Table ID"
         h5grp.attrs['format'] = "Biological Observation Matrix 2.0.0"
@@ -1521,33 +1534,9 @@ class Table(object):
         h5grp.attrs['shape'] = self._data.shape
         h5grp.attrs['nnz'] = self._data.size
 
-        # ./observations
-        n_obs = len(self.ObservationIds)
-        obs_grp = h5grp.create_group('observations')
-
-        # ./observations/ids
-        obs_ids = obs_grp.create_dataset('ids', (n_obs,), dtype=vlen_str)
-        obs_ids[...] = self.ObservationIds
-
-        # ./observations/metadata
-        if self.ObservationMetadata is not None:
-            obs_md = obs_grp.create_dataset('metadata', (1,), dtype=vlen_str)
-            obs_md_serial = dumps(self.ObservationMetadata)
-            obs_md[...] = obs_md_serial
-
-        # ./samples
-        n_samp = len(self.SampleIds)
-        samp_grp = h5grp.create_group('samples')
-
-        # ./samples/ids
-        samp_ids = samp_grp.create_dataset('ids', (n_samp,), dtype=vlen_str)
-        samp_ids[...] = self.SampleIds
-
-        # ./samples/metadata
-        if self.SampleMetadata is not None:
-            samp_md = samp_grp.create_dataset('metadata', (1,), dtype=vlen_str)
-            samp_md_serial = dumps(self.SampleMetadata)
-            samp_md[...] = samp_md_serial
+        self._h5_axis(h5grp, 'samples', self.SampleIds, self.SampleMetadata)
+        self._h5_axis(h5grp, 'observations', self.ObservationIds, 
+                      self.ObservationMetadata)
 
         # ./data
         data_grp = h5grp.create_group('data')
