@@ -59,7 +59,11 @@ class Table(object):
 
     def __init__(self, Data, SampleIds, ObservationIds, SampleMetadata=None,
                  ObservationMetadata=None, TableId=None, SampleExtLink=None, 
-                 H5Group=None, **kwargs):
+                 H5Group=None, Type=None, **kwargs):
+        if Type is None:
+            Type = 'Unspecified'
+        
+        super(Table, self).__setattr__('Type', Type)
         super(Table, self).__setattr__('TableId', TableId)
         super(Table, self).__setattr__('_data', Data)
         super(Table, self).__setattr__('_dtype', Data.dtype)
@@ -1526,11 +1530,11 @@ class Table(object):
         """
         # ./
         h5grp.attrs['id'] = self.TableId if self.TableId else "No Table ID"
-        h5grp.attrs['format'] = "Biological Observation Matrix 2.0.0"
+        h5grp.attrs['type'] = self.Type
         h5grp.attrs['format_url'] = "http://biom-format.org"
         h5grp.attrs['format_version'] = (2, 0)
         h5grp.attrs['generated_by'] = generated_by
-        h5grp.attrs['date'] = datetime.now().isoformat()
+        h5grp.attrs['creation_date'] = datetime.now().isoformat()
         h5grp.attrs['shape'] = self._data.shape
         h5grp.attrs['nnz'] = self._data.size
 
