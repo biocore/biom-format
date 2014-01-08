@@ -265,8 +265,8 @@ def parse_biom_table_hdf5(h5grp):
             continue
 
         # retain any external link information
-        if 'ext_link' in sample.attrs:
-            x = sample.attrs['ext_link']
+        if 'ext_link' in sample:
+            x = sample['ext_link']
             ext_links[sample_name] = (x.filename, x.path)
         else:
             ext_links[sample_name] = None
