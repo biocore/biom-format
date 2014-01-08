@@ -255,7 +255,7 @@ def parse_biom_table_hdf5(h5grp):
     cols = empty(nnz, dtype=int32)
     vals = empty(nnz, dtype=float64)
 
-    ext_links = []
+    ext_links = {}
     start = 0
     end = 0
     for sample_name, sample in h5grp['data'].iteritems():
@@ -267,9 +267,9 @@ def parse_biom_table_hdf5(h5grp):
         # retain any external link information
         if 'ext_link' in sample.attrs:
             x = sample.attrs['ext_link']
-            ext_links.append([(x.filename, x.path)])
+            ext_links[sample_name] = (x.filename, x.path)
         else:
-            ext_links.append(None)
+            ext_links[sample_name] = None
 
         # fetch the actual data
         end = end + sample['values'].size
@@ -285,13 +285,10 @@ def parse_biom_table_hdf5(h5grp):
     ### constructor, table factory does not handle this yet
     tmp_data = [[r,c,v] for r,c,v in izip(rows, cols, vals)]
 
-    if not ext_links:
-        ext_links = None
-
     ### shape information is not being fed to table_factory, and is
     ### instead inferred. This is not necessary.
     return table_factory(tmp_data, samp_ids, obs_ids, samp_md, obs_md,
-            SampleExtLink=ext_links, H5Group=h5grp)
+            SampleExtLink=[ext_links[id_] for id_ in samp_ids], H5Group=h5grp)
 
 def parse_biom_table_json(json_table, data_pump=None):
     """Parse a biom otu table type"""
