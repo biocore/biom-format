@@ -268,6 +268,8 @@ def parse_biom_table_hdf5(h5grp):
         if 'ext_link' in sample.attrs:
             x = sample.attrs['ext_link']
             ext_links.append([(x.filename, x.path)])
+        else:
+            ext_links.append(None)
 
         # fetch the actual data
         end = end + sample['values'].size

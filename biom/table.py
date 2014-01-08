@@ -1571,7 +1571,7 @@ class Table(object):
             # A sample may have an external link to tie against the observation
             # map which would allow back tracking to determine the specific 
             # sequences associated with a (sample, observation).
-            if self.SampleExtLink is not None:
+            if self.SampleExtLink is not None and self.SampleExtLink[s_idx]:
                 f, p = self.SampleExtLink[s_idx] # f -> file, p -> path
                 samp_grp['ext_link'] = h5py.ExternalLink(f, p)
 
