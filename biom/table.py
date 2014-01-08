@@ -1864,7 +1864,8 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
         - list of SparseObj representation vectors
         - list of lists of sparse values [[row, col, value], ...]
         - list of lists of dense values [[value, value, ...], ...]
-    
+        - Scipy COO data (values, (rows, cols))
+
     Example usage to create a Table object::
     
         from biom.table import table_factory
@@ -1926,6 +1927,12 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     # if we have a dict representation
     elif isinstance(data, dict) and not isinstance(data, SparseObj):
         data = dict_to_sparseobj(data, dtype)
+
+    elif isinstance(data, tuple) and isinstance(data[0], ndarray):
+        # give it a go...
+        # there isn't a CSMat equivilent
+        from biom.backends.scipysparse import coo_arrays_to_scipy
+        data = coo_arrays_to_scipy(data)
 
     elif isinstance(data, SparseObj):
         pass
