@@ -66,7 +66,7 @@ setup(name='biom-format',
     install_requires=["numpy >= 1.3.0",
                       "pyqi == 0.3.1-dev"],
     dependency_links=[
-        "git+https://github.com/bipy/pyqi.git#egg=pyqi-0.3.1-dev"
+        'https://github.com/bipy/pyqi/archive/master.zip#egg=pyqi-0.3.1-dev'
     ],
     extras_require={'scipy_sparse':["scipy >= 0.9.0"],
                     'test':["nose >= 0.10.1",
