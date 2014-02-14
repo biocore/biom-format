@@ -38,7 +38,7 @@ JSON_SKIP = set([" ","\t","\n",","])
 JSON_START = set(["0","1","2","3","4","5","6","7","8","9","{","[",'"'])
 def direct_parse_key(biom_str, key):
     """Returns key:value from the biom string, or ""
-    
+
     This method pulls an arbitrary key/value pair out from a BIOM string
     """
     base_idx = biom_str.find('"%s":' % key)
@@ -48,22 +48,22 @@ def direct_parse_key(biom_str, key):
         start_idx = base_idx + len(key) + 3 # shift over "key":
 
     # find the start token
-    cur_idx = start_idx 
-    while biom_str[cur_idx] not in JSON_START:  
+    cur_idx = start_idx
+    while biom_str[cur_idx] not in JSON_START:
         cur_idx += 1
-    
+
     if biom_str[cur_idx] not in JSON_OPEN:
         # do we have a number?
         while biom_str[cur_idx] not in [",","{","}"]:
             cur_idx += 1
-            
+
     else:
         # we have an object
         stack = [biom_str[cur_idx]]
         cur_idx += 1
         while stack:
             cur_char = biom_str[cur_idx]
-            
+
             if cur_char == QUOTE:
                 if stack[-1] == QUOTE:
                     stack.pop()
@@ -87,9 +87,9 @@ def direct_slice_data(biom_str, to_keep, axis):
     biom_str : JSON-formatted BIOM string
     to_keep  : indices to keep
     axis     : either 'samples' or 'observations'
-    
+
     Will raise IndexError if the inices are out of bounds. Fully zerod rows
-    or columns are possible and this is _not_ checked. 
+    or columns are possible and this is _not_ checked.
     """
     if axis not in ['observations','samples']:
         raise IndexError, "Unknown axis type"
@@ -111,18 +111,18 @@ def direct_slice_data(biom_str, to_keep, axis):
     # determine shape
     raw_shape = shape_kv_pair.split(':')[-1].replace("[","").replace("]","")
     n_rows, n_cols = map(int, raw_shape.split(","))
-   
+
     # slice to just data
     data_start = data_fields.find('[') +1
     data_fields = data_fields[data_start:len(data_fields)-1] # trim trailing ]
-    
+
     # determine matrix type
     matrix_type = matrix_type_kv_pair.split(':')[-1].strip()
 
     # bounds check
     if min(to_keep) < 0:
         raise IndexError, "Observations to keep are out of bounds!"
-    
+
     # more bounds check and set new shape
     new_shape = "[%d, %d]"
     if axis == 'observations':
@@ -134,30 +134,30 @@ def direct_slice_data(biom_str, to_keep, axis):
             raise IndexError, "Samples to keep are out of bounds!"
         new_shape = new_shape % (n_rows, len(to_keep))
 
-    to_keep = set(to_keep) 
+    to_keep = set(to_keep)
     new_data = []
 
     if axis == 'observations':
         new_data = _direct_slice_data_sparse_obs(data_fields, to_keep)
     elif axis == 'samples':
         new_data = _direct_slice_data_sparse_samp(data_fields, to_keep)
-    
+
     return '"data": %s, "shape": %s' % (new_data, new_shape)
 
 STRIP_F = lambda x: x.strip("[] \n\t")
 def _remap_axis_sparse_obs(rcv, lookup):
     """Remap a sparse observation axis"""
     row,col,value = map(STRIP_F, rcv.split(','))
-    return "%s,%s,%s" % (lookup[row], col, value)    
+    return "%s,%s,%s" % (lookup[row], col, value)
 
 def _remap_axis_sparse_samp(rcv, lookup):
     """Remap a sparse sample axis"""
     row,col,value = map(STRIP_F, rcv.split(','))
-    return "%s,%s,%s" % (row, lookup[col], value)    
+    return "%s,%s,%s" % (row, lookup[col], value)
 
 def _direct_slice_data_sparse_obs(data, to_keep):
     """slice observations from data
-    
+
     data : raw data string from a biom file
     to_keep : rows to keep
     """
@@ -172,11 +172,11 @@ def _direct_slice_data_sparse_obs(data, to_keep):
 
 def _direct_slice_data_sparse_samp(data, to_keep):
     """slice samples from data
-    
+
     data : raw data string from a biom file
     to_keep : columns to keep
     """
-    # could do sparse obs/samp in one forloop, but then theres the 
+    # could do sparse obs/samp in one forloop, but then theres the
     # expense of the additional if-statement in the loop
     new_data = []
     remap_lookup = dict([(str(v),i) for i,v in enumerate(sorted(to_keep))])
@@ -192,7 +192,7 @@ def get_axis_indices(biom_str, to_keep, axis):
     biom_str : a BIOM formatted JSON string
     to_keep  : a list of IDs to get indices for
     axis     : either 'samples' or 'observations'
-    
+
     Raises KeyError if unknown key is specified
     """
     to_keep = set(to_keep)
@@ -235,60 +235,53 @@ def parse_biom_table(fp):
 def parse_biom_table_hdf5(h5grp):
     """Fetch a BIOM Table out of an h5grp"""
     nnz = h5grp.attrs['nnz']
-    obs_ids = h5grp['observations/ids'][:]
-    samp_ids = h5grp['samples/ids'][:]
+    obs_ids = h5grp['observations/id_index'][:]
+    samp_ids = h5grp['samples/id_index'][:]
 
-    # parse observation metadata if available
-    if 'observations/metadata' in h5grp:
-        obs_md = json.loads(h5grp['observations/metadata'][0])
-    else:
-        obs_md = None
+    samp_index_lookup = {k:i for i,k in enumerate(samp_ids)}
 
-    # parse sample metadata if available
-    if 'samples/metadata' in h5grp:
-        samp_md = json.loads(h5grp['samples/metadata'][0])
-    else:
-        samp_md = None
-   
     # allocate memory for the actual data
     rows = empty(nnz, dtype=int32)
     cols = empty(nnz, dtype=int32)
     vals = empty(nnz, dtype=float64)
 
-    ext_links = {}
+    samp_md = []
+    obs_md = []
+
     start = 0
     end = 0
-    for sample_name, sample in h5grp['data'].iteritems():
-        # ignore any other groups or datasets under data unless they
-        # resemble a BIOM sample
-        if 'sample_id_index' not in sample.attrs:
+    for name, data in h5grp['samples'].iteritems():
+        if name == 'id_index':
             continue
 
-        # retain any external link information
-        if 'ext_link' in sample:
-            x = sample['ext_link']
-            ext_links[sample_name] = (x.filename, x.path)
-        else:
-            ext_links[sample_name] = None
-
         # fetch the actual data
-        end = end + sample['values'].size
-        cols[start:end] = sample.attrs['sample_id_index']
-        rows[start:end] = sample['values']['observation_id_index']
-        vals[start:end] = sample['values']['observation_value']
+        end = end + data['values'].size
+        col = samp_index_lookup[name]
+
+        cols[start:end] = col
+        rows[start:end] = data['values']['id_index']
+        vals[start:end] = data['values']['value']
 
         start = end
 
+        if 'metadata' in data:
+            samp_md.append(json.loads(data['metadata'][0]))
+
+    for name in obs_ids:
+        path = 'observations/%s/metadata' % name
+        if path in h5grp:
+            obs_md.append(json.loads(h5grp[path][0]))
+
     ### need to add ScipySparseBackend support for:
     ### data = (vals, (rows, cols))
-    ### can feed that direct into coo_matrix via scipysparse backend 
+    ### can feed that direct into coo_matrix via scipysparse backend
     ### constructor, table factory does not handle this yet
     tmp_data = [[r,c,v] for r,c,v in izip(rows, cols, vals)]
 
     ### shape information is not being fed to table_factory, and is
     ### instead inferred. This is not necessary.
     return table_factory(tmp_data, samp_ids, obs_ids, samp_md, obs_md,
-            SampleExtLink=[ext_links[id_] for id_ in samp_ids], H5Group=h5grp)
+                         H5Group=h5grp)
 
 def parse_biom_table_json(json_table, data_pump=None):
     """Parse a biom otu table type"""
@@ -303,14 +296,14 @@ def parse_biom_table_json(json_table, data_pump=None):
     dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     if data_pump is None:
-        table_obj = table_factory(json_table['data'], sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  shape=json_table['shape'], 
+        table_obj = table_factory(json_table['data'], sample_ids, obs_ids,
+                                  sample_metadata, obs_metadata,
+                                  shape=json_table['shape'],
                                   dtype=dtype)
     else:
-        table_obj = table_factory(data_pump, sample_ids, obs_ids, 
-                                  sample_metadata, obs_metadata, 
-                                  shape=json_table['shape'], 
+        table_obj = table_factory(data_pump, sample_ids, obs_ids,
+                                  sample_metadata, obs_metadata,
+                                  shape=json_table['shape'],
                                   dtype=dtype)
 
     return table_obj
@@ -326,7 +319,7 @@ def sc_pipe_separated(x):
 
 def parse_biom_table_str(json_str,constructor=None, data_pump=None):
     """Parses a JSON string of the Biom table into a rich table object.
-   
+
     If constructor is none, the constructor is determined based on BIOM
     information
 
@@ -343,7 +336,7 @@ def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
     sample_mapping : can be None or {'sample_id':something}
     obs_mapping : can be none or {'observation_id':something}
     """
-    sample_ids, obs_ids, data, t_md, t_md_name = parse_classic_table(lines, 
+    sample_ids, obs_ids, data, t_md, t_md_name = parse_classic_table(lines,
                                                         **kwargs)
 
     # if we have it, keep it
@@ -362,15 +355,15 @@ def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
         obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
 
     data = nparray_to_sparseobj(data)
-    
-    return table_factory(data, sample_ids, obs_ids, sample_metadata, 
+
+    return table_factory(data, sample_ids, obs_ids, sample_metadata,
                          obs_metadata)
 
 def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None, \
         md_parse=None):
     """Parse a classic table into (sample_ids, obs_ids, data, metadata, md_name)
 
-    If the last column does not appear to be numeric, interpret it as 
+    If the last column does not appear to be numeric, interpret it as
     observation metadata, otherwise None.
 
     md_name is the column name for the last column if non-numeric
@@ -424,7 +417,7 @@ def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None, \
             int(last_value)
         except ValueError:
             last_column_is_numeric = False
-    
+
     # determine sample ids
     if last_column_is_numeric:
         md_name = None
@@ -434,7 +427,7 @@ def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None, \
         md_name = header[-1]
         metadata = []
         samp_ids = header[:-1]
-    
+
     data = []
     obs_ids = []
     for line in lines[data_start:]:
@@ -511,8 +504,8 @@ class MetadataMap(dict):
             else:
                 # remove spaces but not quotes
                 strip_f = lambda x: x.strip()
-        
-        # if the user didn't provide process functions, initialize as 
+
+        # if the user didn't provide process functions, initialize as
         # an empty dict
         if process_fns == None:
             process_fns = {}
@@ -579,16 +572,16 @@ def generatedby():
     """Returns a generated by string"""
     return 'BIOM-Format %s' % __version__
 
-def convert_table_to_biom(table_f,sample_mapping, obs_mapping, 
+def convert_table_to_biom(table_f,sample_mapping, obs_mapping,
         process_func, **kwargs):
     """Convert a contigency table to a biom table
-    
+
     sample_mapping : dict of {'sample_id':metadata} or None
     obs_mapping : dict of {'obs_id':metadata} or None
     process_func: a function to transform observation metadata
     dtype : type of table data
     """
-    otu_table = parse_classic_table_to_rich_table(table_f, sample_mapping, 
+    otu_table = parse_classic_table_to_rich_table(table_f, sample_mapping,
                                                   obs_mapping, process_func,
                                                   **kwargs)
     return otu_table.getBiomFormatJsonString(generatedby())
@@ -597,13 +590,13 @@ def biom_meta_to_string(metadata, replace_str=':'):
     """ Determine which format the metadata is (e.g. str, list, or list of lists) and then convert to a string"""
 
     #Note that since ';' and '|' are used as seperators we must replace them if they exist
-  
+
     #metadata is just a string (not a list)
     if isinstance(metadata,str) or isinstance(metadata,unicode):
         return metadata.replace(';',replace_str)
 
     elif isinstance(metadata,list):
-        
+
         #metadata is list of lists
         if isinstance(metadata[0], list):
             new_metadata=[]
@@ -627,9 +620,9 @@ def convert_biom_to_table(biom_f, header_key=None, header_value=None, \
 
     if table.ObservationMetadata is None:
         return table.delimitedSelf()
-    
+
     if header_key in table.ObservationMetadata[0]:
-        return table.delimitedSelf(header_key=header_key, 
+        return table.delimitedSelf(header_key=header_key,
                                        header_value=header_value,
                                        metadata_formatter=md_format)
     else:
