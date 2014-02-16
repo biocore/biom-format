@@ -23,9 +23,9 @@ import h5py
 
 from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID
-from biom.util import get_biom_format_version_string, \
-    get_biom_format_url_string, flatten, _natsort_key, natsort, \
-    prefer_self, index_list
+from biom.util import (get_biom_format_version_string,
+        get_biom_format_url_string, flatten, natsort, prefer_self,
+        index_list)
 
 # Define a variable length string type
 H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
