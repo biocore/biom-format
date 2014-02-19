@@ -232,7 +232,23 @@ def parse_biom_table(fp):
     else:
         return parse_biom_table_json(json.loads(fp))
 
-def parse_biom_table_hdf5(h5grp):
+def parse_biom_table_hdf5_CSC_CSR(h5grp):
+    from scipy.sparse import csr_matrix
+    from biom.backends.scipysparse import ScipySparseMat
+    obs_ids = h5grp['observation/ids'][:]
+    samp_ids = h5grp['sample/ids'][:]
+
+    data = h5grp['observation/data']
+    indices = h5grp['observation/indices']
+    indptr = h5grp['observation/indptr']
+    mat = csr_matrix((data, indices, indptr))
+
+    data = ScipySparseMat(len(obs_ids), len(samp_ids))
+    data._matrix = mat
+
+    return table_factory(data, samp_ids, obs_ids)
+
+def parse_biom_table_hdf5_DISTINCT_DS(h5grp):
     """Fetch a BIOM Table out of an h5grp"""
     nnz = h5grp.attrs['nnz']
     obs_ids = h5grp['observations/id_index'][:]

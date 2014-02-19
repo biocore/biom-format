@@ -1554,7 +1554,7 @@ class Table(object):
             self._hdf5_md(id_grp, md)
             self._hdf5_data(id_grp, values, index_getter)
 
-    def formatHDF5(self, h5grp, generated_by):
+    def formatHDF5_DISTINCT_DS(self, h5grp, generated_by):
         """Format data within an HDF5 group
 
         h5grp : a HDF5 group
@@ -1580,6 +1580,50 @@ class Table(object):
         self._hdf5_axis(h5grp, o_iter, 'observations', self.ObservationIds)
 
         h5grp.flush()
+
+    def formatHDF5_CSC_CSR(self, h5grp, generated_by):
+        """Store direct CSC and CSR"""
+        import numpy as np
+
+        h5grp.attrs['id'] = self.TableId if self.TableId else "No Table ID"
+        h5grp.attrs['type'] = self.Type
+        h5grp.attrs['format-url'] = "http://biom-format.org"
+        h5grp.attrs['format-version'] = (2, 0)
+        h5grp.attrs['generated-by'] = generated_by
+        h5grp.attrs['creation-date'] = datetime.now().isoformat()
+        h5grp.attrs['shape'] = self._data.shape
+        h5grp.attrs['nnz'] = self._data.size
+
+        self._data.convert('csr')
+        n = self._data._matrix.nnz
+        len_indptr = len(self._data._matrix.indptr)
+        obs_grp = h5grp.create_group('observation')
+        _ = obs_grp.create_dataset('data', shape=(n,), dtype=np.float64,
+                                          data=self._data._matrix.data)
+        _ = obs_grp.create_dataset('indices', shape=(n,),
+                               dtype=np.int32, data=self._data._matrix.indices)
+        _ = obs_grp.create_dataset('indptr', shape=(len_indptr,),
+                               dtype=np.int32, data=self._data._matrix.indptr)
+        n_obs = len(self.ObservationIds)
+        ids = obs_grp.create_dataset('ids', (n_obs,), dtype=H5PY_VLEN_STR)
+        ids[...] = self.ObservationIds
+
+        self._data.convert('csc')
+        n = self._data._matrix.nnz
+        len_indptr = len(self._data._matrix.indptr)
+        samp_grp = h5grp.create_group('sample')
+        _ = samp_grp.create_dataset('data', shape=(n,), dtype=np.float64,
+                                          data=self._data._matrix.data)
+        _ = samp_grp.create_dataset('indices', shape=(n,),
+                               dtype=np.int32, data=self._data._matrix.indices)
+        _ = samp_grp.create_dataset('indptr', shape=(len_indptr,),
+                               dtype=np.int32, data=self._data._matrix.indptr)
+        n_samp = len(self.SampleIds)
+        ids = samp_grp.create_dataset('ids', (n_samp,), dtype=H5PY_VLEN_STR)
+        ids[...] = self.SampleIds
+
+        h5grp.flush()
+
 
     def getBiomFormatObject(self, generated_by):
         """Returns a dictionary representing the table in BIOM format.
