@@ -1,0 +1,155 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Summarizing BIOM tables &mdash; biom-format.org</title>
+    
+    <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="biom-format.org" href="../index.html" />
+    <link rel="up" title="BIOM Documentation" href="index.html" />
+    <link rel="next" title="The BIOM Format License" href="../BIOM_LICENSE.html" />
+    <link rel="prev" title="Sparse matrix backends" href="change_sparse_backend.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="../index.html">
+          <span>biom-format.org</span></a></h1>
+        <h2 class="heading"><span>Summarizing BIOM tables</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="change_sparse_backend.html">Sparse matrix backends</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../BIOM_LICENSE.html">The BIOM Format License</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="summarizing-biom-tables">
+<span id="id1"></span><h1>Summarizing BIOM tables<a class="headerlink" href="#summarizing-biom-tables" title="Permalink to this headline">¶</a></h1>
+<p>If you have an existing BIOM file and want to compile a summary of the information in that table, you can use the <tt class="docutils literal"><span class="pre">biom</span> <span class="pre">summarize-table</span></tt> command.</p>
+<p>To get help with <tt class="docutils literal"><span class="pre">biom</span> <span class="pre">summarize-table</span></tt> you can call:</p>
+<div class="highlight-python"><pre>biom summarize-table -h</pre>
+</div>
+<p>This command takes a BIOM file or gzipped BIOM file as input, and will print a summary of the count information on a per-sample basis to the new file specified by the <tt class="docutils literal"><span class="pre">-o</span></tt> parameter. The example file used in the commands below can be found in the <tt class="docutils literal"><span class="pre">biom-format/examples</span></tt> directory.</p>
+<div class="section" id="summarizing-sample-data">
+<h2>Summarizing sample data<a class="headerlink" href="#summarizing-sample-data" title="Permalink to this headline">¶</a></h2>
+<p>To summarize the per-sample data in a BIOM file, you can run:</p>
+<div class="highlight-python"><pre>biom summarize-table -i rich_sparse_otu_table.biom -o rich_sparse_otu_table_summary.txt</pre>
+</div>
+<p>The following information will be written to <tt class="docutils literal"><span class="pre">rich_sparse_otu_table_summary.txt</span></tt>:</p>
+<div class="highlight-python"><pre>Num samples: 6
+Num observations: 5
+Total count: 27
+Table density (fraction of non-zero values): 0.5000
+Table md5 (unzipped): e0d1194d2d94ea81994c93b8f0db7f51
+
+Counts/sample summary:
+ Min: 3
+ Max: 7
+ Median: 4.0
+ Mean: 4.5
+ Std. dev.: 1.5
+ Sample Metadata Categories: LinkerPrimerSequence; BarcodeSequence; Description; BODY_SITE
+ Observation Metadata Categories: taxonomy
+
+Counts/sample detail:
+ Sample2: 3
+ Sample5: 3
+ Sample3: 4
+ Sample6: 4
+ Sample4: 6
+ Sample1: 7</pre>
+</div>
+<p>As you can see, general summary information about the table is provided, including the number of samples, the number of observations, the total count (i.e., the sum of all values in the table), and so on, followed by the per-sample counts.</p>
+</div>
+<div class="section" id="summarizing-sample-data-qualitatively">
+<h2>Summarizing sample data qualitatively<a class="headerlink" href="#summarizing-sample-data-qualitatively" title="Permalink to this headline">¶</a></h2>
+<p>To summarize the per-sample data in a BIOM file qualitatively, where the number of unique observations per sample (rather than the total count of observations per sample) are provided, you can run:</p>
+<div class="highlight-python"><pre>biom summarize-table -i rich_sparse_otu_table.biom --qualitative -o rich_sparse_otu_table_qual_summary.txt</pre>
+</div>
+<p>The following information will be written to <tt class="docutils literal"><span class="pre">rich_sparse_otu_table_qual_summary.txt</span></tt>:</p>
+<div class="highlight-python"><pre>Num samples: 6
+Num observations: 5
+Table md5 (unzipped): e0d1194d2d94ea81994c93b8f0db7f51
+
+Observations/sample summary:
+ Min: 1
+ Max: 4
+ Median: 2.5
+ Mean: 2.5
+ Std. dev.: 0.957427107756
+ Sample Metadata Categories: LinkerPrimerSequence; BarcodeSequence; Description; BODY_SITE
+ Observation Metadata Categories: taxonomy
+
+Observations/sample detail:
+ Sample5: 1
+ Sample1: 2
+ Sample4: 2
+ Sample2: 3
+ Sample6: 3
+ Sample3: 4</pre>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="change_sparse_backend.html">Sparse matrix backends</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../BIOM_LICENSE.html">The BIOM Format License</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+
+    <div class="footer">
+        &copy; Copyright 2011-2013, The BIOM Format Development Team.
+      Last updated on Dec 04, 2013.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-6636235-6']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>
