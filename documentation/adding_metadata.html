@@ -1,0 +1,427 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Adding sample and observation metadata to biom files &mdash; biom-format.org</title>
+    
+    <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.3.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <link rel="top" title="biom-format.org" href="../index.html" />
+    <link rel="up" title="BIOM Documentation" href="index.html" />
+    <link rel="next" title="Sparse matrix backends" href="change_sparse_backend.html" />
+    <link rel="prev" title="Converting between file formats" href="biom_conversion.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="../index.html">
+          <span>biom-format.org</span></a></h1>
+        <h2 class="heading"><span>Adding sample and observation metadata to biom files</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom_conversion.html">Converting between file formats</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="change_sparse_backend.html">Sparse matrix backends</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="adding-sample-and-observation-metadata-to-biom-files">
+<span id="adding-metadata"></span><h1>Adding sample and observation metadata to biom files<a class="headerlink" href="#adding-sample-and-observation-metadata-to-biom-files" title="Permalink to this headline">¶</a></h1>
+<p>Frequently you&#8217;ll have an existing BIOM file and want to add sample and/or observation metadata to it. For samples, metadata is frequently environmental or technical details about your samples: the subject that a sample was collected from, the pH of the sample, the PCR primers used to amplify DNA from the samples, etc. For observations, metadata is frequently a categorization of the observation: the taxonomy of an OTU, or the EC hierarchy of a gene. You can use the <tt class="docutils literal"><span class="pre">biom</span> <span class="pre">add-metadata</span></tt> command to add this information to an existing BIOM file.</p>
+<p>To get help with <tt class="docutils literal"><span class="pre">add-metadata</span></tt> you can call:</p>
+<div class="highlight-python"><pre>biom add-metadata -h</pre>
+</div>
+<p>This command takes a BIOM file, and corresponding sample and/or observation mapping files. The following examples are used in the commands below. You can find these files in the <tt class="docutils literal"><span class="pre">biom-format/examples</span></tt> directory.</p>
+<p>Your BIOM file might look like the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s">&quot;id&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">,</span>
+    <span class="s">&quot;format&quot;</span><span class="p">:</span> <span class="s">&quot;Biological Observation Matrix 1.0.0-dev&quot;</span><span class="p">,</span>
+    <span class="s">&quot;format_url&quot;</span><span class="p">:</span> <span class="s">&quot;http://biom-format.org&quot;</span><span class="p">,</span>
+    <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;OTU table&quot;</span><span class="p">,</span>
+    <span class="s">&quot;generated_by&quot;</span><span class="p">:</span> <span class="s">&quot;some software package&quot;</span><span class="p">,</span>
+    <span class="s">&quot;date&quot;</span><span class="p">:</span> <span class="s">&quot;2011-12-19T19:00:00&quot;</span><span class="p">,</span>
+    <span class="s">&quot;rows&quot;</span><span class="p">:[</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;GG_OTU_1&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;GG_OTU_2&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;GG_OTU_3&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;GG_OTU_4&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;GG_OTU_5&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">}</span>
+        <span class="p">],</span>
+    <span class="s">&quot;columns&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;Sample1&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;Sample2&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;Sample3&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;Sample4&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;Sample5&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">},</span>
+            <span class="p">{</span><span class="s">&quot;id&quot;</span><span class="p">:</span><span class="s">&quot;Sample6&quot;</span><span class="p">,</span> <span class="s">&quot;metadata&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">}</span>
+        <span class="p">],</span>
+    <span class="s">&quot;matrix_type&quot;</span><span class="p">:</span> <span class="s">&quot;sparse&quot;</span><span class="p">,</span>
+    <span class="s">&quot;matrix_element_type&quot;</span><span class="p">:</span> <span class="s">&quot;int&quot;</span><span class="p">,</span>
+    <span class="s">&quot;shape&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
+    <span class="s">&quot;data&quot;</span><span class="p">:[[</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">5</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">4</span><span class="p">,</span><span class="mi">3</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">1</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">2</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">2</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">3</span><span class="p">,</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">],</span>
+            <span class="p">[</span><span class="mi">4</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span>
+           <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>A sample metadata mapping file could then look like the following. Notice that there is an extra sample in here with respect to the above BIOM table. Any samples in the mapping file that are not in the BIOM file are ignored.</p>
+<div class="highlight-python"><pre>#SampleID       BarcodeSequence DOB
+# Some optional
+# comment lines...
+Sample1 AGCACGAGCCTA    20060805
+Sample2 AACTCGTCGATG    20060216
+Sample3 ACAGACCACTCA    20060109
+Sample4 ACCAGCGACTAG    20070530
+Sample5 AGCAGCACTTGT    20070101
+Sample6 AGCAGCACAACT    20070716</pre>
+</div>
+<p>An observation metadata mapping file might look like the following. Notice that there is an extra observation in here with respect to the above BIOM table. Any observations in the mapping file that are not in the BIOM file are ignored.</p>
+<div class="highlight-python"><pre>#OTUID  taxonomy        confidence
+# Some optional
+# comment lines
+GG_OTU_0        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__       0.980
+GG_OTU_1        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        0.665
+GG_OTU_2        Root;k__Bacteria        0.980
+GG_OTU_3        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        1.000
+GG_OTU_4        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        0.842
+GG_OTU_5        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        1.000</pre>
+</div>
+<div class="section" id="id1">
+<h2>Adding metadata<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>To add sample metadata to a BIOM file, you can run the following:</p>
+<div class="highlight-python"><pre>biom add-metadata -i min_sparse_otu_table.biom -o table.w_smd.biom --sample-metadata-fp sam_md.txt</pre>
+</div>
+<p>To add observation metadata to a BIOM file, you can run the following:</p>
+<div class="highlight-python"><pre>biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt</pre>
+</div>
+<p>You can also combine these in a single command to add both observation and sample metadata:</p>
+<div class="highlight-python"><pre>biom add-metadata -i min_sparse_otu_table.biom -o table.w_md.biom --observation-metadata-fp obs_md.txt --sample-metadata-fp sam_md.txt</pre>
+</div>
+<p>In the last case, the resulting BIOM file will look like the following:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s">&quot;columns&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample1&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;AGCACGAGCCTA&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="s">&quot;20060805&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample2&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;AACTCGTCGATG&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="s">&quot;20060216&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample3&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;ACAGACCACTCA&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="s">&quot;20060109&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample4&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;ACCAGCGACTAG&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="s">&quot;20070530&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample5&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;AGCAGCACTTGT&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="s">&quot;20070101&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample6&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;AGCAGCACAACT&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="s">&quot;20070716&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+    <span class="p">],</span>
+    <span class="s">&quot;date&quot;</span><span class="p">:</span> <span class="s">&quot;2012-12-11T07:36:15.467843&quot;</span><span class="p">,</span>
+    <span class="s">&quot;format&quot;</span><span class="p">:</span> <span class="s">&quot;Biological Observation Matrix 1.0.0&quot;</span><span class="p">,</span>
+    <span class="s">&quot;format_url&quot;</span><span class="p">:</span> <span class="s">&quot;http://biom-format.org&quot;</span><span class="p">,</span>
+    <span class="s">&quot;generated_by&quot;</span><span class="p">:</span> <span class="s">&quot;some software package&quot;</span><span class="p">,</span>
+    <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s">&quot;matrix_element_type&quot;</span><span class="p">:</span> <span class="s">&quot;float&quot;</span><span class="p">,</span>
+    <span class="s">&quot;matrix_type&quot;</span><span class="p">:</span> <span class="s">&quot;sparse&quot;</span><span class="p">,</span>
+    <span class="s">&quot;rows&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;GG_OTU_1&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;confidence&quot;</span><span class="p">:</span> <span class="s">&quot;0.665&quot;</span><span class="p">,</span>
+                <span class="s">&quot;taxonomy&quot;</span><span class="p">:</span> <span class="s">&quot;Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;GG_OTU_2&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;confidence&quot;</span><span class="p">:</span> <span class="s">&quot;0.980&quot;</span><span class="p">,</span>
+                <span class="s">&quot;taxonomy&quot;</span><span class="p">:</span> <span class="s">&quot;Root;k__Bacteria&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;GG_OTU_3&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;confidence&quot;</span><span class="p">:</span> <span class="s">&quot;1.000&quot;</span><span class="p">,</span>
+                <span class="s">&quot;taxonomy&quot;</span><span class="p">:</span> <span class="s">&quot;Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;GG_OTU_4&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;confidence&quot;</span><span class="p">:</span> <span class="s">&quot;0.842&quot;</span><span class="p">,</span>
+                <span class="s">&quot;taxonomy&quot;</span><span class="p">:</span> <span class="s">&quot;Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae&quot;</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;GG_OTU_5&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;confidence&quot;</span><span class="p">:</span> <span class="s">&quot;1.000&quot;</span><span class="p">,</span>
+                <span class="s">&quot;taxonomy&quot;</span><span class="p">:</span> <span class="s">&quot;Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae&quot;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s">&quot;shape&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
+    <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;OTU table&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="processing-metadata-while-adding">
+<h2>Processing metadata while adding<a class="headerlink" href="#processing-metadata-while-adding" title="Permalink to this headline">¶</a></h2>
+<p>There are some additional parameters you can pass to this command for more complex processing.</p>
+<p>You can tell the command to process certain metadata column values as integers (<tt class="docutils literal"><span class="pre">--int-fields</span></tt>), floating point (i.e., decimal or real) numbers (<tt class="docutils literal"><span class="pre">--float-fields</span></tt>), or as hierarchical semicolon-delimited data (<tt class="docutils literal"><span class="pre">--sc-separated</span></tt>).</p>
+<div class="highlight-python"><pre>biom add-metadata -i min_sparse_otu_table.biom -o table.w_md.biom --observation-metadata-fp obs_md.txt --sample-metadata-fp sam_md.txt --int-fields DOB --sc-separated taxonomy --float-fields confidence</pre>
+</div>
+<p>Here your resulting BIOM file will look like the following, where <tt class="docutils literal"><span class="pre">DOB</span></tt> values are now integers (compare to the above: they&#8217;re not quoted now), <tt class="docutils literal"><span class="pre">confidence</span></tt> values are now floating point numbers (again, not quoted now), and <tt class="docutils literal"><span class="pre">taxonomy</span></tt> values are now lists where each entry is a taxonomy level, opposed to above where they appear as a single semi-colon-separated string.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span>
+    <span class="s">&quot;columns&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample1&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;AGCACGAGCCTA&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="mi">20060805</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample2&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;AACTCGTCGATG&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="mi">20060216</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample3&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;ACAGACCACTCA&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="mi">20060109</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample4&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;ACCAGCGACTAG&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="mi">20070530</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample5&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;AGCAGCACTTGT&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="mi">20070101</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;Sample6&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;BarcodeSequence&quot;</span><span class="p">:</span> <span class="s">&quot;AGCAGCACAACT&quot;</span><span class="p">,</span>
+                <span class="s">&quot;DOB&quot;</span><span class="p">:</span> <span class="mi">20070716</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s">&quot;data&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">],</span>
+        <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">]</span>
+    <span class="p">],</span>
+    <span class="s">&quot;date&quot;</span><span class="p">:</span> <span class="s">&quot;2012-12-11T07:30:29.870689&quot;</span><span class="p">,</span>
+    <span class="s">&quot;format&quot;</span><span class="p">:</span> <span class="s">&quot;Biological Observation Matrix 1.0.0&quot;</span><span class="p">,</span>
+    <span class="s">&quot;format_url&quot;</span><span class="p">:</span> <span class="s">&quot;http://biom-format.org&quot;</span><span class="p">,</span>
+    <span class="s">&quot;generated_by&quot;</span><span class="p">:</span> <span class="s">&quot;some software package&quot;</span><span class="p">,</span>
+    <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="n">null</span><span class="p">,</span>
+    <span class="s">&quot;matrix_element_type&quot;</span><span class="p">:</span> <span class="s">&quot;float&quot;</span><span class="p">,</span>
+    <span class="s">&quot;matrix_type&quot;</span><span class="p">:</span> <span class="s">&quot;sparse&quot;</span><span class="p">,</span>
+    <span class="s">&quot;rows&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;GG_OTU_1&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;confidence&quot;</span><span class="p">:</span> <span class="mf">0.665</span><span class="p">,</span>
+                <span class="s">&quot;taxonomy&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;Root&quot;</span><span class="p">,</span> <span class="s">&quot;k__Bacteria&quot;</span><span class="p">,</span> <span class="s">&quot;p__Firmicutes&quot;</span><span class="p">,</span> <span class="s">&quot;c__Clostridia&quot;</span><span class="p">,</span> <span class="s">&quot;o__Clostridiales&quot;</span><span class="p">,</span> <span class="s">&quot;f__Lachnospiraceae&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;GG_OTU_2&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;confidence&quot;</span><span class="p">:</span> <span class="mf">0.98</span><span class="p">,</span>
+                <span class="s">&quot;taxonomy&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;Root&quot;</span><span class="p">,</span> <span class="s">&quot;k__Bacteria&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;GG_OTU_3&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;confidence&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="s">&quot;taxonomy&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;Root&quot;</span><span class="p">,</span> <span class="s">&quot;k__Bacteria&quot;</span><span class="p">,</span> <span class="s">&quot;p__Firmicutes&quot;</span><span class="p">,</span> <span class="s">&quot;c__Clostridia&quot;</span><span class="p">,</span> <span class="s">&quot;o__Clostridiales&quot;</span><span class="p">,</span> <span class="s">&quot;f__Lachnospiraceae&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;GG_OTU_4&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;confidence&quot;</span><span class="p">:</span> <span class="mf">0.842</span><span class="p">,</span>
+                <span class="s">&quot;taxonomy&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;Root&quot;</span><span class="p">,</span> <span class="s">&quot;k__Bacteria&quot;</span><span class="p">,</span> <span class="s">&quot;p__Firmicutes&quot;</span><span class="p">,</span> <span class="s">&quot;c__Clostridia&quot;</span><span class="p">,</span> <span class="s">&quot;o__Clostridiales&quot;</span><span class="p">,</span> <span class="s">&quot;f__Lachnospiraceae&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s">&quot;id&quot;</span><span class="p">:</span> <span class="s">&quot;GG_OTU_5&quot;</span><span class="p">,</span>
+            <span class="s">&quot;metadata&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;confidence&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="s">&quot;taxonomy&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s">&quot;Root&quot;</span><span class="p">,</span> <span class="s">&quot;k__Bacteria&quot;</span><span class="p">,</span> <span class="s">&quot;p__Firmicutes&quot;</span><span class="p">,</span> <span class="s">&quot;c__Clostridia&quot;</span><span class="p">,</span> <span class="s">&quot;o__Clostridiales&quot;</span><span class="p">,</span> <span class="s">&quot;f__Lachnospiraceae&quot;</span><span class="p">]</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">],</span>
+    <span class="s">&quot;shape&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span>
+    <span class="s">&quot;type&quot;</span><span class="p">:</span> <span class="s">&quot;OTU table&quot;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If you have multiple fields that you&#8217;d like processed in one of these ways, you can pass a comma-separated list of field names (e.g., <tt class="docutils literal"><span class="pre">--float-fields</span> <span class="pre">confidence,pH</span></tt>).</p>
+</div>
+<div class="section" id="renaming-or-naming-metadata-columns-while-adding">
+<h2>Renaming (or naming) metadata columns while adding<a class="headerlink" href="#renaming-or-naming-metadata-columns-while-adding" title="Permalink to this headline">¶</a></h2>
+<p>You can also override the names of the metadata fields provided in the mapping files with the <tt class="docutils literal"><span class="pre">--observation-header</span></tt> and <tt class="docutils literal"><span class="pre">--sample-header</span></tt> parameters. This is useful if you want to rename metadata columns, or if metadata column headers aren&#8217;t present in your metadata mapping file. If you pass either of these parameters, you must name all columns in order. If there are more columns in the metadata mapping file then there are headers, extra columns will be ignored (so this is also a useful way to select only the first n columns from your mapping file). For example, if you want to rename the <tt class="docutils literal"><span class="pre">DOB</span></tt> column in the sample metadata mapping you could do the following:</p>
+<div class="highlight-python"><pre>biom add-metadata -i min_sparse_otu_table.biom -o table.w_smd.biom --sample-metadata-fp sam_md.txt --sample-header SampleID,BarcodeSequence,DateOfBirth</pre>
+</div>
+<p>If you have a mapping file without headers such as the following:</p>
+<div class="highlight-python"><pre>GG_OTU_0        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__       0.980
+GG_OTU_1        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        0.665
+GG_OTU_2        Root;k__Bacteria        0.980
+GG_OTU_3        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        1.000
+GG_OTU_4        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        0.842
+GG_OTU_5        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        1.000</pre>
+</div>
+<p>you could name these while adding them as follows:</p>
+<div class="highlight-python"><pre>biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt --observation-header OTUID,taxonomy,confidence</pre>
+</div>
+<p>As a variation on the last command, if you only want to include the <tt class="docutils literal"><span class="pre">taxonomy</span></tt> column and exclude the <tt class="docutils literal"><span class="pre">confidence</span></tt> column, you could run:</p>
+<div class="highlight-python"><pre>biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt --observation-header OTUID,taxonomy</pre>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom_conversion.html">Converting between file formats</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="change_sparse_backend.html">Sparse matrix backends</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+
+    <div class="footer">
+        &copy; Copyright 2011-2013, The BIOM Format Development Team.
+      Last updated on Dec 04, 2013.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-6636235-6']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>

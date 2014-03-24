@@ -1,7 +1,0 @@
-# biom_config
-# WARNING: DO NOT EDIT OR DELETE biom-format/support_files/biom_config
-# To overwrite defaults, copy this file to $HOME/.biom_config or a full path
-# specified by $BIOM_CONFIG_FP and edit that copy of the file.
-
-# The sparse matrix backend to use (either CSMat or ScipySparseMat).
-python_code_sparse_backend	CSMat
