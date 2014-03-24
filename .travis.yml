@@ -1,0 +1,11 @@
+language: python
+python:
+  - "2.7"
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran
+install:
+  - pip install -r requirements.txt .
+script:
+  - nosetests
+  - biom show-install-info
