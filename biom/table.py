@@ -1504,84 +1504,6 @@ class Table(object):
         return self.__class__(self._conv_to_self_type(vals), sample_ids[:],
                               obs_ids[:], sample_md, obs_md)
 
-    def _hdf5_md(self, grp, metadata):
-        """Store metadata in a group
-
-        grp : an HDF5 group
-        metadata : metadata dict
-        """
-        if metadata is None:
-            return
-
-        md_str = empty(shape=(), dtype=object)
-        md_str[()] = dumps(metadata)
-        grp.create_dataset('metadata', (1,), data=md_str, dtype=H5PY_VLEN_STR)
-
-    def _hdf5_data(self, grp, values, index_getter):
-        """Store data in a group
-
-        grp : an HDF5 group
-        values : a vector of sample or observation data
-        index_getter : function to fetch either .row or .col from values
-        """
-        ### would benefit from doing direct slices here
-        coo = values._matrix.tocoo()
-        n = values.size
-        pkd = merge_arrays([index_getter(coo), coo.data])
-        pkd.dtype.names = ("id_index", "value")
-        grp.create_dataset('values', shape=(n,), data=pkd, dtype=pkd.dtype)
-
-    def _hdf5_axis(self, grp, iter_, axis, axis_ids):
-        """Setup an axis for storage
-
-        grp : an HDF5 group
-        iter_ : an iterable that yields (values, id_, metadata)
-        axis : name of the axis (i.e., samples or observations)
-        axis_ids : the IDs associated with the axis
-        """
-        if axis == 'samples':
-            index_getter = lambda coo: coo.col
-        else:
-            index_getter = lambda coo: coo.row
-
-        axis_grp = grp.create_group(axis)
-
-        n = len(axis_ids)
-        ids = axis_grp.create_dataset('id_index', (n,), dtype=H5PY_VLEN_STR)
-        ids[...] = axis_ids
-
-        for (values, id_, md) in iter_:
-            id_grp = axis_grp.create_group(str(id_))
-            self._hdf5_md(id_grp, md)
-            self._hdf5_data(id_grp, values, index_getter)
-
-    def formatHDF5_DISTINCT_DS(self, h5grp, generated_by):
-        """Format data within an HDF5 group
-
-        h5grp : a HDF5 group
-        generated_by : who/what generated the data
-
-        Data are stored in h5grp relative to the group, absolute paths are
-        not used. This allows for the data to be embedded in another HDF5
-        file without issue
-        """
-        h5grp.attrs['id'] = self.TableId if self.TableId else "No Table ID"
-        h5grp.attrs['type'] = self.Type
-        h5grp.attrs['format-url'] = "http://biom-format.org"
-        h5grp.attrs['format-version'] = (2, 0)
-        h5grp.attrs['generated-by'] = generated_by
-        h5grp.attrs['creation-date'] = datetime.now().isoformat()
-        h5grp.attrs['shape'] = self._data.shape
-        h5grp.attrs['nnz'] = self._data.size
-
-        s_iter = self.iterSamples(conv_to_np=False)
-        o_iter = self.iterObservations(conv_to_np=False)
-
-        self._hdf5_axis(h5grp, s_iter, 'samples', self.SampleIds)
-        self._hdf5_axis(h5grp, o_iter, 'observations', self.ObservationIds)
-
-        h5grp.flush()
-
     def format_hdf5(self, h5grp, generated_by):
         """Store CSC and CSR in place
 
@@ -1616,6 +1538,7 @@ class Table(object):
         ./sample/indices         : (M,) dataset of int32
         ./sample/indptr          : (N+1,) dataset of int32
         [./sample/metadata]      : Optional, JSON str, in index order with ids
+
         Paramters
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
