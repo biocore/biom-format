@@ -245,25 +245,26 @@ def parse_biom_table_hdf5(h5grp, order='observation'):
     ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
     ###     THOUGH
     ### METADATA ARE NOT REPRESENTED HERE YET
-    ./id                    : str, an arbitrary ID
-    ./type                  : str, the table type (e.g, OTU table)
-    ./format-url            : str, a URL that describes the format
-    ./format-version        : two element tuple of int32, major and minor
-    ./generated-by          : str, what generated this file
-    ./creation-date         : str, ISO format
-    ./shape                 : two element tuple of int32, N by M
-    ./nnz                   : int32 or int64, number of non zero elements
-    ./observation           : Group
-    ./observation/ids       : (N,) dataset of str or vlen str
-    ./observation/data      : (N,) dataset of float64
-    ./observation/indices   : (N,) dataset of int32
-    ./observation/indptr    : (M+1,) dataset of int32
-    ./sample                : Group
-    ./sample/ids            : (M,) dataset of str or vlen str
-    ./sample/data           : (M,) dataset of float64
-    ./sample/indices        : (M,) dataset of int32
-    ./sample/indptr         : (N+1,) dataset of int32
-
+    ./id                     : str, an arbitrary ID
+    ./type                   : str, the table type (e.g, OTU table)
+    ./format-url             : str, a URL that describes the format
+    ./format-version         : two element tuple of int32, major and minor
+    ./generated-by           : str, what generated this file
+    ./creation-date          : str, ISO format
+    ./shape                  : two element tuple of int32, N by M
+    ./nnz                    : int32 or int64, number of non zero elements
+    ./observation            : Group
+    ./observation/ids        : (N,) dataset of str or vlen str
+    ./observation/data       : (N,) dataset of float64
+    ./observation/indices    : (N,) dataset of int32
+    ./observation/indptr     : (M+1,) dataset of int32
+    [./observation/metadata] : Optional, JSON str, in index order with ids
+    ./sample                 : Group
+    ./sample/ids             : (M,) dataset of str or vlen str
+    ./sample/data            : (M,) dataset of float64
+    ./sample/indices         : (M,) dataset of int32
+    ./sample/indptr          : (N+1,) dataset of int32
+    [./sample/metadata]      : Optional, JSON str, in index order with ids
     Paramters
     ---------
     h5grp : a h5py ``Group`` or an open h5py ``File``
@@ -291,18 +292,23 @@ def parse_biom_table_hdf5(h5grp, order='observation'):
     obs_ids = h5grp['observation/ids'][:]
     samp_ids = h5grp['sample/ids'][:]
 
+    # fetch all of the metadata
+    obs_md = json.loads(h5grp['observation'].get('metadata', "[]"))
+    samp_md = json.loads(h5grp['sample'].get('metadata', "[]"))
+
+    # construct the sparse representation
+    rep = ScipySparseMat(len(obs_ids), len(samp_ids))
+
     # load the data
     data_path = partial(os.path.join, order)
     data = h5grp[data_path("data")]
     indices = h5grp[data_path("indices")]
     indptr = h5grp[data_path("indptr")]
     cs = (data, indices, indptr)
-    mat = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
+    rep._matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
 
-    sparse_rep = ScipySparseMat(len(obs_ids), len(samp_ids))
-    sparse_rep._matrix = mat
-
-    return table_factory(sparse_rep, samp_ids, obs_ids)
+    return table_factory(rep, samp_ids, obs_ids, obs_md or None,
+                         samp_md or None)
 
 def parse_biom_table_json(json_table, data_pump=None):
     """Parse a biom otu table type"""
