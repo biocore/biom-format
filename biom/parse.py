@@ -10,6 +10,7 @@
 
 from __future__ import division
 import os
+import numpy as np
 from biom import __version__
 from biom.exception import BiomParseException
 from biom.table import table_factory, nparray_to_sparseobj
@@ -293,8 +294,9 @@ def parse_biom_table_hdf5(h5grp, order='observation'):
     samp_ids = h5grp['sample/ids'][:]
 
     # fetch all of the metadata
-    obs_md = json.loads(h5grp['observation'].get('metadata', "[]"))
-    samp_md = json.loads(h5grp['sample'].get('metadata', "[]"))
+    no_md = np.array(["[]"])
+    obs_md = json.loads(h5grp['observation'].get('metadata', no_md)[0])
+    samp_md = json.loads(h5grp['sample'].get('metadata', no_md)[0])
 
     # construct the sparse representation
     rep = ScipySparseMat(len(obs_ids), len(samp_ids))
@@ -307,8 +309,8 @@ def parse_biom_table_hdf5(h5grp, order='observation'):
     cs = (data, indices, indptr)
     rep._matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
 
-    return table_factory(rep, samp_ids, obs_ids, obs_md or None,
-                         samp_md or None)
+    return table_factory(rep, samp_ids, obs_ids, samp_md or None,
+                         obs_md or None)
 
 def parse_biom_table_json(json_table, data_pump=None):
     """Parse a biom otu table type"""

@@ -11,6 +11,7 @@
 
 from __future__ import division
 
+import numpy as np
 from copy import deepcopy
 from datetime import datetime
 from json import dumps
@@ -1581,9 +1582,81 @@ class Table(object):
 
         h5grp.flush()
 
-    def formatHDF5_CSC_CSR(self, h5grp, generated_by):
-        """Store direct CSC and CSR"""
-        import numpy as np
+    def format_hdf5(self, h5grp, generated_by):
+        """Store CSC and CSR in place
+
+        The expected structure of this group is below. A few basic definitions,
+        N is the number of observations and M is the number of samples. Data
+        are stored in both compressed sparse row (for observation oriented
+        operations) and compressed sparse column (for sample oriented
+        operations).
+
+        ### ADD IN SCIPY SPARSE CSC/CSR URLS
+        ### ADD IN WIKIPEDIA PAGE LINK TO CSR
+        ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
+        ###     THOUGH
+        ### METADATA ARE NOT REPRESENTED HERE YET
+        ./id                     : str, an arbitrary ID
+        ./type                   : str, the table type (e.g, OTU table)
+        ./format-url             : str, a URL that describes the format
+        ./format-version         : two element tuple of int32, major and minor
+        ./generated-by           : str, what generated this file
+        ./creation-date          : str, ISO format
+        ./shape                  : two element tuple of int32, N by M
+        ./nnz                    : int32 or int64, number of non zero elements
+        ./observation            : Group
+        ./observation/ids        : (N,) dataset of str or vlen str
+        ./observation/data       : (N,) dataset of float64
+        ./observation/indices    : (N,) dataset of int32
+        ./observation/indptr     : (M+1,) dataset of int32
+        [./observation/metadata] : Optional, JSON str, in index order with ids
+        ./sample                 : Group
+        ./sample/ids             : (M,) dataset of str or vlen str
+        ./sample/data            : (M,) dataset of float64
+        ./sample/indices         : (M,) dataset of int32
+        ./sample/indptr          : (N+1,) dataset of int32
+        [./sample/metadata]      : Optional, JSON str, in index order with ids
+        Paramters
+        ---------
+        h5grp : a h5py ``Group`` or an open h5py ``File``
+        generated_by : str
+
+        See Also
+        --------
+        Table.format_hdf5
+
+        Examples
+        --------
+        ### is it okay to actually create files in doctest?
+
+        """
+        def axis_dump(grp, ids, md, order):
+            """Store for an axis"""
+            self._data.convert(order)
+
+            len_ids = len(ids)
+            len_indptr = len(self._data._matrix.indptr)
+            len_data = self._data.size
+
+            grp.create_dataset('data', shape=(len_data,),
+                               dtype=np.float64,
+                               data=self._data._matrix.data)
+            grp.create_dataset('indices', shape=(len_data,),
+                               dtype=np.int32,
+                               data=self._data._matrix.indices)
+            grp.create_dataset('indptr', shape=(len_indptr,),
+                               dtype=np.int32,
+                               data=self._data._matrix.indptr)
+            grp.create_dataset('ids', shape=(len_ids,),
+                               dtype=H5PY_VLEN_STR,
+                               data=[str(i) for i in ids])
+
+            if md is not None:
+                md_str = empty(shape=(), dtype=object)
+                md_str[()] = dumps(md)
+                grp.create_dataset('metadata', shape=(1,),
+                                   dtype=H5PY_VLEN_STR,
+                                   data=md_str)
 
         h5grp.attrs['id'] = self.TableId if self.TableId else "No Table ID"
         h5grp.attrs['type'] = self.Type
@@ -1594,36 +1667,10 @@ class Table(object):
         h5grp.attrs['shape'] = self._data.shape
         h5grp.attrs['nnz'] = self._data.size
 
-        self._data.convert('csr')
-        n = self._data._matrix.nnz
-        len_indptr = len(self._data._matrix.indptr)
-        obs_grp = h5grp.create_group('observation')
-        _ = obs_grp.create_dataset('data', shape=(n,), dtype=np.float64,
-                                          data=self._data._matrix.data)
-        _ = obs_grp.create_dataset('indices', shape=(n,),
-                               dtype=np.int32, data=self._data._matrix.indices)
-        _ = obs_grp.create_dataset('indptr', shape=(len_indptr,),
-                               dtype=np.int32, data=self._data._matrix.indptr)
-        n_obs = len(self.ObservationIds)
-        ids = obs_grp.create_dataset('ids', (n_obs,), dtype=H5PY_VLEN_STR)
-        ids[...] = self.ObservationIds
-
-        self._data.convert('csc')
-        n = self._data._matrix.nnz
-        len_indptr = len(self._data._matrix.indptr)
-        samp_grp = h5grp.create_group('sample')
-        _ = samp_grp.create_dataset('data', shape=(n,), dtype=np.float64,
-                                          data=self._data._matrix.data)
-        _ = samp_grp.create_dataset('indices', shape=(n,),
-                               dtype=np.int32, data=self._data._matrix.indices)
-        _ = samp_grp.create_dataset('indptr', shape=(len_indptr,),
-                               dtype=np.int32, data=self._data._matrix.indptr)
-        n_samp = len(self.SampleIds)
-        ids = samp_grp.create_dataset('ids', (n_samp,), dtype=H5PY_VLEN_STR)
-        ids[...] = self.SampleIds
-
-        h5grp.flush()
-
+        axis_dump(h5grp.create_group('observation'), self.ObservationIds,
+                  self.ObservationMetadata, 'csr')
+        axis_dump(h5grp.create_group('sample'), self.SampleIds,
+                  self.SampleMetadata, 'csc')
 
     def getBiomFormatObject(self, generated_by):
         """Returns a dictionary representing the table in BIOM format.
