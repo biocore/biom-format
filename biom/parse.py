@@ -301,10 +301,6 @@ def parse_biom_table_hdf5_DISTINCT_DS(h5grp):
 
 def parse_biom_table_json(json_table, data_pump=None):
     """Parse a biom otu table type"""
-    constructor = Table
-    table_type = 'otu table'
-    mat_type = json_table['matrix_type']
-
     sample_ids = [col['id'] for col in json_table['columns']]
     sample_metadata = [col['metadata'] for col in json_table['columns']]
     obs_ids = [row['id'] for row in json_table['rows']]
