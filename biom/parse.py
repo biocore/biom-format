@@ -9,15 +9,15 @@
 #-----------------------------------------------------------------------------
 
 from __future__ import division
-import h5py
+import os
 from biom import __version__
 from biom.exception import BiomParseException
-from biom.table import (Table, table_factory, to_sparse,
-    nparray_to_sparseobj, SparseObj)
-from itertools import izip
+from biom.table import table_factory, nparray_to_sparseobj
+from functools import partial
 import json
-from numpy import zeros, empty, asarray, int32, float64
-from string import strip
+from numpy import asarray
+from scipy.sparse import csr_matrix, csc_matrix
+from biom.backends.scipysparse import ScipySparseMat
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -232,72 +232,77 @@ def parse_biom_table(fp):
     else:
         return parse_biom_table_json(json.loads(fp))
 
-def parse_biom_table_hdf5_CSC_CSR(h5grp):
-    from scipy.sparse import csr_matrix
-    from biom.backends.scipysparse import ScipySparseMat
+def parse_biom_table_hdf5(h5grp, order='observation'):
+    """Parse an HDF5 formatted BIOM table
+
+    The expected structure of this group is below. A few basic definitions,
+    N is the number of observations and M is the number of samples. Data are
+    stored in both compressed sparse row (for observation oriented operations)
+    and compressed sparse column (for sample oriented operations).
+
+    ### ADD IN SCIPY SPARSE CSC/CSR URLS
+    ### ADD IN WIKIPEDIA PAGE LINK TO CSR
+    ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
+    ###     THOUGH
+    ### METADATA ARE NOT REPRESENTED HERE YET
+    ./id                    : str, an arbitrary ID
+    ./type                  : str, the table type (e.g, OTU table)
+    ./format-url            : str, a URL that describes the format
+    ./format-version        : two element tuple of int32, major and minor
+    ./generated-by          : str, what generated this file
+    ./creation-date         : str, ISO format
+    ./shape                 : two element tuple of int32, N by M
+    ./nnz                   : int32 or int64, number of non zero elements
+    ./observation           : Group
+    ./observation/ids       : (N,) dataset of str or vlen str
+    ./observation/data      : (N,) dataset of float64
+    ./observation/indices   : (N,) dataset of int32
+    ./observation/indptr    : (M+1,) dataset of int32
+    ./sample                : Group
+    ./sample/ids            : (M,) dataset of str or vlen str
+    ./sample/data           : (M,) dataset of float64
+    ./sample/indices        : (M,) dataset of int32
+    ./sample/indptr         : (N+1,) dataset of int32
+
+    Paramters
+    ---------
+    h5grp : a h5py ``Group`` or an open h5py ``File``
+    order : 'observation' or 'sample' to indicate which data ordering to load
+        the table as
+
+    Returns
+    -------
+    Table
+        A BIOM ``Table`` object
+
+    See Also
+    --------
+    Table.format_hdf5
+
+    Examples
+    --------
+    ### is it okay to actually create files in doctest?
+
+    """
+    if order not in ('observation', 'sample'):
+        raise ValueError("Unknown order %s!" % order)
+
+    # fetch all of the IDs
     obs_ids = h5grp['observation/ids'][:]
     samp_ids = h5grp['sample/ids'][:]
 
-    data = h5grp['observation/data']
-    indices = h5grp['observation/indices']
-    indptr = h5grp['observation/indptr']
-    mat = csr_matrix((data, indices, indptr))
+    # load the data
+    data_path = partial(os.path.join, order)
+    data = h5grp[data_path("data")]
+    indices = h5grp[data_path("indices")]
+    indptr = h5grp[data_path("indptr")]
+    cs = (data, indices, indptr)
+    mat = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
 
-    data = ScipySparseMat(len(obs_ids), len(samp_ids))
-    data._matrix = mat
+    sparse_rep = ScipySparseMat(len(obs_ids), len(samp_ids))
+    sparse_rep._matrix = mat
 
-    return table_factory(data, samp_ids, obs_ids)
-
-def parse_biom_table_hdf5_DISTINCT_DS(h5grp):
-    """Fetch a BIOM Table out of an h5grp"""
-    nnz = h5grp.attrs['nnz']
-    obs_ids = h5grp['observations/id_index'][:]
-    samp_ids = h5grp['samples/id_index'][:]
-
-    samp_index_lookup = {k:i for i,k in enumerate(samp_ids)}
-
-    # allocate memory for the actual data
-    rows = empty(nnz, dtype=int32)
-    cols = empty(nnz, dtype=int32)
-    vals = empty(nnz, dtype=float64)
-
-    samp_md = []
-    obs_md = []
-
-    start = 0
-    end = 0
-    for name, data in h5grp['samples'].iteritems():
-        if name == 'id_index':
-            continue
-
-        # fetch the actual data
-        end = end + data['values'].size
-        col = samp_index_lookup[name]
-
-        cols[start:end] = col
-        rows[start:end] = data['values']['id_index']
-        vals[start:end] = data['values']['value']
-
-        start = end
-
-        if 'metadata' in data:
-            samp_md.append(json.loads(data['metadata'][0]))
-
-    for name in obs_ids:
-        path = 'observations/%s/metadata' % name
-        if path in h5grp:
-            obs_md.append(json.loads(h5grp[path][0]))
-
-    ### need to add ScipySparseBackend support for:
-    ### data = (vals, (rows, cols))
-    ### can feed that direct into coo_matrix via scipysparse backend
-    ### constructor, table factory does not handle this yet
-    tmp_data = [[r,c,v] for r,c,v in izip(rows, cols, vals)]
-
-    ### shape information is not being fed to table_factory, and is
-    ### instead inferred. This is not necessary.
-    return table_factory(tmp_data, samp_ids, obs_ids, samp_md, obs_md,
-                         H5Group=h5grp)
+    return table_factory(sparse_rep, samp_ids, obs_ids)
 
 def parse_biom_table_json(json_table, data_pump=None):
     """Parse a biom otu table type"""
