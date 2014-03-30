@@ -11,16 +11,16 @@
 import h5py
 import os
 from tempfile import mktemp
-from numpy import where, zeros, array, reshape, arange
+from numpy import where, zeros, array
 from biom.unit_test import TestCase, main
 from biom.util import unzip
 from biom.table import (TableException, Table, UnknownID,
-    prefer_self, index_list, dict_to_nparray, list_dict_to_nparray,
-    table_factory, list_list_to_nparray, flatten, natsort, to_sparse,
-    nparray_to_sparseobj, list_nparray_to_sparseobj, SparseObj,
-    get_zerod_matrix)
-from biom.parse import parse_biom_table, parse_biom_table_hdf5
-from StringIO import StringIO
+                        prefer_self, index_list, dict_to_nparray,
+                        list_dict_to_nparray, table_factory,
+                        list_list_to_nparray, to_sparse,
+                        nparray_to_sparseobj, list_nparray_to_sparseobj,
+                        SparseObj, get_zerod_matrix)
+from biom.parse import parse_biom_table_hdf5
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -30,6 +30,7 @@ __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
+
 
 class SupportTests(TestCase):
     def setUp(self):
