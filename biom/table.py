@@ -1570,6 +1570,9 @@ class Table(object):
             grp.create_dataset('indptr', shape=(len_indptr,),
                                dtype=np.int32,
                                data=self._data._matrix.indptr)
+
+            ### if we store IDs in the table as numpy arrays then this store
+            ### is cleaner, as is the parse
             grp.create_dataset('ids', shape=(len_ids,),
                                dtype=H5PY_VLEN_STR,
                                data=[str(i) for i in ids])
