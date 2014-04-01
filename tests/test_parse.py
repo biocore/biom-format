@@ -50,7 +50,8 @@ class ParseTests(TestCase):
     def test_parse_biom_table_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
         cwd = os.getcwd()
-        os.chdir(__file__.rsplit('/', 1)[0])
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
         t = parse_biom_table_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
