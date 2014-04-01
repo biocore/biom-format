@@ -342,18 +342,6 @@ def sc_pipe_separated(x):
         complex_metadata.append(simple_metadata)
     return complex_metadata
 
-def parse_biom_table_str(json_str,constructor=None, data_pump=None):
-    """Parses a JSON string of the Biom table into a rich table object.
-
-    If constructor is none, the constructor is determined based on BIOM
-    information
-
-    data_pump is to allow the injection of a pre-parsed data object
-    """
-    json_table = json.loads(json_str)
-
-    f = parse_biom_table_json
-
 def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
         process_func, constructor, **kwargs):
     """Parses an table (tab delimited) (observation x sample)
