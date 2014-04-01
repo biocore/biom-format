@@ -9,7 +9,7 @@
 #-----------------------------------------------------------------------------
 
 from __future__ import division
-from pyqi.core.command import (Command, CommandIn, CommandOut, 
+from pyqi.core.command import (Command, CommandIn, CommandOut,
         ParameterCollection)
 from pyqi.core.exception import CommandError
 from biom.table import (Table, table_factory)
@@ -145,8 +145,8 @@ class TableConverter(Command):
             except (ValueError, TypeError):
                 raise CommandError(convert_error_msg)
 
-            conv_table = table_factory(table._data, table.SampleIds, 
-                            table.ObservationIds, table.SampleMetadata, 
+            conv_table = table_factory(table._data, table.SampleIds,
+                            table.ObservationIds, table.SampleMetadata,
                             table.ObservationMetadata, table.TableId)
             result = conv_table.getBiomFormatJsonString(generatedby())
         else:
@@ -164,9 +164,7 @@ class TableConverter(Command):
                 result = convert_table_to_biom(table_file, sample_metadata,
                         observation_metadata,
                         self.ObservationMetadataTypes[process_obs_metadata])
-            except (ValueError, TypeError):
-                raise CommandError(convert_error_msg)
-            except (ValueError, TypeError):
+            except (ValueError, TypeError, IndexError):
                 raise CommandError(convert_error_msg)
 
         return {'table_str': result}

@@ -343,7 +343,7 @@ def sc_pipe_separated(x):
     return complex_metadata
 
 def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
-        process_func, constructor, **kwargs):
+        process_func, **kwargs):
     """Parses an table (tab delimited) (observation x sample)
 
     sample_mapping : can be None or {'sample_id':something}

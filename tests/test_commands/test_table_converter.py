@@ -21,6 +21,7 @@ from biom.commands.table_converter import TableConverter
 from biom.parse import MetadataMap, parse_biom_table
 from biom.table import Table
 from biom.unit_test import TestCase, main
+from StringIO import StringIO
 
 class TableConverterTests(TestCase):
     def setUp(self):
@@ -68,7 +69,7 @@ class TableConverterTests(TestCase):
                 {'taxonomy': 'Unclassified'})
 
         # With processing of metadata (currently only supports observation md).
-        obs = self.cmd(table_file=self.classic_lines1, 
+        obs = self.cmd(table_file=self.classic_lines1,
                        sample_metadata=self.sample_md1,
                        process_obs_metadata='sc_separated')
         self.assertEqual(obs.keys(), ['table_str'])
@@ -100,21 +101,6 @@ class TableConverterTests(TestCase):
         obs_md_col = obs['table_str'].split('\n')[1].split('\t')[-1]
         self.assertEqual(obs_md_col, 'foo')
 
-    def test_dense_to_sparse(self):
-        """Correctly converts dense biom to sparse biom."""
-        # classic -> dense -> sparse
-        dense = self.cmd(table_file=self.classic_lines1)
-        obs = self.cmd(table_file=dense['table_str'].split('\n'),
-                       dense_biom_to_sparse_biom=True)
-        self.assertEqual(obs.keys(), ['table_str'])
-
-        obs = parse_biom_table(obs['table_str'])
-        self.assertEqual(type(obs), Table)
-        self.assertEqual(len(obs.SampleIds), 9)
-        self.assertEqual(len(obs.ObservationIds), 14)
-        self.assertEqual(obs.SampleMetadata, None)
-        self.assertNotEqual(obs.ObservationMetadata, None)
-
     def test_invalid_input(self):
         """Correctly handles invalid input by raising a CommandError."""
         # Too many ops.
@@ -138,10 +124,6 @@ class TableConverterTests(TestCase):
             _ = self.cmd(table_file=self.classic_lines1,
                          dense_biom_to_sparse_biom=True)
 
-        # No table type.
-        with self.assertRaises(CommandError):
-            _ = self.cmd(table_file=self.classic_lines1)
-
         # Unknown observation processor.
         with self.assertRaises(CommandError):
             _ = self.cmd(table_file=self.classic_lines1,
@@ -149,7 +131,7 @@ class TableConverterTests(TestCase):
 
         # classic -> biom, but supply biom
         with self.assertRaises(CommandError):
-            _ = self.cmd(table_file=self.biom_lines1,
+            _ = self.cmd(table_file=StringIO(self.biom_lines1),
                          process_obs_metadata='sc_separated')
 
 
