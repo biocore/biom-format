@@ -62,9 +62,9 @@ setup(name='biom-format',
               ],
     scripts=glob('scripts/*'),
     install_requires=["numpy >= 1.3.0",
-                      "pyqi == 0.3.1"],
-    extras_require={'scipy_sparse':["scipy >= 0.9.0"],
-                    'test':["nose >= 0.10.1",
+                      "pyqi == 0.3.1",
+                      "scipy >= 0.13.0"],
+    extras_require={'test':["nose >= 0.10.1",
                             "tox >= 1.6.1"]
                    },
     classifiers=classifiers
