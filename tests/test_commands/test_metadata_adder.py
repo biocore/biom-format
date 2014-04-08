@@ -25,7 +25,7 @@ class MetadataAdderTests(TestCase):
     def setUp(self):
         """Set up data for use in unit tests."""
         self.cmd = MetadataAdder()
-        self.biom_lines1 = biom1.split('\n')
+        self.biom_lines1 = biom1
         self.biom_table1 = parse_biom_table(self.biom_lines1)
         self.sample_md_lines1 = sample_md1.split('\n')
         self.obs_md_lines1 = obs_md1.split('\n')

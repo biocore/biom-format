@@ -9,12 +9,13 @@
 #-----------------------------------------------------------------------------
 
 from numpy import array
+from scipy.sparse import lil_matrix
 from biom.unit_test import TestCase, main
 from biom.backends.scipysparse import (ScipySparseMat, to_scipy,
                                        list_nparray_to_scipy,
                                        list_list_to_scipy, list_scipy_to_scipy,
                                        nparray_to_scipy, dict_to_scipy,
-                                       list_dict_to_scipy)
+                                       list_dict_to_scipy, coo_arrays_to_scipy)
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -338,9 +339,22 @@ class ScipySparseMatTests(TestCase):
         with self.assertRaises(IndexError):
             _ = self.mat1[1,3]
 
-
 # These tests are pretty much copied from CSMat's conversion tests...
 class SupportTests(TestCase):
+    def test_coo_arrays_to_scipy(self):
+        """convert (values, (row, col)) to scipy"""
+        n_rows, n_cols = 3, 4
+        exp_d = lil_matrix((n_rows, n_cols))
+        exp_d[0,0] = 10
+        exp_d[1,3] = 5
+        exp_d[2,1] = 2
+        exp_d = exp_d.tocoo()
+        exp = ScipySparseMat(n_rows, n_cols, data=exp_d)
+
+        data = (array([5.0, 2.0, 10.0]), (array([1, 2, 0]), array([3, 1, 0])))
+        obs = coo_arrays_to_scipy(data, shape=(n_rows, n_cols))
+        self.assertEqual(obs, exp)
+
     def test_list_list_to_scipy(self):
         """convert [[row,col,value], ...] to scipy"""
         input = [[0,0,1],[1,1,5.0],[0,2,6]]

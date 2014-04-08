@@ -23,7 +23,7 @@ from biom.unit_test import TestCase, main
 from biom.interfaces.optparse.input_handler import (load_biom_table,
         load_biom_table_with_file_contents, load_json_document, load_metadata)
 from biom.parse import MetadataMap
-from biom.table import SparseOTUTable
+from biom.table import Table
 
 class InputHandlerTests(TestCase):
     def setUp(self):
@@ -43,13 +43,13 @@ class InputHandlerTests(TestCase):
     def test_load_biom_table(self):
         """Correctly parses and loads a BIOM table."""
         obs = load_biom_table(self.biom_fp)
-        self.assertEqual(type(obs), SparseOTUTable)
+        self.assertEqual(type(obs), Table)
 
     def test_load_biom_table_with_file_contents(self):
         """Correctly parses and loads a BIOM table, also returning the file."""
         obs = load_biom_table_with_file_contents(self.biom_fp)
         self.assertEqual(len(obs), 2)
-        self.assertEqual(type(obs[0]), SparseOTUTable)
+        self.assertEqual(type(obs[0]), Table)
         self.assertEqual(type(obs[1]), file)
         obs[1].close()
 

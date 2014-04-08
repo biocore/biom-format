@@ -22,7 +22,7 @@ __email__ = "jai.rideout@gmail.com"
 from itertools import izip
 from operator import itemgetter
 
-from numpy import asarray, ndarray, newaxis, squeeze
+from numpy import asarray, ndarray, newaxis, squeeze, float64
 from scipy.sparse import coo_matrix
 
 from biom.exception import TableException
@@ -378,6 +378,20 @@ def to_scipy(values, transpose=False, dtype=float):
         return mat
     else:
         raise TableException("Unknown input type")
+
+def coo_arrays_to_scipy(data, dtype=float64, shape=None):
+    """Map directly on to the coo_matrix constructor
+    
+    data must be (values, (rows, cols))
+    """
+    if shape is None:
+        values, (rows, cols) = data
+        n_rows = max(rows) + 1
+        n_cols = max(cols) + 1
+    else:
+        n_rows, n_cols = shape
+
+    return ScipySparseMat(n_rows, n_cols, dtype=dtype, data=data)
 
 def list_list_to_scipy(data, dtype=float, shape=None):
     """Convert a list of lists into a ``ScipySparseMat``.

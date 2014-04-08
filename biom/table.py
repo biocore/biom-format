@@ -11,20 +11,25 @@
 
 from __future__ import division
 
+import numpy as np
 from copy import deepcopy
 from datetime import datetime
 from json import dumps
-from types import NoneType
 from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
-from numpy import ndarray, asarray, array, newaxis, zeros
+from numpy import ndarray, asarray, zeros, empty
+from numpy.lib.recfunctions import merge_arrays
+import h5py
 
 from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID
-from biom.util import get_biom_format_version_string, \
-    get_biom_format_url_string, unzip, flatten, _natsort_key, natsort, \
-    prefer_self, index_list
+from biom.util import (get_biom_format_version_string,
+        get_biom_format_url_string, flatten, natsort, prefer_self,
+        index_list)
+
+# Define a variable length string type
+H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
 
 SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
         list_nparray_to_sparseobj, nparray_to_sparseobj, \
@@ -37,7 +42,7 @@ __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
-__email__ = "daniel.mcdonald@colorado.edu"   
+__email__ = "daniel.mcdonald@colorado.edu"
 
 class Table(object):
     """Abstract base class representing a Table.
@@ -54,14 +59,17 @@ class Table(object):
     __delattr__ = __setattr__
 
     def __init__(self, Data, SampleIds, ObservationIds, SampleMetadata=None,
-                 ObservationMetadata=None, TableId=None, Type=None, **kwargs):
+                 ObservationMetadata=None, TableId=None, SampleExtLink=None,
+                 H5Group=None, Type=None, **kwargs):
         if Type is None:
             Type = 'Unspecified'
-        
+
         super(Table, self).__setattr__('Type', Type)
         super(Table, self).__setattr__('TableId', TableId)
         super(Table, self).__setattr__('_data', Data)
         super(Table, self).__setattr__('_dtype', Data.dtype)
+        super(Table, self).__setattr__('SampleExtLink', SampleExtLink)
+        super(Table, self).__setattr__('H5Group', H5Group)
 
         # Cast to tuple for immutability.
         super(Table, self).__setattr__('SampleIds', tuple(SampleIds))
@@ -89,7 +97,7 @@ class Table(object):
 
     def _index_ids(self):
         """Sets lookups {id:index in _data}.
-        
+
         Should only be called in constructor as this modifies state.
         """
         super(Table, self).__setattr__('_sample_index',
@@ -101,11 +109,11 @@ class Table(object):
         """Two SparseObj matrices are equal if the items are equal"""
         if isinstance(self, other.__class__):
             return sorted(self._data.items()) == sorted(other._data.items())
-        
-        for s_v, o_v in izip(self.iterSampleData(),other.iterSampleData()):
+
+        for s_v, o_v in izip(self.iterSampleData(), other.iterSampleData()):
             if not (s_v == o_v).all():
                 return False
-    
+
         return True
 
     def _conv_to_np(self, v):
@@ -120,7 +128,7 @@ class Table(object):
         """For converting vectors to a compatible self type"""
         if dtype is None:
             dtype = self._dtype
-            
+
         if isinstance(vals, self._data.__class__):
             return vals
         else:
@@ -131,7 +139,7 @@ class Table(object):
         return self.iterSamples()
 
     def _iter_samp(self):
-        """Return sample vectors of data matrix vectors"""  
+        """Return sample vectors of data matrix vectors"""
         rows, cols = self._data.shape
         for c in range(cols):
             # this pulls out col vectors but need to convert to the expected row
@@ -255,7 +263,7 @@ class Table(object):
 
     def addSampleMetadata(self, md):
         """Take a dict of metadata and add it to a sample.
-    
+
         ``md`` should be of the form ``{sample_id:{dict_of_metadata}}``
         """
         if self.SampleMetadata is not None:
@@ -292,13 +300,13 @@ class Table(object):
 
     def sum(self, axis='whole'):
         """Returns the sum by axis
-        
+
         axis can be:
 
         ``whole``       : whole matrix sum
-        
+
         ``sample``     : return a vector with a sum for each sample
-        
+
         ``observation`` : return a vector with a sum for each observation
         """
         if axis == 'whole':
@@ -364,18 +372,18 @@ class Table(object):
                       metadata_formatter=str,
                       observation_column_name='#OTU ID'):
         """Return self as a string in a delimited form
-        
+
         Default str output for the Table is just row/col ids and table data
         without any metadata
 
-        Including observation metadata in output: If ``header_key`` is not 
-        ``None``, the observation metadata with that name will be included 
-        in the delimited output. If ``header_value`` is also not ``None``, the 
-        observation metadata will use the provided ``header_value`` as the 
-        observation metadata name (i.e., the column header) in the delimited 
-        output. 
-        
-        ``metadata_formatter``: a function which takes a metadata entry and 
+        Including observation metadata in output: If ``header_key`` is not
+        ``None``, the observation metadata with that name will be included
+        in the delimited output. If ``header_value`` is also not ``None``, the
+        observation metadata will use the provided ``header_value`` as the
+        observation metadata name (i.e., the column header) in the delimited
+        output.
+
+        ``metadata_formatter``: a function which takes a metadata entry and
         returns a formatted version that should be written to file
 
         ``observation_column_name``: the name of the first column in the output
@@ -432,7 +440,7 @@ class Table(object):
         return self.iterSamples()
 
     def _iter_samp(self):
-        """Return sample vectors of data matrix vectors"""  
+        """Return sample vectors of data matrix vectors"""
         rows, cols = self._data.shape
         for c in range(cols):
             # this pulls out col vectors but need to convert to the expected row
@@ -492,11 +500,11 @@ class Table(object):
         """Two SparseObj matrices are equal if the items are equal"""
         if isinstance(self, other.__class__):
             return sorted(self._data.items()) == sorted(other._data.items())
-        
+
         for s_v, o_v in izip(self.iterSampleData(),other.iterSampleData()):
             if not (s_v == o_v).all():
                 return False
-    
+
         return True
 
     def __ne__(self,other):
@@ -525,8 +533,8 @@ class Table(object):
     def copy(self):
         """Returns a copy of the table"""
         #### NEEDS TO BE A DEEP COPY, MIGHT NOT GET METADATA! NEED TEST!
-        return self.__class__(self._data.copy(), self.SampleIds[:], 
-                self.ObservationIds[:], self.SampleMetadata, 
+        return self.__class__(self._data.copy(), self.SampleIds[:],
+                self.ObservationIds[:], self.SampleMetadata,
                 self.ObservationMetadata, self.TableId)
 
     def iterSampleData(self):
@@ -542,39 +550,39 @@ class Table(object):
     def iterSamples(self, conv_to_np=True):
         """Yields ``(sample_value, sample_id, sample_metadata)``
 
-        NOTE: will return ``None`` in ``sample_metadata`` positions if 
+        NOTE: will return ``None`` in ``sample_metadata`` positions if
         ``self.SampleMetadata`` is set to ``None``
         """
         if self.SampleMetadata is None:
             samp_metadata = (None,) * len(self.SampleIds)
         else:
             samp_metadata = self.SampleMetadata
-        
+
         iterator = izip(self._iter_samp(), self.SampleIds, samp_metadata)
         for samp_v, samp_id, samp_md in iterator:
             if conv_to_np:
                 yield (self._conv_to_np(samp_v), samp_id, samp_md)
             else:
                 yield (samp_v, samp_id, samp_md)
-        
+
     def iterObservations(self, conv_to_np=True):
         """Yields ``(observation_value, observation_id, observation_metadata)``
 
-        NOTE: will return ``None`` in ``observation_metadata`` positions if 
+        NOTE: will return ``None`` in ``observation_metadata`` positions if
         ``self.ObservationMetadata`` is set to ``None``
         """
         if self.ObservationMetadata is None:
             obs_metadata = (None,) * len(self.ObservationIds)
         else:
             obs_metadata = self.ObservationMetadata
-        
+
         iterator = izip(self._iter_obs(), self.ObservationIds, obs_metadata)
         for obs_v, obs_id, obs_md in iterator:
             if conv_to_np:
                 yield (self._conv_to_np(obs_v), obs_id, obs_md)
             else:
                 yield (obs_v, obs_id, obs_md)
-        
+
     def sortSampleOrder(self, sample_order):
         """Return a new table with samples in ``sample_order``"""
         samp_md = []
@@ -583,15 +591,15 @@ class Table(object):
         for id_ in sample_order:
             cur_idx = self._sample_index[id_]
             vals.append(self._conv_to_np(self[:,cur_idx]))
-            
+
             if self.SampleMetadata is not None:
                 samp_md.append(self.SampleMetadata[cur_idx])
 
         if not samp_md:
             samp_md = None
 
-        return self.__class__(self._conv_to_self_type(vals,transpose=True), 
-                sample_order[:], self.ObservationIds[:], samp_md, 
+        return self.__class__(self._conv_to_self_type(vals,transpose=True),
+                sample_order[:], self.ObservationIds[:], samp_md,
                 self.ObservationMetadata, self.TableId)
 
     def sortObservationOrder(self, obs_order):
@@ -615,15 +623,15 @@ class Table(object):
 
     def sortBySampleId(self, sort_f=natsort):
         """Return a table where samples are sorted by ``sort_f``
-        
+
             ``sort_f`` must take a single parameter: the list of sample ids
         """
         return self.sortSampleOrder(sort_f(self.SampleIds))
 
     def sortByObservationId(self, sort_f=natsort):
         """Return a table where observations are sorted by ``sort_f``
-        
-            ``sort_f`` must take a single parameter: the list of observation 
+
+            ``sort_f`` must take a single parameter: the list of observation
             ids
         """
         return self.sortObservationOrder(sort_f(self.ObservationIds))
@@ -634,12 +642,12 @@ class Table(object):
     # take() is tempting here as well...
     def filterSamples(self, f, invert=False):
         """Filter samples from self based on ``f``
-        
-        ``f`` must accept three variables, the sample values, sample ID and 
-        sample metadata. The function must only return ``True`` or ``False``, 
+
+        ``f`` must accept three variables, the sample values, sample ID and
+        sample metadata. The function must only return ``True`` or ``False``,
         where ``True`` indicates that a sample should be retained.
-        
-        invert: if ``invert == True``, a return value of ``True`` from ``f`` 
+
+        invert: if ``invert == True``, a return value of ``True`` from ``f``
         indicates that a sample should be discarded
         """
         samp_ids = []
@@ -652,34 +660,34 @@ class Table(object):
             if not xor(f(s_val, s_id, s_md), invert):
                 continue
 
-            # there is an implicit converstion to numpy types, want to make 
+            # there is an implicit converstion to numpy types, want to make
             # sure to convert back to underlying representation.
             samp_vals.append(self._conv_to_self_type(s_val))
             samp_metadata.append(s_md)
             samp_ids.append(s_id)
-    
-        # if we don't have any values to keep, throw an exception as we can 
+
+        # if we don't have any values to keep, throw an exception as we can
         # create an inconsistancy in which there are observation ids but no
         # matrix data in the resulting table
         if not samp_ids:
             raise TableException, "All samples were filtered out!"
 
-        # the additional call to _conv_to_self_type is to convert a list of 
+        # the additional call to _conv_to_self_type is to convert a list of
         # vectors to a matrix
         # transpose is necessary as the underlying storage is sample == col
         return self.__class__(self._conv_to_self_type(samp_vals,transpose=True),
-                samp_ids[:], self.ObservationIds[:], samp_metadata, 
+                samp_ids[:], self.ObservationIds[:], samp_metadata,
                 self.ObservationMetadata, self.TableId)
 
     def filterObservations(self, f, invert=False):
         """Filter observations from self based on ``f``
-        
+
         ``f`` must accept three variables, the observation values, observation
         ID and observation metadata. The function must only return ``True`` or
         ``False``, where ``True`` indicates that an observation should be
         retained.
-        
-        invert: if ``invert == True``, a return value of ``True`` from ``f`` 
+
+        invert: if ``invert == True``, a return value of ``True`` from ``f``
         indicates that an observation should be discarded
         """
         obs_ids = []
@@ -692,13 +700,13 @@ class Table(object):
             if not xor(f(o_val, o_id, o_md), invert):
                 continue
 
-            # there is an implicit converstion to numpy types, want to make 
+            # there is an implicit converstion to numpy types, want to make
             # sure to convert back to underlying representation.
             obs_vals.append(self._conv_to_self_type(o_val))
             obs_metadata.append(o_md)
             obs_ids.append(o_id)
 
-        # if we don't have any values to keep, throw an exception as we can 
+        # if we don't have any values to keep, throw an exception as we can
         # create an inconsistancy in which there are sample ids but no
         # matrix data in the resulting table
         if not obs_vals:
@@ -709,8 +717,8 @@ class Table(object):
 
     def binSamplesByMetadata(self, f, constructor=None):
         """Yields tables by metadata
-        
-        ``f`` is given the sample metadata by row and must return what "bin" 
+
+        ``f`` is given the sample metadata by row and must return what "bin"
         the sample is part of.
 
         ``constructor``: the type of binned tables to create, e.g.
@@ -739,14 +747,14 @@ class Table(object):
 
         for bin, (samp_ids, samp_values, samp_md) in bins.iteritems():
             data = self._conv_to_self_type(samp_values, transpose=True)
-            yield bin, table_factory(data, samp_ids[:], self.ObservationIds[:], 
+            yield bin, table_factory(data, samp_ids[:], self.ObservationIds[:],
                     samp_md, self.ObservationMetadata, self.TableId,
                     constructor=constructor)
 
     def binObservationsByMetadata(self, f, constructor=None):
         """Yields tables by metadata
-        
-        ``f`` is given the observation metadata by row and must return what 
+
+        ``f`` is given the observation metadata by row and must return what
         "bin" the observation is part of.
 
         ``constructor``: the type of binned tables to create, e.g.
@@ -774,17 +782,17 @@ class Table(object):
             bins[bin][2].append(obs_md)
 
         for bin, (obs_ids, obs_values, obs_md) in bins.iteritems():
-            yield bin, table_factory(self._conv_to_self_type(obs_values), 
+            yield bin, table_factory(self._conv_to_self_type(obs_values),
                     self.SampleIds[:], obs_ids[:], self.SampleMetadata,
                     obs_md, self.TableId, constructor=constructor)
 
-    def collapseSamplesByMetadata(self, metadata_f, reduce_f=add, norm=True, 
+    def collapseSamplesByMetadata(self, metadata_f, reduce_f=add, norm=True,
             min_group_size=2, include_collapsed_metadata=True,
             constructor=None, one_to_many=False, one_to_many_mode='add',
             one_to_many_md_key='Path', strict=False):
         """Collapse samples in a table by sample metadata
 
-        Bin samples by metadata then collapse each bin into a single sample. 
+        Bin samples by metadata then collapse each bin into a single sample.
 
         If ``include_collapsed_metadata`` is True, metadata for the collapsed
         samples are retained and can be referred to by the ``SampleId`` from
@@ -796,26 +804,26 @@ class Table(object):
 
         The remainder is only relevant to setting ``one_to_many`` to True.
 
-        If ``one_to_many`` is True, allow samples to collapse into multiple 
-        bins if the metadata describe a one-many relationship. Supplied 
-        functions must allow for iteration support over the metadata key and 
-        must return a tuple of (path, bin) as to describe both the path in the 
-        hierarchy represented and the specific bin being collapsed into. The 
+        If ``one_to_many`` is True, allow samples to collapse into multiple
+        bins if the metadata describe a one-many relationship. Supplied
+        functions must allow for iteration support over the metadata key and
+        must return a tuple of (path, bin) as to describe both the path in the
+        hierarchy represented and the specific bin being collapsed into. The
         uniqueness of the bin is _not_ based on the path but by the name of the
-        bin. 
-        
-        The metadata value for the corresponding collapsed column may include 
-        more (or less) information about the collapsed data. For example, if 
+        bin.
+
+        The metadata value for the corresponding collapsed column may include
+        more (or less) information about the collapsed data. For example, if
         collapsing "FOO", and there are samples that span three associations A,
-        B, and C, such that sample 1 spans A and B, sample 2 spans B and C and 
-        sample 3 spans A and C, the resulting table will contain three 
+        B, and C, such that sample 1 spans A and B, sample 2 spans B and C and
+        sample 3 spans A and C, the resulting table will contain three
         collapsed samples:
-        
-        - A, containing original sample 1 and 3 
+
+        - A, containing original sample 1 and 3
         - B, containing original sample 1 and 2
         - C, containing original sample 2 and 3
 
-        If a sample maps to the same bin multiple times, it will be 
+        If a sample maps to the same bin multiple times, it will be
         counted multiple times.
 
         There are two supported modes for handling one-to-many relationships
@@ -831,20 +839,20 @@ class Table(object):
         then it defaults to 'Path'.
 
         If ``strict`` is specified, then all metadata pathways operated on
-        must be indexable by ``metadata_f``. 
-        
-        ``one_to_many`` and ``norm`` are not supported together. 
-        
+        must be indexable by ``metadata_f``.
+
+        ``one_to_many`` and ``norm`` are not supported together.
+
         ``one_to_many`` and ``reduce_f`` are not supported together.
 
         ``one_to_many`` and ``min_group_size`` are not supported together.
 
         A final note on space consumption. At present, the ``one_to_many``
-        functionality requires a temporary dense matrix representation. This 
+        functionality requires a temporary dense matrix representation. This
         was done so as it initially seems like true support requires rapid
         ``__setitem__`` functionality on the ``SparseObj`` and at the time of
         implementation, ``CSMat`` was O(N) to the number of nonzero elements.
-        This is a work around until either a better ``__setitem__`` 
+        This is a work around until either a better ``__setitem__``
         implementation is in play on ``CSMat`` or a hybrid solution that allows
         for multiple ``SparseObj`` types is used.
         """
@@ -889,8 +897,8 @@ class Table(object):
                             continue
                     except StopIteration:
                         break
-                    
-                    new_s_md[bin] = pathway 
+
+                    new_s_md[bin] = pathway
                     num_md += 1
 
                 s_md_count[id_] = num_md
@@ -905,7 +913,7 @@ class Table(object):
             else:
                 dtype = self._dtype
 
-            # allocate new data. using a dense representation allows for a 
+            # allocate new data. using a dense representation allows for a
             # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
             # of collapsed samples is reasonable, then this doesn't suck too
             # much.
@@ -947,7 +955,7 @@ class Table(object):
                 for k,i in sorted(s_idx.items(), key=itemgetter(1)):
                     collapsed_sample_md.append(
                             {one_to_many_md_key:new_s_md[k]})
- 
+
             # get the new sample IDs
             collapsed_sample_ids = [k for k,i in sorted(s_idx.items(),
                                                         key=itemgetter(1))]
@@ -965,7 +973,7 @@ class Table(object):
 
                 collapsed_data.append(self._conv_to_self_type(redux_data))
                 collapsed_sample_ids.append(bin)
-            
+
                 if include_collapsed_metadata:
                     # retain metadata but store by original sample id
                     tmp_md = {}
@@ -984,15 +992,15 @@ class Table(object):
                              self.ObservationMetadata, self.TableId,
                              constructor=constructor)
 
-    def collapseObservationsByMetadata(self, metadata_f, reduce_f=add, 
+    def collapseObservationsByMetadata(self, metadata_f, reduce_f=add,
             norm=True, min_group_size=2, include_collapsed_metadata=True,
             constructor=None, one_to_many=False, one_to_many_mode='add',
             one_to_many_md_key='Path', strict=False):
         """Collapse observations in a table by observation metadata
-        
-        Bin observations by metadata then collapse each bin into a single 
-        observation. 
-        
+
+        Bin observations by metadata then collapse each bin into a single
+        observation.
+
         If ``include_collapsed_metadata`` is True, metadata for the collapsed
         observations are retained and can be referred to by the
         ``ObservationId`` from each observation within the bin.
@@ -1003,22 +1011,22 @@ class Table(object):
 
         The remainder is only relevant to setting ``one_to_many`` to True.
 
-        If ``one_to_many`` is True, allow observations to fall into multiple 
+        If ``one_to_many`` is True, allow observations to fall into multiple
         bins if the metadata describe a one-many relationship. Supplied
-        functions must allow for iteration support over the metadata key and 
-        must return a tuple of (path, bin) as to describe both the path in the 
-        hierarchy represented and the specific bin being collapsed into. The 
+        functions must allow for iteration support over the metadata key and
+        must return a tuple of (path, bin) as to describe both the path in the
+        hierarchy represented and the specific bin being collapsed into. The
         uniqueness of the bin is _not_ based on the path but by the name of the
-        bin. 
+        bin.
 
         The metadata value for the corresponding collapsed row may include more
-        (or less) information about the collapsed data. For example, if 
-        collapsing "KEGG Pathways", and there are observations that span three 
-        pathways A, B, and C, such that observation 1 spans A and B, 
-        observation 2 spans B and C and observation 3 spans A and C, the 
+        (or less) information about the collapsed data. For example, if
+        collapsing "KEGG Pathways", and there are observations that span three
+        pathways A, B, and C, such that observation 1 spans A and B,
+        observation 2 spans B and C and observation 3 spans A and C, the
         resulting table will contain three collapsed observations:
-        
-        - A, containing original observation 1 and 3 
+
+        - A, containing original observation 1 and 3
         - B, containing original observation 1 and 2
         - C, containing original observation 2 and 3
 
@@ -1036,22 +1044,22 @@ class Table(object):
         If ``one_to_many_md_key`` is specified, that becomes the metadata
         key that describes the collapsed path. If a value is not specified,
         then it defaults to 'Path'.
-        
-        If ``strict`` is specified, then all metadata pathways operated on
-        must be indexable by ``metadata_f``. 
 
-        ``one_to_many`` and ``norm`` are not supported together. 
-        
+        If ``strict`` is specified, then all metadata pathways operated on
+        must be indexable by ``metadata_f``.
+
+        ``one_to_many`` and ``norm`` are not supported together.
+
         ``one_to_many`` and ``reduce_f`` are not supported together.
 
         ``one_to_many`` and ``min_group_size`` are not supported together.
 
         A final note on space consumption. At present, the ``one_to_many``
-        functionality requires a temporary dense matrix representation. This 
+        functionality requires a temporary dense matrix representation. This
         was done so as it initially seems like true support requires rapid
         ``__setitem__`` functionality on the ``SparseObj`` and at the time of
         implementation, ``CSMat`` was O(N) to the number of nonzero elements.
-        This is a work around until either a better ``__setitem__`` 
+        This is a work around until either a better ``__setitem__``
         implementation is in play on ``CSMat`` or a hybrid solution that allows
         for multiple ``SparseObj`` types is used.
         """
@@ -1096,7 +1104,7 @@ class Table(object):
                             continue
                     except StopIteration:
                         break
-                    
+
                     new_obs_md[bin] = pathway # keyed by last field in hierarchy
                     num_md += 1
 
@@ -1112,7 +1120,7 @@ class Table(object):
             else:
                 dtype = self._dtype
 
-            # allocate new data. using a dense representation allows for a 
+            # allocate new data. using a dense representation allows for a
             # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
             # of collapsed observations is reasonable, then this doesn't suck
             # too much.
@@ -1156,7 +1164,7 @@ class Table(object):
                     collapsed_obs_md.append({one_to_many_md_key:new_obs_md[k]})
 
             # get the new observation IDs
-            collapsed_obs_ids = [k for k,i in sorted(obs_idx.items(), 
+            collapsed_obs_ids = [k for k,i in sorted(obs_idx.items(),
                                                      key=itemgetter(1))]
 
             # convert back to self type
@@ -1193,24 +1201,24 @@ class Table(object):
 
     def transformSamples(self, f):
         """Iterate over samples, applying a function ``f`` to each value
-        
-        ``f`` must take three values: a sample value (int or float), a sample 
-        id, and a sample metadata entry, and return a single value (int or 
+
+        ``f`` must take three values: a sample value (int or float), a sample
+        id, and a sample metadata entry, and return a single value (int or
         float) that replaces the provided sample value
         """
         new_m = []
-        
+
         for s_v, s_id, s_md in self.iterSamples():
             new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
-            
+
         return self.__class__(self._conv_to_self_type(new_m, transpose=True),
-                self.SampleIds[:], self.ObservationIds[:], self.SampleMetadata, 
+                self.SampleIds[:], self.ObservationIds[:], self.SampleMetadata,
                 self.ObservationMetadata, self.TableId)
 
     def transformObservations(self, f):
         """Iterate over observations, applying a function ``f`` to each value
 
-        ``f`` must take three values: an observation value (int or float), an 
+        ``f`` must take three values: an observation value (int or float), an
         observation id, and an observation metadata entry, and return a single
         value (int or float) that replaces the provided observation value
 
@@ -1220,8 +1228,8 @@ class Table(object):
         for obs_v, obs_id, obs_md in self.iterObservations():
             new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
 
-        return self.__class__(self._conv_to_self_type(new_m), self.SampleIds[:], 
-                self.ObservationIds[:], self.SampleMetadata, 
+        return self.__class__(self._conv_to_self_type(new_m), self.SampleIds[:],
+                self.ObservationIds[:], self.SampleMetadata,
                 self.ObservationMetadata, self.TableId)
 
     def normObservationBySample(self):
@@ -1233,12 +1241,12 @@ class Table(object):
 
     def normSampleByObservation(self):
         """Return new table with vals as relative abundances within each obs
-        """  
+        """
         def f(obs_v,obs_id,obs_md):
             return obs_v / float(obs_v.sum())
         #f = lambda x: x / float(x.sum())
         return self.transformObservations(f)
-    
+
     def normObservationByMetadata(self,obs_metadata_id):
         """Return new table with vals divided by obs_metadata_id
         """
@@ -1262,7 +1270,7 @@ class Table(object):
 
         axis : either 'sample', 'observation', or 'whole'
         binary : sum of nonzero entries, or summing the values of the entries
-        
+
         Returns a numpy array in index order to the axis
         """
         if binary:
@@ -1300,7 +1308,7 @@ class Table(object):
                 new_order[id_] = idx
                 idx += 1
         return new_order
-    
+
     def _intersect_id_order(self, a, b):
         """Determines the merge order for id lists A and B"""
         all_b = set(b[:])
@@ -1316,13 +1324,13 @@ class Table(object):
             sample_metadata_f=prefer_self, observation_metadata_f=prefer_self):
         """Merge two tables together
 
-        The axes, samples and observations, can be controlled independently. 
-        Both can either work on ``union`` or ``intersection``. 
+        The axes, samples and observations, can be controlled independently.
+        Both can either work on ``union`` or ``intersection``.
 
-        ``sample_metadata_f`` and ``observation_metadata_f`` define how to 
+        ``sample_metadata_f`` and ``observation_metadata_f`` define how to
         merge metadata between tables. The default is to just keep the metadata
         associated to self if self has metadata otherwise take metadata from
-        other. These functions are given both metadata dictsand must return 
+        other. These functions are given both metadata dictsand must return
         a single metadata dict
 
         NOTE: There is an implicit type conversion to ``float``. Tables using
@@ -1333,18 +1341,18 @@ class Table(object):
         """
         # determine the sample order in the resulting table
         if Sample is 'union':
-            new_samp_order = self._union_id_order(self.SampleIds, 
-                                                  other.SampleIds)         
+            new_samp_order = self._union_id_order(self.SampleIds,
+                                                  other.SampleIds)
         elif Sample is 'intersection':
             new_samp_order = self._intersect_id_order(self.SampleIds,
                                                       other.SampleIds)
         else:
             raise TableException, "Unknown Sample merge type: %s" % Sample
-         
+
         # determine the observation order in the resulting table
         if Observation is 'union':
-            new_obs_order = self._union_id_order(self.ObservationIds, 
-                                                  other.ObservationIds) 
+            new_obs_order = self._union_id_order(self.ObservationIds,
+                                                  other.ObservationIds)
         elif Observation is 'intersection':
             new_obs_order = self._intersect_id_order(self.ObservationIds,
                                                       other.ObservationIds)
@@ -1355,8 +1363,8 @@ class Table(object):
         # calls to items() and allows for pre-caluculating insert order
         new_samp_order = sorted(new_samp_order.items(), key=itemgetter(1))
         new_obs_order = sorted(new_obs_order.items(), key=itemgetter(1))
-       
-        # if we don't have any samples, complain loudly. This is likely from 
+
+        # if we don't have any samples, complain loudly. This is likely from
         # performing an intersection without overlapping ids
         if not new_samp_order:
             raise TableException, "No samples in resulting table!"
@@ -1369,7 +1377,7 @@ class Table(object):
         other_samp_idx = other._sample_index
         self_samp_idx = self._sample_index
 
-        # pre-calculate sample order from each table. We only need to do this 
+        # pre-calculate sample order from each table. We only need to do this
         # once which dramatically reduces the number of dict lookups necessary
         # within the inner loop
         other_samp_order = []
@@ -1378,10 +1386,10 @@ class Table(object):
             other_samp_order.append((nsi, other_samp_idx.get(samp_id, None)))
             self_samp_order.append((nsi, self_samp_idx.get(samp_id,None)))
 
-        # pre-allocate the a list for placing the resulting vectors as the 
+        # pre-allocate the a list for placing the resulting vectors as the
         # placement id is not ordered
-        vals = [None for i in range(len(new_obs_order))] 
-       
+        vals = [None for i in range(len(new_obs_order))]
+
         ### POSSIBLE DECOMPOSITION
         # resulting sample ids and sample metadata
         sample_ids = []
@@ -1394,7 +1402,7 @@ class Table(object):
                 self_md = None
             else:
                 self_md = self.SampleMetadata[self_samp_idx[id_]]
-            
+
             # if we have sample metadata, grab it
             if other.SampleMetadata is None or not other.sampleExists(id_):
                 other_md = None
@@ -1428,33 +1436,23 @@ class Table(object):
 
         # length used for construction of new vectors
         vec_length = len(new_samp_order)
-        
-        # The following lines of code allow for removing type conversions,
-        # however it should be noted that in testing as of 7.5.12, this 
-        # degraded performance due to the vastly higher performing numpy
-        # __setitem__ interface.
-        #if self._biom_matrix_type is 'sparse':
-        #    data_f = lambda: self._data.__class__(1, vec_length, dtype=float,\
-        #                                    enable_indices=False)
-        #else:
-        #    data_f = lambda: zeros(vec_length, dtype=float) 
 
         # walk over observations in our new order
         for obs_id, new_obs_idx in new_obs_order:
             # create new vector for matrix values
             new_vec = zeros(vec_length, dtype='float')
-            
-            # This method allows for the creation of a matrix of self type. 
+
+            # This method allows for the creation of a matrix of self type.
             # See note above
             #new_vec = data_f()
-            
+
             # see if the observation exists in other, if so, pull it out.
             # if not, set to the placeholder missing
             if other.observationExists(obs_id):
                 other_vec = other.observationData(obs_id)
             else:
                 other_vec = None
-                
+
             # see if the observation exists in self, if so, pull it out.
             # if not, set to the placeholder missing
             if self.observationExists(obs_id):
@@ -1468,43 +1466,137 @@ class Table(object):
                 for (n_idx, s_idx) in self_samp_order:
                     if s_idx is not None:
                         new_vec[n_idx] = self_vec[s_idx]
-                                    
+
             # short circuit. If self doesn't have any values, then we can just
             # take all values from other
             elif self_vec is None:
                 for (n_idx, o_idx) in other_samp_order:
                     if o_idx is not None:
                         new_vec[n_idx] = other_vec[o_idx]
-                         
+
             else:
                 # NOTE: DM 7.5.12, no observed improvement at the profile level
-                # was made on this inner loop by using self_samp_order and 
+                # was made on this inner loop by using self_samp_order and
                 # other_samp_order lists.
-                
+
                 # walk over samples in our new order
                 for samp_id, new_samp_idx in new_samp_order:
                     # pull out each individual sample value. This is expensive,
-                    # but the vectors are in a different alignment. It is 
-                    # possible that this could be improved with numpy take but 
+                    # but the vectors are in a different alignment. It is
+                    # possible that this could be improved with numpy take but
                     # needs to handle missing values appropriately
                     if samp_id not in self_samp_idx:
                         self_vec_value = 0
                     else:
                         self_vec_value = self_vec[self_samp_idx[samp_id]]
-            
+
                     if samp_id not in other_samp_idx:
                         other_vec_value = 0
-                    else: 
+                    else:
                         other_vec_value = other_vec[other_samp_idx[samp_id]]
-                        
+
                     new_vec[new_samp_idx] = self_vec_value + other_vec_value
-                
+
             # convert our new vector to self type as to make sure we don't
             # accidently force a dense representation in memory
             vals[new_obs_idx] = self._conv_to_self_type(new_vec)
 
-        return self.__class__(self._conv_to_self_type(vals), sample_ids[:], 
-                obs_ids[:], sample_md, obs_md)
+        return self.__class__(self._conv_to_self_type(vals), sample_ids[:],
+                              obs_ids[:], sample_md, obs_md)
+
+    def format_hdf5(self, h5grp, generated_by):
+        """Store CSC and CSR in place
+
+        The expected structure of this group is below. A few basic definitions,
+        N is the number of observations and M is the number of samples. Data
+        are stored in both compressed sparse row (for observation oriented
+        operations) and compressed sparse column (for sample oriented
+        operations).
+
+        ### ADD IN SCIPY SPARSE CSC/CSR URLS
+        ### ADD IN WIKIPEDIA PAGE LINK TO CSR
+        ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
+        ###     THOUGH
+        ### METADATA ARE NOT REPRESENTED HERE YET
+        ./id                     : str, an arbitrary ID
+        ./type                   : str, the table type (e.g, OTU table)
+        ./format-url             : str, a URL that describes the format
+        ./format-version         : two element tuple of int32, major and minor
+        ./generated-by           : str, what generated this file
+        ./creation-date          : str, ISO format
+        ./shape                  : two element tuple of int32, N by M
+        ./nnz                    : int32 or int64, number of non zero elements
+        ./observation            : Group
+        ./observation/ids        : (N,) dataset of str or vlen str
+        ./observation/data       : (N,) dataset of float64
+        ./observation/indices    : (N,) dataset of int32
+        ./observation/indptr     : (M+1,) dataset of int32
+        [./observation/metadata] : Optional, JSON str, in index order with ids
+        ./sample                 : Group
+        ./sample/ids             : (M,) dataset of str or vlen str
+        ./sample/data            : (M,) dataset of float64
+        ./sample/indices         : (M,) dataset of int32
+        ./sample/indptr          : (N+1,) dataset of int32
+        [./sample/metadata]      : Optional, JSON str, in index order with ids
+
+        Paramters
+        ---------
+        h5grp : a h5py ``Group`` or an open h5py ``File``
+        generated_by : str
+
+        See Also
+        --------
+        Table.format_hdf5
+
+        Examples
+        --------
+        ### is it okay to actually create files in doctest?
+
+        """
+        def axis_dump(grp, ids, md, order):
+            """Store for an axis"""
+            self._data.convert(order)
+
+            len_ids = len(ids)
+            len_indptr = len(self._data._matrix.indptr)
+            len_data = self._data.size
+
+            grp.create_dataset('data', shape=(len_data,),
+                               dtype=np.float64,
+                               data=self._data._matrix.data)
+            grp.create_dataset('indices', shape=(len_data,),
+                               dtype=np.int32,
+                               data=self._data._matrix.indices)
+            grp.create_dataset('indptr', shape=(len_indptr,),
+                               dtype=np.int32,
+                               data=self._data._matrix.indptr)
+
+            ### if we store IDs in the table as numpy arrays then this store
+            ### is cleaner, as is the parse
+            grp.create_dataset('ids', shape=(len_ids,),
+                               dtype=H5PY_VLEN_STR,
+                               data=[str(i) for i in ids])
+
+            if md is not None:
+                md_str = empty(shape=(), dtype=object)
+                md_str[()] = dumps(md)
+                grp.create_dataset('metadata', shape=(1,),
+                                   dtype=H5PY_VLEN_STR,
+                                   data=md_str)
+
+        h5grp.attrs['id'] = self.TableId if self.TableId else "No Table ID"
+        h5grp.attrs['type'] = self.Type
+        h5grp.attrs['format-url'] = "http://biom-format.org"
+        h5grp.attrs['format-version'] = (2, 0)
+        h5grp.attrs['generated-by'] = generated_by
+        h5grp.attrs['creation-date'] = datetime.now().isoformat()
+        h5grp.attrs['shape'] = self._data.shape
+        h5grp.attrs['nnz'] = self._data.size
+
+        axis_dump(h5grp.create_group('observation'), self.ObservationIds,
+                  self.ObservationMetadata, 'csr')
+        axis_dump(h5grp.create_group('sample'), self.SampleIds,
+                  self.SampleMetadata, 'csc')
 
     def getBiomFormatObject(self, generated_by):
         """Returns a dictionary representing the table in BIOM format.
@@ -1512,7 +1604,7 @@ class Table(object):
         This dictionary can then be easily converted into a JSON string for
         serialization.
 
-        ``generated_by``: a string describing the software used to build the 
+        ``generated_by``: a string describing the software used to build the
         table
 
         TODO: This method may be very inefficient in terms of memory usage, so
@@ -1520,9 +1612,6 @@ class Table(object):
         optimizations are necessary or not (i.e. subclassing JSONEncoder, using
         generators, etc...).
         """
-        if self.Type is None:
-            raise TableException, "Unknown biom type"
-
         if (not isinstance(generated_by, str) and
             not isinstance(generated_by, unicode)):
             raise TableException, "Must specify a generated_by string"
@@ -1535,7 +1624,7 @@ class Table(object):
                 get_biom_format_url_string()
         biom_format_obj["generated_by"] = generated_by
         biom_format_obj["date"] = "%s" % datetime.now().isoformat()
-        
+
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
         try:
@@ -1561,8 +1650,6 @@ class Table(object):
             raise TableException("Unsupported matrix data type.")
 
         # Fill in details about the matrix.
-        biom_format_obj["type"] = self.Type
-        biom_format_obj["matrix_type"] = 'sparse'
         biom_format_obj["matrix_element_type"] = "%s" % matrix_element_type
         biom_format_obj["shape"] = [num_rows, num_cols]
 
@@ -1590,7 +1677,7 @@ class Table(object):
         for samp in self.iterSamples():
             biom_format_obj["columns"].append(
                     {"id" : "%s" % samp[1], "metadata" : samp[2]})
-        
+
         return biom_format_obj
 
     def getBiomFormatJsonString(self,generated_by, direct_io=None):
@@ -1602,9 +1689,6 @@ class Table(object):
         If direct_io is not None, the final output is written directly to
         direct_io during processing.
         """
-        if self.Type is None:
-            raise TableException, "Unknown biom type"
-
         if (not isinstance(generated_by, str) and
             not isinstance(generated_by, unicode)):
             raise TableException, "Must specify a generated_by string"
@@ -1623,7 +1707,7 @@ class Table(object):
             format_url = '"format_url": "%s",' % get_biom_format_url_string()
             generated_by = '"generated_by": "%s",' % generated_by
             date = '"date": "%s",' % datetime.now().isoformat()
-        
+
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
         try:
@@ -1650,13 +1734,9 @@ class Table(object):
 
         # Fill in details about the matrix.
         if direct_io:
-            direct_io.write('"type": "%s",' % self.Type)
-            direct_io.write('"matrix_type": "%s",' % self._biom_matrix_type)
             direct_io.write('"matrix_element_type": "%s",' % matrix_element_type)
             direct_io.write('"shape": [%d, %d],' % (num_rows, num_cols))
         else:
-            type_ = '"type": "%s",' % self.Type
-            matrix_type = '"matrix_type": "%s",' % self._biom_matrix_type
             matrix_element_type = '"matrix_element_type": "%s",' % matrix_element_type
             shape = '"shape": [%d, %d],' % (num_rows, num_cols)
 
@@ -1680,54 +1760,40 @@ class Table(object):
                 rows.append('{"id": "%s", "metadata": %s}],' % (obs[1],
                                                                 dumps(obs[2])))
 
-            # If the matrix is dense, simply convert the numpy array to a list
-            # of data values. If the matrix is sparse, we need to store the
-            # data in sparse format, as it is given to us in a numpy array in
-            # dense format (i.e. includes zeroes) by iterObservations().
-            if self._biom_matrix_type == "dense":
-                if direct_io:
-                    # if we are not on the last row
-                    if obs_index != max_row_idx:
-                        direct_io.write("[%s]," % ','.join(map(repr, obs[0])))
-                    else:
-                        direct_io.write("[%s]]," % ','.join(map(repr, obs[0])))
-                else:
-                    # if we are not on the last row
-                    if obs_index != max_row_idx:
-                        data.append("[%s]," % ','.join(map(repr, obs[0])))
-                    else:
-                        data.append("[%s]]," % ','.join(map(repr, obs[0])))
+            # if we are not on the last row
+            #if obs_index != max_row_idx:
+            #    data.append("[%s]," % ','.join(map(repr, obs[0])))
+            #else:
+            #    data.append("[%s]]," % ','.join(map(repr, obs[0])))
 
-            elif self._biom_matrix_type == "sparse":
-                # turns out its a pain to figure out when to place commas. the
-                # simple work around, at the expense of a little memory 
-                # (bound by the number of samples) is to build of what will be
-                # written, and then add in the commas where necessary.
-                built_row = []
-                for col_index, val in enumerate(obs[0]):
-                    if float(val) != 0.0:
-                        built_row.append("[%d,%d,%r]" % (obs_index, col_index,
-                                                         val))
-                if built_row:
-                    # if we have written a row already, its safe to add a comma
-                    if have_written:
-                        if direct_io:
-                            direct_io.write(',')
-                        else:
-                            data.append(',')
+            # turns out its a pain to figure out when to place commas. the
+            # simple work around, at the expense of a little memory
+            # (bound by the number of samples) is to build of what will be
+            # written, and then add in the commas where necessary.
+            built_row = []
+            for col_index, val in enumerate(obs[0]):
+                if float(val) != 0.0:
+                    built_row.append("[%d,%d,%r]" % (obs_index, col_index,
+                                                     val))
+            if built_row:
+                # if we have written a row already, its safe to add a comma
+                if have_written:
                     if direct_io:
-                        direct_io.write(','.join(built_row))
+                        direct_io.write(',')
                     else:
-                        data.append(','.join(built_row))
+                        data.append(',')
+                if direct_io:
+                    direct_io.write(','.join(built_row))
+                else:
+                    data.append(','.join(built_row))
 
-                    have_written = True
+                have_written = True
 
         # finalize the data block
-        if self._biom_matrix_type == 'sparse':
-            if direct_io:
-                direct_io.write("],")
-            else:
-                data.append("],")
+        if direct_io:
+            direct_io.write("],")
+        else:
+            data.append("],")
 
         # Fill in details about the columns in the table.
         columns = ['"columns": [']
@@ -1744,12 +1810,12 @@ class Table(object):
 
         if direct_io:
             direct_io.write(rows)
-            direct_io.write(columns); 
+            direct_io.write(columns);
             direct_io.write('}')
         else:
-            return "{%s}" % ''.join([id_, format_, format_url, type_, 
-                                      generated_by, date, 
-                                      matrix_type, matrix_element_type, shape, 
+            return "{%s}" % ''.join([id_, format_, format_url,
+                                      generated_by, date,
+                                      matrix_element_type, shape,
                                       ''.join(data), rows, columns])
 
     def getBiomFormatPrettyPrint(self,generated_by):
@@ -1758,7 +1824,7 @@ class Table(object):
         ``generated_by``: a string describing the software used to build the
         table
 
-        WARNING: This method displays data values in a columnar format and 
+        WARNING: This method displays data values in a columnar format and
         can be misleading.
         """
         return dumps(self.getBiomFormatObject(generated_by), sort_keys=True,
@@ -1790,29 +1856,30 @@ def list_dict_to_nparray(data, dtype=float):
     n_cols = max(flatten([d.keys() for d in data]), key=itemgetter(1))[1] + 1
 
     mat = zeros((n_rows, n_cols), dtype=dtype)
-    
+
     for row_idx, row in enumerate(data):
         for (foo,col_idx),val in row.iteritems():
             mat[row_idx, col_idx] = val
 
     return mat
 
-def table_factory(data, sample_ids, observation_ids, sample_metadata=None, 
+def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
                   observation_metadata=None, table_id=None, **kwargs):
     """Construct a table
 
-    Attempts to make 'data' through various means of juggling. Data can be: 
-    
-        - numpy.array       
-        - list of numpy.array vectors 
+    Attempts to make 'data' through various means of juggling. Data can be:
+
+        - numpy.array
+        - list of numpy.array vectors
         - SparseObj representation
         - dict representation
         - list of SparseObj representation vectors
         - list of lists of sparse values [[row, col, value], ...]
         - list of lists of dense values [[value, value, ...], ...]
-    
+        - Scipy COO data (values, (rows, cols))
+
     Example usage to create a Table object::
-    
+
         from biom.table import table_factory
         from numpy import array
 
@@ -1859,13 +1926,13 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
 
         elif isinstance(data[0], ndarray):
             data = list_nparray_to_sparseobj(data, dtype)
-        
+
         elif isinstance(data[0], dict):
             data = list_dict_to_sparseobj(data, dtype)
-        
+
         elif isinstance(data[0], list):
             data = list_list_to_sparseobj(data, dtype, shape=shape)
-        
+
         else:
             raise TableException("Unknown nested list type")
 
@@ -1873,13 +1940,19 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     elif isinstance(data, dict) and not isinstance(data, SparseObj):
         data = dict_to_sparseobj(data, dtype)
 
+    elif isinstance(data, tuple) and isinstance(data[0], ndarray):
+        # give it a go...
+        # there isn't a CSMat equivilent
+        from biom.backends.scipysparse import coo_arrays_to_scipy
+        data = coo_arrays_to_scipy(data)
+
     elif isinstance(data, SparseObj):
         pass
 
     else:
         raise TableException, "Cannot handle data!"
 
-    return Table(data, sample_ids, observation_ids, 
+    return Table(data, sample_ids, observation_ids,
             SampleMetadata=sample_metadata,
             ObservationMetadata=observation_metadata,
             TableId=table_id, **kwargs)

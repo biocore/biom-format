@@ -8,15 +8,18 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
+import h5py
+import os
 from biom import __version__
 from numpy import array, nan
 from StringIO import StringIO
 import json
 from biom.unit_test import TestCase,main
-from biom.parse import (parse_biom_table_json, parse_biom_table, 
-        parse_classic_table_to_rich_table, 
-        convert_biom_to_table, convert_table_to_biom, 
-        parse_classic_table, generatedby, MetadataMap)
+from biom.parse import (parse_biom_table_json, parse_biom_table,
+        parse_classic_table_to_rich_table,
+        convert_biom_to_table, convert_table_to_biom,
+        parse_classic_table, generatedby, MetadataMap,
+        parse_biom_table_hdf5)
 
 from biom.table import Table
 from biom.exception import BiomParseException
@@ -39,10 +42,92 @@ class ParseTests(TestCase):
         self.otu_table1_floats=otu_table1_floats
         self.files_to_remove = []
         self.biom_minimal_sparse = biom_minimal_sparse
-        
+
         self.classic_otu_table1_w_tax = classic_otu_table1_w_tax.split('\n')
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
         self.classic_table_with_complex_metadata = classic_table_with_complex_metadata.split('\n')
+
+    def test_parse_biom_table_hdf5(self):
+        """Parse a hdf5 formatted BIOM table"""
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        t = parse_biom_table_hdf5(h5py.File('test_data/test.biom'))
+        os.chdir(cwd)
+
+        self.assertEqual(t.SampleIds, ('Sample1', 'Sample2', 'Sample3',
+                                       'Sample4', 'Sample5', 'Sample6'))
+        self.assertEqual(t.ObservationIds, ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
+                                            'GG_OTU_4', 'GG_OTU_5'))
+        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
+                                     u'p__Proteobacteria',
+                                     u'c__Gammaproteobacteria',
+                                     u'o__Enterobacteriales',
+                                     u'f__Enterobacteriaceae',
+                                     u'g__Escherichia',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Cyanobacteria',
+                                     u'c__Nostocophycideae',
+                                     u'o__Nostocales',
+                                     u'f__Nostocaceae',
+                                     u'g__Dolichospermum',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Archaea',
+                                     u'p__Euryarchaeota',
+                                     u'c__Methanomicrobia',
+                                     u'o__Methanosarcinales',
+                                     u'f__Methanosarcinaceae',
+                                     u'g__Methanosarcina',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Firmicutes',
+                                     u'c__Clostridia',
+                                     u'o__Halanaerobiales',
+                                     u'f__Halanaerobiaceae',
+                                     u'g__Halanaerobium',
+                                     u's__Halanaerobiumsaccharolyticum']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Proteobacteria',
+                                     u'c__Gammaproteobacteria',
+                                     u'o__Enterobacteriales',
+                                     u'f__Enterobacteriaceae',
+                                     u'g__Escherichia',
+                                     u's__']})
+        self.assertEqual(t.ObservationMetadata, exp_obs_md)
+
+        exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CGCTTATCGAGA',
+                        u'Description': u'human gut',
+                        u'BODY_SITE': u'gut'},
+                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CATACCAGTAGC',
+                        u'Description': u'human gut',
+                        u'BODY_SITE': u'gut'},
+                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CTCTCTACCTGT',
+                        u'Description': u'human gut',
+                        u'BODY_SITE': u'gut'},
+                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CTCTCGGCCTGT',
+                        u'Description': u'human skin',
+                        u'BODY_SITE': u'skin'},
+                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CTCTCTACCAAT',
+                        u'Description': u'human skin',
+                        u'BODY_SITE': u'skin'},
+                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CTAACTACCAAT',
+                        u'Description': u'human skin',
+                        u'BODY_SITE': u'skin'})
+        self.assertEqual(t.SampleMetadata, exp_samp_md)
+
+        exp = [array([0., 0., 1., 0., 0., 0.]),
+               array([5., 1., 0., 2., 3., 1.]),
+               array([0., 0., 1., 4., 0., 2.]),
+               array([2., 1., 1., 0., 0., 1.]),
+               array([0., 1., 1., 0., 0., 0.])]
+        self.assertEqual(list(t.iterObservationData()), exp)
 
     def test_generatedby(self):
         """get a generatedby string"""
@@ -52,7 +137,7 @@ class ParseTests(TestCase):
 
     def test_MetadataMap(self):
         """MetadataMap functions as expected
-        
+
         This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
         project, but we obtained permission from the authors of this method to
         port it to the BIOM Format project (and keep it under BIOM's BSD
@@ -66,7 +151,7 @@ class ParseTests(TestCase):
         exp = {'x':{'a':'y','b':'z'},'i':{'a':'j','b':'k'}}
         obs = MetadataMap.fromFile(s1)
         self.assertEqual(obs, exp)
-    
+
         #check that we strip double quotes by default
         s2 = ['#sample\ta\tb', '#comment line to skip',\
               '"x "\t" y "\t z ', ' ', '"#more skip"', 'i\t"j"\tk']
@@ -75,7 +160,7 @@ class ParseTests(TestCase):
 
     def test_MetadataMap_w_map_fs(self):
         """MetadataMap functions as expected w process_fns
-        
+
         This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
         project, but we obtained permission from the authors of this method to
         port it to the BIOM Format project (and keep it under BIOM's BSD
@@ -93,7 +178,7 @@ class ParseTests(TestCase):
 
     def test_MetadataMap_w_header(self):
         """MetadataMap functions as expected w user-provided header
-        
+
         This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
         project, but we obtained permission from the authors of this method to
         port it to the BIOM Format project (and keep it under BIOM's BSD
@@ -110,7 +195,7 @@ class ParseTests(TestCase):
         header = ['sample','a','b']
         obs = MetadataMap.fromFile(s1,header=header)
         self.assertEqual(obs, exp)
-        
+
         # number of user-provided headers is fewer than number of columns, and
         # no header line in file
         s1 = ['#comment line to skip',
@@ -122,7 +207,7 @@ class ParseTests(TestCase):
         header = ['sample','a']
         obs = MetadataMap.fromFile(s1,header=header)
         self.assertEqual(obs, exp)
-        
+
         # number of user-provided headers is fewer than number of columns, and
         # header line in file (overridden by user-provided)
         s1 = ['#sample\ta\tb', '#comment line to skip',\
@@ -137,7 +222,7 @@ class ParseTests(TestCase):
 
     def test_parse_biom_json(self):
         """test the biom otu table parser"""
-        # light test. this code is used thoroughly within the other 
+        # light test. this code is used thoroughly within the other
         # parse_biom_table methods
         tab1_fh = json.load(StringIO(self.biom_minimal_sparse))
         tab = parse_biom_table_json(tab1_fh)
@@ -147,7 +232,7 @@ class ParseTests(TestCase):
             'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
         self.assertEqual(tab.SampleMetadata,None)
         self.assertEqual(tab.ObservationMetadata,None)
-    
+
     def test_parse_biom_table_str(self):
         """tests for parse_biom_table_str"""
         # this method is tested through parse_biom_table tests
@@ -155,7 +240,7 @@ class ParseTests(TestCase):
 
     def test_parse_classic_table(self):
         """Parses a classic table
-        
+
         This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
         project, but we obtained permission from the authors of this method to
         port it to the BIOM Format project (and keep it under BIOM's BSD
@@ -171,7 +256,7 @@ class ParseTests(TestCase):
                       [1803,1184,2],
                       [1722,4903,17],
                       [589,2074,34]])
-       
+
         exp = (samp_ids,obs_ids,data,metadata,md_name)
         obs = parse_classic_table(input,dtype=int)
         self.assertEqual(obs, exp)
@@ -235,7 +320,7 @@ biom_minimal_sparse="""
                 {"id":"GG_OTU_3", "metadata":null},
                 {"id":"GG_OTU_4", "metadata":null},
                 {"id":"GG_OTU_5", "metadata":null}
-            ],  
+            ],
         "columns": [
                 {"id":"Sample1", "metadata":null},
                 {"id":"Sample2", "metadata":null},
@@ -246,7 +331,7 @@ biom_minimal_sparse="""
             ],
         "matrix_type": "sparse",
         "matrix_element_type": "int",
-        "shape": [5, 6], 
+        "shape": [5, 6],
         "data":[[0,2,1],
                 [1,0,5],
                 [1,1,1],
