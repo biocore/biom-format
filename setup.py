@@ -8,7 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
-from distutils.core import setup
+from setuptools import setup
 from glob import glob
 
 __author__ = "Daniel McDonald"
@@ -58,14 +58,20 @@ setup(name='biom-format',
               'biom/commands',
               'biom/interfaces',
               'biom/interfaces/optparse',
-              'biom/interfaces/optparse/config'
+              'biom/interfaces/optparse/config',
+              'biom/interfaces/html',
+              'biom/interfaces/html/config'
               ],
     scripts=glob('scripts/*'),
     install_requires=["numpy >= 1.3.0",
                       "pyqi == 0.3.1",
                       "scipy >= 0.13.0"],
-    extras_require={'test':["nose >= 0.10.1",
-                            "tox >= 1.6.1"]
+    extras_require={'scipy_sparse': ["scipy >= 0.9.0"],
+                    'test': ["nose >= 0.10.1",
+                    "tox >= 1.6.1"]
                    },
+    dependency_links=[
+        'https://github.com/bipy/pyqi/archive/master.zip#egg=pyqi-0.3.1-dev'
+    ],
     classifiers=classifiers
 )
