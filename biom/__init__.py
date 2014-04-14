@@ -10,7 +10,7 @@
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso", 
+__credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
@@ -63,14 +63,13 @@ def get_sparse_backend():
     """Returns the constructor and functions needed to use the current backend.
 
     Will look at whatever the current backend is in the loaded biom config
-    dict. If one isn't specified, will default to CSMat (this one should
-    always work, regardless of the user's configuration). Will raise an
+    dict. If one isn't specified, will default to ScipySparseMat. Will raise an
     InvalidSparseBackendException if the current sparse backend isn't supported
     or cannot be used for whatever reason.
     """
     backend = biom_config['python_code_sparse_backend']
     if backend is None:
-        backend = 'CSMat'
+        backend = 'ScipySparseMat'
 
     if backend not in sparse_backends:
         raise InvalidSparseBackendException("Unrecognized sparse backend "

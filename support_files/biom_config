@@ -4,4 +4,4 @@
 # specified by $BIOM_CONFIG_FP and edit that copy of the file.
 
 # The sparse matrix backend to use (either CSMat or ScipySparseMat).
-python_code_sparse_backend	CSMat
+python_code_sparse_backend	ScipySparseMat
