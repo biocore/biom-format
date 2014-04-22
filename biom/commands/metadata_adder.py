@@ -133,10 +133,10 @@ class MetadataAdder(Command):
 
         # add metadata as necessary
         if sample_metadata:
-            table.addSampleMetadata(sample_metadata)
+            table.add_sample_metadata(sample_metadata)
 
         if observation_metadata:
-            table.addObservationMetadata(observation_metadata)
+            table.add_observation_metadata(observation_metadata)
 
         return {'table': table}
 
