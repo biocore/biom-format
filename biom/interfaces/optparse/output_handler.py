@@ -20,6 +20,7 @@ from pyqi.core.exception import IncompetentDeveloperError
 from biom.parse import generatedby
 import sys
 
+
 def write_biom_table(result_key, data, option_value=None):
     """Write a string to a file"""
     if option_value is None:

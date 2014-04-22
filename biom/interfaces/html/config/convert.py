@@ -10,7 +10,11 @@
 
 __author__ = "Evan Bolyen"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Evan Bolyen", "Jai Ram Rideout", "Greg Caporaso", "Daniel McDonald"]
+__credits__ = [
+    "Evan Bolyen",
+    "Jai Ram Rideout",
+    "Greg Caporaso",
+    "Daniel McDonald"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Evan Bolyen"
@@ -57,7 +61,14 @@ inputs = [
                     Help='Process metadata associated with observations when converting from a classic table'),
     HTMLInputOption(Parameter=cmd_in_lookup('table_type'),
                     Type='multiple_choice',
-                    Choices=['metabolite table', 'gene table', 'otu table', 'pathway table', 'function table', 'ortholog table', 'taxon table'],
+                    Choices=[
+                        'metabolite table',
+                        'gene table',
+                        'otu table',
+                        'pathway table',
+                        'function table',
+                        'ortholog table',
+                        'taxon table'],
                     Help='The BIOM table type to get converted into. Required when converting a classic table file to a BIOM table file.'),
     HTMLInputOption(Parameter=None,
                     Name='download-file',
@@ -66,8 +77,8 @@ inputs = [
 ]
 
 outputs = [
-    HTMLDownload(Parameter=cmd_out_lookup('table_str'), 
+    HTMLDownload(Parameter=cmd_out_lookup('table_str'),
                  Handler=newline_list_of_strings,
                  FilenameLookup='download-file',
-                 FileExtension='.biom') 
+                 FileExtension='.biom')
 ]

@@ -23,7 +23,9 @@ from biom.table import Table
 from biom.unit_test import TestCase, main
 from StringIO import StringIO
 
+
 class TableConverterTests(TestCase):
+
     def setUp(self):
         """Set up data for use in unit tests."""
         self.cmd = TableConverter()
@@ -65,8 +67,8 @@ class TableConverterTests(TestCase):
         self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('not16S.1')],
                          {'foo': 'b;c;d'})
         self.assertEqual(obs.ObservationMetadata[
-                obs.getObservationIndex('None11')],
-                {'taxonomy': 'Unclassified'})
+            obs.getObservationIndex('None11')],
+            {'taxonomy': 'Unclassified'})
 
         # With processing of metadata (currently only supports observation md).
         obs = self.cmd(table_file=self.classic_lines1,
@@ -85,8 +87,8 @@ class TableConverterTests(TestCase):
         self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('not16S.1')],
                          {'foo': 'b;c;d'})
         self.assertEqual(obs.ObservationMetadata[
-                obs.getObservationIndex('None11')],
-                {'taxonomy': ['Unclassified']})
+            obs.getObservationIndex('None11')],
+            {'taxonomy': ['Unclassified']})
 
     def test_biom_to_classic(self):
         """Correctly converts biom to classic."""

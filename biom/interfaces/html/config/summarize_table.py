@@ -10,7 +10,11 @@
 
 __author__ = "Evan Bolyen"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Evan Bolyen", "Greg Caporaso", "Jai Ram Rideout", "Daniel McDonald"]
+__credits__ = [
+    "Evan Bolyen",
+    "Greg Caporaso",
+    "Jai Ram Rideout",
+    "Daniel McDonald"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Evan Bolyen"
@@ -42,9 +46,8 @@ inputs = [
 ]
 
 outputs = [
-    HTMLDownload(Parameter=cmd_out_lookup('biom_summary'), 
+    HTMLDownload(Parameter=cmd_out_lookup('biom_summary'),
                  Handler=newline_list_of_strings,
                  FilenameLookup='download-file',
-                 FileExtension='.biom.summary.txt') 
+                 FileExtension='.biom.summary.txt')
 ]
-

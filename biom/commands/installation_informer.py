@@ -22,6 +22,7 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
+
 class InstallationInformer(Command):
     BriefDescription = "Provide information about the biom-format installation"
     LongDescription = ("Provide information about the biom-format "

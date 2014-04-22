@@ -19,7 +19,9 @@ __email__ = "jai.rideout@gmail.com"
 from biom.commands.installation_informer import InstallationInformer
 from biom.unit_test import TestCase, main
 
+
 class InstallationInformerTests(TestCase):
+
     def setUp(self):
         """Set up data for use in unit tests."""
         self.cmd = InstallationInformer()

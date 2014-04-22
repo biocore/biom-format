@@ -23,13 +23,16 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
+
 class TestCase(TestCaseOriginal):
+
     """Add in some support for numpy vectors
 
     This class is ported from PyCogent (http://www.pycogent.org). PyCogent is a
     GPL project, but we obtained permission from the authors of this class to
     port it to the BIOM Format project (and keep it under BIOM's BSD license).
     """
+
     def assertFloatEqualRel(self, obs, exp, eps=1e-6):
         """Tests whether two floating point numbers/arrays are approx. equal.
 
@@ -41,15 +44,15 @@ class TestCase(TestCaseOriginal):
         Note: for arbitrary objects, need to compare the specific attribute
         that's numeric, not the whole object, using this method.
         """
-        #do array check first
-        #note that we can't use array ops to combine, because we need to check
-        #at each element whether the expected is zero to do the test to avoid
-        #floating point error.
-        #WARNING: numpy iterates over objects that are not regular Python
-        #floats/ints, so need to explicitly catch scalar values and prevent
-        #cast to array if we want the exact object to print out correctly.
+        # do array check first
+        # note that we can't use array ops to combine, because we need to check
+        # at each element whether the expected is zero to do the test to avoid
+        # floating point error.
+        # WARNING: numpy iterates over objects that are not regular Python
+        # floats/ints, so need to explicitly catch scalar values and prevent
+        # cast to array if we want the exact object to print out correctly.
         is_array = False
-        if hasattr(obs, 'keys') and hasattr(exp, 'keys'):   #both dicts?
+        if hasattr(obs, 'keys') and hasattr(exp, 'keys'):  # both dicts?
             result = self._get_values_from_matching_dicts(obs, exp)
             if result:
                 obs, exp = result
@@ -66,11 +69,11 @@ class TestCase(TestCaseOriginal):
                     arr_exp = array(exp)
                     arr_diff = arr_obs - arr_exp
                     if arr_obs.shape != arr_exp.shape:
-                        self.fail("Wrong shape: Got %s, but expected %s" % \
-                            (`obs`, `exp`))
+                        self.fail("Wrong shape: Got %s, but expected %s" %
+                                  (repr(obs), repr(exp)))
                     obs = arr_obs.ravel()
                     exp = arr_exp.ravel()
-                    is_array=True
+                    is_array = True
                 except (TypeError, ValueError):
                     pass
 
@@ -81,7 +84,7 @@ class TestCase(TestCaseOriginal):
             self.fail("Wrong shape: Got %s, but expected %s" % (obs, exp))
 
         for observed, expected in zip(obs, exp):
-            #try the cheap comparison first
+            # try the cheap comparison first
             if observed == expected:
                 continue
             try:
@@ -89,26 +92,26 @@ class TestCase(TestCaseOriginal):
                 diff = float(observed - expected)
                 if (sum == 0):
                     if is_array:
-                        self.failIf(abs(diff) > abs(eps), \
-                            "Got %s, but expected %s (diff was %s)" % \
-                            (`arr_obs`, `arr_exp`, `arr_diff`))
+                        self.failIf(abs(diff) > abs(eps),
+                                    "Got %s, but expected %s (diff was %s)" %
+                                    (repr(arr_obs), repr(arr_exp), repr(arr_diff)))
                     else:
-                        self.failIf(abs(diff) > abs(eps), \
-                            "Got %s, but expected %s (diff was %s)" % \
-                            (`observed`, `expected`, `diff`))
+                        self.failIf(abs(diff) > abs(eps),
+                                    "Got %s, but expected %s (diff was %s)" %
+                                    (repr(observed), repr(expected), repr(diff)))
 
                 else:
                     if is_array:
-                        self.failIf(abs(diff/sum) > abs(eps), \
-                            "Got %s, but expected %s (diff was %s)" % \
-                            (`arr_obs`, `arr_exp`, `arr_diff`))
+                        self.failIf(abs(diff / sum) > abs(eps),
+                                    "Got %s, but expected %s (diff was %s)" %
+                                    (repr(arr_obs), repr(arr_exp), repr(arr_diff)))
                     else:
-                        self.failIf(abs(diff/sum) > abs(eps), \
-                            "Got %s, but expected %s (diff was %s)" % \
-                            (`observed`, `expected`, `diff`))
+                        self.failIf(abs(diff / sum) > abs(eps),
+                                    "Got %s, but expected %s (diff was %s)" %
+                                    (repr(observed), repr(expected), repr(diff)))
             except (TypeError, ValueError, AttributeError, NotImplementedError):
-                self.fail("Got %s, but expected %s" % \
-                    (`observed`, `expected`))
+                self.fail("Got %s, but expected %s" %
+                          (repr(observed), repr(expected)))
 
     def assertFloatEqualAbs(self, obs, exp, eps=1e-6):
         """
@@ -118,11 +121,11 @@ class TestCase(TestCaseOriginal):
         this method when you expect that one of the values should be very
         small, and the other should be zero.
         """
-        #do array check first
-        #note that we can't use array ops to combine, because we need to check
-        #at each element whether the expected is zero to do the test to avoid
-        #floating point error.
-        if hasattr(obs, 'keys') and hasattr(exp, 'keys'):   #both dicts?
+        # do array check first
+        # note that we can't use array ops to combine, because we need to check
+        # at each element whether the expected is zero to do the test to avoid
+        # floating point error.
+        if hasattr(obs, 'keys') and hasattr(exp, 'keys'):  # both dicts?
             result = self._get_values_from_matching_dicts(obs, exp)
             if result:
                 obs, exp = result
@@ -138,30 +141,30 @@ class TestCase(TestCaseOriginal):
                     arr_obs = array(obs)
                     arr_exp = array(exp)
                     if arr_obs.shape != arr_exp.shape:
-                        self.fail("Wrong shape: Got %s, but expected %s" % \
-                            (`obs`, `exp`))
+                        self.fail("Wrong shape: Got %s, but expected %s" %
+                                  (repr(obs), repr(exp)))
                     diff = arr_obs - arr_exp
-                    self.failIf(abs(diff).max() > eps, \
-                        "Got %s, but expected %s (diff was %s)" % \
-                        (`obs`, `exp`, `diff`))
+                    self.failIf(abs(diff).max() > eps,
+                                "Got %s, but expected %s (diff was %s)" %
+                                (repr(obs), repr(exp), repr(diff)))
                     return
                 except (TypeError, ValueError):
                     pass
-        #only get here if array comparison failed
+        # only get here if array comparison failed
         for observed, expected in zip(obs, exp):
-            #cheap comparison first
+            # cheap comparison first
             if observed == expected:
                 continue
             try:
                 diff = observed - expected
                 self.failIf(abs(diff) > abs(eps),
-                        "Got %s, but expected %s (diff was %s)" % \
-                        (`observed`, `expected`, `diff`))
+                            "Got %s, but expected %s (diff was %s)" %
+                            (repr(observed), repr(expected), repr(diff)))
             except (TypeError, ValueError, AttributeError, NotImplementedError):
-                self.fail("Got %s, but expected %s" % \
-                    (`observed`, `expected`))
+                self.fail("Got %s, but expected %s" %
+                          (repr(observed), repr(expected)))
 
-    def assertFloatEqual(self, obs, exp, eps=1e-6, rel_eps=None, \
+    def assertFloatEqual(self, obs, exp, eps=1e-6, rel_eps=None,
                          abs_eps=None):
         """Tests whether two floating point numbers are approximately equal.
 
@@ -189,13 +192,12 @@ class TestCase(TestCaseOriginal):
                 else:
                     self.assertFloatEqualRel(observed, expected, rel_eps)
             except (TypeError, ValueError, AttributeError, NotImplementedError):
-                self.fail("Got %s, but expected %s" % \
-                        (`observed`, `expected`))
-
+                self.fail("Got %s, but expected %s" %
+                          (repr(observed), repr(expected)))
 
     def _is_equal(self, observed, expected):
         """Returns True if observed and expected are equal, False otherwise."""
-        #errors to catch: TypeError when obs is None
+        # errors to catch: TypeError when obs is None
         tolist_errors = (AttributeError, ValueError, TypeError)
 
         try:
@@ -216,14 +218,15 @@ class TestCase(TestCaseOriginal):
         """
         try:
             if not self._is_equal(observed, expected):
-                raise self.failureException, \
-                (msg or 'Got %s, but expected %s' % (`observed`, `expected`))
-        except (ValueError, TypeError), e:
-            #The truth value of an array with more than one element is
-            #ambiguous. Use a.any() or a.all()
-            #descriptor 'tolist' of 'numpy.generic' object needs an argument
+                raise self.failureException(
+                    msg or 'Got %s, but expected %s' %
+                    (repr(observed), repr(expected)))
+        except (ValueError, TypeError) as e:
+            # The truth value of an array with more than one element is
+            # ambiguous. Use a.any() or a.all()
+            # descriptor 'tolist' of 'numpy.generic' object needs an argument
             testing.assert_equal(observed, expected)
-    #following needed to get our version instead of unittest's
+    # following needed to get our version instead of unittest's
     assertEqual = assertEquals = failUnlessEqual
 
     def assertNotSameObj(self, observed, expected, msg=None):
@@ -233,6 +236,6 @@ class TestCase(TestCaseOriginal):
                 return
         except:
             pass
-        raise self.failureException, \
-        (msg or 'Observed %s is the same as expected %s' % \
-        (`observed`, `expected`))
+        raise self.failureException(
+            msg or 'Observed %s is the same as expected %s' %
+            (repr(observed), repr(expected)))

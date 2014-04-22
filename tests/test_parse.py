@@ -14,38 +14,41 @@ from biom import __version__
 from numpy import array, nan
 from StringIO import StringIO
 import json
-from biom.unit_test import TestCase,main
+from biom.unit_test import TestCase, main
 from biom.parse import (parse_biom_table_json, parse_biom_table,
-        parse_classic_table_to_rich_table,
-        convert_biom_to_table, convert_table_to_biom,
-        parse_classic_table, generatedby, MetadataMap,
-        parse_biom_table_hdf5)
+                        parse_classic_table_to_rich_table,
+                        convert_biom_to_table, convert_table_to_biom,
+                        parse_classic_table, generatedby, MetadataMap,
+                        parse_biom_table_hdf5)
 
 from biom.table import Table
 from biom.exception import BiomParseException
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Justin Kuczynski","Daniel McDonald", "Adam Robbins-Pianka"]
+__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Adam Robbins-Pianka"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 
+
 class ParseTests(TestCase):
+
     """Tests of parse functions"""
 
     def setUp(self):
         """define some top-level data"""
         self.legacy_otu_table1 = legacy_otu_table1
         self.otu_table1 = otu_table1
-        self.otu_table1_floats=otu_table1_floats
+        self.otu_table1_floats = otu_table1_floats
         self.files_to_remove = []
         self.biom_minimal_sparse = biom_minimal_sparse
 
         self.classic_otu_table1_w_tax = classic_otu_table1_w_tax.split('\n')
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
-        self.classic_table_with_complex_metadata = classic_table_with_complex_metadata.split('\n')
+        self.classic_table_with_complex_metadata = classic_table_with_complex_metadata.split(
+            '\n')
 
     def test_parse_biom_table_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
@@ -133,7 +136,7 @@ class ParseTests(TestCase):
         """get a generatedby string"""
         exp = "BIOM-Format %s" % __version__
         obs = generatedby()
-        self.assertEqual(obs,exp)
+        self.assertEqual(obs, exp)
 
     def test_MetadataMap(self):
         """MetadataMap functions as expected
@@ -143,17 +146,17 @@ class ParseTests(TestCase):
         port it to the BIOM Format project (and keep it under BIOM's BSD
         license).
         """
-        s1 = ['#sample\ta\tb', '#comment line to skip',\
+        s1 = ['#sample\ta\tb', '#comment line to skip',
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
-        exp = ([['x','y','z'],['i','j','k']],\
-               ['sample','a','b'],\
-               ['comment line to skip','more skip'])
-        exp = {'x':{'a':'y','b':'z'},'i':{'a':'j','b':'k'}}
+        exp = ([['x', 'y', 'z'], ['i', 'j', 'k']],
+               ['sample', 'a', 'b'],
+               ['comment line to skip', 'more skip'])
+        exp = {'x': {'a': 'y', 'b': 'z'}, 'i': {'a': 'j', 'b': 'k'}}
         obs = MetadataMap.fromFile(s1)
         self.assertEqual(obs, exp)
 
-        #check that we strip double quotes by default
-        s2 = ['#sample\ta\tb', '#comment line to skip',\
+        # check that we strip double quotes by default
+        s2 = ['#sample\ta\tb', '#comment line to skip',
               '"x "\t" y "\t z ', ' ', '"#more skip"', 'i\t"j"\tk']
         obs = MetadataMap.fromFile(s2)
         self.assertEqual(obs, exp)
@@ -166,14 +169,14 @@ class ParseTests(TestCase):
         port it to the BIOM Format project (and keep it under BIOM's BSD
         license).
         """
-        s1 = ['#sample\ta\tb', '#comment line to skip',\
+        s1 = ['#sample\ta\tb', '#comment line to skip',
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
-        exp = ([['x','y','z'],['i','j','k']],\
-               ['sample','a','b'],\
-               ['comment line to skip','more skip'])
-        exp = {'x':{'a':'y','b':'zzz'},'i':{'a':'j','b':'kkk'}}
-        process_fns = {'b': lambda x: x*3}
-        obs = MetadataMap.fromFile(s1,process_fns=process_fns)
+        exp = ([['x', 'y', 'z'], ['i', 'j', 'k']],
+               ['sample', 'a', 'b'],
+               ['comment line to skip', 'more skip'])
+        exp = {'x': {'a': 'y', 'b': 'zzz'}, 'i': {'a': 'j', 'b': 'kkk'}}
+        process_fns = {'b': lambda x: x * 3}
+        obs = MetadataMap.fromFile(s1, process_fns=process_fns)
         self.assertEqual(obs, exp)
 
     def test_MetadataMap_w_header(self):
@@ -188,36 +191,36 @@ class ParseTests(TestCase):
         # header line in file
         s1 = ['#comment line to skip',
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
-        exp = ([['x','y','z'],['i','j','k']],
-               ['sample','a','b'],\
-               ['comment line to skip','more skip'])
-        exp = {'x':{'a':'y','b':'z'},'i':{'a':'j','b':'k'}}
-        header = ['sample','a','b']
-        obs = MetadataMap.fromFile(s1,header=header)
+        exp = ([['x', 'y', 'z'], ['i', 'j', 'k']],
+               ['sample', 'a', 'b'],
+               ['comment line to skip', 'more skip'])
+        exp = {'x': {'a': 'y', 'b': 'z'}, 'i': {'a': 'j', 'b': 'k'}}
+        header = ['sample', 'a', 'b']
+        obs = MetadataMap.fromFile(s1, header=header)
         self.assertEqual(obs, exp)
 
         # number of user-provided headers is fewer than number of columns, and
         # no header line in file
         s1 = ['#comment line to skip',
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
-        exp = ([['x','y','z'],['i','j','k']],
-               ['sample','a'],\
-               ['comment line to skip','more skip'])
-        exp = {'x':{'a':'y'},'i':{'a':'j'}}
-        header = ['sample','a']
-        obs = MetadataMap.fromFile(s1,header=header)
+        exp = ([['x', 'y', 'z'], ['i', 'j', 'k']],
+               ['sample', 'a'],
+               ['comment line to skip', 'more skip'])
+        exp = {'x': {'a': 'y'}, 'i': {'a': 'j'}}
+        header = ['sample', 'a']
+        obs = MetadataMap.fromFile(s1, header=header)
         self.assertEqual(obs, exp)
 
         # number of user-provided headers is fewer than number of columns, and
         # header line in file (overridden by user-provided)
-        s1 = ['#sample\ta\tb', '#comment line to skip',\
+        s1 = ['#sample\ta\tb', '#comment line to skip',
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
-        exp = ([['x','y','z'],['i','j','k']],
-               ['sample','a'],\
-               ['comment line to skip','more skip'])
-        exp = {'x':{'a':'y'},'i':{'a':'j'}}
-        header = ['sample','a']
-        obs = MetadataMap.fromFile(s1,header=header)
+        exp = ([['x', 'y', 'z'], ['i', 'j', 'k']],
+               ['sample', 'a'],
+               ['comment line to skip', 'more skip'])
+        exp = {'x': {'a': 'y'}, 'i': {'a': 'j'}}
+        header = ['sample', 'a']
+        obs = MetadataMap.fromFile(s1, header=header)
         self.assertEqual(obs, exp)
 
     def test_parse_biom_json(self):
@@ -226,12 +229,12 @@ class ParseTests(TestCase):
         # parse_biom_table methods
         tab1_fh = json.load(StringIO(self.biom_minimal_sparse))
         tab = parse_biom_table_json(tab1_fh)
-        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-        self.assertEqual(tab.SampleMetadata,None)
-        self.assertEqual(tab.ObservationMetadata,None)
+        self.assertEqual((tab.SampleIds), ('Sample1', 'Sample2',
+                                           'Sample3', 'Sample4', 'Sample5', 'Sample6',))
+        self.assertEqual((tab.ObservationIds), ('GG_OTU_1', 'GG_OTU_2',
+                                                'GG_OTU_3', 'GG_OTU_4', 'GG_OTU_5'))
+        self.assertEqual(tab.SampleMetadata, None)
+        self.assertEqual(tab.ObservationMetadata, None)
 
     def test_parse_biom_table_str(self):
         """tests for parse_biom_table_str"""
@@ -247,18 +250,23 @@ class ParseTests(TestCase):
         license).
         """
         input = legacy_otu_table1.splitlines()
-        samp_ids = ['Fing','Key','NA']
-        obs_ids = ['0','1','7','3','4']
-        metadata = ['Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium', 'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillales; Lactobacillales; Streptococcaceae; Streptococcus','Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Corynebacteriaceae','Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Staphylococcaceae','Bacteria; Cyanobacteria; Chloroplasts; vectors']
+        samp_ids = ['Fing', 'Key', 'NA']
+        obs_ids = ['0', '1', '7', '3', '4']
+        metadata = [
+            'Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium',
+            'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillales; Lactobacillales; Streptococcaceae; Streptococcus',
+            'Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Corynebacteriaceae',
+            'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Staphylococcaceae',
+            'Bacteria; Cyanobacteria; Chloroplasts; vectors']
         md_name = 'Consensus Lineage'
-        data = array([[19111,44536,42],
-                      [1216,3500,6],
-                      [1803,1184,2],
-                      [1722,4903,17],
-                      [589,2074,34]])
+        data = array([[19111, 44536, 42],
+                      [1216, 3500, 6],
+                      [1803, 1184, 2],
+                      [1722, 4903, 17],
+                      [589, 2074, 34]])
 
-        exp = (samp_ids,obs_ids,data,metadata,md_name)
-        obs = parse_classic_table(input,dtype=int)
+        exp = (samp_ids, obs_ids, data, metadata, md_name)
+        obs = parse_classic_table(input, dtype=int)
         self.assertEqual(obs, exp)
 
 legacy_otu_table1 = """# some comment goes here
@@ -297,7 +305,7 @@ OTU ID	Fing	Key	NA	Consensus Lineage
 4	589.6	2074.4	34.5	Bacteria; Cyanobacteria; Chloroplasts; vectors
 """
 
-classic_table_with_complex_metadata="""# some comment
+classic_table_with_complex_metadata = """# some comment
 #OTU ID	sample1	sample2	KEGG_Pathways
 K05842	1.0	3.5	rank1A; rank2A|rank1B; rank2B
 K05841	2.0	4.5	Environmental Information Processing;
@@ -306,7 +314,7 @@ K00500	0.5	0.5	Metabolism; Amino Acid Metabolism; Phenylalanine metabolism|Metab
 K00507	0.0	0.0	Metabolism; Lipid Metabolism; Biosynthesis of unsaturated fatty acids|Organismal Systems; Endocrine System; PPAR signaling pathway
 """
 
-biom_minimal_sparse="""
+biom_minimal_sparse = """
     {
         "id":null,
         "format": "Biological Observation Matrix v0.9",
@@ -1191,5 +1199,5 @@ classic_otu_table1_no_tax = """#Full OTU Counts
 415	0	0	0	0	0	7	0	2	2
 416	0	1	0	0	1	0	0	0	0"""
 
-if __name__ =='__main__':
+if __name__ == '__main__':
     main()

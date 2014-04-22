@@ -9,8 +9,8 @@
 #-----------------------------------------------------------------------------
 
 from __future__ import division
-from pyqi.core.command import (Command, CommandIn, CommandOut, 
-        ParameterCollection)
+from pyqi.core.command import (Command, CommandIn, CommandOut,
+                               ParameterCollection)
 from pyqi.core.exception import CommandError
 from biom.parse import get_axis_indices, direct_slice_data, direct_parse_key
 from types import GeneratorType
@@ -22,6 +22,7 @@ __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __author__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
+
 
 class TableSubsetter(Command):
     Axes = ['samples', 'observations']
@@ -60,7 +61,7 @@ class TableSubsetter(Command):
 
         if axis not in self.Axes:
             raise CommandError("Invalid axis '%s'. Must be either %s." % (axis,
-                ' or '.join(map(lambda e: "'%s'" % e, self.Axes))))
+                                                                          ' or '.join(map(lambda e: "'%s'" % e, self.Axes))))
 
         idxs, new_axis_md = get_axis_indices(table_str, ids, axis)
         new_data = direct_slice_data(table_str, idxs, axis)

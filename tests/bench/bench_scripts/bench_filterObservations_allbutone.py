@@ -10,4 +10,4 @@ if __name__ == '__main__':
 
     id_ = choice(table.ObservationIds)
 
-    foo = table.filterObservations(lambda x,y,z: y == id_)
+    foo = table.filterObservations(lambda x, y, z: y == id_)

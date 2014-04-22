@@ -26,10 +26,12 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
+
 class UtilTests(TestCase):
+
     def setUp(self):
         self.biom_otu_table1_w_tax = parse_biom_table(biom_otu_table1_w_tax)
-    
+
     def test_natsort(self):
         """natsort should perform numeric comparisons on strings
 
@@ -40,38 +42,39 @@ class UtilTests(TestCase):
         """
         # string with alpha and numerics sort correctly
         s = 'sample1 sample2 sample11 sample12'.split()
-        self.assertEqual(natsort(s), 
-          'sample1 sample2 sample11 sample12'.split())
+        self.assertEqual(natsort(s),
+                         'sample1 sample2 sample11 sample12'.split())
         s.reverse()
-        self.assertEqual(natsort(s), 
-          'sample1 sample2 sample11 sample12'.split())
-        self.assertEqual(natsort(list('cba321')),list('123abc'))
+        self.assertEqual(natsort(s),
+                         'sample1 sample2 sample11 sample12'.split())
+        self.assertEqual(natsort(list('cba321')), list('123abc'))
 
         # strings with alpha only sort correctly
-        self.assertEqual(natsort(list('cdba')),list('abcd'))
+        self.assertEqual(natsort(list('cdba')), list('abcd'))
 
         # string of ints sort correctly
-        self.assertEqual(natsort(['11','2','1','0']),
-                               ['0','1','2','11'])
+        self.assertEqual(natsort(['11', '2', '1', '0']),
+                         ['0', '1', '2', '11'])
 
         # strings of floats sort correctly
-        self.assertEqual(natsort(['1.11','1.12','1.00','0.009']),
-                               ['0.009','1.00','1.11','1.12'])
+        self.assertEqual(natsort(['1.11', '1.12', '1.00', '0.009']),
+                         ['0.009', '1.00', '1.11', '1.12'])
 
         # string of ints sort correctly
-        self.assertEqual(natsort([('11','A'),('2','B'),('1','C'),('0','D')]),
-                            [('0','D'),('1','C'),('2','B'),('11','A')])
+        self.assertEqual(
+            natsort([('11', 'A'), ('2', 'B'), ('1', 'C'), ('0', 'D')]),
+            [('0', 'D'), ('1', 'C'), ('2', 'B'), ('11', 'A')])
 
     def test_unzip(self):
         """unzip(items) should be the inverse of zip(*items)
-        
+
         This method is ported from PyCogent (http://www.pycogent.org). PyCogent
         is a GPL project, but we obtained permission from the authors of this
         method to port it to the BIOM Format project (and keep it under BIOM's
         BSD license).
         """
         chars = [list('abcde'), list('ghijk')]
-        numbers = [[1,2,3,4,5], [0,0,0,0,0]]
+        numbers = [[1, 2, 3, 4, 5], [0, 0, 0, 0, 0]]
         strings = [["abcde", "fghij", "klmno"], ['xxxxx'] * 3]
         empty = [[]]
 
@@ -90,9 +93,9 @@ class UtilTests(TestCase):
         method to port it to the BIOM Format project (and keep it under BIOM's
         BSD license).
         """
-        self.assertEqual(flatten('abcdef'), list('abcdef')) #test identities
-        self.assertEqual(flatten([]), []) #test empty sequence
-        self.assertEqual(flatten(''), []) #test empty string
+        self.assertEqual(flatten('abcdef'), list('abcdef'))  # test identities
+        self.assertEqual(flatten([]), [])  # test empty sequence
+        self.assertEqual(flatten(''), [])  # test empty string
 
     def test_flatten(self):
         """flatten should remove one level of nesting from nested sequences
@@ -103,7 +106,7 @@ class UtilTests(TestCase):
         BSD license).
         """
         self.assertEqual(flatten(['aa', 'bb', 'cc']), list('aabbcc'))
-        self.assertEqual(flatten([1,[2,3], [[4, [5]]]]), [1, 2, 3, [4,[5]]])
+        self.assertEqual(flatten([1, [2, 3], [[4, [5]]]]), [1, 2, 3, [4, [5]]])
 
     def test_get_biom_project_dir(self):
         """Getting the biom project directory functions as expected.
@@ -123,11 +126,11 @@ class UtilTests(TestCase):
         # Biom-format on OS X. That should cause this test to fail as
         # actual will be path/to/Biom-format and expected will be
         # path/to/biom-format.) Note that we don't need to change anything
-        # in the get_biom_project_dir() function as if the 
+        # in the get_biom_project_dir() function as if the
         # file system is case insenstive, the case of the returned
         # string is irrelevant.
         case_insensitive_filesystem = \
-         exists(__file__.upper()) and exists(__file__.lower())
+            exists(__file__.upper()) and exists(__file__.lower())
 
         actual = get_biom_project_dir()
 
@@ -146,7 +149,7 @@ class UtilTests(TestCase):
             # Make both lowercase if the file system is case insensitive.
             actual = actual.lower()
             expected = expected.lower()
-        self.assertEqual(actual,expected)
+        self.assertEqual(actual, expected)
 
     def test_parse_biom_config_files(self):
         """parse_biom_config_files functions as expected.
@@ -159,7 +162,7 @@ class UtilTests(TestCase):
         fake_file1 = ['key1\tval1', 'key2 val2']
         fake_file2 = ['key2\tval3']
         actual = parse_biom_config_files([fake_file1, fake_file2])
-        expected = {'key1':'val1', 'key2':'val3'}
+        expected = {'key1': 'val1', 'key2': 'val3'}
         self.assertEqual(actual, expected)
 
         # Looking up a nonexistent value returns None.
@@ -167,7 +170,7 @@ class UtilTests(TestCase):
 
         # Empty dict on empty input.
         self.assertEqual(parse_biom_config_files([]), {})
-    
+
     def test_compute_counts_per_sample_stats(self):
         """compute_counts_per_sample_stats functions as expected
 
@@ -177,12 +180,12 @@ class UtilTests(TestCase):
         license).
         """
         actual = compute_counts_per_sample_stats(self.biom_otu_table1_w_tax)
-        self.assertEqual(actual[0],3)
-        self.assertEqual(actual[1],7)
-        self.assertEqual(actual[2],4)
-        self.assertEqual(actual[3],4.5)
-        self.assertEqual(actual[4],{'Sample1':7,'Sample2':3,'Sample3':4,
-                                    'Sample4':6,'Sample5':3,'Sample6':4})
+        self.assertEqual(actual[0], 3)
+        self.assertEqual(actual[1], 7)
+        self.assertEqual(actual[2], 4)
+        self.assertEqual(actual[3], 4.5)
+        self.assertEqual(actual[4], {'Sample1': 7, 'Sample2': 3, 'Sample3': 4,
+                                     'Sample4': 6, 'Sample5': 3, 'Sample6': 4})
 
     def test_compute_counts_per_sample_stats_obs_counts(self):
         """compute_counts_per_sample_stats functions as expected
@@ -194,12 +197,12 @@ class UtilTests(TestCase):
         """
         actual = compute_counts_per_sample_stats(self.biom_otu_table1_w_tax,
                                                  binary_counts=True)
-        self.assertEqual(actual[0],1)
-        self.assertEqual(actual[1],4)
-        self.assertEqual(actual[2],2.5)
-        self.assertEqual(actual[3],2.5)
-        self.assertEqual(actual[4],{'Sample1':2,'Sample2':3,'Sample3':4,
-                                    'Sample4':2,'Sample5':1,'Sample6':3})
+        self.assertEqual(actual[0], 1)
+        self.assertEqual(actual[1], 4)
+        self.assertEqual(actual[2], 2.5)
+        self.assertEqual(actual[3], 2.5)
+        self.assertEqual(actual[4], {'Sample1': 2, 'Sample2': 3, 'Sample3': 4,
+                                     'Sample4': 2, 'Sample5': 1, 'Sample6': 3})
 
     def test_safe_md5(self):
         """Make sure we have the expected md5 with varied input types
@@ -211,18 +214,21 @@ class UtilTests(TestCase):
         """
         exp = 'd3b07384d113edec49eaa6238ad5ff00'
 
-        tmp_f = NamedTemporaryFile(mode='w',prefix='test_safe_md5', suffix='txt')
+        tmp_f = NamedTemporaryFile(
+            mode='w',
+            prefix='test_safe_md5',
+            suffix='txt')
         tmp_f.write('foo\n')
         tmp_f.flush()
 
         obs = safe_md5(open(tmp_f.name, 'U'))
-        self.assertEqual(obs,exp)
-        
+        self.assertEqual(obs, exp)
+
         obs = safe_md5(['foo\n'])
-        self.assertEqual(obs,exp)
-        
+        self.assertEqual(obs, exp)
+
         # unsupported type raises TypeError
-        self.assertRaises(TypeError,safe_md5,42)
+        self.assertRaises(TypeError, safe_md5, 42)
 
 biom_otu_table1_w_tax = """{
      "id":null,
@@ -272,7 +278,7 @@ biom_otu_table1_w_tax = """{
         ],
      "matrix_type": "sparse",
      "matrix_element_type": "int",
-     "shape": [5, 6], 
+     "shape": [5, 6],
      "data":[[0,2,1],
              [1,0,5],
              [1,1,1],

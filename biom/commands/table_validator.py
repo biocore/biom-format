@@ -12,8 +12,9 @@ from __future__ import division
 import json
 from datetime import datetime
 from operator import and_
-from pyqi.core.command import (Command, CommandIn, CommandOut, 
-    ParameterCollection)
+from pyqi.core.command import (Command, CommandIn, CommandOut,
+                               ParameterCollection)
+from functools import reduce
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -24,6 +25,7 @@ __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __author__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
+
 
 class TableValidator(Command):
     BriefDescription = "Validate a BIOM-formatted file"
@@ -58,7 +60,7 @@ class TableValidator(Command):
                       'ortholog table', 'gene table', 'metabolite table',
                       'taxon table'])
     MatrixTypes = set(['sparse', 'dense'])
-    ElementTypes = {'int': int,'str': str,'float': float, 'unicode': unicode}
+    ElementTypes = {'int': int, 'str': str, 'float': float, 'unicode': unicode}
 
     def run(self, **kwargs):
         table_json = kwargs['table_json']
@@ -74,18 +76,18 @@ class TableValidator(Command):
             report_lines.append("Validating BIOM table...")
 
         required_keys = [
-                ('format', self._valid_format),
-                ('format_url', self._valid_format_url),
-                ('type', self._valid_type),
-                ('rows', self._valid_rows),
-                ('columns', self._valid_columns),
-                ('shape', self._valid_shape),
-                ('data', self._valid_data),
-                ('matrix_type', self._valid_matrix_type),
-                ('matrix_element_type', self._valid_matrix_element_type),
-                ('generated_by', self._valid_generated_by),
-                ('id', self._valid_nullable_id),
-                ('date', self._valid_datetime)
+            ('format', self._valid_format),
+            ('format_url', self._valid_format_url),
+            ('type', self._valid_type),
+            ('rows', self._valid_rows),
+            ('columns', self._valid_columns),
+            ('shape', self._valid_shape),
+            ('data', self._valid_data),
+            ('matrix_type', self._valid_matrix_type),
+            ('matrix_element_type', self._valid_matrix_element_type),
+            ('generated_by', self._valid_generated_by),
+            ('id', self._valid_nullable_id),
+            ('date', self._valid_datetime)
         ]
 
         for key, method in required_keys:
@@ -109,13 +111,13 @@ class TableValidator(Command):
                                     "and columns...")
 
             if ('rows' in table_json and
-                len(table_json['rows']) != table_json['shape'][0]):
+                    len(table_json['rows']) != table_json['shape'][0]):
                 valid_table = False
                 report_lines.append("Number of rows in 'rows' is not equal to "
                                     "'shape'")
 
             if ('columns' in table_json and
-                len(table_json['columns']) != table_json['shape'][1]):
+                    len(table_json['columns']) != table_json['shape'][1]):
                 valid_table = False
                 report_lines.append("Number of columns in 'columns' is not "
                                     "equal to 'shape'")
@@ -135,7 +137,7 @@ class TableValidator(Command):
 
     def _valid_shape(self, table_json):
         """A matrix header is (int, int) representing the size of a 2D matrix"""
-        a,b = table_json['shape']
+        a, b = table_json['shape']
 
         if not (self._is_int(a) and self._is_int(b)):
             return "'shape' values do not appear to be integers"
@@ -160,7 +162,7 @@ class TableValidator(Command):
         """Verify datetime can be parsed
 
         Expects ISO 8601 datetime format (for example, 2011-12-19T19:00:00
-                                          note that a 'T' separates the date 
+                                          note that a 'T' separates the date
                                           and time)
         """
         try:
@@ -174,26 +176,26 @@ class TableValidator(Command):
         """All index positions must be integers and values are of dtype"""
         dtype = self.ElementTypes[table_json['matrix_element_type']]
         n_rows, n_cols = table_json['shape']
-        n_rows -= 1 # adjust for 0-based index
-        n_cols -= 1 # adjust for 0-based index
+        n_rows -= 1  # adjust for 0-based index
+        n_cols -= 1  # adjust for 0-based index
 
         for idx, coord in enumerate(table_json['data']):
             try:
-                x,y,val = coord
+                x, y, val = coord
             except:
-                return "Bad matrix entry idx %d: %s" % (idx,repr(coord))
+                return "Bad matrix entry idx %d: %s" % (idx, repr(coord))
 
             if not self._is_int(x) or not self._is_int(y):
-                return "Bad x or y type at idx %d: %s" % (idx,repr(coord))
+                return "Bad x or y type at idx %d: %s" % (idx, repr(coord))
 
             if not isinstance(val, dtype):
-                return "Bad value at idx %d: %s" % (idx,repr(coord))
+                return "Bad value at idx %d: %s" % (idx, repr(coord))
 
             if x < 0 or x > n_rows:
-                return "x out of bounds at idx %d: %s" % (idx,repr(coord))
+                return "x out of bounds at idx %d: %s" % (idx, repr(coord))
 
             if y < 0 or y > n_cols:
-                return "y out of bounds at idx %d: %s" % (idx,repr(coord))
+                return "y out of bounds at idx %d: %s" % (idx, repr(coord))
 
         return ''
 
@@ -265,12 +267,13 @@ class TableValidator(Command):
         required_keys = [('id', self._valid_id),
                          ('metadata', self._valid_metadata)]
         required_by_type = {}
-        required_keys.extend(required_by_type.get(table_json['type'].lower(), []))
+        required_keys.extend(
+            required_by_type.get(table_json['type'].lower(), []))
 
-        for idx,row in enumerate(table_json['rows']):
+        for idx, row in enumerate(table_json['rows']):
             for key, method in required_keys:
                 if key not in row:
-                    return "ROW IDX %d MISSING '%s' FIELD" % (idx,key)
+                    return "ROW IDX %d MISSING '%s' FIELD" % (idx, key)
 
                 result = method(row)
                 if len(result) > 0:
@@ -281,13 +284,14 @@ class TableValidator(Command):
         """Validate the 'columns' under 'table'"""
         required_keys = [('id', self._valid_id),
                          ('metadata', self._valid_metadata)]
-        required_by_type = {} 
-        required_keys.extend(required_by_type.get(table_json['type'].lower(), []))
+        required_by_type = {}
+        required_keys.extend(
+            required_by_type.get(table_json['type'].lower(), []))
 
         for idx, col in enumerate(table_json['columns']):
             for key, method in required_keys:
                 if key not in col:
-                    return "COL IDX %d MISSING '%s' FIELD" % (idx,key)
+                    return "COL IDX %d MISSING '%s' FIELD" % (idx, key)
 
                 result = method(col)
                 if len(result) > 0:

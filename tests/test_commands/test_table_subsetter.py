@@ -21,7 +21,9 @@ from biom.commands.table_subsetter import TableSubsetter
 from biom.parse import parse_biom_table
 from biom.unit_test import TestCase, main
 
+
 class TableSubsetterTests(TestCase):
+
     def setUp(self):
         """Set up data for use in unit tests."""
         self.cmd = TableSubsetter()

@@ -21,7 +21,9 @@ from biom.commands.metadata_adder import MetadataAdder
 from biom.parse import parse_biom_table
 from biom.unit_test import TestCase, main
 
+
 class MetadataAdderTests(TestCase):
+
     def setUp(self):
         """Set up data for use in unit tests."""
         self.cmd = MetadataAdder()
@@ -72,14 +74,14 @@ class MetadataAdderTests(TestCase):
 
         obs = obs['table']
         self.assertEqual(
-                obs.ObservationMetadata[obs.getObservationIndex('None7')],
-                         {'foo': '6', 'taxonomy': 'abc;123|def;456'})
+            obs.ObservationMetadata[obs.getObservationIndex('None7')],
+            {'foo': '6', 'taxonomy': 'abc;123|def;456'})
         self.assertEqual(
-                obs.ObservationMetadata[obs.getObservationIndex('879972')],
-                         {'foo': '3', 'taxonomy': '123;abc|456;def'})
+            obs.ObservationMetadata[obs.getObservationIndex('879972')],
+            {'foo': '3', 'taxonomy': '123;abc|456;def'})
         self.assertEqual(
-                obs.ObservationMetadata[obs.getObservationIndex('None8')],
-                {'taxonomy': ['k__Bacteria']})
+            obs.ObservationMetadata[obs.getObservationIndex('None8')],
+            {'taxonomy': ['k__Bacteria']})
 
     def test_add_observation_metadata_with_casting(self):
         """Correctly adds observation metadata with casting."""
@@ -90,14 +92,14 @@ class MetadataAdderTests(TestCase):
 
         obs = obs['table']
         self.assertEqual(
-                obs.ObservationMetadata[obs.getObservationIndex('None7')],
-                         {'foo': 6, 'taxonomy': [['abc','123'],['def','456']]})
+            obs.ObservationMetadata[obs.getObservationIndex('None7')],
+            {'foo': 6, 'taxonomy': [['abc', '123'], ['def', '456']]})
         self.assertEqual(
-                obs.ObservationMetadata[obs.getObservationIndex('879972')],
-                         {'foo': 3, 'taxonomy': [['123','abc'],['456','def']]})
+            obs.ObservationMetadata[obs.getObservationIndex('879972')],
+            {'foo': 3, 'taxonomy': [['123', 'abc'], ['456', 'def']]})
         self.assertEqual(
-                obs.ObservationMetadata[obs.getObservationIndex('None8')],
-                {'taxonomy': ['k__Bacteria']})
+            obs.ObservationMetadata[obs.getObservationIndex('None8')],
+            {'taxonomy': ['k__Bacteria']})
 
     def test_no_metadata(self):
         """Correctly raises error when not provided any metadata."""

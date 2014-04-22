@@ -21,10 +21,10 @@ from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
                                            OptparseOption, OptparseResult)
 from pyqi.core.interfaces.optparse.output_handler import (
-        write_or_print_list_of_strings)
+    write_or_print_list_of_strings)
 from biom.commands.table_summarizer import CommandConstructor
 from biom.interfaces.optparse.input_handler import (
-        load_biom_table_with_file_contents)
+    load_biom_table_with_file_contents)
 
 cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
 cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)

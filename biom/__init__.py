@@ -18,7 +18,7 @@ __version__ = "1.3.1-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
-__all__ = ['table','parse','util','unit_test','exception']
+__all__ = ['table', 'parse', 'util', 'unit_test', 'exception']
 
 from sys import modules, stderr
 
@@ -38,6 +38,7 @@ except ImportError:
 biom_config = load_biom_config()
 
 sparse_backends = ['CSMat', 'ScipySparseMat']
+
 
 def set_sparse_backend(sparse_backend, warn=True):
     """Sets the sparse matrix backend to use in biom.table.
@@ -59,6 +60,7 @@ def set_sparse_backend(sparse_backend, warn=True):
     else:
         biom_config['python_code_sparse_backend'] = sparse_backend
 
+
 def get_sparse_backend():
     """Returns the constructor and functions needed to use the current backend.
 
@@ -74,7 +76,7 @@ def get_sparse_backend():
     if backend not in sparse_backends:
         raise InvalidSparseBackendException("Unrecognized sparse backend "
                                             "'%s'. Choose from %s." % (backend,
-                                            ', '.join(sparse_backends)))
+                                                                       ', '.join(sparse_backends)))
 
     valid_backend = False
     if backend == 'ScipySparseMat':
@@ -114,9 +116,9 @@ def get_sparse_backend():
 
     if not valid_backend:
         raise InvalidSparseBackendException("The sparse matrix backend '%s' "
-                "could not be loaded. Please check your biom-format "
-                "installation." % backend)
+                                            "could not be loaded. Please check your biom-format "
+                                            "installation." % backend)
 
     return SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
-           list_nparray_to_sparseobj, nparray_to_sparseobj, \
-           list_list_to_sparseobj
+        list_nparray_to_sparseobj, nparray_to_sparseobj, \
+        list_list_to_sparseobj

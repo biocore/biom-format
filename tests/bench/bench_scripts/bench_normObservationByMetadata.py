@@ -7,7 +7,7 @@ from biom.parse import parse_biom_table
 if __name__ == '__main__':
     table = parse_biom_table(gzip_open(argv[1]))
 
-    md = [{'FOO':10} for i in range(len(table.ObservationIds))]
+    md = [{'FOO': 10} for i in range(len(table.ObservationIds))]
     table.ObservationMetadata = md
 
     foo = table.normObservationByMetadata('FOO')

@@ -19,8 +19,9 @@ from biom.commands.metadata_adder import CommandConstructor
 
 __author__ = "Evan Bolyen"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Evan Bolyen", "Jai Ram Rideout", "Greg Caporaso", "Morgan Langille",
-               "Daniel McDonald"]
+__credits__ = [
+    "Evan Bolyen", "Jai Ram Rideout", "Greg Caporaso", "Morgan Langille",
+    "Daniel McDonald"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Evan Bolyen"
@@ -91,8 +92,8 @@ inputs = [
 ]
 
 outputs = [
-    HTMLDownload(Parameter=cmd_out_lookup('table'), 
+    HTMLDownload(Parameter=cmd_out_lookup('table'),
                  Handler=newline_list_of_strings,
                  FilenameLookup='download-file',
-                 FileExtension='.biom') 
+                 FileExtension='.biom')
 ]

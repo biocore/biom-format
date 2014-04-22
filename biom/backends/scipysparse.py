@@ -28,7 +28,9 @@ from scipy.sparse import coo_matrix
 from biom.exception import TableException
 from biom.util import flatten
 
+
 class ScipySparseMat(object):
+
     """Sparse matrix backend that utilizes scipy.sparse representations.
 
     Changes between coo, csr, csc, and lil sparse formats as necessary.
@@ -326,6 +328,7 @@ class ScipySparseMat(object):
 
             return self._matrix[row, col]
 
+
 def to_scipy(values, transpose=False, dtype=float):
     """Try to return a populated ``ScipySparseMat`` object.
 
@@ -379,9 +382,10 @@ def to_scipy(values, transpose=False, dtype=float):
     else:
         raise TableException("Unknown input type")
 
+
 def coo_arrays_to_scipy(data, dtype=float64, shape=None):
     """Map directly on to the coo_matrix constructor
-    
+
     data must be (values, (rows, cols))
     """
     if shape is None:
@@ -392,6 +396,7 @@ def coo_arrays_to_scipy(data, dtype=float64, shape=None):
         n_rows, n_cols = shape
 
     return ScipySparseMat(n_rows, n_cols, dtype=dtype, data=data)
+
 
 def list_list_to_scipy(data, dtype=float, shape=None):
     """Convert a list of lists into a ``ScipySparseMat``.
@@ -408,6 +413,7 @@ def list_list_to_scipy(data, dtype=float, shape=None):
 
     return ScipySparseMat(n_rows, n_cols, data=(values, (rows, cols)))
 
+
 def nparray_to_scipy(data, dtype=float):
     """Convert a numpy array to a ``ScipySparseMat``."""
     if len(data.shape) == 1:
@@ -417,9 +423,11 @@ def nparray_to_scipy(data, dtype=float):
 
     return ScipySparseMat(*shape, dtype=dtype, data=data)
 
+
 def list_nparray_to_scipy(data, dtype=float):
     """Takes a list of numpy arrays and creates a ``ScipySparseMat``."""
     return ScipySparseMat(len(data), len(data[0]), dtype=dtype, data=data)
+
 
 def list_scipy_to_scipy(data, dtype=float):
     """Takes a list of ``ScipySparseMat``s and creates a ``ScipySparseMat``."""
@@ -461,6 +469,7 @@ def list_scipy_to_scipy(data, dtype=float):
     return ScipySparseMat(n_rows, n_cols, dtype=dtype,
                           data=(vals, (rows, cols)))
 
+
 def list_dict_to_scipy(data, dtype=float):
     """Takes a list of dict {(row,col):val} and creates a ``ScipySparseMat``."""
     if isinstance(data[0], ScipySparseMat):
@@ -500,6 +509,7 @@ def list_dict_to_scipy(data, dtype=float):
 
     return ScipySparseMat(n_rows, n_cols, dtype=dtype,
                           data=(vals, (rows, cols)))
+
 
 def dict_to_scipy(data, dtype=float):
     """Takes a dict {(row,col):val} and creates a ``ScipySparseMat``."""

@@ -26,11 +26,15 @@ from biom.interfaces.html.input_handler import load_json_document
 cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
 cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 
+
 def display_table_validity(result_key, data, option_value=None):
     if data is None:
         return "The input file is a valid BIOM-formatted file."
     else:
-        return "<br/>".join(["The input file is not a valid BIOM-formatted file."] + data)
+        return (
+            "<br/>".join(["The input file is not a valid BIOM-formatted file."]
+                         + data)
+        )
 
 
 inputs = [

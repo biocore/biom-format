@@ -9,8 +9,8 @@
 #-----------------------------------------------------------------------------
 
 from __future__ import division
-from pyqi.core.command import (Command, CommandIn, CommandOut, 
-        ParameterCollection)
+from pyqi.core.command import (Command, CommandIn, CommandOut,
+                               ParameterCollection)
 from pyqi.core.exception import CommandError
 from biom.parse import MetadataMap
 from biom.table import Table
@@ -23,6 +23,7 @@ __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
+
 
 class MetadataAdder(Command):
     BriefDescription = "Add metadata to a BIOM table"
@@ -79,9 +80,9 @@ class MetadataAdder(Command):
     ])
 
     CommandOuts = ParameterCollection([
-            CommandOut(Name='table', DataType=Table,
-                       Description='Table with added metadata')
-            ])
+        CommandOut(Name='table', DataType=Table,
+                   Description='Table with added metadata')
+    ])
 
     def run(self, **kwargs):
         table = kwargs['table']
@@ -102,7 +103,7 @@ class MetadataAdder(Command):
 
         if sc_pipe_separated is not None:
             process_fns.update(dict.fromkeys(sc_pipe_separated,
-                    self._split_on_semicolons_and_pipes))
+                                             self._split_on_semicolons_and_pipes))
 
         if int_fields is not None:
             process_fns.update(dict.fromkeys(int_fields, self._int))
@@ -118,7 +119,7 @@ class MetadataAdder(Command):
 
         if observation_metadata is not None:
             observation_metadata = MetadataMap.fromFile(observation_metadata,
-                    process_fns=process_fns, header=observation_header)
+                                                        process_fns=process_fns, header=observation_header)
 
         if sample_metadata is None and observation_metadata is None:
             raise CommandError('Must specify sample_metadata and/or '

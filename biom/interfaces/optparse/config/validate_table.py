@@ -29,6 +29,7 @@ __email__ = "jai.rideout@gmail.com"
 cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
 cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 
+
 def report_table_validity(result_key, data, option_value=None):
     if data:
         print "The input file is a valid BIOM-formatted file."

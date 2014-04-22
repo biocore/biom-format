@@ -10,7 +10,7 @@
 
 from __future__ import division
 from pyqi.core.command import (Command, CommandIn, CommandOut,
-        ParameterCollection)
+                               ParameterCollection)
 from pyqi.core.exception import CommandError
 from biom.table import (Table, table_factory)
 from biom.parse import (parse_biom_table, MetadataMap, convert_biom_to_table,
@@ -25,15 +25,16 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
+
 class TableConverter(Command):
     MatrixTypes = ['sparse', 'dense']
 
     ObservationMetadataTypes = {
-            'sc_separated': lambda x: [e.strip() for e in x.split(';')],
-            'naive': lambda x: x
+        'sc_separated': lambda x: [e.strip() for e in x.split(';')],
+        'naive': lambda x: x
     }
     ObservationMetadataTypes['taxonomy'] = \
-            ObservationMetadataTypes['sc_separated']
+        ObservationMetadataTypes['sc_separated']
 
     BriefDescription = "Convert to/from the BIOM table format"
     LongDescription = ("Convert between BIOM and 'classic' (tab-delimited) "
@@ -41,7 +42,7 @@ class TableConverter(Command):
                        "here: http://biom-format.org/documentation/biom_conversion.html")
 
     CommandIns = ParameterCollection([
-        ### This is not an ideal usage of the pyqi framework because we are
+        # This is not an ideal usage of the pyqi framework because we are
         # expecting a file-like object here, and a lot of the parameters deal
         # with I/O-ish things, like converting between file formats. Even
         # though no I/O is forced here, it would be better to have rich objects
@@ -136,8 +137,8 @@ class TableConverter(Command):
                 raise CommandError(convert_error_msg)
 
             conv_table = table_factory(table._data, table.SampleIds,
-                            table.ObservationIds, table.SampleMetadata,
-                            table.ObservationMetadata, table.TableId)
+                                       table.ObservationIds, table.SampleMetadata,
+                                       table.ObservationMetadata, table.TableId)
             result = conv_table.getBiomFormatJsonString(generatedby())
         elif dense_biom_to_sparse_biom:
             try:
@@ -146,15 +147,15 @@ class TableConverter(Command):
                 raise CommandError(convert_error_msg)
 
             conv_table = table_factory(table._data, table.SampleIds,
-                            table.ObservationIds, table.SampleMetadata,
-                            table.ObservationMetadata, table.TableId)
+                                       table.ObservationIds, table.SampleMetadata,
+                                       table.ObservationMetadata, table.TableId)
             result = conv_table.getBiomFormatJsonString(generatedby())
         else:
             if process_obs_metadata not in \
                     self.ObservationMetadataTypes.keys():
                 raise CommandError("Unknown observation metadata processing "
-                        "method, must be one of: %s" %
-                        ', '.join(self.ObservationMetadataTypes.keys()))
+                                   "method, must be one of: %s" %
+                                   ', '.join(self.ObservationMetadataTypes.keys()))
 
             convert_error_msg = ("Input does not look like a classic table. "
                                  "Did you forget to specify that a classic "
@@ -162,8 +163,8 @@ class TableConverter(Command):
                                  "table file?")
             try:
                 result = convert_table_to_biom(table_file, sample_metadata,
-                        observation_metadata,
-                        self.ObservationMetadataTypes[process_obs_metadata])
+                                               observation_metadata,
+                                               self.ObservationMetadataTypes[process_obs_metadata])
             except (ValueError, TypeError, IndexError):
                 raise CommandError(convert_error_msg)
 

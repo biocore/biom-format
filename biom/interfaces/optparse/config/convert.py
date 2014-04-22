@@ -73,7 +73,7 @@ inputs = [
 ]
 
 outputs = [
-    OptparseResult(Parameter=cmd_out_lookup('table_str'), 
+    OptparseResult(Parameter=cmd_out_lookup('table_str'),
                    Handler=write_string,
                    InputName='output-fp')
 ]
