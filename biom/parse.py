@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 from __future__ import division
 import os
@@ -133,9 +133,6 @@ def direct_slice_data(biom_str, to_keep, axis):
     data_start = data_fields.find('[') + 1
     # trim trailing ]
     data_fields = data_fields[data_start:len(data_fields) - 1]
-
-    # determine matrix type
-    matrix_type = matrix_type_kv_pair.split(':')[-1].strip()
 
     # bounds check
     if min(to_keep) < 0:
@@ -502,8 +499,8 @@ def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None,
 class MetadataMap(dict):
 
     @classmethod
-    def fromFile(cls, lines, strip_quotes=True, suppress_stripping=False,
-                 header=None, process_fns=None):
+    def from_file(cls, lines, strip_quotes=True, suppress_stripping=False,
+                  header=None, process_fns=None):
         """Parse mapping file that relates samples or observations to metadata.
 
         Format: header line with fields
@@ -531,8 +528,8 @@ class MetadataMap(dict):
             try:
                 lines = open(lines, 'U')
             except IOError:
-                raise BiomParseException("A string was passed that doesn't refer "
-                                         "to an accessible filepath.")
+                raise BiomParseException("A string was passed that doesn't "
+                                         "refer to an accessible filepath.")
 
         if strip_quotes:
             if suppress_stripping:
@@ -634,7 +631,7 @@ def convert_table_to_biom(table_f, sample_mapping, obs_mapping,
 
 
 def biom_meta_to_string(metadata, replace_str=':'):
-    """ Determine which format the metadata is (e.g. str, list, or list of lists) and then convert to a string"""
+    """Determine which format the metadata is and then convert to a string"""
 
     # Note that since ';' and '|' are used as seperators we must replace them
     # if they exist

@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """The BIOM Table API"""
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from __future__ import division
 
@@ -19,14 +19,13 @@ from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, zeros, empty
-from numpy.lib.recfunctions import merge_arrays
 import h5py
 
 from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
-                       get_biom_format_url_string, flatten, natsort, prefer_self,
-                       index_list)
+                       get_biom_format_url_string, flatten, natsort,
+                       prefer_self, index_list)
 from functools import reduce
 
 # Define a variable length string type
@@ -51,8 +50,8 @@ class Table(object):
     """Abstract base class representing a Table.
 
     Once created, a Table object is immutable except for its sample/observation
-    metadata, which can be modified in place via addSampleMetadata and
-    addObservationMetadata.
+    metadata, which can be modified in place via add_sample_metadata and
+    add_observation_metadata.
 
     Code to simulate immutability taken from here:
         http://en.wikipedia.org/wiki/Immutable_object
@@ -62,34 +61,33 @@ class Table(object):
         raise TypeError("A Table object cannot be modified once created.")
     __delattr__ = __setattr__
 
-    def __init__(self, Data, SampleIds, ObservationIds, SampleMetadata=None,
-                 ObservationMetadata=None, TableId=None, SampleExtLink=None,
-                 H5Group=None, Type=None, **kwargs):
-        if Type is None:
-            Type = 'Unspecified'
+    def __init__(self, data, sample_ids, observation_ids, sample_metadata=None,
+                 observation_metadata=None, table_id=None,
+                 type=None, **kwargs):
+        if type is None:
+            type = 'Unspecified'
 
-        super(Table, self).__setattr__('Type', Type)
-        super(Table, self).__setattr__('TableId', TableId)
-        super(Table, self).__setattr__('_data', Data)
-        super(Table, self).__setattr__('_dtype', Data.dtype)
-        super(Table, self).__setattr__('SampleExtLink', SampleExtLink)
-        super(Table, self).__setattr__('H5Group', H5Group)
+        super(Table, self).__setattr__('type', type)
+        super(Table, self).__setattr__('table_id', table_id)
+        super(Table, self).__setattr__('_data', data)
+        super(Table, self).__setattr__('_dtype', data.dtype)
 
         # Cast to tuple for immutability.
-        super(Table, self).__setattr__('SampleIds', tuple(SampleIds))
-        super(Table, self).__setattr__('ObservationIds', tuple(ObservationIds))
+        super(Table, self).__setattr__('sample_ids', tuple(sample_ids))
+        super(Table, self).__setattr__('observation_ids',
+                                       tuple(observation_ids))
 
-        if SampleMetadata is not None:
-            super(Table, self).__setattr__('SampleMetadata',
-                                           tuple(SampleMetadata))
+        if sample_metadata is not None:
+            super(Table, self).__setattr__('sample_metadata',
+                                           tuple(sample_metadata))
         else:
-            super(Table, self).__setattr__('SampleMetadata', None)
+            super(Table, self).__setattr__('sample_metadata', None)
 
-        if ObservationMetadata is not None:
-            super(Table, self).__setattr__('ObservationMetadata',
-                                           tuple(ObservationMetadata))
+        if observation_metadata is not None:
+            super(Table, self).__setattr__('observation_metadata',
+                                           tuple(observation_metadata))
         else:
-            super(Table, self).__setattr__('ObservationMetadata', None)
+            super(Table, self).__setattr__('observation_metadata', None)
 
         # These will be set by _index_ids()
         super(Table, self).__setattr__('_sample_index', None)
@@ -105,28 +103,9 @@ class Table(object):
         Should only be called in constructor as this modifies state.
         """
         super(Table, self).__setattr__('_sample_index',
-                                       index_list(self.SampleIds))
+                                       index_list(self.sample_ids))
         super(Table, self).__setattr__('_obs_index',
-                                       index_list(self.ObservationIds))
-
-    def _data_equality(self, other):
-        """Two SparseObj matrices are equal if the items are equal"""
-        if isinstance(self, other.__class__):
-            return sorted(self._data.items()) == sorted(other._data.items())
-
-        for s_v, o_v in izip(self.iterSampleData(), other.iterSampleData()):
-            if not (s_v == o_v).all():
-                return False
-
-        return True
-
-    def _conv_to_np(self, v):
-        """Converts a vector to a numpy array
-
-        Always returns a row vector for consistancy with numpy iteration over
-        arrays
-        """
-        return SparseObj.convertVectorToDense(v)
+                                       index_list(self.observation_ids))
 
     def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
@@ -138,34 +117,6 @@ class Table(object):
         else:
             return to_sparse(vals, transpose, dtype)
 
-    def __iter__(self):
-        """Defined by subclass"""
-        return self.iterSamples()
-
-    def _iter_samp(self):
-        """Return sample vectors of data matrix vectors"""
-        rows, cols = self._data.shape
-        for c in range(cols):
-            # this pulls out col vectors but need to convert to the expected row
-            # vector
-            colvec = self._data.getCol(c)
-            yield colvec.T
-
-    def _iter_obs(self):
-        """Return observation vectors of data matrix"""
-        for r in range(self._data.shape[0]):
-            yield self._data.getRow(r)
-
-    def getTableDensity(self):
-        """Returns the fraction of nonzero elements in the table."""
-        density = 0.0
-
-        if not self.isEmpty():
-            density = (self._data.size / (len(self.SampleIds) *
-                                          len(self.ObservationIds)))
-
-        return density
-
     def _verify_metadata(self):
         """Obtain some notion of sanity on object construction with inputs"""
         try:
@@ -173,28 +124,28 @@ class Table(object):
         except:
             n_obs = n_samp = 0
 
-        if n_obs != len(self.ObservationIds):
+        if n_obs != len(self.observation_ids):
             raise TableException(
-                "Number of ObservationIds differs from matrix size!")
+                "Number of observation_ids differs from matrix size!")
 
-        if n_obs != len(set(self.ObservationIds)):
-            raise TableException("Duplicate ObservationIds")
+        if n_obs != len(set(self.observation_ids)):
+            raise TableException("Duplicate observation_ids")
 
-        if n_samp != len(self.SampleIds):
+        if n_samp != len(self.sample_ids):
             raise TableException(
-                "Number of SampleIds differs from matrix size!")
+                "Number of sample_ids differs from matrix size!")
 
-        if n_samp != len(set(self.SampleIds)):
-            raise TableException("Duplicate SampleIds")
+        if n_samp != len(set(self.sample_ids)):
+            raise TableException("Duplicate sample_ids")
 
-        if self.SampleMetadata is not None and \
-           n_samp != len(self.SampleMetadata):
-            raise TableException("SampleMetadata not in a compatible shape \
+        if self.sample_metadata is not None and \
+           n_samp != len(self.sample_metadata):
+            raise TableException("sample_metadata not in a compatible shape \
                                    with data matrix!")
 
-        if self.ObservationMetadata is not None and \
-           n_obs != len(self.ObservationMetadata):
-            raise TableException("ObservationMetadata not in a compatible \
+        if self.observation_metadata is not None and \
+           n_obs != len(self.observation_metadata):
+            raise TableException("observation_metadata not in a compatible \
                                    shape with data matrix!")
 
     def _cast_metadata(self):
@@ -207,12 +158,12 @@ class Table(object):
         default_obs_md = []
 
         # if we have a list of [None], set to None
-        if self.SampleMetadata is not None:
-            if self.SampleMetadata.count(None) == len(self.SampleMetadata):
-                super(Table, self).__setattr__('SampleMetadata', None)
+        if self.sample_metadata is not None:
+            if self.sample_metadata.count(None) == len(self.sample_metadata):
+                super(Table, self).__setattr__('sample_metadata', None)
 
-        if self.SampleMetadata is not None:
-            for samp_md in self.SampleMetadata:
+        if self.sample_metadata is not None:
+            for samp_md in self.sample_metadata:
                 d = defaultdict(lambda: None)
 
                 if isinstance(samp_md, dict):
@@ -224,17 +175,17 @@ class Table(object):
                                          repr(samp_md))
 
                 default_samp_md.append(d)
-            super(Table, self).__setattr__('SampleMetadata',
+            super(Table, self).__setattr__('sample_metadata',
                                            tuple(default_samp_md))
 
         # if we have a list of [None], set to None
-        if self.ObservationMetadata is not None:
-            none_count = self.ObservationMetadata.count(None)
-            if none_count == len(self.ObservationMetadata):
-                super(Table, self).__setattr__('ObservationMetadata', None)
+        if self.observation_metadata is not None:
+            none_count = self.observation_metadata.count(None)
+            if none_count == len(self.observation_metadata):
+                super(Table, self).__setattr__('observation_metadata', None)
 
-        if self.ObservationMetadata is not None:
-            for obs_md in self.ObservationMetadata:
+        if self.observation_metadata is not None:
+            for obs_md in self.observation_metadata:
                 d = defaultdict(lambda: None)
 
                 if isinstance(obs_md, dict):
@@ -246,39 +197,41 @@ class Table(object):
                                          repr(obs_md))
 
                 default_obs_md.append(d)
-            super(Table, self).__setattr__('ObservationMetadata',
+            super(Table, self).__setattr__('observation_metadata',
                                            tuple(default_obs_md))
 
-    def addObservationMetadata(self, md):
+    def add_observation_metadata(self, md):
         """Take a dict of metadata and add it to an observation.
 
         ``md`` should be of the form ``{observation_id:{dict_of_metadata}}``
         """
-        if self.ObservationMetadata is not None:
+        if self.observation_metadata is not None:
             for id_, md_entry in md.items():
-                if self.observationExists(id_):
-                    self.ObservationMetadata[
-                        self.getObservationIndex(id_)].update(md_entry)
+                if self.observation_exists(id_):
+                    self.observation_metadata[
+                        self.get_observation_index(id_)].update(md_entry)
         else:
-            super(Table, self).__setattr__('ObservationMetadata',
-                                           tuple([md[id_] if id_ in md else None
-                                                  for id_ in self.ObservationIds]))
+            super(Table, self).__setattr__('observation_metadata',
+                                           tuple([md[id_] if id_ in md else
+                                                  None for id_ in
+                                                  self.observation_ids]))
         self._cast_metadata()
 
-    def addSampleMetadata(self, md):
+    def add_sample_metadata(self, md):
         """Take a dict of metadata and add it to a sample.
 
         ``md`` should be of the form ``{sample_id:{dict_of_metadata}}``
         """
-        if self.SampleMetadata is not None:
+        if self.sample_metadata is not None:
             for id_, md_entry in md.items():
-                if self.sampleExists(id_):
-                    self.SampleMetadata[
-                        self.getSampleIndex(id_)].update(md_entry)
+                if self.sample_exists(id_):
+                    self.sample_metadata[
+                        self.get_sample_index(id_)].update(md_entry)
         else:
-            super(Table, self).__setattr__('SampleMetadata',
-                                           tuple([md[id_] if id_ in md else None
-                                                  for id_ in self.SampleIds]))
+            super(Table, self).__setattr__('sample_metadata',
+                                           tuple([md[id_] if id_ in md else
+                                                  None
+                                                  for id_ in self.sample_ids]))
         self._cast_metadata()
 
     def __getitem__(self, args):
@@ -290,15 +243,16 @@ class Table(object):
 
         ``axis`` can be either ``sample`` or ``observation``
         """
-        if self.isEmpty():
+        if self.is_empty():
             raise TableException("Cannot reduce an empty table")
 
         # np.apply_along_axis might reduce type conversions here and improve
         # speed. am opting for reduce right now as I think its more readable
         if axis == 'sample':
-            return asarray([reduce(f, v) for v in self.iterSampleData()])
+            return asarray([reduce(f, v) for v in self.iter_sample_data()])
         elif axis == 'observation':
-            return asarray([reduce(f, v) for v in self.iterObservationData()])
+            return asarray([reduce(f, v) for v in
+                            self.iter_observation_data()])
         else:
             raise TableException("Unknown reduction axis")
 
@@ -328,26 +282,26 @@ class Table(object):
         The returned table will be an entirely new table, including copies of
         the (transposed) data, sample/observation IDs and metadata.
         """
-        sample_md_copy = deepcopy(self.SampleMetadata)
-        obs_md_copy = deepcopy(self.ObservationMetadata)
+        sample_md_copy = deepcopy(self.sample_metadata)
+        obs_md_copy = deepcopy(self.observation_metadata)
 
-        return self.__class__(self._data.T, self.ObservationIds[:],
-                              self.SampleIds[:], obs_md_copy, sample_md_copy,
-                              self.TableId)
+        return self.__class__(self._data.T, self.observation_ids[:],
+                              self.sample_ids[:], obs_md_copy, sample_md_copy,
+                              self.table_id)
 
-    def getSampleIndex(self, samp_id):
+    def get_sample_index(self, samp_id):
         """Returns the sample index for sample ``samp_id``"""
         if samp_id not in self._sample_index:
             raise UnknownID("SampleId %s not found!" % samp_id)
         return self._sample_index[samp_id]
 
-    def getObservationIndex(self, obs_id):
+    def get_observation_index(self, obs_id):
         """Returns the observation index for observation ``obs_id``"""
         if obs_id not in self._obs_index:
             raise UnknownID("ObservationId %s not found!" % obs_id)
         return self._obs_index[obs_id]
 
-    def getValueByIds(self, obs_id, samp_id):
+    def get_value_by_ids(self, obs_id, samp_id):
         """Return value in the matrix corresponding to ``(obs_id, samp_id)``
         """
         if obs_id not in self._obs_index:
@@ -362,19 +316,19 @@ class Table(object):
 
         Default str output for a Table is just row/col ids and data values
         """
-        return self.delimitedSelf()
+        return self.delimited_self()
 
-    def sampleExists(self, id_):
+    def sample_exists(self, id_):
         """Returns True if sample ``id_`` exists, False otherwise"""
         return id_ in self._sample_index
 
-    def observationExists(self, id_):
+    def observation_exists(self, id_):
         """Returns True if observation ``id_`` exists, False otherwise"""
         return id_ in self._obs_index
 
-    def delimitedSelf(self, delim='\t', header_key=None, header_value=None,
-                      metadata_formatter=str,
-                      observation_column_name='#OTU ID'):
+    def delimited_self(self, delim='\t', header_key=None, header_value=None,
+                       metadata_formatter=str,
+                       observation_column_name='#OTU ID'):
         """Return self as a string in a delimited form
 
         Default str output for the Table is just row/col ids and table data
@@ -399,10 +353,10 @@ class Table(object):
             OTU2\t4\t8
 
         """
-        if self.isEmpty():
+        if self.is_empty():
             raise TableException("Cannot delimit self if I don't have data...")
 
-        samp_ids = delim.join(map(str, self.SampleIds))
+        samp_ids = delim.join(map(str, self.sample_ids))
 
         # 17 hrs of straight programming later...
         if header_key is not None:
@@ -422,11 +376,11 @@ class Table(object):
             output = ['# Constructed from biom file',
                       '%s%s%s' % (observation_column_name, delim, samp_ids)]
 
-        for obs_id, obs_values in zip(self.ObservationIds, self._iter_obs()):
+        for obs_id, obs_values in zip(self.observation_ids, self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._conv_to_np(obs_values)))
 
-            if header_key and self.ObservationMetadata is not None:
-                md = self.ObservationMetadata[self._obs_index[obs_id]]
+            if header_key and self.observation_metadata is not None:
+                md = self.observation_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
                 output.append(
                     '%s%s%s\t%s' %
@@ -436,23 +390,23 @@ class Table(object):
 
         return '\n'.join(output)
 
-    def isEmpty(self):
+    def is_empty(self):
         """Returns ``True`` if the table is empty"""
-        if not self.SampleIds or not self.ObservationIds:
+        if not self.sample_ids or not self.observation_ids:
             return True
         else:
             return False
 
     def __iter__(self):
         """Defined by subclass"""
-        return self.iterSamples()
+        return self.iter_samples()
 
     def _iter_samp(self):
         """Return sample vectors of data matrix vectors"""
         rows, cols = self._data.shape
         for c in range(cols):
-            # this pulls out col vectors but need to convert to the expected row
-            # vector
+            # this pulls out col vectors but need to convert to the expected
+            # row vector
             colvec = self._data.getCol(c)
             yield colvec.T
 
@@ -461,25 +415,25 @@ class Table(object):
         for r in range(self._data.shape[0]):
             yield self._data.getRow(r)
 
-    def getTableDensity(self):
+    def get_table_density(self):
         """Returns the fraction of nonzero elements in the table."""
         density = 0.0
 
-        if not self.isEmpty():
-            density = (self._data.size / (len(self.SampleIds) *
-                                          len(self.ObservationIds)))
+        if not self.is_empty():
+            density = (self._data.size / (len(self.sample_ids) *
+                                          len(self.observation_ids)))
 
         return density
 
-    def descriptiveEquality(self, other):
+    def descriptive_equality(self, other):
         """For use in testing, describe how the tables are not equal"""
-        if self.ObservationIds != other.ObservationIds:
+        if self.observation_ids != other.observation_ids:
             return "Observation IDs are not the same"
-        if self.SampleIds != other.SampleIds:
+        if self.sample_ids != other.sample_ids:
             return "Sample IDs are not the same"
-        if self.ObservationMetadata != other.ObservationMetadata:
+        if self.observation_metadata != other.observation_metadata:
             return "Observation metadata are not the same"
-        if self.SampleMetadata != other.SampleMetadata:
+        if self.sample_metadata != other.sample_metadata:
             return "Sample metadata are not the same"
         if not self._data_equality(other):
             return "Data elements are not the same"
@@ -488,28 +442,26 @@ class Table(object):
 
     def __eq__(self, other):
         """Equality is determined by the data matrix, metadata, and IDs"""
-        if self.ObservationIds != other.ObservationIds:
+        if self.observation_ids != other.observation_ids:
             return False
-        if self.SampleIds != other.SampleIds:
+        if self.sample_ids != other.sample_ids:
             return False
-        if self.ObservationMetadata != other.ObservationMetadata:
+        if self.observation_metadata != other.observation_metadata:
             return False
-        if self.SampleMetadata != other.SampleMetadata:
+        if self.sample_metadata != other.sample_metadata:
             return False
         if not self._data_equality(other):
             return False
 
         return True
 
-    def __ne__(self, other):
-        return not (self == other)
-
     def _data_equality(self, other):
         """Two SparseObj matrices are equal if the items are equal"""
         if isinstance(self, other.__class__):
             return sorted(self._data.items()) == sorted(other._data.items())
 
-        for s_v, o_v in izip(self.iterSampleData(), other.iterSampleData()):
+        for s_v, o_v in izip(self.iter_sample_data(),
+                             other.iter_sample_data()):
             if not (s_v == o_v).all():
                 return False
 
@@ -526,13 +478,13 @@ class Table(object):
         """
         return SparseObj.convertVectorToDense(v)
 
-    def sampleData(self, id_):
+    def sample_data(self, id_):
         """Return observations associated with sample id ``id_``"""
         if id_ not in self._sample_index:
             raise UnknownID("ID %s is not a known sample ID!" % id_)
         return self._conv_to_np(self._data[:, self._sample_index[id_]])
 
-    def observationData(self, id_):
+    def observation_data(self, id_):
         """Return samples associated with observation id ``id_``"""
         if id_ not in self._obs_index:
             raise UnknownID("ID %s is not a known observation ID!" % id_)
@@ -541,57 +493,57 @@ class Table(object):
     def copy(self):
         """Returns a copy of the table"""
         # NEEDS TO BE A DEEP COPY, MIGHT NOT GET METADATA! NEED TEST!
-        return self.__class__(self._data.copy(), self.SampleIds[:],
-                              self.ObservationIds[:], self.SampleMetadata,
-                              self.ObservationMetadata, self.TableId)
+        return self.__class__(self._data.copy(), self.sample_ids[:],
+                              self.observation_ids[:], self.sample_metadata,
+                              self.observation_metadata, self.table_id)
 
-    def iterSampleData(self):
+    def iter_sample_data(self):
         """Yields sample values"""
         for samp_v in self._iter_samp():
             yield self._conv_to_np(samp_v)
 
-    def iterObservationData(self):
+    def iter_observation_data(self):
         """Yields observation values"""
         for obs_v in self._iter_obs():
             yield self._conv_to_np(obs_v)
 
-    def iterSamples(self, conv_to_np=True):
+    def iter_samples(self, conv_to_np=True):
         """Yields ``(sample_value, sample_id, sample_metadata)``
 
         NOTE: will return ``None`` in ``sample_metadata`` positions if
-        ``self.SampleMetadata`` is set to ``None``
+        ``self.sample_metadata`` is set to ``None``
         """
-        if self.SampleMetadata is None:
-            samp_metadata = (None,) * len(self.SampleIds)
+        if self.sample_metadata is None:
+            samp_metadata = (None,) * len(self.sample_ids)
         else:
-            samp_metadata = self.SampleMetadata
+            samp_metadata = self.sample_metadata
 
-        iterator = izip(self._iter_samp(), self.SampleIds, samp_metadata)
+        iterator = izip(self._iter_samp(), self.sample_ids, samp_metadata)
         for samp_v, samp_id, samp_md in iterator:
             if conv_to_np:
                 yield (self._conv_to_np(samp_v), samp_id, samp_md)
             else:
                 yield (samp_v, samp_id, samp_md)
 
-    def iterObservations(self, conv_to_np=True):
+    def iter_observations(self, conv_to_np=True):
         """Yields ``(observation_value, observation_id, observation_metadata)``
 
         NOTE: will return ``None`` in ``observation_metadata`` positions if
-        ``self.ObservationMetadata`` is set to ``None``
+        ``self.observation_metadata`` is set to ``None``
         """
-        if self.ObservationMetadata is None:
-            obs_metadata = (None,) * len(self.ObservationIds)
+        if self.observation_metadata is None:
+            obs_metadata = (None,) * len(self.observation_ids)
         else:
-            obs_metadata = self.ObservationMetadata
+            obs_metadata = self.observation_metadata
 
-        iterator = izip(self._iter_obs(), self.ObservationIds, obs_metadata)
+        iterator = izip(self._iter_obs(), self.observation_ids, obs_metadata)
         for obs_v, obs_id, obs_md in iterator:
             if conv_to_np:
                 yield (self._conv_to_np(obs_v), obs_id, obs_md)
             else:
                 yield (obs_v, obs_id, obs_md)
 
-    def sortSampleOrder(self, sample_order):
+    def sort_sample_order(self, sample_order):
         """Return a new table with samples in ``sample_order``"""
         samp_md = []
         vals = []
@@ -600,17 +552,18 @@ class Table(object):
             cur_idx = self._sample_index[id_]
             vals.append(self._conv_to_np(self[:, cur_idx]))
 
-            if self.SampleMetadata is not None:
-                samp_md.append(self.SampleMetadata[cur_idx])
+            if self.sample_metadata is not None:
+                samp_md.append(self.sample_metadata[cur_idx])
 
         if not samp_md:
             samp_md = None
 
         return self.__class__(self._conv_to_self_type(vals, transpose=True),
-                              sample_order[:], self.ObservationIds[:], samp_md,
-                              self.ObservationMetadata, self.TableId)
+                              sample_order[:], self.observation_ids[:],
+                              samp_md,
+                              self.observation_metadata, self.table_id)
 
-    def sortObservationOrder(self, obs_order):
+    def sort_observation_order(self, obs_order):
         """Return a new table with observations in ``observation order``"""
         obs_md = []
         vals = []
@@ -619,37 +572,37 @@ class Table(object):
             cur_idx = self._obs_index[id_]
             vals.append(self[cur_idx, :])
 
-            if self.ObservationMetadata is not None:
-                obs_md.append(self.ObservationMetadata[cur_idx])
+            if self.observation_metadata is not None:
+                obs_md.append(self.observation_metadata[cur_idx])
 
         if not obs_md:
             obs_md = None
 
         return self.__class__(self._conv_to_self_type(vals),
-                              self.SampleIds[:], obs_order[
-                                  :], self.SampleMetadata,
-                              obs_md, self.TableId)
+                              self.sample_ids[:], obs_order[
+                                  :], self.sample_metadata,
+                              obs_md, self.table_id)
 
-    def sortBySampleId(self, sort_f=natsort):
+    def sort_by_sample_id(self, sort_f=natsort):
         """Return a table where samples are sorted by ``sort_f``
 
             ``sort_f`` must take a single parameter: the list of sample ids
         """
-        return self.sortSampleOrder(sort_f(self.SampleIds))
+        return self.sort_sample_order(sort_f(self.sample_ids))
 
-    def sortByObservationId(self, sort_f=natsort):
+    def sort_by_observation_id(self, sort_f=natsort):
         """Return a table where observations are sorted by ``sort_f``
 
             ``sort_f`` must take a single parameter: the list of observation
             ids
         """
-        return self.sortObservationOrder(sort_f(self.ObservationIds))
+        return self.sort_observation_order(sort_f(self.observation_ids))
 
     # a good refactor in the future is a general filter() method and then
     # specify the axis, like Table.reduce
 
     # take() is tempting here as well...
-    def filterSamples(self, f, invert=False):
+    def filter_samples(self, f, invert=False):
         """Filter samples from self based on ``f``
 
         ``f`` must accept three variables, the sample values, sample ID and
@@ -663,9 +616,10 @@ class Table(object):
         samp_vals = []
         samp_metadata = []
 
-        # builtin filter puts all of this into memory and then return to the for
-        # loop. This will impact memory substantially on large sparse matrices
-        for s_val, s_id, s_md in self.iterSamples():
+        # builtin filter puts all of this into memory and then return to the
+        # for loop. This will impact memory substantially on large sparse
+        # matrices
+        for s_val, s_id, s_md in self.iter_samples():
             if not xor(f(s_val, s_id, s_md), invert):
                 continue
 
@@ -686,11 +640,11 @@ class Table(object):
         # transpose is necessary as the underlying storage is sample == col
         return self.__class__(
             self._conv_to_self_type(samp_vals, transpose=True),
-            samp_ids[:], self.ObservationIds[
+            samp_ids[:], self.observation_ids[
                 :], samp_metadata,
-            self.ObservationMetadata, self.TableId)
+            self.observation_metadata, self.table_id)
 
-    def filterObservations(self, f, invert=False):
+    def filter_observations(self, f, invert=False):
         """Filter observations from self based on ``f``
 
         ``f`` must accept three variables, the observation values, observation
@@ -705,9 +659,10 @@ class Table(object):
         obs_vals = []
         obs_metadata = []
 
-        # builtin filter puts all of this into memory and then return to the for
-        # loop. This will impact memory substantially on large sparse matrices
-        for o_val, o_id, o_md in self.iterObservations():
+        # builtin filter puts all of this into memory and then return to the
+        # for loop. This will impact memory substantially on large sparse
+        # matrices
+        for o_val, o_id, o_md in self.iter_observations():
             if not xor(f(o_val, o_id, o_md), invert):
                 continue
 
@@ -724,10 +679,10 @@ class Table(object):
             raise TableException("All observations were filtered out!")
 
         return self.__class__(
-            self._conv_to_self_type(obs_vals), self.SampleIds[:],
-            obs_ids[:], self.SampleMetadata, obs_metadata, self.TableId)
+            self._conv_to_self_type(obs_vals), self.sample_ids[:],
+            obs_ids[:], self.sample_metadata, obs_metadata, self.table_id)
 
-    def binSamplesByMetadata(self, f, constructor=None):
+    def bin_samples_by_metadata(self, f, constructor=None):
         """Yields tables by metadata
 
         ``f`` is given the sample metadata by row and must return what "bin"
@@ -743,7 +698,7 @@ class Table(object):
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for samp_v, samp_id, samp_md in self.iterSamples(conv_to_np=False):
+        for samp_v, samp_id, samp_md in self.iter_samples(conv_to_np=False):
             bin = f(samp_md)
 
             # try to make it hashable...
@@ -759,11 +714,13 @@ class Table(object):
 
         for bin, (samp_ids, samp_values, samp_md) in bins.iteritems():
             data = self._conv_to_self_type(samp_values, transpose=True)
-            yield bin, table_factory(data, samp_ids[:], self.ObservationIds[:],
-                                     samp_md, self.ObservationMetadata, self.TableId,
+            yield bin, table_factory(data, samp_ids[:],
+                                     self.observation_ids[:],
+                                     samp_md, self.observation_metadata,
+                                     self.table_id,
                                      constructor=constructor)
 
-    def binObservationsByMetadata(self, f, constructor=None):
+    def bin_observations_by_metadata(self, f, constructor=None):
         """Yields tables by metadata
 
         ``f`` is given the observation metadata by row and must return what
@@ -779,7 +736,7 @@ class Table(object):
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for obs_v, obs_id, obs_md in self.iterObservations(conv_to_np=False):
+        for obs_v, obs_id, obs_md in self.iter_observations(conv_to_np=False):
             bin = f(obs_md)
 
             # try to make it hashable...
@@ -795,14 +752,17 @@ class Table(object):
 
         for bin, (obs_ids, obs_values, obs_md) in bins.iteritems():
             yield bin, table_factory(self._conv_to_self_type(obs_values),
-                                     self.SampleIds[:], obs_ids[
-                                         :], self.SampleMetadata,
-                                     obs_md, self.TableId, constructor=constructor)
+                                     self.sample_ids[:], obs_ids[
+                                         :], self.sample_metadata,
+                                     obs_md, self.table_id,
+                                     constructor=constructor)
 
-    def collapseSamplesByMetadata(self, metadata_f, reduce_f=add, norm=True,
-                                  min_group_size=2, include_collapsed_metadata=True,
-                                  constructor=None, one_to_many=False, one_to_many_mode='add',
-                                  one_to_many_md_key='Path', strict=False):
+    def collase_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
+                                    min_group_size=2,
+                                    include_collapsed_metadata=True,
+                                    constructor=None, one_to_many=False,
+                                    one_to_many_mode='add',
+                                    one_to_many_md_key='Path', strict=False):
         """Collapse samples in a table by sample metadata
 
         Bin samples by metadata then collapse each bin into a single sample.
@@ -893,7 +853,7 @@ class Table(object):
             # we drop all other associated metadata
             new_s_md = {}
             s_md_count = {}
-            for id_, md in zip(self.SampleIds, self.SampleMetadata):
+            for id_, md in zip(self.sample_ids, self.sample_metadata):
                 md_iter = metadata_f(md)
                 num_md = 0
                 while True:
@@ -918,7 +878,8 @@ class Table(object):
                 s_md_count[id_] = num_md
 
             n_s = len(new_s_md)
-            s_idx = dict([(bin, i) for i, bin in enumerate(sorted(new_s_md))])
+            s_idx = dict([(bin_, i) for i, bin_ in
+                         enumerate(sorted(new_s_md))])
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
@@ -931,12 +892,12 @@ class Table(object):
             # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
             # of collapsed samples is reasonable, then this doesn't suck too
             # much.
-            new_data = zeros((len(self.ObservationIds), n_s), dtype=dtype)
+            new_data = zeros((len(self.observation_ids), n_s), dtype=dtype)
 
             # for each sample
             # for each bin in the metadata
             # for each value associated with the sample
-            for s_v, s_id, s_md in self.iterSamples():
+            for s_v, s_id, s_md in self.iter_samples():
                 md_iter = metadata_f(s_md)
                 while True:
                     try:
@@ -977,13 +938,13 @@ class Table(object):
             # convert back to self type
             data = self._conv_to_self_type(new_data)
         else:
-            for bin, table in self.binSamplesByMetadata(metadata_f):
-                if len(table.SampleIds) < min_group_size:
+            for bin, table in self.bin_samples_by_metadata(metadata_f):
+                if len(table.sample_ids) < min_group_size:
                     continue
 
                 redux_data = table.reduce(reduce_f, 'observation')
                 if norm:
-                    redux_data /= len(table.SampleIds)
+                    redux_data /= len(table.sample_ids)
 
                 collapsed_data.append(self._conv_to_self_type(redux_data))
                 collapsed_sample_ids.append(bin)
@@ -991,7 +952,8 @@ class Table(object):
                 if include_collapsed_metadata:
                     # retain metadata but store by original sample id
                     tmp_md = {}
-                    for id_, md in zip(table.SampleIds, table.SampleMetadata):
+                    for id_, md in zip(table.sample_ids,
+                                       table.sample_metadata):
                         tmp_md[id_] = md
                     collapsed_sample_md.append(tmp_md)
 
@@ -1002,14 +964,17 @@ class Table(object):
             raise TableException("Collapsed table is empty!")
 
         return table_factory(data, collapsed_sample_ids,
-                             self.ObservationIds[:], collapsed_sample_md,
-                             self.ObservationMetadata, self.TableId,
+                             self.observation_ids[:], collapsed_sample_md,
+                             self.observation_metadata, self.table_id,
                              constructor=constructor)
 
-    def collapseObservationsByMetadata(self, metadata_f, reduce_f=add,
-                                       norm=True, min_group_size=2, include_collapsed_metadata=True,
-                                       constructor=None, one_to_many=False, one_to_many_mode='add',
-                                       one_to_many_md_key='Path', strict=False):
+    def collapse_observations_by_metadata(self, metadata_f, reduce_f=add,
+                                          norm=True, min_group_size=2,
+                                          include_collapsed_metadata=True,
+                                          constructor=None, one_to_many=False,
+                                          one_to_many_mode='add',
+                                          one_to_many_md_key='Path',
+                                          strict=False):
         """Collapse observations in a table by observation metadata
 
         Bin observations by metadata then collapse each bin into a single
@@ -1101,7 +1066,8 @@ class Table(object):
             # we drop all other associated metadata
             new_obs_md = {}
             obs_md_count = {}
-            for id_, md in zip(self.ObservationIds, self.ObservationMetadata):
+            for id_, md in zip(self.observation_ids,
+                               self.observation_metadata):
                 md_iter = metadata_f(md)
                 num_md = 0
                 while True:
@@ -1127,8 +1093,8 @@ class Table(object):
                 obs_md_count[id_] = num_md
 
             n_obs = len(new_obs_md)
-            obs_idx = dict([(bin, i)
-                           for i, bin in enumerate(sorted(new_obs_md))])
+            obs_idx = dict([(bin_, i)
+                           for i, bin_ in enumerate(sorted(new_obs_md))])
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
@@ -1141,12 +1107,12 @@ class Table(object):
             # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
             # of collapsed observations is reasonable, then this doesn't suck
             # too much.
-            new_data = zeros((n_obs, len(self.SampleIds)), dtype=dtype)
+            new_data = zeros((n_obs, len(self.sample_ids)), dtype=dtype)
 
             # for each observation
             # for each bin in the metadata
             # for each value associated with the observation
-            for obs_v, obs_id, obs_md in self.iterObservations():
+            for obs_v, obs_id, obs_md in self.iter_observations():
                 md_iter = metadata_f(obs_md)
                 while True:
                     try:
@@ -1188,13 +1154,13 @@ class Table(object):
             # convert back to self type
             data = self._conv_to_self_type(new_data)
         else:
-            for bin, table in self.binObservationsByMetadata(metadata_f):
-                if len(table.ObservationIds) < min_group_size:
+            for bin, table in self.bin_observations_by_metadata(metadata_f):
+                if len(table.observation_ids) < min_group_size:
                     continue
 
                 redux_data = table.reduce(reduce_f, 'sample')
                 if norm:
-                    redux_data /= len(table.ObservationIds)
+                    redux_data /= len(table.observation_ids)
 
                 collapsed_data.append(self._conv_to_self_type(redux_data))
                 collapsed_obs_ids.append(bin)
@@ -1202,8 +1168,8 @@ class Table(object):
                 if include_collapsed_metadata:
                     # retain metadata but store by original observation id
                     tmp_md = {}
-                    for id_, md in zip(table.ObservationIds,
-                                       table.ObservationMetadata):
+                    for id_, md in zip(table.observation_ids,
+                                       table.observation_metadata):
                         tmp_md[id_] = md
                     collapsed_obs_md.append(tmp_md)
 
@@ -1213,11 +1179,12 @@ class Table(object):
         if 0 in data.shape:
             raise TableException("Collapsed table is empty!")
 
-        return table_factory(data, self.SampleIds[:], collapsed_obs_ids,
-                             self.SampleMetadata, collapsed_obs_md, self.TableId,
+        return table_factory(data, self.sample_ids[:], collapsed_obs_ids,
+                             self.sample_metadata, collapsed_obs_md,
+                             self.table_id,
                              constructor=constructor)
 
-    def transformSamples(self, f):
+    def transform_samples(self, f):
         """Iterate over samples, applying a function ``f`` to each value
 
         ``f`` must take three values: a sample value (int or float), a sample
@@ -1226,15 +1193,15 @@ class Table(object):
         """
         new_m = []
 
-        for s_v, s_id, s_md in self.iterSamples():
+        for s_v, s_id, s_md in self.iter_samples():
             new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
 
         return self.__class__(self._conv_to_self_type(new_m, transpose=True),
-                              self.SampleIds[:], self.ObservationIds[
-                                  :], self.SampleMetadata,
-                              self.ObservationMetadata, self.TableId)
+                              self.sample_ids[:], self.observation_ids[
+                                  :], self.sample_metadata,
+                              self.observation_metadata, self.table_id)
 
-    def transformObservations(self, f):
+    def transform_observations(self, f):
         """Iterate over observations, applying a function ``f`` to each value
 
         ``f`` must take three values: an observation value (int or float), an
@@ -1244,35 +1211,35 @@ class Table(object):
         """
         new_m = []
 
-        for obs_v, obs_id, obs_md in self.iterObservations():
+        for obs_v, obs_id, obs_md in self.iter_observations():
             new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
 
         return self.__class__(
-            self._conv_to_self_type(new_m), self.SampleIds[:],
-            self.ObservationIds[:], self.SampleMetadata,
-            self.ObservationMetadata, self.TableId)
+            self._conv_to_self_type(new_m), self.sample_ids[:],
+            self.observation_ids[:], self.sample_metadata,
+            self.observation_metadata, self.table_id)
 
-    def normObservationBySample(self):
+    def norm_observation_by_sample(self):
         """Return new table with vals as relative abundances within each sample
         """
         def f(samp_v, samp_id, samp_md):
             return samp_v / float(samp_v.sum())
-        return self.transformSamples(f)
+        return self.transform_samples(f)
 
-    def normSampleByObservation(self):
+    def norm_sample_by_observation(self):
         """Return new table with vals as relative abundances within each obs
         """
         def f(obs_v, obs_id, obs_md):
             return obs_v / float(obs_v.sum())
-        #f = lambda x: x / float(x.sum())
-        return self.transformObservations(f)
+        # f = lambda x: x / float(x.sum())
+        return self.transform_observations(f)
 
-    def normObservationByMetadata(self, obs_metadata_id):
+    def norm_observation_by_metadata(self, obs_metadata_id):
         """Return new table with vals divided by obs_metadata_id
         """
         def f(obs_v, obs_id, obs_md):
             return obs_v / obs_md[obs_metadata_id]
-        return self.transformObservations(f)
+        return self.transform_observations(f)
 
     def nonzero(self):
         """Returns locations of nonzero elements within the data matrix
@@ -1281,11 +1248,11 @@ class Table(object):
         """
         # this is naively implemented. If performance is a concern, private
         # methods can be written to hit against the underlying types directly
-        for o_idx, samp_vals in enumerate(self.iterObservationData()):
+        for o_idx, samp_vals in enumerate(self.iter_observation_data()):
             for s_idx in samp_vals.nonzero()[0]:
-                yield (self.ObservationIds[o_idx], self.SampleIds[s_idx])
+                yield (self.observation_ids[o_idx], self.sample_ids[s_idx])
 
-    def nonzeroCounts(self, axis, binary=False):
+    def nonzero_counts(self, axis, binary=False):
         """Get nonzero summaries about an axis
 
         axis : either 'sample', 'observation', or 'whole'
@@ -1302,17 +1269,17 @@ class Table(object):
 
         if axis is 'sample':
             # can use np.bincount for CSMat or ScipySparse
-            result = zeros(len(self.SampleIds), dtype=dtype)
-            for idx, vals in enumerate(self.iterSampleData()):
+            result = zeros(len(self.sample_ids), dtype=dtype)
+            for idx, vals in enumerate(self.iter_sample_data()):
                 result[idx] = op(vals)
         elif axis is 'observation':
             # can use np.bincount for CSMat or ScipySparse
-            result = zeros(len(self.ObservationIds), dtype=dtype)
-            for idx, vals in enumerate(self.iterObservationData()):
+            result = zeros(len(self.observation_ids), dtype=dtype)
+            for idx, vals in enumerate(self.iter_observation_data()):
                 result[idx] = op(vals)
         else:
             result = zeros(1, dtype=dtype)
-            for vals in self.iterSampleData():
+            for vals in self.iter_sample_data():
                 result[0] += op(vals)
 
         return result
@@ -1340,8 +1307,9 @@ class Table(object):
                 idx += 1
         return new_order
 
-    def merge(self, other, Sample='union', Observation='union',
-              sample_metadata_f=prefer_self, observation_metadata_f=prefer_self):
+    def merge(self, other, sample='union', observation='union',
+              sample_metadata_f=prefer_self,
+              observation_metadata_f=prefer_self):
         """Merge two tables together
 
         The axes, samples and observations, can be controlled independently.
@@ -1360,26 +1328,26 @@ class Table(object):
         NOTE: The return type is always that of ``self``
         """
         # determine the sample order in the resulting table
-        if Sample is 'union':
-            new_samp_order = self._union_id_order(self.SampleIds,
-                                                  other.SampleIds)
-        elif Sample is 'intersection':
-            new_samp_order = self._intersect_id_order(self.SampleIds,
-                                                      other.SampleIds)
+        if sample is 'union':
+            new_samp_order = self._union_id_order(self.sample_ids,
+                                                  other.sample_ids)
+        elif sample is 'intersection':
+            new_samp_order = self._intersect_id_order(self.sample_ids,
+                                                      other.sample_ids)
         else:
-            raise TableException("Unknown Sample merge type: %s" % Sample)
+            raise TableException("Unknown sample merge type: %s" % sample)
 
         # determine the observation order in the resulting table
-        if Observation is 'union':
-            new_obs_order = self._union_id_order(self.ObservationIds,
-                                                 other.ObservationIds)
-        elif Observation is 'intersection':
-            new_obs_order = self._intersect_id_order(self.ObservationIds,
-                                                     other.ObservationIds)
+        if observation is 'union':
+            new_obs_order = self._union_id_order(self.observation_ids,
+                                                 other.observation_ids)
+        elif observation is 'intersection':
+            new_obs_order = self._intersect_id_order(self.observation_ids,
+                                                     other.observation_ids)
         else:
             raise TableException(
                 "Unknown observation merge type: %s" %
-                Observation)
+                observation)
 
         # convert these to lists, no need to be dictionaries and reduces
         # calls to items() and allows for pre-caluculating insert order
@@ -1420,16 +1388,16 @@ class Table(object):
             sample_ids.append(id_)
 
             # if we have sample metadata, grab it
-            if self.SampleMetadata is None or not self.sampleExists(id_):
+            if self.sample_metadata is None or not self.sample_exists(id_):
                 self_md = None
             else:
-                self_md = self.SampleMetadata[self_samp_idx[id_]]
+                self_md = self.sample_metadata[self_samp_idx[id_]]
 
             # if we have sample metadata, grab it
-            if other.SampleMetadata is None or not other.sampleExists(id_):
+            if other.sample_metadata is None or not other.sample_exists(id_):
                 other_md = None
             else:
-                other_md = other.SampleMetadata[other_samp_idx[id_]]
+                other_md = other.sample_metadata[other_samp_idx[id_]]
 
             sample_md.append(sample_metadata_f(self_md, other_md))
 
@@ -1441,18 +1409,18 @@ class Table(object):
             obs_ids.append(id_)
 
             # if we have observation metadata, grab it
-            if self.ObservationMetadata is None or \
-               not self.observationExists(id_):
+            if self.observation_metadata is None or \
+               not self.observation_exists(id_):
                 self_md = None
             else:
-                self_md = self.ObservationMetadata[self_obs_idx[id_]]
+                self_md = self.observation_metadata[self_obs_idx[id_]]
 
             # if we have observation metadata, grab it
-            if other.ObservationMetadata is None or \
-                    not other.observationExists(id_):
+            if other.observation_metadata is None or \
+                    not other.observation_exists(id_):
                 other_md = None
             else:
-                other_md = other.ObservationMetadata[other_obs_idx[id_]]
+                other_md = other.observation_metadata[other_obs_idx[id_]]
 
             obs_md.append(observation_metadata_f(self_md, other_md))
 
@@ -1466,19 +1434,19 @@ class Table(object):
 
             # This method allows for the creation of a matrix of self type.
             # See note above
-            #new_vec = data_f()
+            # new_vec = data_f()
 
             # see if the observation exists in other, if so, pull it out.
             # if not, set to the placeholder missing
-            if other.observationExists(obs_id):
-                other_vec = other.observationData(obs_id)
+            if other.observation_exists(obs_id):
+                other_vec = other.observation_data(obs_id)
             else:
                 other_vec = None
 
             # see if the observation exists in self, if so, pull it out.
             # if not, set to the placeholder missing
-            if self.observationExists(obs_id):
-                self_vec = self.observationData(obs_id)
+            if self.observation_exists(obs_id):
+                self_vec = self.observation_data(obs_id)
             else:
                 self_vec = None
 
@@ -1606,7 +1574,7 @@ class Table(object):
                                    dtype=H5PY_VLEN_STR,
                                    data=md_str)
 
-        h5grp.attrs['id'] = self.TableId if self.TableId else "No Table ID"
+        h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
         h5grp.attrs['type'] = self.Type
         h5grp.attrs['format-url'] = "http://biom-format.org"
         h5grp.attrs['format-version'] = (2, 0)
@@ -1615,12 +1583,12 @@ class Table(object):
         h5grp.attrs['shape'] = self._data.shape
         h5grp.attrs['nnz'] = self._data.size
 
-        axis_dump(h5grp.create_group('observation'), self.ObservationIds,
-                  self.ObservationMetadata, 'csr')
-        axis_dump(h5grp.create_group('sample'), self.SampleIds,
-                  self.SampleMetadata, 'csc')
+        axis_dump(h5grp.create_group('observation'), self.observation_ids,
+                  self.observation_metadata, 'csr')
+        axis_dump(h5grp.create_group('sample'), self.sample_ids,
+                  self.sample_metadata, 'csc')
 
-    def getBiomFormatObject(self, generated_by):
+    def get_biom_format_object(self, generated_by):
         """Returns a dictionary representing the table in BIOM format.
 
         This dictionary can then be easily converted into a JSON string for
@@ -1640,7 +1608,7 @@ class Table(object):
 
         # Fill in top-level metadata.
         biom_format_obj = {}
-        biom_format_obj["id"] = self.TableId
+        biom_format_obj["id"] = self.table_id
         biom_format_obj["format"] = get_biom_format_version_string()
         biom_format_obj["format_url"] =\
             get_biom_format_url_string()
@@ -1653,12 +1621,12 @@ class Table(object):
             num_rows, num_cols = self._data.shape
         except:
             num_rows = num_cols = 0
-        hasData = True if num_rows > 0 and num_cols > 0 else False
+        has_data = True if num_rows > 0 and num_cols > 0 else False
 
         # Default the matrix element type to test to be an integer in case we
         # don't have any data in the matrix to test.
         test_element = 0
-        if hasData:
+        if has_data:
             test_element = self[0, 0]
 
         # Determine the type of elements the matrix is storing.
@@ -1679,13 +1647,13 @@ class Table(object):
         # data.
         biom_format_obj["rows"] = []
         biom_format_obj["data"] = []
-        for obs_index, obs in enumerate(self.iterObservations()):
+        for obs_index, obs in enumerate(self.iter_observations()):
             biom_format_obj["rows"].append(
                 {"id": "%s" % obs[1], "metadata": obs[2]})
             # If the matrix is dense, simply convert the numpy array to a list
             # of data values. If the matrix is sparse, we need to store the
             # data in sparse format, as it is given to us in a numpy array in
-            # dense format (i.e. includes zeroes) by iterObservations().
+            # dense format (i.e. includes zeroes) by iter_observations().
             dense_values = list(obs[0])
             sparse_values = []
             for col_index, val in enumerate(dense_values):
@@ -1696,13 +1664,13 @@ class Table(object):
 
         # Fill in details about the columns in the table.
         biom_format_obj["columns"] = []
-        for samp in self.iterSamples():
+        for samp in self.iter_samples():
             biom_format_obj["columns"].append(
                 {"id": "%s" % samp[1], "metadata": samp[2]})
 
         return biom_format_obj
 
-    def getBiomFormatJsonString(self, generated_by, direct_io=None):
+    def get_biom_format_json_string(self, generated_by, direct_io=None):
         """Returns a JSON string representing the table in BIOM format.
 
         ``generated_by``: a string describing the software used to build the
@@ -1718,7 +1686,7 @@ class Table(object):
         # Fill in top-level metadata.
         if direct_io:
             direct_io.write('{')
-            direct_io.write('"id": "%s",' % str(self.TableId))
+            direct_io.write('"id": "%s",' % str(self.table_id))
             direct_io.write(
                 '"format": "%s",' %
                 get_biom_format_version_string())
@@ -1728,7 +1696,7 @@ class Table(object):
             direct_io.write('"generated_by": "%s",' % generated_by)
             direct_io.write('"date": "%s",' % datetime.now().isoformat())
         else:
-            id_ = '"id": "%s",' % str(self.TableId)
+            id_ = '"id": "%s",' % str(self.table_id)
             format_ = '"format": "%s",' % get_biom_format_version_string()
             format_url = '"format_url": "%s",' % get_biom_format_url_string()
             generated_by = '"generated_by": "%s",' % generated_by
@@ -1740,21 +1708,21 @@ class Table(object):
             num_rows, num_cols = self._data.shape
         except:
             num_rows = num_cols = 0
-        hasData = True if num_rows > 0 and num_cols > 0 else False
+        has_data = True if num_rows > 0 and num_cols > 0 else False
 
         # Default the matrix element type to test to be an integer in case we
         # don't have any data in the matrix to test.
         test_element = 0
-        if hasData:
+        if has_data:
             test_element = self[0, 0]
 
         # Determine the type of elements the matrix is storing.
         if isinstance(test_element, int):
-            dtype, matrix_element_type = int, "int"
+            matrix_element_type = "int"
         elif isinstance(test_element, float):
-            dtype, matrix_element_type = float, "float"
+            matrix_element_type = "float"
         elif isinstance(test_element, unicode):
-            dtype, matrix_element_type = unicode, "unicode"
+            matrix_element_type = "unicode"
         else:
             raise TableException("Unsupported matrix data type.")
 
@@ -1765,7 +1733,8 @@ class Table(object):
                 matrix_element_type)
             direct_io.write('"shape": [%d, %d],' % (num_rows, num_cols))
         else:
-            matrix_element_type = '"matrix_element_type": "%s",' % matrix_element_type
+            matrix_element_type = '"matrix_element_type": "%s",' % \
+                matrix_element_type
             shape = '"shape": [%d, %d],' % (num_rows, num_cols)
 
         # Fill in details about the rows in the table and fill in the matrix's
@@ -1775,11 +1744,11 @@ class Table(object):
         else:
             data = ['"data": [']
 
-        max_row_idx = len(self.ObservationIds) - 1
-        max_col_idx = len(self.SampleIds) - 1
+        max_row_idx = len(self.observation_ids) - 1
+        max_col_idx = len(self.sample_ids) - 1
         rows = ['"rows": [']
         have_written = False
-        for obs_index, obs in enumerate(self.iterObservations()):
+        for obs_index, obs in enumerate(self.iter_observations()):
             # i'm crying on the inside
             if obs_index != max_row_idx:
                 rows.append('{"id": "%s", "metadata": %s},' % (obs[1],
@@ -1825,13 +1794,15 @@ class Table(object):
 
         # Fill in details about the columns in the table.
         columns = ['"columns": [']
-        for samp_index, samp in enumerate(self.iterSamples()):
+        for samp_index, samp in enumerate(self.iter_samples()):
             if samp_index != max_col_idx:
                 columns.append('{"id": "%s", "metadata": %s},' % (samp[1],
-                                                                  dumps(samp[2])))
+                                                                  dumps(
+                                                                  samp[2])))
             else:
                 columns.append('{"id": "%s", "metadata": %s}]' % (samp[1],
-                                                                  dumps(samp[2])))
+                                                                  dumps(
+                                                                  samp[2])))
 
         rows = ''.join(rows)
         columns = ''.join(columns)
@@ -1846,7 +1817,7 @@ class Table(object):
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
 
-    def getBiomFormatPrettyPrint(self, generated_by):
+    def get_biom_format_pretty_print(self, generated_by):
         """Returns a 'pretty print' format of a BIOM file
 
         ``generated_by``: a string describing the software used to build the
@@ -1855,7 +1826,7 @@ class Table(object):
         WARNING: This method displays data values in a columnar format and
         can be misleading.
         """
-        return dumps(self.getBiomFormatObject(generated_by), sort_keys=True,
+        return dumps(self.get_biom_format_object(generated_by), sort_keys=True,
                      indent=4)
 
 
@@ -1985,9 +1956,9 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
         raise TableException("Cannot handle data!")
 
     return Table(data, sample_ids, observation_ids,
-                 SampleMetadata=sample_metadata,
-                 ObservationMetadata=observation_metadata,
-                 TableId=table_id, **kwargs)
+                 sample_metadata=sample_metadata,
+                 observation_metadata=observation_metadata,
+                 table_id=table_id, **kwargs)
 
 
 def get_zerod_matrix(mat, dtype=float):

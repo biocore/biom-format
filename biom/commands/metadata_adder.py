@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 from __future__ import division
 from pyqi.core.command import (Command, CommandIn, CommandOut,
@@ -29,7 +29,8 @@ class MetadataAdder(Command):
     BriefDescription = "Add metadata to a BIOM table"
     LongDescription = ("Add sample and/or observation metadata to "
                        "BIOM-formatted files. Detailed usage examples can be "
-                       "found here: http://biom-format.org/documentation/adding_metadata.html")
+                       "found here: http://biom-format.org/documentation/add"
+                       "ing_metadata.html")
 
     CommandIns = ParameterCollection([
         CommandIn(Name='table', DataType=Table,
@@ -103,7 +104,7 @@ class MetadataAdder(Command):
 
         if sc_pipe_separated is not None:
             process_fns.update(dict.fromkeys(sc_pipe_separated,
-                                             self._split_on_semicolons_and_pipes))
+                               self._split_on_semicolons_and_pipes))
 
         if int_fields is not None:
             process_fns.update(dict.fromkeys(int_fields, self._int))
@@ -118,8 +119,10 @@ class MetadataAdder(Command):
                                                    header=sample_header)
 
         if observation_metadata is not None:
-            observation_metadata = MetadataMap.fromFile(observation_metadata,
-                                                        process_fns=process_fns, header=observation_header)
+            observation_metadata = MetadataMap.fromFile(
+                observation_metadata,
+                process_fns=process_fns,
+                header=observation_header)
 
         if sample_metadata is None and observation_metadata is None:
             raise CommandError('Must specify sample_metadata and/or '

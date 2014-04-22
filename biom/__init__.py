@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -25,19 +25,9 @@ from sys import modules, stderr
 from biom.exception import InvalidSparseBackendException
 from biom.util import load_biom_config
 
-try:
-    import numpy
-except ImportError:
-    raise ImportError("numpy cannot be found. Can't continue.")
-
-try:
-    import pyqi
-except ImportError:
-    raise ImportError("pyqi cannot be found. Can't continue.")
-
 biom_config = load_biom_config()
 
-sparse_backends = ['CSMat', 'ScipySparseMat']
+sparse_backends = ['CSMat', 'scipy_sparse_mat']
 
 
 def set_sparse_backend(sparse_backend, warn=True):
@@ -65,50 +55,51 @@ def get_sparse_backend():
     """Returns the constructor and functions needed to use the current backend.
 
     Will look at whatever the current backend is in the loaded biom config
-    dict. If one isn't specified, will default to ScipySparseMat. Will raise an
-    InvalidSparseBackendException if the current sparse backend isn't supported
-    or cannot be used for whatever reason.
+    dict. If one isn't specified, will default to scipy_sparse_mat. Will raise
+    an InvalidSparseBackendException if the current sparse backend isn't
+    supported or cannot be used for whatever reason.
     """
     backend = biom_config['python_code_sparse_backend']
     if backend is None:
-        backend = 'ScipySparseMat'
+        backend = 'scipy_sparse_mat'
 
     if backend not in sparse_backends:
         raise InvalidSparseBackendException("Unrecognized sparse backend "
-                                            "'%s'. Choose from %s." % (backend,
-                                                                       ', '.join(sparse_backends)))
+                                            "'%s'. Choose from %s." %
+                                            (backend,
+                                             ', '.join(sparse_backends)))
 
     valid_backend = False
-    if backend == 'ScipySparseMat':
+    if backend == 'scipy_sparse_mat':
         try:
-            from biom.backends.scipysparse import ScipySparseMat, to_scipy, \
+            from biom.backends.scipysparse import scipy_sparse_mat, to_scipy, \
                 dict_to_scipy, list_dict_to_scipy, list_nparray_to_scipy, \
                 nparray_to_scipy, list_list_to_scipy
-            SparseObj = ScipySparseMat
+            sparse_obj = scipy_sparse_mat
             to_sparse = to_scipy
-            dict_to_sparseobj = dict_to_scipy
-            list_dict_to_sparseobj = list_dict_to_scipy
-            list_nparray_to_sparseobj = list_nparray_to_scipy
-            nparray_to_sparseobj = nparray_to_scipy
-            list_list_to_sparseobj = list_list_to_scipy
+            dict_to_sparse_obj = dict_to_scipy
+            list_dict_to_sparse_obj = list_dict_to_scipy
+            list_nparray_to_sparse_obj = list_nparray_to_scipy
+            nparray_to_sparse_obj = nparray_to_scipy
+            list_list_to_sparse_obj = list_list_to_scipy
             valid_backend = True
         except ImportError:
             valid_backend = False
-            stderr.write("Cannot load ScipySparseMat (requires that scipy is "
-                         "installed). Using CSMat sparse backend.\n")
+            stderr.write("Cannot load scipy_sparse_mat (requires that scipy "
+                         "is installed). Using CSMat sparse backend.\n")
 
     if backend == 'CSMat' or (not valid_backend):
         try:
             from biom.backends.csmat import CSMat, to_csmat, dict_to_csmat, \
                 list_dict_to_csmat, list_nparray_to_csmat, nparray_to_csmat, \
                 list_list_to_csmat
-            SparseObj = CSMat
+            sparse_obj = CSMat
             to_sparse = to_csmat
-            dict_to_sparseobj = dict_to_csmat
-            list_dict_to_sparseobj = list_dict_to_csmat
-            list_nparray_to_sparseobj = list_nparray_to_csmat
-            nparray_to_sparseobj = nparray_to_csmat
-            list_list_to_sparseobj = list_list_to_csmat
+            dict_to_sparse_obj = dict_to_csmat
+            list_dict_to_sparse_obj = list_dict_to_csmat
+            list_nparray_to_sparse_obj = list_nparray_to_csmat
+            nparray_to_sparse_obj = nparray_to_csmat
+            list_list_to_sparse_obj = list_list_to_csmat
             valid_backend = True
         except ImportError:
             valid_backend = False
@@ -116,9 +107,10 @@ def get_sparse_backend():
 
     if not valid_backend:
         raise InvalidSparseBackendException("The sparse matrix backend '%s' "
-                                            "could not be loaded. Please check your biom-format "
+                                            "could not be loaded. Please "
+                                            "check your biom-format "
                                             "installation." % backend)
 
-    return SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
-        list_nparray_to_sparseobj, nparray_to_sparseobj, \
-        list_list_to_sparseobj
+    return sparse_obj, to_sparse, dict_to_sparse_obj, list_dict_to_sparse_obj, \
+        list_nparray_to_sparse_obj, nparray_to_sparse_obj, \
+        list_list_to_sparse_obj

@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -357,18 +357,28 @@ class TableValidatorTests(TestCase):
 
 
 rich_sparse_otu = """{
-     "id":null,
-     "format": "Biological Observation Matrix 1.0.0",
-     "format_url": "http://biom-format.org",
-     "type": "OTU table",
-     "generated_by": "QIIME revision XYZ",
-     "date": "2011-12-19T19:00:00",
-     "rows":[
-        {"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
-        {"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria", "p__Cyanobacteria", "c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichospermum", "s__"]}},
-        {"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea", "p__Euryarchaeota", "c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae", "g__Methanosarcina", "s__"]}},
-        {"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria", "p__Firmicutes", "c__Clostridia", "o__Halanaerobiales", "f__Halanaerobiaceae", "g__Halanaerobium", "s__Halanaerobiumsaccharolyticum"]}},
-        {"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}}
+                   "id":null,
+                   "format": "Biological Observation Matrix 1.0.0",
+                   "format_url": "http://biom-format.org",
+                   "type": "OTU table",
+                   "generated_by": "QIIME revision XYZ",
+                   "date": "2011-12-19T19:00:00",
+                   "rows":[
+{"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria",\
+ "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae",\
+  "g__Escherichia", "s__"]}},
+{"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria", "p__Cyanobacteria", \
+"c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichospermum",\
+"s__"]}},
+{"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea", "p__Euryarchaeota",\
+"c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae",\
+"g__Methanosarcina", "s__"]}},
+{"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria", "p__Firmicutes",\
+"c__Clostridia", "o__Halanaerobiales", "f__Halanaerobiaceae",\
+"g__Halanaerobium", "s__Halanaerobiumsaccharolyticum"]}},
+{"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria",\
+"p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales",\
+"f__Enterobacteriaceae", "g__Escherichia", "s__"]}}
         ],
      "columns":[
         {"id":"Sample1", "metadata":{
@@ -474,43 +484,53 @@ rich_dense_otu = """{
      "generated_by": "QIIME revision XYZ",
      "date": "2011-12-19T19:00:00",
      "rows":[
-        {"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
-        {"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria", "p__Cyanobacteria", "c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichospermum", "s__"]}},
-        {"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea", "p__Euryarchaeota", "c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae", "g__Methanosarcina", "s__"]}},
-        {"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria", "p__Firmicutes", "c__Clostridia", "o__Halanaerobiales", "f__Halanaerobiaceae", "g__Halanaerobium", "s__Halanaerobiumsaccharolyticum"]}},
-        {"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}}
+{"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", \
+"p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales",\
+"f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
+{"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria",\
+"p__Cyanobacteria", "c__Nostocophycideae", "o__Nostocales",\
+"f__Nostocaceae", "g__Dolichospermum", "s__"]}},
+{"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea",\
+"p__Euryarchaeota", "c__Methanomicrobia", "o__Methanosarcinales",\
+"f__Methanosarcinaceae", "g__Methanosarcina", "s__"]}},
+{"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria",\
+"p__Firmicutes", "c__Clostridia", "o__Halanaerobiales",\
+"f__Halanaerobiaceae", "g__Halanaerobium","s__Halanaerobiumsaccharolyticum"]}},
+{"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria",\
+"p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales",\
+"f__Enterobacteriaceae", "g__Escherichia", "s__"]}}
         ],
      "columns":[
         {"id":"Sample1", "metadata":{
-                                 "BarcodeSequence":"CGCTTATCGAGA",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"gut",
-                                 "Description":"human gut"}},
+                                "BarcodeSequence":"CGCTTATCGAGA",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"gut",
+                                "Description":"human gut"}},
         {"id":"Sample2", "metadata":{
-                                 "BarcodeSequence":"CATACCAGTAGC",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"gut",
-                                 "Description":"human gut"}},
+                                "BarcodeSequence":"CATACCAGTAGC",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"gut",
+                                "Description":"human gut"}},
         {"id":"Sample3", "metadata":{
-                                 "BarcodeSequence":"CTCTCTACCTGT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"gut",
-                                 "Description":"human gut"}},
+                                "BarcodeSequence":"CTCTCTACCTGT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"gut",
+                                "Description":"human gut"}},
         {"id":"Sample4", "metadata":{
-                                 "BarcodeSequence":"CTCTCGGCCTGT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"skin",
-                                 "Description":"human skin"}},
+                                "BarcodeSequence":"CTCTCGGCCTGT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"skin",
+                                "Description":"human skin"}},
         {"id":"Sample5", "metadata":{
-                                 "BarcodeSequence":"CTCTCTACCAAT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"skin",
-                                 "Description":"human skin"}},
+                                "BarcodeSequence":"CTCTCTACCAAT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"skin",
+                                "Description":"human skin"}},
         {"id":"Sample6", "metadata":{
-                                 "BarcodeSequence":"CTAACTACCAAT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"skin",
-                                 "Description":"human skin"}}
+                                "BarcodeSequence":"CTAACTACCAAT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"skin",
+                                "Description":"human skin"}}
                 ],
      "matrix_type": "dense",
      "matrix_element_type": "int",

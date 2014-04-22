@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """scipy sparse matrix backend"""
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 from __future__ import division
 
@@ -39,7 +39,7 @@ class ScipySparseMat(object):
     """
 
     @staticmethod
-    def convertVectorToDense(vec):
+    def convert_vector_to_dense(vec):
         """Converts a ScipySparseMat row/column vector to a dense numpy array.
 
         The numpy array that is returned will always be a 1-dimensional row
@@ -162,7 +162,7 @@ class ScipySparseMat(object):
 
         return matrix_sum
 
-    def getRow(self, row_idx):
+    def get_row(self, row_idx):
         """Return the row at ``row_idx`` as a ``ScipySparseMat``.
 
         A row vector will be returned in csr format.
@@ -179,11 +179,11 @@ class ScipySparseMat(object):
         self.convert('csr')
 
         row_vector = self.__class__(1, num_cols, dtype=self.dtype)
-        row_vector._matrix = self._matrix.getrow(row_idx)
+        row_vector._matrix = self._matrix.get_row(row_idx)
 
         return row_vector
 
-    def getCol(self, col_idx):
+    def get_col(self, col_idx):
         """Return the column at ``col_idx`` as a ``ScipySparseMat``.
 
         A column vector will be returned in csc format.
@@ -200,7 +200,7 @@ class ScipySparseMat(object):
         self.convert('csc')
 
         col_vector = self.__class__(num_rows, 1, dtype=self.dtype)
-        col_vector._matrix = self._matrix.getcol(col_idx)
+        col_vector._matrix = self._matrix.get_col(col_idx)
 
         return col_vector
 
@@ -314,12 +314,12 @@ class ScipySparseMat(object):
 
         if isinstance(row, slice):
             if row.start is None and row.stop is None:
-                return self.getCol(col)
+                return self.get_col(col)
             else:
                 raise IndexError("Can only handle full : slices per axis.")
         elif isinstance(col, slice):
             if col.start is None and col.stop is None:
-                return self.getRow(row)
+                return self.get_row(row)
             else:
                 raise IndexError("Can only handle full : slices per axis.")
         else:
@@ -471,7 +471,9 @@ def list_scipy_to_scipy(data, dtype=float):
 
 
 def list_dict_to_scipy(data, dtype=float):
-    """Takes a list of dict {(row,col):val} and creates a ``ScipySparseMat``."""
+    """Takes a list of dict {(row,col):val} and creates a
+       ``ScipySparseMat``.
+    """
     if isinstance(data[0], ScipySparseMat):
         if data[0].shape[0] > data[0].shape[1]:
             is_col = True

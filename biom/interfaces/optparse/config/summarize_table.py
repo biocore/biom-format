@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -19,7 +19,7 @@ from pyqi.core.command import (make_command_in_collection_lookup_f,
                                make_command_out_collection_lookup_f)
 from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
-                                           OptparseOption, OptparseResult)
+                                           OptparseResult)
 from pyqi.core.interfaces.optparse.output_handler import (
     write_or_print_list_of_strings)
 from biom.commands.table_summarizer import CommandConstructor
@@ -31,7 +31,8 @@ cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 
 usage_examples = [
     OptparseUsageExample(ShortDesc="Basic script usage",
-                         LongDesc="Write a summary of table.biom to table_summary.txt",
+                         LongDesc="Write a summary of table.biom to "
+                                  "table_summary.txt",
                          Ex="%prog -i table.biom -o table_summary.txt")
 ]
 

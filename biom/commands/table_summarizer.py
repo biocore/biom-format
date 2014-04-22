@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from __future__ import division
 from pyqi.core.command import (Command, CommandIn, CommandOut,
@@ -15,10 +15,7 @@ from pyqi.core.command import (Command, CommandIn, CommandOut,
 from numpy import std
 from operator import itemgetter
 from biom.util import (compute_counts_per_sample_stats,
-                       safe_md5,
-                       biom_open)
-from biom.parse import parse_biom_table
-from biom.table import Table
+                       safe_md5)
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"

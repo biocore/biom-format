@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-from pyqi.core.interfaces.html import (HTMLInputOption, HTMLDownload, HTMLPage)
+from pyqi.core.interfaces.html import (HTMLInputOption, HTMLDownload)
 from pyqi.core.command import (make_command_in_collection_lookup_f,
                                make_command_out_collection_lookup_f)
 from pyqi.core.interfaces.html.output_handler import newline_list_of_strings
@@ -47,15 +47,15 @@ inputs = [
 
     HTMLInputOption(Parameter=cmd_in_lookup('sc_separated'),
                     Handler=string_list_handler,
-                    Help='comma-separated list of the metadata fields to split '
-                    'on semicolons. This is useful for hierarchical data such '
-                    'as taxonomy or functional categories'),
+                    Help='comma-separated list of the metadata fields to '
+                    'split on semicolons. This is useful for hierarchical '
+                    'data such as taxonomy or functional categories'),
 
     HTMLInputOption(Parameter=cmd_in_lookup('sc_pipe_separated'),
                     Handler=string_list_handler,
-                    Help='comma-separated list of the metadata fields to split '
+                    Help='comma-separated list of the metadata fields to split'
                     'on semicolons and pipes ("|"). This is useful for '
-                    'hierarchical data such as functional categories with '
+                    ' hierarchical data such as functional categories with '
                     'one-to-many mappings (e.g. x;y;z|x;y;w)'),
 
     HTMLInputOption(Parameter=cmd_in_lookup('int_fields'),
@@ -67,24 +67,24 @@ inputs = [
     HTMLInputOption(Parameter=cmd_in_lookup('float_fields'),
                     Handler=string_list_handler,
                     Help='comma-separated list of the metadata fields to cast '
-                    'to floating point numbers. This is useful for real number '
-                    'data such as "pH"'),
+                    'to floating point numbers. This is useful for real number'
+                    ' data such as "pH"'),
 
     HTMLInputOption(Parameter=cmd_in_lookup('sample_header'),
                     Handler=string_list_handler,
                     Help='comma-separated list of the sample metadata field '
                     'names. This is useful if a header line is not provided '
                     'with the metadata, if you want to rename the fields, or '
-                    'if you want to include only the first n fields where n is '
-                    'the number of entries provided here'),
+                    'if you want to include only the first n fields where n is'
+                    ' the number of entries provided here'),
 
     HTMLInputOption(Parameter=cmd_in_lookup('observation_header'),
                     Handler=string_list_handler,
                     Help='comma-separated list of the observation metadata '
                     'field names. This is useful if a header line is not '
                     'provided with the metadata, if you want to rename the '
-                    'fields, or if you want to include only the first n fields '
-                    'where n is the number of entries provided here'),
+                    'fields, or if you want to include only the first n fields'
+                    ' where n is the number of entries provided here'),
     HTMLInputOption(Parameter=None,
                     Name='download-file',
                     Required=True,

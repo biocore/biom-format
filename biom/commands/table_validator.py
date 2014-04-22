@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from __future__ import division
-import json
 from datetime import datetime
 from operator import and_
 from pyqi.core.command import (Command, CommandIn, CommandOut,
@@ -136,7 +135,7 @@ class TableValidator(Command):
             return ''
 
     def _valid_shape(self, table_json):
-        """A matrix header is (int, int) representing the size of a 2D matrix"""
+        """Matrix header is (int, int) representing the size of a 2D matrix"""
         a, b = table_json['shape']
 
         if not (self._is_int(a) and self._is_int(b)):
@@ -166,7 +165,7 @@ class TableValidator(Command):
                                           and time)
         """
         try:
-            _ = datetime.strptime(table_json['date'], "%Y-%m-%dT%H:%M:%S")
+            datetime.strptime(table_json['date'], "%Y-%m-%dT%H:%M:%S")
         except:
             return "Timestamp does not appear to be ISO 8601"
         else:

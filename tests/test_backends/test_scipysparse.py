@@ -1,16 +1,16 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from numpy import array
 from scipy.sparse import lil_matrix
-from biom.unit_test import TestCase, main
+from numpy.testing.unittest import TestCase, main
 from biom.backends.scipysparse import (ScipySparseMat, to_scipy,
                                        list_nparray_to_scipy,
                                        list_list_to_scipy, list_scipy_to_scipy,
@@ -60,22 +60,23 @@ class ScipySparseMatTests(TestCase):
         self.single_ele[0, 0] = 42
 
         # Explicit zeros.
-        self.explicit_zeros = ScipySparseMat(2, 3,
-                                             data=([1, 2, 3, 0, 4], ([0, 0, 1, 1, 1], [0, 2, 0, 1, 2])))
+        self.explicit_zeros = ScipySparseMat(2, 3, data=([1, 2, 3, 0, 4],
+                                                         ([0, 0, 1, 1, 1],
+                                                          [0, 2, 0, 1, 2])))
 
-    def test_convertVectorToDense(self):
+    def test_convert_vector_to_dense(self):
         """Properly converts ScipySparseMat vectors to dense numpy repr."""
         exp = array([1, 0, 3])
-        obs = ScipySparseMat.convertVectorToDense(self.row_vec)
-        self.assertEqual(obs, exp)
+        obs = ScipySparseMat.convert_vector_to_dense(self.row_vec)
+        self.assertSequenceEqual(obs, exp)
 
         exp = array([1, 0, 3])
-        obs = ScipySparseMat.convertVectorToDense(self.col_vec)
-        self.assertEqual(obs, exp)
+        obs = ScipySparseMat.convert_vector_to_dense(self.col_vec)
+        self.assertSequenceEqual(obs, exp)
 
         exp = array([42])
-        obs = ScipySparseMat.convertVectorToDense(self.single_ele)
-        self.assertEqual(obs, exp)
+        obs = ScipySparseMat.convert_vector_to_dense(self.single_ele)
+        self.assertSequenceEqual(obs, exp)
 
     def test_is_empty(self):
         """Differentiate empty matrix from non-empty matrix."""
@@ -86,14 +87,14 @@ class ScipySparseMatTests(TestCase):
 
     def test_shape(self):
         """What kind of shape are you in?"""
-        self.assertEqual(self.null1.shape, (0, 0))
-        self.assertEqual(self.null2.shape, (0, 42))
-        self.assertEqual(self.null3.shape, (42, 0))
-        self.assertEqual(self.mat1.shape, (2, 3))
-        self.assertEqual(self.empty.shape, (2, 2))
-        self.assertEqual(self.row_vec.shape, (1, 3))
-        self.assertEqual(self.col_vec.shape, (3, 1))
-        self.assertEqual(self.single_ele.shape, (1, 1))
+        self.assertSequenceEqual(self.null1.shape, (0, 0))
+        self.assertSequenceEqual(self.null2.shape, (0, 42))
+        self.assertSequenceEqual(self.null3.shape, (42, 0))
+        self.assertSequenceEqual(self.mat1.shape, (2, 3))
+        self.assertSequenceEqual(self.empty.shape, (2, 2))
+        self.assertSequenceEqual(self.row_vec.shape, (1, 3))
+        self.assertSequenceEqual(self.col_vec.shape, (3, 1))
+        self.assertSequenceEqual(self.single_ele.shape, (1, 1))
 
     def test_dtype(self):
         """What's your type?"""
@@ -161,36 +162,36 @@ class ScipySparseMatTests(TestCase):
             self.assertEqual(m.sum(), 0)
 
         self.assertEqual(self.mat1.sum(), 10)
-        self.assertEqual(self.mat1.sum(0), array([4, 0, 6]))
-        self.assertEqual(self.mat1.sum(1), array([3, 7]))
-        self.assertEqual(self.row_vec.sum(1), array([4]))
-        self.assertEqual(self.col_vec.sum(0), array([4]))
+        self.assertSequenceEqual(self.mat1.sum(0), array([4, 0, 6]))
+        self.assertSequenceEqual(self.mat1.sum(1), array([3, 7]))
+        self.assertSequenceEqual(self.row_vec.sum(1), array([4]))
+        self.assertSequenceEqual(self.col_vec.sum(0), array([4]))
         with self.assertRaises(ValueError):
-            _ = self.mat1.sum(3)
+            self.mat1.sum(3)
 
-    def test_getRow(self):
+    def test_get_row(self):
         """Test grabbing a row from the matrix."""
         for m in self.nulls:
             with self.assertRaises(IndexError):
-                _ = m.getRow(0)
+                m.get_row(0)
 
         exp = ScipySparseMat(1, 3, data=array([[1, 0, 2]]))
-        obs = self.mat1.getRow(0)
+        obs = self.mat1.get_row(0)
         self.assertEqual(obs, exp)
 
-        self.assertEqual(self.row_vec.getRow(0), self.row_vec)
+        self.assertEqual(self.row_vec.get_row(0), self.row_vec)
 
-    def test_getCol(self):
+    def test_get_col(self):
         """Test grabbing a column from the matrix."""
         for m in self.nulls:
             with self.assertRaises(IndexError):
-                _ = m.getCol(0)
+                m.get_col(0)
 
         exp = ScipySparseMat(2, 1, data=array([[1], [3]]))
-        obs = self.mat1.getCol(0)
+        obs = self.mat1.get_col(0)
         self.assertEqual(obs, exp)
 
-        self.assertEqual(self.col_vec.getCol(0), self.col_vec)
+        self.assertEqual(self.col_vec.get_col(0), self.col_vec)
 
     def test_items_iteritems(self):
         """Test getting a list of non-zero elements."""
@@ -308,19 +309,19 @@ class ScipySparseMatTests(TestCase):
         """Test getting an element from the matrix."""
         for m in self.nulls:
             with self.assertRaises(IndexError):
-                _ = m[0, 0]
+                m[0, 0]
 
         with self.assertRaises(IndexError):
-            _ = self.empty[0]
+            self.empty[0]
 
         with self.assertRaises(IndexError):
-            _ = self.empty[:, :]
+            self.empty[:, :]
 
         with self.assertRaises(IndexError):
-            _ = self.empty[0:1, 0]
+            self.empty[0:1, 0]
 
         with self.assertRaises(IndexError):
-            _ = self.empty[0, 0:1]
+            self.empty[0, 0:1]
 
         exp = ScipySparseMat(2, 1)
         obs = self.empty[:, 0]
@@ -328,18 +329,18 @@ class ScipySparseMatTests(TestCase):
 
         # Extracting a column.
         obs = self.mat1[:, 2]
-        self.assertEqual(obs, self.mat1.getCol(2))
+        self.assertEqual(obs, self.mat1.get_col(2))
 
         # Extracting a row.
         obs = self.mat1[1, :]
-        self.assertEqual(obs, self.mat1.getRow(1))
+        self.assertEqual(obs, self.mat1.get_row(1))
 
         # Extracting a single element.
         self.assertEqual(self.empty[1, 1], 0)
         self.assertEqual(self.mat1[1, 2], 4)
 
         with self.assertRaises(IndexError):
-            _ = self.mat1[1, 3]
+            self.mat1[1, 3]
 
 # These tests are pretty much copied from CSMat's conversion tests...
 

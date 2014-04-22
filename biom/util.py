@@ -1,23 +1,20 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
-from sys import argv, stdout, stderr
 from collections import defaultdict
 from os import getenv
-from os.path import (abspath, dirname, exists, split, splitext)
+from os.path import abspath, dirname, exists
 import re
 from hashlib import md5
 from gzip import open as gzip_open
 from numpy import mean, median, min, max
-from pyqi.util import pyqi_system_call
-from pyqi.core.log import StdErrLogger
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -42,13 +39,13 @@ def get_biom_format_url_string():
 def unzip(items):
     """Performs the reverse of zip, i.e. produces separate lists from tuples.
 
-    items should be list of k-element tuples. Will raise exception if any tuples
-    contain more items than the first one.
+    items should be list of k-element tuples. Will raise exception if any
+    tuples contain more items than the first one.
 
     Conceptually equivalent to transposing the matrix of tuples.
 
-    Returns list of lists in which the ith list contains the ith element of each
-    tuple.
+    Returns list of lists in which the ith list contains the ith element of
+    each tuple.
 
     Note: zip expects *items rather than items, such that unzip(zip(*items))
     returns something that compares equal to items.
@@ -294,9 +291,8 @@ def safe_md5(open_file, block_size=2 ** 20):
         data_getter = f
         data_getter_i = 0
     else:
-        raise TypeError(
-            "safe_md5 can only handle a file handle or list of lines but recieved %r." %
-            type(open_file))
+        raise TypeError("safe_md5 can only handle a file handle or list of "
+                        "lines but recieved %r." % type(open_file))
 
     while data:
         data = data_getter(data_getter_i)

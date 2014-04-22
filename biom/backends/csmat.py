@@ -1,16 +1,15 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 import numpy as np
-from numpy import (array, ndarray, concatenate, argsort, searchsorted, uint32,
-                   zeros)
+from numpy import (array, ndarray, argsort, uint32, zeros, newaxis)
 from operator import itemgetter
 from biom.util import flatten
 from biom.exception import TableException
@@ -40,7 +39,7 @@ class CSMat(object):
     """
 
     @staticmethod
-    def convertVectorToDense(vec):
+    def convert_vector_to_dense(vec):
         """Converts a CSMat row/column vector to a dense numpy array.
 
         The numpy array that is returned will always be a 1-dimensional row
@@ -77,8 +76,8 @@ class CSMat(object):
 
     def _get_size(self):
         """Returns the number of non-zero elements stored (NNZ)."""
-        if self.hasUpdates():
-            self.absorbUpdates()
+        if self.has_updates():
+            self.absorb_updates()
 
         if self._order == "coo":
             return len(self._coo_values)
@@ -122,7 +121,7 @@ class CSMat(object):
             col_sums = zeros(num_cols)
 
             for col_idx in range(num_cols):
-                col_sums[col_idx] = self.getCol(col_idx).sum()
+                col_sums[col_idx] = self.get_col(col_idx).sum()
 
             return col_sums
         elif axis == 1:
@@ -130,7 +129,7 @@ class CSMat(object):
             row_sums = zeros(num_rows)
 
             for row_idx in range(num_rows):
-                row_sums[row_idx] = self.getRow(row_idx).sum()
+                row_sums[row_idx] = self.get_row(row_idx).sum()
 
             return row_sums
         else:
@@ -142,7 +141,7 @@ class CSMat(object):
         for (r, c), v in data.iteritems():
             self[(r, c)] = v
 
-    def bulkCOOUpdate(self, rows, cols, values):
+    def bulk_coo_update(self, rows, cols, values):
         """Stages data in COO format. Expects 3 iterables aligned by index."""
         for r, c, v in zip(rows, cols, values):
             if v != 0:
@@ -150,14 +149,14 @@ class CSMat(object):
                 self._coo_rows.append(r)
                 self._coo_cols.append(c)
 
-    def hasUpdates(self):
+    def has_updates(self):
         """Returns true if it appears there are updates"""
         if len(self._coo_values) != 0:
             return True
         else:
             return False
 
-    def absorbUpdates(self):
+    def absorb_updates(self):
         """If there are COO values not in CS form, pack them in"""
         if self._order == 'coo':
             return
@@ -176,20 +175,20 @@ class CSMat(object):
             return
 
         if self._order == "coo":
-            self._buildCSfromCOO(to_order)
+            self._build_cs_from_coo(to_order)
         else:
             if to_order == "coo":
-                self._buildCOOfromCS()
+                self._build_coo_from_cs()
             else:
-                self._buildCSfromCS()
+                self._build_cs_from_cs()
 
-    def getRow(self, row):
+    def get_row(self, row):
         """Returns a row in Sparse COO form"""
         if row >= self.shape[0] or row < 0:
             raise IndexError("Row %d is out of bounds!" % row)
 
-        if self.hasUpdates():
-            self.absorbUpdates()
+        if self.has_updates():
+            self.absorb_updates()
 
         n_rows, n_cols = self.shape
         v = self.__class__(1, n_cols, dtype=self.dtype)
@@ -207,13 +206,13 @@ class CSMat(object):
 
         return v
 
-    def getCol(self, col):
+    def get_col(self, col):
         """Return a col in CSMat form"""
         if col >= self.shape[1] or col < 0:
             raise IndexError("Col %d is out of bounds!" % col)
 
-        if self.hasUpdates():
-            self.absorbUpdates()
+        if self.has_updates():
+            self.absorb_updates()
 
         n_rows, n_cols = self.shape
         v = self.__class__(n_rows, 1, dtype=self.dtype)
@@ -233,44 +232,52 @@ class CSMat(object):
 
     def items(self):
         """returns [((r,c),v)]"""
-        if self.hasUpdates():
-            self.absorbUpdates()
+        if self.has_updates():
+            self.absorb_updates()
 
         last = 0
         res = []
         if self._order == 'csr':
             for row, i in enumerate(self._pkd_ax[1:]):
-                for col, val in izip(self._unpkd_ax[last:i], self._values[last:i]):
+                for col, val in izip(self._unpkd_ax[last:i],
+                                     self._values[last:i]):
                     res.append(((row, col), val))
                 last = i
         elif self._order == 'csc':
             for col, i in enumerate(self._pkd_ax[1:]):
-                for row, val in izip(self._unpkd_ax[last:i], self._values[last:i]):
+                for row, val in izip(self._unpkd_ax[last:i],
+                                     self._values[last:i]):
                     res.append(((row, col), val))
                 last = i
         else:
-            for r, c, v in izip(self._coo_rows, self._coo_cols, self._coo_values):
+            for r, c, v in izip(self._coo_rows,
+                                self._coo_cols,
+                                self._coo_values):
                 res.append(((r, c), v))
         return res
 
     def iteritems(self):
         """Generator returning ((r,c),v)"""
-        if self.hasUpdates():
-            self.absorbUpdates()
+        if self.has_updates():
+            self.absorb_updates()
 
         last = 0
         if self._order == 'csr':
             for row, i in enumerate(self._pkd_ax[1:]):
-                for col, val in izip(self._unpkd_ax[last:i], self._values[last:i]):
+                for col, val in izip(self._unpkd_ax[last:i],
+                                     self._values[last:i]):
                     yield ((row, col), val)
                 last = i
         elif self._order == 'csc':
             for col, i in enumerate(self._pkd_ax[1:]):
-                for row, val in izip(self._unpkd_ax[last:i], self._values[last:i]):
+                for row, val in izip(self._unpkd_ax[last:i],
+                                     self._values[last:i]):
                     yield ((row, col), val)
                 last = i
         else:
-            for r, c, v in izip(self._coo_rows, self._coo_cols, self._coo_values):
+            for r, c, v in izip(self._coo_rows,
+                                self._coo_cols,
+                                self._coo_values):
                 yield ((r, c), v)
 
     def __contains__(self, args):
@@ -297,10 +304,10 @@ class CSMat(object):
         if self.shape != other.shape:
             return False
 
-        if self.hasUpdates():
-            self.absorbUpdates()
-        if other.hasUpdates():
-            other.absorbUpdates()
+        if self.has_updates():
+            self.absorb_updates()
+        if other.has_updates():
+            other.absorb_updates()
 
         if self.shape[1] == 1:
             self.convert("csc")
@@ -384,12 +391,12 @@ class CSMat(object):
 
         if isinstance(row, slice):
             if row.start is None and row.stop is None:
-                return self.getCol(col)
+                return self.get_col(col)
             else:
                 raise AttributeError("Can only handle full : slices per axis")
         elif isinstance(col, slice):
             if col.start is None and col.stop is None:
-                return self.getRow(row)
+                return self.get_row(row)
             else:
                 raise AttributeError("Can only handle full : slices per axis")
         else:
@@ -418,8 +425,8 @@ class CSMat(object):
         if order is coo, returns
         rows_idx, cols_idx, values_idx (all the same thing...)
         """
-        if self.hasUpdates():
-            self.absorbUpdates()
+        if self.has_updates():
+            self.absorb_updates()
 
         row, col = args
         if self._order == 'csr':
@@ -448,16 +455,16 @@ class CSMat(object):
 
         return (None, None, None)
 
-    def _buildCSfromCS(self):
+    def _build_cs_from_cs(self):
         """Convert csc <-> csr"""
         expanded = self._expand_compressed(self._pkd_ax)
         if self._order == "csr":
-            csc = self._toCSC(expanded, self._unpkd_ax, self._values)
+            csc = self._to_csc(expanded, self._unpkd_ax, self._values)
             self._pkd_ax, self._unpkd_ax, self._values = csc
             self._order = "csc"
 
         elif self._order == "csc":
-            csr = self._toCSR(self._unpkd_ax, expanded, self._values)
+            csr = self._to_csr(self._unpkd_ax, expanded, self._values)
             self._pkd_ax, self._unpkd_ax, self._values = csr
             self._order = "csr"
 
@@ -472,12 +479,12 @@ class CSMat(object):
             last_idx = idx
         return expanded
 
-    def _buildCOOfromCS(self):
+    def _build_coo_from_cs(self):
         """Constructs a COO representation from CSC or CSR
 
         Invalidates existing CSC or CSR representation
         """
-        coo = self._toCOO(
+        coo = self._to_coo(
             self._pkd_ax,
             self._unpkd_ax,
             self._values,
@@ -493,7 +500,7 @@ class CSMat(object):
 
         self._order = "coo"
 
-    def _toCOO(self, pkd_ax, unpkd_ax, values, current_order):
+    def _to_coo(self, pkd_ax, unpkd_ax, values, current_order):
         """Returns rows, cols, values"""
         coo_values = list(values)
         expanded_ax = list(self._expand_compressed(pkd_ax))
@@ -506,11 +513,11 @@ class CSMat(object):
             coo_rows = list(unpkd_ax)
             coo_cols = expanded_ax
         else:
-            raise ValueError("Unknown order: %s" % order)
+            raise ValueError("Unknown order: %s" % current_order)
 
         return (coo_rows, coo_cols, coo_values)
 
-    def _buildCSfromCOO(self, order):
+    def _build_cs_from_coo(self, order):
         """Build a sparse representation
 
         order is either csc or csr
@@ -519,10 +526,14 @@ class CSMat(object):
         is already built
         """
         if order == 'csr':
-            csr = self._toCSR(self._coo_rows, self._coo_cols, self._coo_values)
+            csr = self._to_csr(self._coo_rows,
+                               self._coo_cols,
+                               self._coo_values)
             self._pkd_ax, self._unpkd_ax, self._values = csr
         elif order == 'csc':
-            csc = self._toCSC(self._coo_rows, self._coo_cols, self._coo_values)
+            csc = self._to_csc(self._coo_rows,
+                               self._coo_cols,
+                               self._coo_values)
             self._pkd_ax, self._unpkd_ax, self._values = csc
         else:
             raise ValueError("Unknown order: %s" % order)
@@ -532,7 +543,7 @@ class CSMat(object):
         self._coo_values = []
         self._order = order
 
-    def _toCSR(self, rows, cols, values):
+    def _to_csr(self, rows, cols, values):
         """Returns packed_axis, unpacked_axis and values"""
         values = array(values, dtype=self.dtype)
         unpkd_ax = array(cols, dtype=uint32)
@@ -583,7 +594,7 @@ class CSMat(object):
 
         return (pkd_ax, unpkd_ax, values)
 
-    def _toCSC(self, rows, cols, values):
+    def _to_csc(self, rows, cols, values):
         """Returns packed_axis, unpacked_axis, values"""
         values = array(values, dtype=self.dtype)
         unpkd_ax = array(rows, dtype=uint32)
@@ -702,7 +713,7 @@ def list_list_to_csmat(data, dtype=float, shape=None):
         n_rows, n_cols = shape
 
     mat = CSMat(n_rows, n_cols)
-    mat.bulkCOOUpdate(rows, cols, values)
+    mat.bulk_coo_update(rows, cols, values)
     return mat
 
 
@@ -727,7 +738,7 @@ def nparray_to_csmat(data, dtype=float):
                     rows.append(row_idx)
                     cols.append(col_idx)
                     vals.append(value)
-    mat.bulkCOOUpdate(rows, cols, vals)
+    mat.bulk_coo_update(rows, cols, vals)
     return mat
 
 
@@ -747,7 +758,7 @@ def list_nparray_to_csmat(data, dtype=float):
             rows.append(row_idx)
             cols.append(col_idx)
             values.append(val)
-    mat.bulkCOOUpdate(rows, cols, values)
+    mat.bulk_coo_update(rows, cols, values)
     return mat
 
 
@@ -789,7 +800,7 @@ def list_csmat_to_csmat(data, dtype=float):
                 rows.append(row_idx)
                 cols.append(col_idx)
                 vals.append(val)
-    mat.bulkCOOUpdate(rows, cols, vals)
+    mat.bulk_coo_update(rows, cols, vals)
     return mat
 
 
@@ -832,7 +843,7 @@ def list_dict_to_csmat(data, dtype=float):
                 cols.append(col_idx)
                 vals.append(val)
 
-    mat.bulkCOOUpdate(rows, cols, vals)
+    mat.bulk_coo_update(rows, cols, vals)
     return mat
 
 
@@ -850,5 +861,5 @@ def dict_to_csmat(data, dtype=float):
         cols.append(c)
         vals.append(v)
 
-    mat.bulkCOOUpdate(rows, cols, vals)
+    mat.bulk_coo_update(rows, cols, vals)
     return mat

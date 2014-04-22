@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -18,7 +18,6 @@ __email__ = "gregcaporaso@gmail.com"
 from os.path import exists
 from pyqi.core.exception import IncompetentDeveloperError
 from biom.parse import generatedby
-import sys
 
 
 def write_biom_table(result_key, data, option_value=None):

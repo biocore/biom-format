@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 from setuptools import setup
 from glob import glob
@@ -23,8 +23,11 @@ __email__ = "mcdonadt@colorado.edu"
 long_description = """BIOM: Biological Observation Matrix
 http://www.biom-format.org
 
-The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome
-Daniel McDonald, Jose C Clemente, Justin Kuczynski, Jai Ram Rideout, Jesse Stombaugh, Doug Wendel, Andreas Wilke, Susan Huse, John Hufnagle, Folker Meyer, Rob Knight, J Gregory Caporaso
+The Biological Observation Matrix (BIOM) format or: how I learned to stop
+worrying and love the ome-ome
+Daniel McDonald, Jose C Clemente, Justin Kuczynski, Jai Ram Rideout,
+Jesse Stombaugh, Doug Wendel, Andreas Wilke, Susan Huse, John Hufnagle,
+Folker Meyer, Rob Knight, J Gregory Caporaso
 GigaScience 2012, 1:7.
 """
 

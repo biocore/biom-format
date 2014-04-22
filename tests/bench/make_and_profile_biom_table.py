@@ -1,15 +1,15 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from biom.table import SparseObj, SparseOTUTable
-from numpy.random import randint, random
+from numpy.random import random
 
 from sys import argv
 
@@ -25,8 +25,8 @@ def make_sparse_fill(t, to, ts):
 
 
 def make_table(lowobs, highobs, ostep, lowsamp, highsamp, sstep):
-    #table_obs = list(set(randint(lowobs,highobs,nobs)))
-    #table_samp = list(set(randint(lowsamp,highsamp,nsamp)))
+    # table_obs = list(set(randint(lowobs,highobs,nobs)))
+    # table_samp = list(set(randint(lowsamp,highsamp,nsamp)))
     table_obs = range(lowobs, highobs, ostep)
     table_samp = range(lowsamp, highsamp, sstep)
     table_data = SparseObj(len(table_obs), len(table_samp))
@@ -35,17 +35,15 @@ def make_table(lowobs, highobs, ostep, lowsamp, highsamp, sstep):
 
 t1 = make_table(t1lo, t1ho, t1so, t1ls, t1hs, t1ss)
 t2 = make_table(t2lo, t2ho, t2so, t2ls, t2hs, t2ss)
-print "Obs in t1: %d, Samp in t1: %d" % (len(t1.ObservationIds), len(t1.SampleIds))
-print "Obs in t2: %d, Samp in t2: %d" % (len(t2.ObservationIds), len(t2.SampleIds))
-print "Num obs overlap: %d, Num samp overlap: %d" % (len(set(t1.ObservationIds).intersection(set(t2.ObservationIds))),
-                                                     len(set(t1.SampleIds).intersection(set(t2.SampleIds))))
+print "Obs in t1: %d, Samp in t1: %d" % (len(t1.ObservationIds),
+                                         len(t1.SampleIds))
+print "Obs in t2: %d, Samp in t2: %d" % (len(t2.ObservationIds),
+                                         len(t2.SampleIds))
+print "Num obs overlap: %d, Num samp overlap: %d" % (
+    len(set(t1.ObservationIds).intersection(set(t2.ObservationIds))),
+    len(set(t1.SampleIds).intersection(set(t2.SampleIds)))
+    )
 
-#f = open('t1.biom','w')
-# f.write(t1.getBiomFormatJsonString('proftest'))
-# f.close()
-#f = open('t2.biom','w')
-# f.write(t2.getBiomFormatJsonString('proftest'))
-# f.close()
 
 from profile import run
 

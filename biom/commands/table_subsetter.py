@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 from __future__ import division
 from pyqi.core.command import (Command, CommandIn, CommandOut,
@@ -60,8 +60,9 @@ class TableSubsetter(Command):
         ids = kwargs['ids']
 
         if axis not in self.Axes:
-            raise CommandError("Invalid axis '%s'. Must be either %s." % (axis,
-                                                                          ' or '.join(map(lambda e: "'%s'" % e, self.Axes))))
+            raise CommandError("Invalid axis '%s'. Must be either %s." % (
+                axis,
+                ' or '.join(map(lambda e: "'%s'" % e, self.Axes))))
 
         idxs, new_axis_md = get_axis_indices(table_str, ids, axis)
         new_data = direct_slice_data(table_str, idxs, axis)
