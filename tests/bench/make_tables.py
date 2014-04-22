@@ -83,5 +83,5 @@ if __name__ == '__main__':
 
     f = open("%s/%dx%dx%0.3f_bench.biom" % (outdir, n, m, p), 'w')
 
-    f.write(table.getBiomFormatJsonString('make_table-bench'))
+    f.write(table.get_biom_format_json_string('make_table-bench'))
     f.close()

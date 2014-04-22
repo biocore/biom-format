@@ -41,11 +41,11 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(obs.keys(), ['table'])
 
         obs = obs['table']
-        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('f4')],
+        self.assertEqual(obs.sample_metadata[obs.get_sample_index('f4')],
                          {'bar': '0.23', 'foo': '9', 'baz': 'abc;123'})
-        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('not16S.1')],
+        self.assertEqual(obs.sample_metadata[obs.get_sample_index('not16S.1')],
                          {'bar': '-4.2', 'foo': '0', 'baz': '123;abc'})
-        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('f2')], {})
+        self.assertEqual(obs.sample_metadata[obs.get_sample_index('f2')], {})
 
     def test_add_sample_metadata_with_casting(self):
         """Correctly adds sample metadata with casting."""
@@ -56,11 +56,11 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(obs.keys(), ['table'])
 
         obs = obs['table']
-        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('f4')],
+        self.assertEqual(obs.sample_metadata[obs.get_sample_index('f4')],
                          {'bar': 0.23, 'foo': 9, 'baz': ['abc', '123']})
-        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('not16S.1')],
+        self.assertEqual(obs.sample_metadata[obs.get_sample_index('not16S.1')],
                          {'bar': -4.2, 'foo': 0, 'baz': ['123', 'abc']})
-        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('f2')], {})
+        self.assertEqual(obs.sample_metadata[obs.get_sample_index('f2')], {})
 
     def test_add_observation_metadata_no_casting(self):
         """Correctly adds observation metadata without casting it."""

@@ -401,7 +401,7 @@ def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
 
 def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None,
                         md_parse=None):
-    """Parse a classic table into (sample_ids, obs_ids, data, metadata, md_name)
+    """Parse a classic table into (sample_ids, obs_ids, data, metadata, name)
 
     If the last column does not appear to be numeric, interpret it as
     observation metadata, otherwise None.
@@ -627,7 +627,7 @@ def convert_table_to_biom(table_f, sample_mapping, obs_mapping,
     otu_table = parse_classic_table_to_rich_table(table_f, sample_mapping,
                                                   obs_mapping, process_func,
                                                   **kwargs)
-    return otu_table.getBiomFormatJsonString(generatedby())
+    return otu_table.get_biom_format_json_string(generatedby())
 
 
 def biom_meta_to_string(metadata, replace_str=':'):
@@ -674,11 +674,11 @@ def convert_biom_to_table(biom_f, header_key=None, header_value=None,
         md_format = biom_meta_to_string
 
     if table.observation_metadata is None:
-        return table.delimitedSelf()
+        return table.delimited_self()
 
     if header_key in table.observation_metadata[0]:
-        return table.delimitedSelf(header_key=header_key,
-                                   header_value=header_value,
-                                   metadata_formatter=md_format)
+        return table.delimited_self(header_key=header_key,
+                                    header_value=header_value,
+                                    metadata_formatter=md_format)
     else:
-        return table.delimitedSelf()
+        return table.delimited_self()
