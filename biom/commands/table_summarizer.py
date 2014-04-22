@@ -41,8 +41,8 @@ class TableSummarizer(Command):
       table_f.close()
     """
     BriefDescription = "Summarize sample or observation data in a BIOM table"
-    LongDescription = "Provides details on the observation counts per sample, "\
-                      "including summary statistics, as well as metadata "\
+    LongDescription = "Provides details on the observation counts per sample,"\
+                      " including summary statistics, as well as metadata "\
                       "categories associated with samples and observations."
 
     CommandIns = ParameterCollection([
@@ -104,7 +104,7 @@ class TableSummarizer(Command):
             total_count = sum(counts_per_sample_values)
             lines.append('Total count: %d' % total_count)
             lines.append('Table density (fraction of non-zero values): %1.3f' %
-                         table.getTableDensity())
+                         table.get_table_density())
 
         if not suppress_md5:
             lines.append('Table md5 (unzipped): %s' % safe_md5(table_lines))

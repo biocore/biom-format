@@ -8,12 +8,13 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-import h5py
 import os
-from biom import __version__
-from numpy import array
 from StringIO import StringIO
 import json
+from biom import __version__
+import h5py
+from numpy import array
+import numpy.testing as npt
 from unittest import TestCase, main
 from biom.parse import (parse_biom_table_json, parse_classic_table,
                         generatedby, MetadataMap, parse_biom_table_hdf5)
@@ -53,9 +54,10 @@ class ParseTests(TestCase):
         os.chdir(cwd)
 
         self.assertEqual(t.sample_ids, ('Sample1', 'Sample2', 'Sample3',
-                                       'Sample4', 'Sample5', 'Sample6'))
-        self.assertEqual(t.observation_ids, ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
-                                            'GG_OTU_4', 'GG_OTU_5'))
+                                        'Sample4', 'Sample5', 'Sample6'))
+        self.assertEqual(t.observation_ids, ('GG_OTU_1', 'GG_OTU_2',
+                                             'GG_OTU_3', 'GG_OTU_4',
+                                             'GG_OTU_5'))
         exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
                                      u'p__Proteobacteria',
                                      u'c__Gammaproteobacteria',
@@ -124,7 +126,7 @@ class ParseTests(TestCase):
                array([0., 0., 1., 4., 0., 2.]),
                array([2., 1., 1., 0., 0., 1.]),
                array([0., 1., 1., 0., 0., 0.])]
-        self.assertEqual(list(t.iter_observation_data()), exp)
+        npt.assert_equal(list(t.iter_observation_data()), exp)
 
     def test_generatedby(self):
         """get a generatedby string"""
@@ -224,11 +226,11 @@ class ParseTests(TestCase):
         tab1_fh = json.load(StringIO(self.biom_minimal_sparse))
         tab = parse_biom_table_json(tab1_fh)
         self.assertEqual((tab.sample_ids), ('Sample1', 'Sample2',
-                                           'Sample3', 'Sample4', 'Sample5',
-                                           'Sample6',))
+                                            'Sample3', 'Sample4', 'Sample5',
+                                            'Sample6',))
         self.assertEqual((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
-                                                'GG_OTU_3', 'GG_OTU_4',
-                                                'GG_OTU_5'))
+                                                 'GG_OTU_3', 'GG_OTU_4',
+                                                 'GG_OTU_5'))
         self.assertEqual(tab.sample_metadata, None)
         self.assertEqual(tab.observation_metadata, None)
 
@@ -267,7 +269,7 @@ class ParseTests(TestCase):
 
         exp = (samp_ids, obs_ids, data, metadata, md_name)
         obs = parse_classic_table(input, dtype=int)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
 legacy_otu_table1 = """# some comment goes here
 #OTU ID	Fing	Key	NA	Consensus Lineage

@@ -143,7 +143,7 @@ class TableConverter(Command):
                                        table.sample_metadata,
                                        table.observation_metadata,
                                        table.TableId)
-            result = conv_table.getBiomFormatJsonString(generatedby())
+            result = conv_table.get_biom_format_json_string(generatedby())
         elif dense_biom_to_sparse_biom:
             try:
                 table = parse_biom_table(table_file)
@@ -155,15 +155,15 @@ class TableConverter(Command):
                                        table.observation_ids,
                                        table.sample_metadata,
                                        table.observation_metadata,
-                                       table.TableId)
-            result = conv_table.getBiomFormatJsonString(generatedby())
+                                       table.table_id)
+            result = conv_table.get_biom_format_json_string(generatedby())
         else:
             if process_obs_metadata not in \
-                    self.observation_metadataTypes.keys():
+                    self.ObservationMetadataTypes.keys():
                 raise CommandError(
                     "Unknown observation metadata processing method, must be "
                     "one of: %s" %
-                    ', '.join(self.observation_metadataTypes.keys()))
+                    ', '.join(self.ObservationMetadataTypes.keys()))
 
             convert_error_msg = ("Input does not look like a classic table. "
                                  "Did you forget to specify that a classic "
@@ -174,7 +174,7 @@ class TableConverter(Command):
                     table_file,
                     sample_metadata,
                     observation_metadata,
-                    self.observation_metadataTypes[process_obs_metadata])
+                    self.ObservationMetadataTypes[process_obs_metadata])
             except (ValueError, TypeError, IndexError):
                 raise CommandError(convert_error_msg)
 
