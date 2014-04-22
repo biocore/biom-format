@@ -19,7 +19,7 @@ __email__ = "jai.rideout@gmail.com"
 from pyqi.core.exception import CommandError
 from biom.commands.table_subsetter import TableSubsetter
 from biom.parse import parse_biom_table
-from biom.unit_test import TestCase, main
+from unittest import TestCase, main
 
 
 class TableSubsetterTests(TestCase):
@@ -35,10 +35,10 @@ class TableSubsetterTests(TestCase):
                        ids=['f4', 'f2'])
         self.assertEqual(obs.keys(), ['subset_generator'])
         obs = parse_biom_table(list(obs['subset_generator']))
-        self.assertEqual(len(obs.SampleIds), 2)
-        self.assertEqual(len(obs.ObservationIds), 14)
-        self.assertTrue('f4' in obs.SampleIds)
-        self.assertTrue('f2' in obs.SampleIds)
+        self.assertEqual(len(obs.sample_ids), 2)
+        self.assertEqual(len(obs.observation_ids), 14)
+        self.assertTrue('f4' in obs.sample_ids)
+        self.assertTrue('f2' in obs.sample_ids)
 
     def test_subset_observations(self):
         """Correctly subsets observations in a table."""
@@ -46,10 +46,10 @@ class TableSubsetterTests(TestCase):
                        ids=['None2', '879972'])
         self.assertEqual(obs.keys(), ['subset_generator'])
         obs = parse_biom_table(list(obs['subset_generator']))
-        self.assertEqual(len(obs.SampleIds), 9)
-        self.assertEqual(len(obs.ObservationIds), 2)
-        self.assertTrue('None2' in obs.ObservationIds)
-        self.assertTrue('879972' in obs.ObservationIds)
+        self.assertEqual(len(obs.sample_ids), 9)
+        self.assertEqual(len(obs.observation_ids), 2)
+        self.assertTrue('None2' in obs.observation_ids)
+        self.assertTrue('879972' in obs.observation_ids)
 
     def test_invalid_input(self):
         """Correctly raises politically correct error upon invalid input."""

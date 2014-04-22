@@ -24,14 +24,14 @@ __email__ = "gregcaporaso@gmail.com"
 
 
 class InstallationInformer(Command):
-    brief_description = ("Provide information about the biom-format "
+    BriefDescription = ("Provide information about the biom-format "
                          "installation")
-    long_description = ("Provide information about the biom-format "
+    LongDescription = ("Provide information about the biom-format "
                         "installation, including settings pulled from the "
                         "configuration file. For more details, see "
                         "http://biom-format.org")
-    command_ins = ParameterCollection([])
-    command_outs = ParameterCollection([
+    CommandIns = ParameterCollection([])
+    CommandOuts = ParameterCollection([
         CommandOut(Name='install_info_lines',
                    DataType='str',
                    Description='Installation info')

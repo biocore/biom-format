@@ -35,13 +35,13 @@ def make_table(lowobs, highobs, ostep, lowsamp, highsamp, sstep):
 
 t1 = make_table(t1lo, t1ho, t1so, t1ls, t1hs, t1ss)
 t2 = make_table(t2lo, t2ho, t2so, t2ls, t2hs, t2ss)
-print "Obs in t1: %d, Samp in t1: %d" % (len(t1.ObservationIds),
-                                         len(t1.SampleIds))
-print "Obs in t2: %d, Samp in t2: %d" % (len(t2.ObservationIds),
-                                         len(t2.SampleIds))
+print "Obs in t1: %d, Samp in t1: %d" % (len(t1.observation_ids),
+                                         len(t1.sample_ids))
+print "Obs in t2: %d, Samp in t2: %d" % (len(t2.observation_ids),
+                                         len(t2.sample_ids))
 print "Num obs overlap: %d, Num samp overlap: %d" % (
-    len(set(t1.ObservationIds).intersection(set(t2.ObservationIds))),
-    len(set(t1.SampleIds).intersection(set(t2.SampleIds)))
+    len(set(t1.observation_ids).intersection(set(t2.observation_ids))),
+    len(set(t1.sample_ids).intersection(set(t2.sample_ids)))
     )
 
 

@@ -50,6 +50,6 @@ def load_metadata(lines):
     If ``lines`` is ``None``, this function will return ``None``.
     """
     if lines is not None:
-        return MetadataMap.fromFile(lines)
+        return MetadataMap.from_file(lines)
 
     return None

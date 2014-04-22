@@ -72,10 +72,10 @@ def get_sparse_backend():
     valid_backend = False
     if backend == 'scipy_sparse_mat':
         try:
-            from biom.backends.scipysparse import scipy_sparse_mat, to_scipy, \
+            from biom.backends.scipysparse import ScipySparseMat, to_scipy, \
                 dict_to_scipy, list_dict_to_scipy, list_nparray_to_scipy, \
                 nparray_to_scipy, list_list_to_scipy
-            sparse_obj = scipy_sparse_mat
+            sparse_obj = ScipySparseMat
             to_sparse = to_scipy
             dict_to_sparse_obj = dict_to_scipy
             list_dict_to_sparse_obj = list_dict_to_scipy

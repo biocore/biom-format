@@ -57,4 +57,4 @@ def load_metadata(fp):
         return None
     else:
         with open(fp, 'U') as f:
-            return MetadataMap.fromFile(f)
+            return MetadataMap.from_file(f)

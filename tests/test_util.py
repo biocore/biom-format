@@ -11,7 +11,7 @@
 from os.path import abspath, dirname, exists
 from tempfile import NamedTemporaryFile
 from biom.parse import parse_biom_table
-from biom.unit_test import TestCase, main
+from unittest import TestCase, main
 from biom.util import (natsort, flatten, unzip,
                        get_biom_project_dir, parse_biom_config_files,
                        compute_counts_per_sample_stats, safe_md5)

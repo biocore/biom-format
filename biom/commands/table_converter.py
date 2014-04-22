@@ -138,10 +138,10 @@ class TableConverter(Command):
                 raise CommandError(convert_error_msg)
 
             conv_table = table_factory(table._data,
-                                       table.SampleIds,
-                                       table.ObservationIds,
-                                       table.SampleMetadata,
-                                       table.ObservationMetadata,
+                                       table.sample_ids,
+                                       table.observation_ids,
+                                       table.sample_metadata,
+                                       table.observation_metadata,
                                        table.TableId)
             result = conv_table.getBiomFormatJsonString(generatedby())
         elif dense_biom_to_sparse_biom:
@@ -151,19 +151,19 @@ class TableConverter(Command):
                 raise CommandError(convert_error_msg)
 
             conv_table = table_factory(table._data,
-                                       table.SampleIds,
-                                       table.ObservationIds,
-                                       table.SampleMetadata,
-                                       table.ObservationMetadata,
+                                       table.sample_ids,
+                                       table.observation_ids,
+                                       table.sample_metadata,
+                                       table.observation_metadata,
                                        table.TableId)
             result = conv_table.getBiomFormatJsonString(generatedby())
         else:
             if process_obs_metadata not in \
-                    self.ObservationMetadataTypes.keys():
+                    self.observation_metadataTypes.keys():
                 raise CommandError(
                     "Unknown observation metadata processing method, must be "
                     "one of: %s" %
-                    ', '.join(self.ObservationMetadataTypes.keys()))
+                    ', '.join(self.observation_metadataTypes.keys()))
 
             convert_error_msg = ("Input does not look like a classic table. "
                                  "Did you forget to specify that a classic "
@@ -174,7 +174,7 @@ class TableConverter(Command):
                     table_file,
                     sample_metadata,
                     observation_metadata,
-                    self.ObservationMetadataTypes[process_obs_metadata])
+                    self.observation_metadataTypes[process_obs_metadata])
             except (ValueError, TypeError, IndexError):
                 raise CommandError(convert_error_msg)
 

@@ -673,10 +673,10 @@ def convert_biom_to_table(biom_f, header_key=None, header_value=None,
     if md_format is None:
         md_format = biom_meta_to_string
 
-    if table.ObservationMetadata is None:
+    if table.observation_metadata is None:
         return table.delimitedSelf()
 
-    if header_key in table.ObservationMetadata[0]:
+    if header_key in table.observation_metadata[0]:
         return table.delimitedSelf(header_key=header_key,
                                    header_value=header_value,
                                    metadata_formatter=md_format)

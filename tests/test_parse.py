@@ -14,7 +14,7 @@ from biom import __version__
 from numpy import array
 from StringIO import StringIO
 import json
-from biom.unit_test import TestCase, main
+from unittest import TestCase, main
 from biom.parse import (parse_biom_table_json, parse_classic_table,
                         generatedby, MetadataMap, parse_biom_table_hdf5)
 
@@ -52,9 +52,9 @@ class ParseTests(TestCase):
         t = parse_biom_table_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
-        self.assertEqual(t.SampleIds, ('Sample1', 'Sample2', 'Sample3',
+        self.assertEqual(t.sample_ids, ('Sample1', 'Sample2', 'Sample3',
                                        'Sample4', 'Sample5', 'Sample6'))
-        self.assertEqual(t.ObservationIds, ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
+        self.assertEqual(t.observation_ids, ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
                                             'GG_OTU_4', 'GG_OTU_5'))
         exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
                                      u'p__Proteobacteria',
@@ -91,7 +91,7 @@ class ParseTests(TestCase):
                                      u'f__Enterobacteriaceae',
                                      u'g__Escherichia',
                                      u's__']})
-        self.assertEqual(t.ObservationMetadata, exp_obs_md)
+        self.assertEqual(t.observation_metadata, exp_obs_md)
 
         exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
                         u'BarcodeSequence': u'CGCTTATCGAGA',
@@ -117,14 +117,14 @@ class ParseTests(TestCase):
                         u'BarcodeSequence': u'CTAACTACCAAT',
                         u'Description': u'human skin',
                         u'BODY_SITE': u'skin'})
-        self.assertEqual(t.SampleMetadata, exp_samp_md)
+        self.assertEqual(t.sample_metadata, exp_samp_md)
 
         exp = [array([0., 0., 1., 0., 0., 0.]),
                array([5., 1., 0., 2., 3., 1.]),
                array([0., 0., 1., 4., 0., 2.]),
                array([2., 1., 1., 0., 0., 1.]),
                array([0., 1., 1., 0., 0., 0.])]
-        self.assertEqual(list(t.iterObservationData()), exp)
+        self.assertEqual(list(t.iter_observation_data()), exp)
 
     def test_generatedby(self):
         """get a generatedby string"""
@@ -146,13 +146,13 @@ class ParseTests(TestCase):
                ['sample', 'a', 'b'],
                ['comment line to skip', 'more skip'])
         exp = {'x': {'a': 'y', 'b': 'z'}, 'i': {'a': 'j', 'b': 'k'}}
-        obs = MetadataMap.fromFile(s1)
+        obs = MetadataMap.from_file(s1)
         self.assertEqual(obs, exp)
 
         # check that we strip double quotes by default
         s2 = ['#sample\ta\tb', '#comment line to skip',
               '"x "\t" y "\t z ', ' ', '"#more skip"', 'i\t"j"\tk']
-        obs = MetadataMap.fromFile(s2)
+        obs = MetadataMap.from_file(s2)
         self.assertEqual(obs, exp)
 
     def test_metadata_map_w_map_fs(self):
@@ -170,7 +170,7 @@ class ParseTests(TestCase):
                ['comment line to skip', 'more skip'])
         exp = {'x': {'a': 'y', 'b': 'zzz'}, 'i': {'a': 'j', 'b': 'kkk'}}
         process_fns = {'b': lambda x: x * 3}
-        obs = MetadataMap.fromFile(s1, process_fns=process_fns)
+        obs = MetadataMap.from_file(s1, process_fns=process_fns)
         self.assertEqual(obs, exp)
 
     def test_metadata_map_w_header(self):
@@ -190,7 +190,7 @@ class ParseTests(TestCase):
                ['comment line to skip', 'more skip'])
         exp = {'x': {'a': 'y', 'b': 'z'}, 'i': {'a': 'j', 'b': 'k'}}
         header = ['sample', 'a', 'b']
-        obs = MetadataMap.fromFile(s1, header=header)
+        obs = MetadataMap.from_file(s1, header=header)
         self.assertEqual(obs, exp)
 
         # number of user-provided headers is fewer than number of columns, and
@@ -202,7 +202,7 @@ class ParseTests(TestCase):
                ['comment line to skip', 'more skip'])
         exp = {'x': {'a': 'y'}, 'i': {'a': 'j'}}
         header = ['sample', 'a']
-        obs = MetadataMap.fromFile(s1, header=header)
+        obs = MetadataMap.from_file(s1, header=header)
         self.assertEqual(obs, exp)
 
         # number of user-provided headers is fewer than number of columns, and
@@ -214,7 +214,7 @@ class ParseTests(TestCase):
                ['comment line to skip', 'more skip'])
         exp = {'x': {'a': 'y'}, 'i': {'a': 'j'}}
         header = ['sample', 'a']
-        obs = MetadataMap.fromFile(s1, header=header)
+        obs = MetadataMap.from_file(s1, header=header)
         self.assertEqual(obs, exp)
 
     def test_parse_biom_json(self):
@@ -223,14 +223,14 @@ class ParseTests(TestCase):
         # parse_biom_table methods
         tab1_fh = json.load(StringIO(self.biom_minimal_sparse))
         tab = parse_biom_table_json(tab1_fh)
-        self.assertEqual((tab.SampleIds), ('Sample1', 'Sample2',
+        self.assertEqual((tab.sample_ids), ('Sample1', 'Sample2',
                                            'Sample3', 'Sample4', 'Sample5',
                                            'Sample6',))
-        self.assertEqual((tab.ObservationIds), ('GG_OTU_1', 'GG_OTU_2',
+        self.assertEqual((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
                                                 'GG_OTU_3', 'GG_OTU_4',
                                                 'GG_OTU_5'))
-        self.assertEqual(tab.SampleMetadata, None)
-        self.assertEqual(tab.ObservationMetadata, None)
+        self.assertEqual(tab.sample_metadata, None)
+        self.assertEqual(tab.observation_metadata, None)
 
     def test_parse_biom_table_str(self):
         """tests for parse_biom_table_str"""

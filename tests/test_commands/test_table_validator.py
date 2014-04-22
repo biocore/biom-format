@@ -18,7 +18,7 @@ __email__ = "jai.rideout@gmail.com"
 
 import json
 from biom.commands.table_validator import TableValidator
-from biom.unit_test import TestCase, main
+from unittest import TestCase, main
 
 
 class TableValidatorTests(TestCase):

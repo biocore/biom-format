@@ -13,6 +13,7 @@ from tempfile import mktemp
 from unittest import TestCase, main
 
 import h5py
+import numpy.testing as npt
 from numpy import where, zeros, array
 
 from biom.util import unzip
@@ -40,7 +41,7 @@ class SupportTests(TestCase):
         foo = array([[1, 2, 3], [4, 5, 6]])
         exp = zeros((2, 3))
         obs = get_zerod_matrix(foo)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
         foo = SparseObj(2, 3)
         foo[1, 2] = 3
@@ -128,7 +129,7 @@ class SupportTests(TestCase):
         exp = array(
             [[1, 2, 3, 4, 5], [6, 7, 8, 9, 0], [7, 6, 5, 4, 3]], dtype=float)
         obs = list_list_to_nparray(input_)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
     def test_dict_to_nparray(self):
         """Take a dict -> array"""
@@ -138,7 +139,7 @@ class SupportTests(TestCase):
         exp[0, 10] = 5
         exp[100, 23] = -3
         obs = dict_to_nparray(input_)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
     def test_list_dict_to_nparray(self):
         """List of dict -> nparray"""
@@ -149,7 +150,7 @@ class SupportTests(TestCase):
         exp[1, 1] = 15
         exp[2, 3] = 7
         obs = list_dict_to_nparray(input_)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
     def test_prefer_self(self):
         """prefer x"""
@@ -351,7 +352,7 @@ class TableTests(TestCase):
         self.assertEqual(t.observation_metadata[2]['non existent key'], None)
 
     def test_add_observation_metadata_w_existing_metadata(self):
-        """ addObservationMetadata functions with existing metadata """
+        """ add_observationMetadata functions with existing metadata """
         obs_ids = [1, 2, 3]
         obs_md = [{'a': 9}, {'a': 8}, {'a': 7}]
         samp_ids = [4, 5, 6, 7]
@@ -375,7 +376,7 @@ class TableTests(TestCase):
                                                   ['E', 'D', 'F'])
 
     def test_add_observation_metadata_one_entry(self):
-        """ addObservationMetadata functions with single md entry """
+        """ add_observationMetadata functions with single md entry """
         obs_ids = [1, 2, 3]
         obs_md = {1: {'taxonomy': ['A', 'B']},
                   2: {'taxonomy': ['B', 'C']},
@@ -391,7 +392,7 @@ class TableTests(TestCase):
                                                   ['E', 'D', 'F'])
 
     def test_add_observation_metadata_two_entries(self):
-        """ addObservationMetadata functions with more than one md entry """
+        """ add_observationMetadata functions with more than one md entry """
         obs_ids = [1, 2, 3]
         obs_md = {1: {'taxonomy': ['A', 'B'], 'other': 'h1'},
                   2: {'taxonomy': ['B', 'C'], 'other': 'h2'},
@@ -401,15 +402,16 @@ class TableTests(TestCase):
         d = array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         t = Table(d, samp_ids, obs_ids, samp_md, obs_md=None)
         t.add_observation_metadata(obs_md)
-        self.assertEqual(t.ObservationMetadata[0]['taxonomy'], ['A', 'B'])
-        self.assertEqual(t.ObservationMetadata[1]['taxonomy'], ['B', 'C'])
-        self.assertEqual(t.ObservationMetadata[2]['taxonomy'], ['E', 'D', 'F'])
-        self.assertEqual(t.ObservationMetadata[0]['other'], 'h1')
-        self.assertEqual(t.ObservationMetadata[1]['other'], 'h2')
-        self.assertEqual(t.ObservationMetadata[2]['other'], 'h3')
+        self.assertEqual(t.observation_metadata[0]['taxonomy'], ['A', 'B'])
+        self.assertEqual(t.observation_metadata[1]['taxonomy'], ['B', 'C'])
+        self.assertEqual(t.observation_metadata[2]['taxonomy'],
+                         ['E', 'D', 'F'])
+        self.assertEqual(t.observation_metadata[0]['other'], 'h1')
+        self.assertEqual(t.observation_metadata[1]['other'], 'h2')
+        self.assertEqual(t.observation_metadata[2]['other'], 'h3')
 
     def test_add_sample_metadata_one_w_existing_metadata(self):
-        """ addSampleMetadata functions with existing metadata """
+        """ add_sample_metadata functions with existing metadata """
         obs_ids = [1, 2, 3]
         obs_md = [{'a': 0}, {'b': 0}, {'c': 0}]
         samp_ids = [4, 5, 6, 7]
@@ -440,7 +442,7 @@ class TableTests(TestCase):
         self.assertEqual(t.sample_metadata[3]['barcode'], 'CCCC')
 
     def test_add_sample_metadata_one_entry(self):
-        """ addSampleMetadata functions with single md entry """
+        """ add_sample_metadata functions with single md entry """
         obs_ids = [1, 2, 3]
         obs_md = [{'a': 0}, {'b': 0}, {'c': 0}]
         samp_ids = [4, 5, 6, 7]
@@ -457,7 +459,7 @@ class TableTests(TestCase):
         self.assertEqual(t.sample_metadata[3]['Treatment'], 'Control')
 
     def test_add_sample_metadata_two_entries(self):
-        """ addSampleMetadata functions with more than one md entry """
+        """ add_sample_metadata functions with more than one md entry """
         obs_ids = [1, 2, 3]
         obs_md = [{'a': 0}, {'b': 0}, {'c': 0}]
         samp_ids = [4, 5, 6, 7]
@@ -560,8 +562,8 @@ class SparseTableTests(TestCase):
     def test_sum(self):
         """Test of sum!"""
         self.assertEqual(self.st1.sum('whole'), 26)
-        self.assertEqual(self.st1.sum('sample'), array([12, 14]))
-        self.assertEqual(self.st1.sum('observation'), array([11, 15]))
+        npt.assert_equal(self.st1.sum('sample'), array([12, 14]))
+        npt.assert_equal(self.st1.sum('observation'), array([11, 15]))
 
         exp = array([3.0])
         obs = self.single_sample_st.sum('sample')
@@ -574,8 +576,8 @@ class SparseTableTests(TestCase):
     def test_reduce(self):
         """Reduce method"""
         f = lambda x, y: x * 2 + y
-        self.assertEqual(self.st1.reduce(f, 'sample'), array([17, 20]))
-        self.assertEqual(self.st1.reduce(f, 'observation'), array([16, 22]))
+        npt.assert_equal(self.st1.reduce(f, 'sample'), array([17, 20]))
+        npt.assert_equal(self.st1.reduce(f, 'observation'), array([16, 22]))
 
     def test_transpose(self):
         """Should transpose a sparse table"""
@@ -583,8 +585,8 @@ class SparseTableTests(TestCase):
 
         self.assertEqual(obs.sample_ids, self.st1.observation_ids)
         self.assertEqual(obs.observation_ids, self.st1.sample_ids)
-        self.assertEqual(obs.sample_data('1'), self.st1.observation_data('1'))
-        self.assertEqual(obs.sample_data('2'), self.st1.observation_data('2'))
+        npt.assert_equal(obs.sample_data('1'), self.st1.observation_data('1'))
+        npt.assert_equal(obs.sample_data('2'), self.st1.observation_data('2'))
         self.assertEqual(obs.transpose(), self.st1)
 
         obs = self.st_rich.transpose()
@@ -595,9 +597,9 @@ class SparseTableTests(TestCase):
                          self.st_rich.observation_metadata)
         self.assertEqual(obs.observation_metadata,
                          self.st_rich.sample_metadata)
-        self.assertEqual(obs.sample_data('1'),
+        npt.assert_equal(obs.sample_data('1'),
                          self.st_rich.observation_data('1'))
-        self.assertEqual(obs.sampleData('2'),
+        npt.assert_equal(obs.sample_data('2'),
                          self.st_rich.observation_data('2'))
         self.assertEqual(obs.transpose(), self.st_rich)
 
@@ -687,9 +689,9 @@ class SparseTableTests(TestCase):
         obs_obs = st.nonzero_counts('observation')
         obs_whole = st.nonzero_counts('whole')
 
-        self.assertEqual(obs_samp, exp_samp)
-        self.assertEqual(obs_obs, exp_obs)
-        self.assertEqual(obs_whole, exp_whole)
+        npt.assert_equal(obs_samp, exp_samp)
+        npt.assert_equal(obs_obs, exp_obs)
+        npt.assert_equal(obs_whole, exp_whole)
 
     def test_nonzero_counts_binary(self):
         """Returns nonzero counts over an axis"""
@@ -706,9 +708,9 @@ class SparseTableTests(TestCase):
         obs_obs = st.nonzero_counts('observation', binary=True)
         obs_whole = st.nonzero_counts('whole', binary=True)
 
-        self.assertEqual(obs_samp, exp_samp)
-        self.assertEqual(obs_obs, exp_obs)
-        self.assertEqual(obs_whole, exp_whole)
+        npt.assert_equal(obs_samp, exp_samp)
+        npt.assert_equal(obs_obs, exp_obs)
+        npt.assert_equal(obs_whole, exp_whole)
 
     def test_merge(self):
         """Merge two tables"""
@@ -786,14 +788,14 @@ class SparseTableTests(TestCase):
         """tested in derived class"""
         exp = array([5, 7])
         obs = self.st1.sample_data('a')
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
         self.assertRaises(UnknownID, self.st1.sample_data, 'asdasd')
 
     def test_observation_data(self):
         """tested in derived class"""
         exp = array([5, 6])
         obs = self.st1.observation_data('1')
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
         self.assertRaises(UnknownID, self.st1.observation_data, 'asdsad')
 
     def test_delimited_self(self):
@@ -821,20 +823,20 @@ class SparseTableTests(TestCase):
         input_row[(0, 0)] = 10
         exp = array([10.0, 0, 0])
         obs = self.st1._conv_to_np(input_row)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
         input_col = SparseObj(3, 1)
         input_col[(0, 0)] = 12
         exp = array([12.0, 0, 0])
         obs = self.st1._conv_to_np(input_col)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
         # 1x1
         input_vec = SparseObj(1, 1)
         input_vec[(0, 0)] = 42
         exp = array([42.0])
         obs = self.st1._conv_to_np(input_vec)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
     def test_conv_to_self_type(self):
         """Should convert other to SparseObj type"""
@@ -878,7 +880,7 @@ class SparseTableTests(TestCase):
         """Should iterate over samples"""
         exp = [(array([5, 7]), 'a', None), (array([6, 8]), 'b', None)]
         obs = list(self.st1)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
     def test_iter_obs(self):
         """Iterate over observations of sparse matrix"""
@@ -912,13 +914,13 @@ class SparseTableTests(TestCase):
         gen = self.st1.iter_samples()
         exp = [(array([5, 7]), 'a', None), (array([6, 8]), 'b', None)]
         obs = list(gen)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
         gen = self.st_rich.iter_samples()
         exp = [(array([5, 7]), 'a', {'barcode': 'aatt'}),
                (array([6, 8]), 'b', {'barcode': 'ttgg'})]
         obs = list(gen)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
         vals = {(0, 0): 5, (0, 1): 6, (1, 1): 8}
@@ -926,32 +928,32 @@ class SparseTableTests(TestCase):
         gen = st.iter_samples()
         exp = [(array([5, 0]), 'a', None), (array([6, 8]), 'b', None)]
         obs = list(gen)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
     def test_iter_observations(self):
         """Iterates observations"""
         gen = self.st1.iter_observations()
         exp = [(array([5, 6]), '1', None), (array([7, 8]), '2', None)]
         obs = list(gen)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
         gen = self.st_rich.iter_observations()
         exp = [(array([5, 6]), '1', {'taxonomy': ['k__a', 'p__b']}),
                (array([7, 8]), '2', {'taxonomy': ['k__a', 'p__c']})]
         obs = list(gen)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
     def test_iter_sample_data(self):
         """Iterates data by samples"""
         gen = self.st1.iter_sample_data()
         exp = [array([5, 7]), array([6, 8])]
         obs = list(gen)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
         gen = self.st_rich.iter_sample_data()
         exp = [array([5, 7]), array([6, 8])]
         obs = list(gen)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
         vals = {(0, 0): 5, (0, 1): 6, (1, 1): 8}
@@ -959,7 +961,7 @@ class SparseTableTests(TestCase):
         gen = st.iter_sample_data()
         exp = [array([5, 0]), array([6, 8])]
         obs = list(gen)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
     def test_iter_sample_data_single_obs(self):
         """Iterates data by samples with a single observation."""
@@ -975,12 +977,12 @@ class SparseTableTests(TestCase):
         gen = self.st1.iter_observation_data()
         exp = [array([5, 6]), array([7, 8])]
         obs = list(gen)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
         gen = self.st_rich.iter_observation_data()
         exp = [array([5, 6]), array([7, 8])]
         obs = list(gen)
-        self.assertEqual(obs, exp)
+        npt.assert_equal(obs, exp)
 
     def test_iter_observation_data_single_sample(self):
         """Iterates data by observations from a single sample."""
@@ -1245,21 +1247,21 @@ class SparseTableTests(TestCase):
     def test_get_table_density(self):
         """Test correctly computes density of table."""
         # Perfectly dense tables.
-        self.assertFloatEqual(self.st1.get_table_density(), 1.0)
-        self.assertFloatEqual(self.st3.get_table_density(), 1.0)
-        self.assertFloatEqual(self.st_rich.get_table_density(), 1.0)
+        npt.assert_almost_equal(self.st1.get_table_density(), 1.0)
+        npt.assert_almost_equal(self.st3.get_table_density(), 1.0)
+        npt.assert_almost_equal(self.st_rich.get_table_density(), 1.0)
 
         # Empty table (no dimensions).
-        self.assertFloatEqual(self.empty_st.get_table_density(), 0.0)
+        npt.assert_almost_equal(self.empty_st.get_table_density(), 0.0)
 
         # Tables with some zeros.
-        self.assertFloatEqual(self.st5.get_table_density(), 0.5)
+        npt.assert_almost_equal(self.st5.get_table_density(), 0.5)
 
         # Tables with all zeros (with dimensions).
-        self.assertFloatEqual(self.st6.get_table_density(), 0.0)
+        npt.assert_almost_equal(self.st6.get_table_density(), 0.0)
 
         # Tables with some zeros explicitly defined.
-        self.assertFloatEqual(self.st7.get_table_density(), 0.75)
+        npt.assert_almost_equal(self.st7.get_table_density(), 0.75)
 
 
 class SparseOTUTableTests(TestCase):
@@ -1287,7 +1289,7 @@ class SparseOTUTableTests(TestCase):
         self.assertRaises(TableException,
                           self.sot_min.get_biom_format_object, 10)
 
-    def test_getBiomFormatObject_minimal(self):
+    def test_get_biom_format_object_minimal(self):
         """Should return a dictionary of the minimal table in Biom format."""
         exp = {'rows': [{'id': '1', 'metadata': None},
                         {'id': '2', 'metadata': None}],
@@ -1300,11 +1302,11 @@ class SparseOTUTableTests(TestCase):
                'id': None,
                'generated_by': 'foo',
                'matrix_element_type': 'int'}
-        obs = self.sot_min.getBiomFormatObject('foo')
+        obs = self.sot_min.get_biom_format_object('foo')
         del obs['date']
-        self.assertFloatEqual(obs, exp)
+        self.assertEqual(obs, exp)
 
-    def test_getBiomFormatObject_rich(self):
+    def test_get_biom_format_object_rich(self):
         """Should return a dictionary of the rich table in Biom format."""
         exp = {
             'rows': [{'id': '1', 'metadata': {'taxonomy': ['k__a', 'p__b']}},
@@ -1318,11 +1320,11 @@ class SparseOTUTableTests(TestCase):
             'id': None,
             'generated_by': 'foo',
             'matrix_element_type': 'int'}
-        obs = self.sot_rich.getBiomFormatObject('foo')
+        obs = self.sot_rich.get_biom_format_object('foo')
         del obs['date']
-        self.assertFloatEqual(obs, exp)
+        self.assertEqual(obs, exp)
 
-    def test_getBiomFormatObject_float(self):
+    def test_get_biom_format_object_float(self):
         """Should return a dictionary of the table with float values."""
         exp = {'rows': [{'id': '1', 'metadata': None},
                         {'id': '2', 'metadata': None}],
@@ -1340,9 +1342,9 @@ class SparseOTUTableTests(TestCase):
                'generated_by': 'foo',
                'id': None,
                'matrix_element_type': 'float'}
-        obs = self.float_table.getBiomFormatObject('foo')
+        obs = self.float_table.get_biom_format_object('foo')
         del obs['date']
-        self.assertFloatEqual(obs, exp)
+        self.assertEqual(obs, exp)
 
 if __name__ == '__main__':
     main()

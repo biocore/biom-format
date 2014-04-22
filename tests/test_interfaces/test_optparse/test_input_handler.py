@@ -19,7 +19,7 @@ __email__ = "jai.rideout@gmail.com"
 import os
 from shutil import rmtree
 from tempfile import mkdtemp
-from biom.unit_test import TestCase, main
+from unittest import TestCase, main
 from biom.interfaces.optparse.input_handler import (
     load_biom_table, load_biom_table_with_file_contents, load_json_document,
     load_metadata)

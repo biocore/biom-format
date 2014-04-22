@@ -179,7 +179,7 @@ class ScipySparseMat(object):
         self.convert('csr')
 
         row_vector = self.__class__(1, num_cols, dtype=self.dtype)
-        row_vector._matrix = self._matrix.get_row(row_idx)
+        row_vector._matrix = self._matrix.getrow(row_idx)
 
         return row_vector
 
@@ -200,7 +200,7 @@ class ScipySparseMat(object):
         self.convert('csc')
 
         col_vector = self.__class__(num_rows, 1, dtype=self.dtype)
-        col_vector._matrix = self._matrix.get_col(col_idx)
+        col_vector._matrix = self._matrix.getcol(col_idx)
 
         return col_vector
 

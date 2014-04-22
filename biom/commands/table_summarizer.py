@@ -78,25 +78,25 @@ class TableSummarizer(Command):
 
         min_counts, max_counts, median_counts, mean_counts, counts_per_sample =\
             compute_counts_per_sample_stats(table, qualitative)
-        num_observations = len(table.ObservationIds)
+        num_observations = len(table.observation_ids)
 
         suppress_md5 = (table_lines is None) or kwargs['suppress_md5']
 
         counts_per_sample_values = counts_per_sample.values()
 
-        if table.SampleMetadata is None:
+        if table.sample_metadata is None:
             sample_md_keys = ["None provided"]
         else:
-            sample_md_keys = table.SampleMetadata[0].keys()
+            sample_md_keys = table.sample_metadata[0].keys()
 
-        if table.ObservationMetadata is None:
+        if table.observation_metadata is None:
             observation_md_keys = ["None provided"]
         else:
-            observation_md_keys = table.ObservationMetadata[0].keys()
+            observation_md_keys = table.observation_metadata[0].keys()
 
         lines = []
 
-        num_samples = len(table.SampleIds)
+        num_samples = len(table.sample_ids)
         lines.append('Num samples: %d' % num_samples)
         lines.append('Num observations: %d' % num_observations)
 

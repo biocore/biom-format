@@ -19,7 +19,7 @@ __email__ = "jai.rideout@gmail.com"
 from pyqi.core.exception import CommandError
 from biom.commands.metadata_adder import MetadataAdder
 from biom.parse import parse_biom_table
-from biom.unit_test import TestCase, main
+from unittest import TestCase, main
 
 
 class MetadataAdderTests(TestCase):
@@ -41,11 +41,11 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(obs.keys(), ['table'])
 
         obs = obs['table']
-        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('f4')],
+        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('f4')],
                          {'bar': '0.23', 'foo': '9', 'baz': 'abc;123'})
-        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('not16S.1')],
+        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('not16S.1')],
                          {'bar': '-4.2', 'foo': '0', 'baz': '123;abc'})
-        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('f2')], {})
+        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('f2')], {})
 
     def test_add_sample_metadata_with_casting(self):
         """Correctly adds sample metadata with casting."""
@@ -56,11 +56,11 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(obs.keys(), ['table'])
 
         obs = obs['table']
-        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('f4')],
+        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('f4')],
                          {'bar': 0.23, 'foo': 9, 'baz': ['abc', '123']})
-        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('not16S.1')],
+        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('not16S.1')],
                          {'bar': -4.2, 'foo': 0, 'baz': ['123', 'abc']})
-        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('f2')], {})
+        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('f2')], {})
 
     def test_add_observation_metadata_no_casting(self):
         """Correctly adds observation metadata without casting it."""
@@ -74,13 +74,13 @@ class MetadataAdderTests(TestCase):
 
         obs = obs['table']
         self.assertEqual(
-            obs.ObservationMetadata[obs.getObservationIndex('None7')],
+            obs.observation_metadata[obs.getObservationIndex('None7')],
             {'foo': '6', 'taxonomy': 'abc;123|def;456'})
         self.assertEqual(
-            obs.ObservationMetadata[obs.getObservationIndex('879972')],
+            obs.observation_metadata[obs.getObservationIndex('879972')],
             {'foo': '3', 'taxonomy': '123;abc|456;def'})
         self.assertEqual(
-            obs.ObservationMetadata[obs.getObservationIndex('None8')],
+            obs.observation_metadata[obs.getObservationIndex('None8')],
             {'taxonomy': ['k__Bacteria']})
 
     def test_add_observation_metadata_with_casting(self):
@@ -92,13 +92,13 @@ class MetadataAdderTests(TestCase):
 
         obs = obs['table']
         self.assertEqual(
-            obs.ObservationMetadata[obs.getObservationIndex('None7')],
+            obs.observation_metadata[obs.getObservationIndex('None7')],
             {'foo': 6, 'taxonomy': [['abc', '123'], ['def', '456']]})
         self.assertEqual(
-            obs.ObservationMetadata[obs.getObservationIndex('879972')],
+            obs.observation_metadata[obs.getObservationIndex('879972')],
             {'foo': 3, 'taxonomy': [['123', 'abc'], ['456', 'def']]})
         self.assertEqual(
-            obs.ObservationMetadata[obs.getObservationIndex('None8')],
+            obs.observation_metadata[obs.getObservationIndex('None8')],
             {'taxonomy': ['k__Bacteria']})
 
     def test_no_metadata(self):

@@ -407,13 +407,13 @@ class Table(object):
         for c in range(cols):
             # this pulls out col vectors but need to convert to the expected
             # row vector
-            colvec = self._data.getCol(c)
+            colvec = self._data.get_col(c)
             yield colvec.T
 
     def _iter_obs(self):
         """Return observation vectors of data matrix"""
         for r in range(self._data.shape[0]):
-            yield self._data.getRow(r)
+            yield self._data.get_row(r)
 
     def get_table_density(self):
         """Returns the fraction of nonzero elements in the table."""
@@ -476,7 +476,7 @@ class Table(object):
         Always returns a row vector for consistancy with numpy iteration over
         arrays
         """
-        return SparseObj.convertVectorToDense(v)
+        return SparseObj.convert_vector_to_dense(v)
 
     def sample_data(self, id_):
         """Return observations associated with sample id ``id_``"""
@@ -1575,7 +1575,7 @@ class Table(object):
                                    data=md_str)
 
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
-        h5grp.attrs['type'] = self.Type
+        h5grp.attrs['type'] = self.type
         h5grp.attrs['format-url'] = "http://biom-format.org"
         h5grp.attrs['format-version'] = (2, 0)
         h5grp.attrs['generated-by'] = generated_by

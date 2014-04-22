@@ -249,7 +249,7 @@ def compute_counts_per_sample_stats(table, binary_counts=False):
     project (and keep it under BIOM's BSD license).
     """
     sample_counts = {}
-    for count_vector, sample_id, metadata in table.iterSamples():
+    for count_vector, sample_id, metadata in table.iter_samples():
         if binary_counts:
             sample_counts[sample_id] = (count_vector != 0).sum()
         else:

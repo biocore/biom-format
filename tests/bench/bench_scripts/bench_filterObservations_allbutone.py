@@ -8,6 +8,6 @@ from random import choice
 if __name__ == '__main__':
     table = parse_biom_table(gzip_open(argv[1]))
 
-    id_ = choice(table.ObservationIds)
+    id_ = choice(table.observation_ids)
 
     foo = table.filterObservations(lambda x, y, z: y == id_)

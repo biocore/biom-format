@@ -18,7 +18,7 @@ __email__ = "gregcaporaso@gmail.com"
 
 from biom.commands.table_summarizer import TableSummarizer
 from biom.parse import parse_biom_table
-from biom.unit_test import TestCase, main
+from unittest import TestCase, main
 
 
 class TableSummarizerTests(TestCase):

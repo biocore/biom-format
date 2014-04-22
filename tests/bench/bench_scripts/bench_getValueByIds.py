@@ -8,5 +8,5 @@ from random import choice
 if __name__ == '__main__':
     table = parse_biom_table(gzip_open(argv[1]))
     foo = table.getValueByIds(
-        choice(table.ObservationIds),
-        choice(table.SampleIds))
+        choice(table.observation_ids),
+        choice(table.sample_ids))

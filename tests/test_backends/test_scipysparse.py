@@ -9,8 +9,9 @@
 # -----------------------------------------------------------------------------
 
 from numpy import array
+from numpy.testing import assert_array_equal
 from scipy.sparse import lil_matrix
-from numpy.testing.unittest import TestCase, main
+from unittest import TestCase, main
 from biom.backends.scipysparse import (ScipySparseMat, to_scipy,
                                        list_nparray_to_scipy,
                                        list_list_to_scipy, list_scipy_to_scipy,
@@ -68,15 +69,15 @@ class ScipySparseMatTests(TestCase):
         """Properly converts ScipySparseMat vectors to dense numpy repr."""
         exp = array([1, 0, 3])
         obs = ScipySparseMat.convert_vector_to_dense(self.row_vec)
-        self.assertSequenceEqual(obs, exp)
+        assert_array_equal(obs, exp)
 
         exp = array([1, 0, 3])
         obs = ScipySparseMat.convert_vector_to_dense(self.col_vec)
-        self.assertSequenceEqual(obs, exp)
+        assert_array_equal(obs, exp)
 
         exp = array([42])
         obs = ScipySparseMat.convert_vector_to_dense(self.single_ele)
-        self.assertSequenceEqual(obs, exp)
+        assert_array_equal(obs, exp)
 
     def test_is_empty(self):
         """Differentiate empty matrix from non-empty matrix."""
@@ -87,14 +88,14 @@ class ScipySparseMatTests(TestCase):
 
     def test_shape(self):
         """What kind of shape are you in?"""
-        self.assertSequenceEqual(self.null1.shape, (0, 0))
-        self.assertSequenceEqual(self.null2.shape, (0, 42))
-        self.assertSequenceEqual(self.null3.shape, (42, 0))
-        self.assertSequenceEqual(self.mat1.shape, (2, 3))
-        self.assertSequenceEqual(self.empty.shape, (2, 2))
-        self.assertSequenceEqual(self.row_vec.shape, (1, 3))
-        self.assertSequenceEqual(self.col_vec.shape, (3, 1))
-        self.assertSequenceEqual(self.single_ele.shape, (1, 1))
+        assert_array_equal(self.null1.shape, (0, 0))
+        assert_array_equal(self.null2.shape, (0, 42))
+        assert_array_equal(self.null3.shape, (42, 0))
+        assert_array_equal(self.mat1.shape, (2, 3))
+        assert_array_equal(self.empty.shape, (2, 2))
+        assert_array_equal(self.row_vec.shape, (1, 3))
+        assert_array_equal(self.col_vec.shape, (3, 1))
+        assert_array_equal(self.single_ele.shape, (1, 1))
 
     def test_dtype(self):
         """What's your type?"""
@@ -162,10 +163,10 @@ class ScipySparseMatTests(TestCase):
             self.assertEqual(m.sum(), 0)
 
         self.assertEqual(self.mat1.sum(), 10)
-        self.assertSequenceEqual(self.mat1.sum(0), array([4, 0, 6]))
-        self.assertSequenceEqual(self.mat1.sum(1), array([3, 7]))
-        self.assertSequenceEqual(self.row_vec.sum(1), array([4]))
-        self.assertSequenceEqual(self.col_vec.sum(0), array([4]))
+        assert_array_equal(self.mat1.sum(0), array([4, 0, 6]))
+        assert_array_equal(self.mat1.sum(1), array([3, 7]))
+        assert_array_equal(self.row_vec.sum(1), array([4]))
+        assert_array_equal(self.col_vec.sum(0), array([4]))
         with self.assertRaises(ValueError):
             self.mat1.sum(3)
 

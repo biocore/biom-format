@@ -20,7 +20,7 @@ from pyqi.core.exception import CommandError
 from biom.commands.table_converter import TableConverter
 from biom.parse import MetadataMap, parse_biom_table
 from biom.table import Table
-from biom.unit_test import TestCase, main
+from unittest import TestCase, main
 from StringIO import StringIO
 
 
@@ -35,7 +35,7 @@ class TableConverterTests(TestCase):
 
         self.classic_lines1 = classic1.split('\n')
 
-        self.sample_md1 = MetadataMap.fromFile(sample_md1.split('\n'))
+        self.sample_md1 = MetadataMap.from_file(sample_md1.split('\n'))
 
     def test_classic_to_biom(self):
         """Correctly converts classic to biom."""
@@ -44,10 +44,10 @@ class TableConverterTests(TestCase):
 
         obs = parse_biom_table(obs['table_str'])
         self.assertEqual(type(obs), Table)
-        self.assertEqual(len(obs.SampleIds), 9)
-        self.assertEqual(len(obs.ObservationIds), 14)
-        self.assertEqual(obs.SampleMetadata, None)
-        self.assertNotEqual(obs.ObservationMetadata, None)
+        self.assertEqual(len(obs.sample_ids), 9)
+        self.assertEqual(len(obs.observation_ids), 14)
+        self.assertEqual(obs.sample_metadata, None)
+        self.assertNotEqual(obs.observation_metadata, None)
 
     def test_classic_to_biom_with_metadata(self):
         """Correctly converts classic to biom with metadata."""
@@ -58,15 +58,15 @@ class TableConverterTests(TestCase):
 
         obs = parse_biom_table(obs['table_str'])
         self.assertEqual(type(obs), Table)
-        self.assertEqual(len(obs.SampleIds), 9)
-        self.assertEqual(len(obs.ObservationIds), 14)
-        self.assertNotEqual(obs.SampleMetadata, None)
-        self.assertNotEqual(obs.ObservationMetadata, None)
-        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('p2')],
+        self.assertEqual(len(obs.sample_ids), 9)
+        self.assertEqual(len(obs.observation_ids), 14)
+        self.assertNotEqual(obs.sample_metadata, None)
+        self.assertNotEqual(obs.observation_metadata, None)
+        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('p2')],
                          {'foo': 'c;b;a'})
-        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('not16S.1')],
+        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('not16S.1')],
                          {'foo': 'b;c;d'})
-        self.assertEqual(obs.ObservationMetadata[
+        self.assertEqual(obs.observation_metadata[
             obs.getObservationIndex('None11')],
             {'taxonomy': 'Unclassified'})
 
@@ -78,15 +78,15 @@ class TableConverterTests(TestCase):
 
         obs = parse_biom_table(obs['table_str'])
         self.assertEqual(type(obs), Table)
-        self.assertEqual(len(obs.SampleIds), 9)
-        self.assertEqual(len(obs.ObservationIds), 14)
-        self.assertNotEqual(obs.SampleMetadata, None)
-        self.assertNotEqual(obs.ObservationMetadata, None)
-        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('p2')],
+        self.assertEqual(len(obs.sample_ids), 9)
+        self.assertEqual(len(obs.observation_ids), 14)
+        self.assertNotEqual(obs.sample_metadata, None)
+        self.assertNotEqual(obs.observation_metadata, None)
+        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('p2')],
                          {'foo': 'c;b;a'})
-        self.assertEqual(obs.SampleMetadata[obs.getSampleIndex('not16S.1')],
+        self.assertEqual(obs.sample_metadata[obs.getSampleIndex('not16S.1')],
                          {'foo': 'b;c;d'})
-        self.assertEqual(obs.ObservationMetadata[
+        self.assertEqual(obs.observation_metadata[
             obs.getObservationIndex('None11')],
             {'taxonomy': ['Unclassified']})
 
