@@ -74,13 +74,13 @@ class MetadataAdderTests(TestCase):
 
         obs = obs['table']
         self.assertEqual(
-            obs.observation_metadata[obs.getObservationIndex('None7')],
+            obs.observation_metadata[obs.get_observation_index('None7')],
             {'foo': '6', 'taxonomy': 'abc;123|def;456'})
         self.assertEqual(
-            obs.observation_metadata[obs.getObservationIndex('879972')],
+            obs.observation_metadata[obs.get_observation_index('879972')],
             {'foo': '3', 'taxonomy': '123;abc|456;def'})
         self.assertEqual(
-            obs.observation_metadata[obs.getObservationIndex('None8')],
+            obs.observation_metadata[obs.get_observation_index('None8')],
             {'taxonomy': ['k__Bacteria']})
 
     def test_add_observation_metadata_with_casting(self):
@@ -92,13 +92,13 @@ class MetadataAdderTests(TestCase):
 
         obs = obs['table']
         self.assertEqual(
-            obs.observation_metadata[obs.getObservationIndex('None7')],
+            obs.observation_metadata[obs.get_observation_index('None7')],
             {'foo': 6, 'taxonomy': [['abc', '123'], ['def', '456']]})
         self.assertEqual(
-            obs.observation_metadata[obs.getObservationIndex('879972')],
+            obs.observation_metadata[obs.get_observation_index('879972')],
             {'foo': 3, 'taxonomy': [['123', 'abc'], ['456', 'def']]})
         self.assertEqual(
-            obs.observation_metadata[obs.getObservationIndex('None8')],
+            obs.observation_metadata[obs.get_observation_index('None8')],
             {'taxonomy': ['k__Bacteria']})
 
     def test_no_metadata(self):
