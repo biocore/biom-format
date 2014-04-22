@@ -159,11 +159,11 @@ class TableConverter(Command):
             result = conv_table.getBiomFormatJsonString(generatedby())
         else:
             if process_obs_metadata not in \
-                    self.observation_metadataTypes.keys():
+                    self.ObservationMetadataTypes.keys():
                 raise CommandError(
                     "Unknown observation metadata processing method, must be "
                     "one of: %s" %
-                    ', '.join(self.observation_metadataTypes.keys()))
+                    ', '.join(self.ObservationMetadataTypes.keys()))
 
             convert_error_msg = ("Input does not look like a classic table. "
                                  "Did you forget to specify that a classic "
@@ -174,7 +174,7 @@ class TableConverter(Command):
                     table_file,
                     sample_metadata,
                     observation_metadata,
-                    self.observation_metadataTypes[process_obs_metadata])
+                    self.ObservationMetadataTypes[process_obs_metadata])
             except (ValueError, TypeError, IndexError):
                 raise CommandError(convert_error_msg)
 
