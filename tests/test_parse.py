@@ -18,6 +18,7 @@ import numpy.testing as npt
 from unittest import TestCase, main
 from biom.parse import (parse_biom_table_json, parse_classic_table,
                         generatedby, MetadataMap)
+from biom.table import Table
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -150,6 +151,14 @@ class ParseTests(TestCase):
                                                  'GG_OTU_5'))
         self.assertEqual(tab.sample_metadata, None)
         self.assertEqual(tab.observation_metadata, None)
+
+    def test_parse_biom_table_hdf5(self):
+        """Make sure we can parse a HDF5 table through the same loader"""
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        t = Table.from_hdf5(h5py.File('test_data/test.biom'))
+        os.chdir(cwd)
 
     def test_parse_biom_table_str(self):
         """tests for parse_biom_table_str"""
