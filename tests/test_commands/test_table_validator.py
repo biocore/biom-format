@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -18,9 +18,11 @@ __email__ = "jai.rideout@gmail.com"
 
 import json
 from biom.commands.table_validator import TableValidator
-from biom.unit_test import TestCase, main
+from unittest import TestCase, main
+
 
 class TableValidatorTests(TestCase):
+
     def setUp(self):
         """Set up data for use in unit tests."""
         self.cmd = TableValidator()
@@ -85,7 +87,7 @@ class TableValidatorTests(TestCase):
         """Should be valid table type"""
         table = self.min_sparse_otu
 
-        table['type'] = 'otu table' # should not be case sensitive
+        table['type'] = 'otu table'  # should not be case sensitive
         obs = self.cmd._valid_type(table)
         self.assertTrue(len(obs) == 0)
 
@@ -143,7 +145,7 @@ class TableValidatorTests(TestCase):
         obs = self.cmd._valid_metadata(table['rows'][2])
         self.assertTrue(len(obs) == 0)
 
-        table['rows'][2]['metadata'] = {10:20}
+        table['rows'][2]['metadata'] = {10: 20}
         obs = self.cmd._valid_metadata(table['rows'][2])
         self.assertTrue(len(obs) == 0)
 
@@ -155,7 +157,7 @@ class TableValidatorTests(TestCase):
         obs = self.cmd._valid_metadata(table['rows'][2])
         self.assertTrue(len(obs) > 0)
 
-        table['rows'][2]['metadata'] = [{'a':'b'},{'c':'d'}]
+        table['rows'][2]['metadata'] = [{'a': 'b'}, {'c': 'd'}]
         obs = self.cmd._valid_metadata(table['rows'][2])
         self.assertTrue(len(obs) > 0)
 
@@ -234,15 +236,15 @@ class TableValidatorTests(TestCase):
         table['matrix_element_type'] = 'float'
         obs = self.cmd._valid_sparse_data(table)
         self.assertTrue(len(obs) > 0)
-        
+
         # not balanced
         table['matrix_element_type'] = 'int'
-        table['data'][5] = [0,10]
+        table['data'][5] = [0, 10]
         obs = self.cmd._valid_sparse_data(table)
         self.assertTrue(len(obs) > 0)
-        
+
         # odd type for index
-        table['data'][5] = [1.2,5,10]
+        table['data'][5] = [1.2, 5, 10]
         obs = self.cmd._valid_sparse_data(table)
         self.assertTrue(len(obs) > 0)
 
@@ -260,7 +262,7 @@ class TableValidatorTests(TestCase):
 
         # not balanced
         table['matrix_element_type'] = 'int'
-        table['data'][1] = [0,10]
+        table['data'][1] = [0, 10]
         obs = self.cmd._valid_dense_data(table)
         self.assertTrue(len(obs) > 0)
 
@@ -278,7 +280,7 @@ class TableValidatorTests(TestCase):
         self.assertTrue(len(obs) == 0)
 
         bad_shape = self.min_sparse_otu.copy()
-        bad_shape['shape'] = ['asd',10]
+        bad_shape['shape'] = ['asd', 10]
         obs = self.cmd._valid_shape(bad_shape)
         self.assertTrue(len(obs) > 0)
 
@@ -296,7 +298,7 @@ class TableValidatorTests(TestCase):
         table['rows'][0]['id'] = None
         obs = self.cmd._valid_rows(table)
         self.assertTrue(len(obs) > 0)
-        
+
         del table['rows'][0]['id']
         obs = self.cmd._valid_rows(table)
         self.assertTrue(len(obs) > 0)
@@ -325,7 +327,7 @@ class TableValidatorTests(TestCase):
         table['columns'][0]['id'] = None
         obs = self.cmd._valid_columns(table)
         self.assertTrue(len(obs) > 0)
-        
+
         del table['columns'][0]['id']
         obs = self.cmd._valid_columns(table)
         self.assertTrue(len(obs) > 0)
@@ -348,25 +350,35 @@ class TableValidatorTests(TestCase):
 
         obs = self.cmd._valid_data(table)
         self.assertTrue(len(obs) == 0)
-        
+
         table['matrix_type'] = 'foo'
         obs = self.cmd._valid_data(table)
         self.assertTrue(len(obs) > 0)
 
 
 rich_sparse_otu = """{
-     "id":null,
-     "format": "Biological Observation Matrix 1.0.0",
-     "format_url": "http://biom-format.org",
-     "type": "OTU table",
-     "generated_by": "QIIME revision XYZ",
-     "date": "2011-12-19T19:00:00",
-     "rows":[
-        {"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
-        {"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria", "p__Cyanobacteria", "c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichospermum", "s__"]}},
-        {"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea", "p__Euryarchaeota", "c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae", "g__Methanosarcina", "s__"]}},
-        {"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria", "p__Firmicutes", "c__Clostridia", "o__Halanaerobiales", "f__Halanaerobiaceae", "g__Halanaerobium", "s__Halanaerobiumsaccharolyticum"]}},
-        {"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}}
+                   "id":null,
+                   "format": "Biological Observation Matrix 1.0.0",
+                   "format_url": "http://biom-format.org",
+                   "type": "OTU table",
+                   "generated_by": "QIIME revision XYZ",
+                   "date": "2011-12-19T19:00:00",
+                   "rows":[
+{"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria",\
+ "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae",\
+  "g__Escherichia", "s__"]}},
+{"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria", "p__Cyanobacteria", \
+"c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichospermum",\
+"s__"]}},
+{"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea", "p__Euryarchaeota",\
+"c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae",\
+"g__Methanosarcina", "s__"]}},
+{"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria", "p__Firmicutes",\
+"c__Clostridia", "o__Halanaerobiales", "f__Halanaerobiaceae",\
+"g__Halanaerobium", "s__Halanaerobiumsaccharolyticum"]}},
+{"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria",\
+"p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales",\
+"f__Enterobacteriaceae", "g__Escherichia", "s__"]}}
         ],
      "columns":[
         {"id":"Sample1", "metadata":{
@@ -402,7 +414,7 @@ rich_sparse_otu = """{
         ],
      "matrix_type": "sparse",
      "matrix_element_type": "int",
-     "shape": [5, 6], 
+     "shape": [5, 6],
      "data":[[0,2,1],
              [1,0,5],
              [1,1,1],
@@ -434,7 +446,7 @@ min_sparse_otu = """{
                 {"id":"GG_OTU_3", "metadata":null},
                 {"id":"GG_OTU_4", "metadata":null},
                 {"id":"GG_OTU_5", "metadata":null}
-            ],  
+            ],
         "columns": [
                 {"id":"Sample1", "metadata":null},
                 {"id":"Sample2", "metadata":null},
@@ -445,7 +457,7 @@ min_sparse_otu = """{
             ],
         "matrix_type": "sparse",
         "matrix_element_type": "int",
-        "shape": [5, 6], 
+        "shape": [5, 6],
         "data":[[0,2,1],
                 [1,0,5],
                 [1,1,1],
@@ -470,50 +482,60 @@ rich_dense_otu = """{
      "format_url": "http://biom-format.org",
      "type": "OTU table",
      "generated_by": "QIIME revision XYZ",
-     "date": "2011-12-19T19:00:00",  
+     "date": "2011-12-19T19:00:00",
      "rows":[
-        {"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
-        {"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria", "p__Cyanobacteria", "c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichospermum", "s__"]}},
-        {"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea", "p__Euryarchaeota", "c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae", "g__Methanosarcina", "s__"]}},
-        {"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria", "p__Firmicutes", "c__Clostridia", "o__Halanaerobiales", "f__Halanaerobiaceae", "g__Halanaerobium", "s__Halanaerobiumsaccharolyticum"]}},
-        {"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}}
-        ],  
+{"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", \
+"p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales",\
+"f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
+{"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria",\
+"p__Cyanobacteria", "c__Nostocophycideae", "o__Nostocales",\
+"f__Nostocaceae", "g__Dolichospermum", "s__"]}},
+{"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea",\
+"p__Euryarchaeota", "c__Methanomicrobia", "o__Methanosarcinales",\
+"f__Methanosarcinaceae", "g__Methanosarcina", "s__"]}},
+{"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria",\
+"p__Firmicutes", "c__Clostridia", "o__Halanaerobiales",\
+"f__Halanaerobiaceae", "g__Halanaerobium","s__Halanaerobiumsaccharolyticum"]}},
+{"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria",\
+"p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales",\
+"f__Enterobacteriaceae", "g__Escherichia", "s__"]}}
+        ],
      "columns":[
         {"id":"Sample1", "metadata":{
-                                 "BarcodeSequence":"CGCTTATCGAGA",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"gut",
-                                 "Description":"human gut"}},
+                                "BarcodeSequence":"CGCTTATCGAGA",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"gut",
+                                "Description":"human gut"}},
         {"id":"Sample2", "metadata":{
-                                 "BarcodeSequence":"CATACCAGTAGC",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"gut",
-                                 "Description":"human gut"}},
+                                "BarcodeSequence":"CATACCAGTAGC",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"gut",
+                                "Description":"human gut"}},
         {"id":"Sample3", "metadata":{
-                                 "BarcodeSequence":"CTCTCTACCTGT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"gut",
-                                 "Description":"human gut"}},
+                                "BarcodeSequence":"CTCTCTACCTGT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"gut",
+                                "Description":"human gut"}},
         {"id":"Sample4", "metadata":{
-                                 "BarcodeSequence":"CTCTCGGCCTGT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"skin",
-                                 "Description":"human skin"}},
+                                "BarcodeSequence":"CTCTCGGCCTGT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"skin",
+                                "Description":"human skin"}},
         {"id":"Sample5", "metadata":{
-                                 "BarcodeSequence":"CTCTCTACCAAT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"skin",
-                                 "Description":"human skin"}},
+                                "BarcodeSequence":"CTCTCTACCAAT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"skin",
+                                "Description":"human skin"}},
         {"id":"Sample6", "metadata":{
-                                 "BarcodeSequence":"CTAACTACCAAT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"skin",
-                                 "Description":"human skin"}}
+                                "BarcodeSequence":"CTAACTACCAAT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"skin",
+                                "Description":"human skin"}}
                 ],
      "matrix_type": "dense",
      "matrix_element_type": "int",
      "shape": [5,6],
-     "data":  [[0,0,1,0,0,0], 
+     "data":  [[0,0,1,0,0,0],
                [5,1,0,2,3,1],
                [0,0,1,4,2,0],
                [2,1,1,0,0,1],
@@ -533,7 +555,7 @@ min_dense_otu = """ {
                 {"id":"GG_OTU_3", "metadata":null},
                 {"id":"GG_OTU_4", "metadata":null},
                 {"id":"GG_OTU_5", "metadata":null}
-            ],  
+            ],
         "columns": [
                 {"id":"Sample1", "metadata":null},
                 {"id":"Sample2", "metadata":null},
@@ -541,11 +563,11 @@ min_dense_otu = """ {
                 {"id":"Sample4", "metadata":null},
                 {"id":"Sample5", "metadata":null},
                 {"id":"Sample6", "metadata":null}
-            ],  
+            ],
         "matrix_type": "dense",
         "matrix_element_type": "int",
         "shape": [5,6],
-        "data":  [[0,0,1,0,0,0], 
+        "data":  [[0,0,1,0,0,0],
                   [5,1,0,2,3,1],
                   [0,0,1,4,2,0],
                   [2,1,1,0,0,1],

@@ -6,8 +6,8 @@ from biom.parse import parse_biom_table
 
 if __name__ == '__main__':
     table = parse_biom_table(gzip_open(argv[1]))
-    
-    md = [{'FOO': i % 8} for i in range(len(table.ObservationIds))]
-    table.ObservationMetadata = md
+
+    md = [{'FOO': i % 8} for i in range(len(table.observation_ids))]
+    table.observation_metadata = md
 
     foo = table.collapseObservationsByMetadata(lambda x: x['FOO'])

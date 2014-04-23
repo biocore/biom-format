@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 from __future__ import division
 from pyqi.core.command import (Command, CommandIn, CommandOut,
-        ParameterCollection)
+                               ParameterCollection)
 from pyqi.core.exception import CommandError
-from biom.table import (Table, table_factory)
+from biom.table import (table_factory)
 from biom.parse import (parse_biom_table, MetadataMap, convert_biom_to_table,
                         convert_table_to_biom, generatedby)
 
@@ -25,23 +25,25 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
+
 class TableConverter(Command):
     MatrixTypes = ['sparse', 'dense']
 
     ObservationMetadataTypes = {
-            'sc_separated': lambda x: [e.strip() for e in x.split(';')],
-            'naive': lambda x: x
+        'sc_separated': lambda x: [e.strip() for e in x.split(';')],
+        'naive': lambda x: x
     }
     ObservationMetadataTypes['taxonomy'] = \
-            ObservationMetadataTypes['sc_separated']
+        ObservationMetadataTypes['sc_separated']
 
     BriefDescription = "Convert to/from the BIOM table format"
     LongDescription = ("Convert between BIOM and 'classic' (tab-delimited) "
                        "table formats. Detailed usage examples can be found "
-                       "here: http://biom-format.org/documentation/biom_conversion.html")
+                       "here: http://biom-format.org/documentation/biom_conver"
+                       "sion.html")
 
     CommandIns = ParameterCollection([
-        ### This is not an ideal usage of the pyqi framework because we are
+        # This is not an ideal usage of the pyqi framework because we are
         # expecting a file-like object here, and a lot of the parameters deal
         # with I/O-ish things, like converting between file formats. Even
         # though no I/O is forced here, it would be better to have rich objects
@@ -135,35 +137,44 @@ class TableConverter(Command):
             except (ValueError, TypeError):
                 raise CommandError(convert_error_msg)
 
-            conv_table = table_factory(table._data, table.SampleIds,
-                            table.ObservationIds, table.SampleMetadata,
-                            table.ObservationMetadata, table.TableId)
-            result = conv_table.getBiomFormatJsonString(generatedby())
+            conv_table = table_factory(table._data,
+                                       table.sample_ids,
+                                       table.observation_ids,
+                                       table.sample_metadata,
+                                       table.observation_metadata,
+                                       table.TableId)
+            result = conv_table.get_biom_format_json_string(generatedby())
         elif dense_biom_to_sparse_biom:
             try:
                 table = parse_biom_table(table_file)
             except (ValueError, TypeError):
                 raise CommandError(convert_error_msg)
 
-            conv_table = table_factory(table._data, table.SampleIds,
-                            table.ObservationIds, table.SampleMetadata,
-                            table.ObservationMetadata, table.TableId)
-            result = conv_table.getBiomFormatJsonString(generatedby())
+            conv_table = table_factory(table._data,
+                                       table.sample_ids,
+                                       table.observation_ids,
+                                       table.sample_metadata,
+                                       table.observation_metadata,
+                                       table.table_id)
+            result = conv_table.get_biom_format_json_string(generatedby())
         else:
             if process_obs_metadata not in \
                     self.ObservationMetadataTypes.keys():
-                raise CommandError("Unknown observation metadata processing "
-                        "method, must be one of: %s" %
-                        ', '.join(self.ObservationMetadataTypes.keys()))
+                raise CommandError(
+                    "Unknown observation metadata processing method, must be "
+                    "one of: %s" %
+                    ', '.join(self.ObservationMetadataTypes.keys()))
 
             convert_error_msg = ("Input does not look like a classic table. "
                                  "Did you forget to specify that a classic "
                                  "table file should be created from a BIOM "
                                  "table file?")
             try:
-                result = convert_table_to_biom(table_file, sample_metadata,
-                        observation_metadata,
-                        self.ObservationMetadataTypes[process_obs_metadata])
+                result = convert_table_to_biom(
+                    table_file,
+                    sample_metadata,
+                    observation_metadata,
+                    self.ObservationMetadataTypes[process_obs_metadata])
             except (ValueError, TypeError, IndexError):
                 raise CommandError(convert_error_msg)
 
