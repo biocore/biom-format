@@ -1578,7 +1578,7 @@ class Table(object):
         return table_factory(rep, samp_ids, obs_ids, samp_md or None,
                              obs_md or None)
 
-    def format_hdf5(self, h5grp, generated_by):
+    def to_hdf5(self, h5grp, generated_by):
         """Store CSC and CSR in place
 
         The expected structure of this group is below. A few basic definitions,

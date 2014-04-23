@@ -300,12 +300,12 @@ class TableTests(TestCase):
                array([0., 1., 1., 0., 0., 0.])]
         npt.assert_equal(list(t.iter_observation_data()), exp)
 
-    def test_format_hdf5(self):
+    def test_to_hdf5(self):
         """Write a file"""
         fname = mktemp()
         self.to_remove.append(fname)
         h5 = h5py.File(fname, 'w')
-        self.st_rich.format_hdf5(h5, 'tests')
+        self.st_rich.to_hdf5(h5, 'tests')
         h5.close()
 
         h5 = h5py.File(fname, 'r')
