@@ -41,9 +41,9 @@ class TableSummarizer(Command):
       table_f.close()
     """
     BriefDescription = "Summarize sample or observation data in a BIOM table"
-    LongDescription = "Provides details on the observation counts per sample,"\
-                      " including summary statistics, as well as metadata "\
-                      "categories associated with samples and observations."
+    LongDescription = ("Provides details on the observation counts per sample,"
+                       " including summary statistics, as well as metadata "
+                       "categories associated with samples and observations.")
 
     CommandIns = ParameterCollection([
         CommandIn(Name='table',
