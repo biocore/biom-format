@@ -140,13 +140,13 @@ class Table(object):
 
         if self.sample_metadata is not None and \
            n_samp != len(self.sample_metadata):
-            raise TableException("sample_metadata not in a compatible shape \
-                                   with data matrix!")
+            raise TableException("sample_metadata not in a compatible shape"
+                                 "with data matrix!")
 
         if self.observation_metadata is not None and \
            n_obs != len(self.observation_metadata):
-            raise TableException("observation_metadata not in a compatible \
-                                   shape with data matrix!")
+            raise TableException("observation_metadata not in a compatible"
+                                 "shape with data matrix!")
 
     def _cast_metadata(self):
         """Casts all metadata to defaultdict to support default values.
@@ -1756,12 +1756,6 @@ class Table(object):
             else:
                 rows.append('{"id": "%s", "metadata": %s}],' % (obs[1],
                                                                 dumps(obs[2])))
-
-            # if we are not on the last row
-            # if obs_index != max_row_idx:
-            #    data.append("[%s]," % ','.join(map(repr, obs[0])))
-            # else:
-            #    data.append("[%s]]," % ','.join(map(repr, obs[0])))
 
             # turns out its a pain to figure out when to place commas. the
             # simple work around, at the expense of a little memory
