@@ -17,7 +17,6 @@ from datetime import datetime
 from json import dumps, loads
 from functools import reduce, partial
 from operator import itemgetter, xor, add
-from functools import reduce
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, zeros, empty
