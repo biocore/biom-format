@@ -11,9 +11,11 @@
 from __future__ import division
 from datetime import datetime
 from operator import and_
+from functools import reduce
 from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
-from functools import reduce
+from biom.util import HAVE_H5PY
+
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -33,13 +35,13 @@ class TableValidator(Command):
                        "specification is defined at http://biom-format.org")
 
     CommandIns = ParameterCollection([
-        CommandIn(Name='table_json', DataType=dict,
+        CommandIn(Name='table', DataType=object,
                   Description='the input BIOM JSON object (e.g., the output '
                   'of json.load)', Required=True),
         CommandIn(Name='format_version', DataType=str,
                   Description='the specific format version to validate '
                   'against', Required=False,
-                  Default='Biological Observation Matrix 1.0.0'),
+                  Default='1.0.0'),
         CommandIn(Name='detailed_report', DataType=bool,
                   Description='include more details in the output report',
                   Required=False, Default=False)
@@ -62,7 +64,112 @@ class TableValidator(Command):
     ElementTypes = {'int': int, 'str': str, 'float': float, 'unicode': unicode}
 
     def run(self, **kwargs):
-        table_json = kwargs['table_json']
+        table = kwargs['table']
+
+        if isinstance(table, dict):
+            return self._validate_json(**kwargs)
+        elif HAVE_H5PY:
+            return self._validate_hdf5(**kwargs)
+        elif not HAVE_H5PY:
+            raise IOError("h5py is not installed, can only validate JSON "
+                          "tables")
+
+    def _validate_hdf5(self, **kwargs):
+        table = kwargs['table']
+
+        # Need to make this an attribute so that we have this info during
+        # validation.
+        self._format_version = kwargs['format_version']
+        detailed_report = kwargs['detailed_report']
+
+        report_lines = []
+        valid_table = True
+
+        if detailed_report:
+            report_lines.append("Validating BIOM table...")
+
+        required_attrs = [
+            ('format-url', self._valid_format_url),
+            ('type', self._valid_type),
+            ('shape', self._valid_shape),
+            ('nnz', self._valid_nnz),
+            ('generated-by', self._valid_generated_by),
+            ('id', self._valid_nullable_id),
+            ('creation-date', self._valid_creation_date)
+        ]
+
+        required_groups = ['observation', 'sample']
+
+        required_datasets = ['observation/ids',
+                             'observation/data',
+                             'observation/indices',
+                             'observation/indptr',
+                             'sample/ids',
+                             'sample/data',
+                             'sample/indices',
+                             'sample/indptr']
+
+        for key, method in required_attrs:
+            if key not in table.attrs:
+                valid_table = False
+                report_lines.append("Missing attribute: '%s'" % key)
+                continue
+
+            if detailed_report:
+                report_lines.append("Validating '%s'..." % key)
+
+            status_msg = method(table)
+
+            if len(status_msg) > 0:
+                valid_table = False
+                report_lines.append(status_msg)
+
+        for group in required_groups:
+            if group not in table:
+                valid_table = False
+                if detailed_report:
+                    report_lines.append("Missing group: %s" % group)
+
+        for dataset in required_datasets:
+            if dataset not in table:
+                valid_table = False
+                if detailed_report:
+                    report_lines.append("Missing dataset: %s" % dataset)
+
+        if 'shape' in table.attrs:
+            if detailed_report:
+                report_lines.append("Validating 'shape' versus number of "
+                                    "samples and observations...")
+
+            n_obs, n_samp = table.attrs['shape']
+            obs_ids = table.get('observation/ids', None)
+            samp_ids = table.get('sample/ids', None)
+
+            if obs_ids is None:
+                valid_table = False
+                report_lines.append("observation/ids does not exist, cannot "
+                                    "validate shape")
+
+            if samp_ids is None:
+                valid_table = False
+                report_lines.append("sample/ids does not exist, cannot "
+                                    "validate shape")
+
+            if n_obs != len(obs_ids):
+                valid_table = False
+                report_lines.append("Number of observation IDs is not equal "
+                                    "to the described shape")
+
+            if n_samp != len(samp_ids):
+                valid_table = False
+                report_lines.append("Number of sample IDs is not equal "
+                                    "to the described shape")
+
+        return {'valid_table': valid_table, 'report_lines': report_lines}
+
+    def _validate_json(self, **kwargs):
+        table_json = kwargs['table']
+
         # Need to make this an attribute so that we have this info during
         # validation.
         self._format_version = kwargs['format_version']
@@ -123,20 +230,43 @@ class TableValidator(Command):
 
         return {'valid_table': valid_table, 'report_lines': report_lines}
 
+    def _json_or_hdf5_get(self, table, key):
+        if hasattr(table, 'attrs'):
+            return table.attrs.get(key, None)
+        else:
+            return table.get(key, None)
+
+    def _json_or_hdf5_key(self, table, key):
+        if hasattr(table, 'attrs'):
+            return key.replace('_', '-')
+        else:
+            return key
+
     def _is_int(self, x):
         """Return True if x is an int"""
         return isinstance(x, int)
 
-    def _valid_format_url(self, table_json):
+    def _valid_nnz(self, table):
+        """Check if nnz seems correct"""
+        if not isinstance(table.attrs['nnz'], int):
+            return "nnz is not an integer!"
+        if table.attrs['nnz'] < 0:
+            return "nnz is negative!"
+        return ''
+
+    def _valid_format_url(self, table):
         """Check if format_url is correct"""
-        if table_json['format_url'] != self.FormatURL:
-            return "Invalid 'format_url'"
+        key = self._json_or_hdf5_key(table, 'format_url')
+        value = self._json_or_hdf5_get(table, key)
+
+        if value != self.FormatURL:
+            return "Invalid '%s'" % key
         else:
             return ''
 
-    def _valid_shape(self, table_json):
+    def _valid_shape(self, table):
         """Matrix header is (int, int) representing the size of a 2D matrix"""
-        a, b = table_json['shape']
+        a, b = self._json_or_hdf5_get(table, 'shape')
 
         if not (self._is_int(a) and self._is_int(b)):
             return "'shape' values do not appear to be integers"
@@ -154,6 +284,21 @@ class TableValidator(Command):
         """Check if a valid element type exists"""
         if table_json['matrix_element_type'] not in self.ElementTypes:
             return "Unknown 'matrix_element_type'"
+        else:
+            return ''
+
+    def _valid_creation_date(self, table):
+        """Verify datetime can be parsed
+
+        Expects ISO 8601 datetime format (for example, 2011-12-19T19:00:00
+                                          note that a 'T' separates the date
+                                          and time)
+        """
+        d = table.attrs['creation-date']
+        try:
+            datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
+        except:
+            return "Timestamp does not appear to be ISO 8601"
         else:
             return ''
 
@@ -232,10 +377,10 @@ class TableValidator(Command):
 
     def _valid_generated_by(self, table_json):
         """Validate the generated_by field"""
-        if not table_json['generated_by']:
+        key = self._json_or_hdf5_key(table, 'generated_by')
+        value = self._json_or_hdf5_get(table, key)
+        if not value:
             return "'generated_by' is not populated"
-        if not isinstance(table_json['generated_by'], unicode):
-            return "'generated_by' is not a string"
 
         return ''
 
