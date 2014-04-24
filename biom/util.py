@@ -324,6 +324,7 @@ def is_gzip(fp):
     """
     return open(fp, 'rb').read(2) == '\x1f\x8b'
 
+
 @contextmanager
 def biom_open(fp, permission='U'):
     """Wrapper to allow opening of gzipped or non-compressed files
@@ -342,6 +343,9 @@ def biom_open(fp, permission='U'):
     authors of this function to port it to the BIOM Format project (and keep it
     under BIOM's BSD license).
     """
+    if permission not in ['r', 'w', 'U', 'rb', 'wb']:
+        raise IOError("Unknown mode: %s" % permission)
+
     opener = open
     mode = permission
 
@@ -349,9 +353,6 @@ def biom_open(fp, permission='U'):
         if h5py.is_hdf5(fp):
             opener = h5py.File
             mode = 'r' if permission == 'U' else permission
-
-    if h5py.is_hdf5(fp):
-        return h5py.File(fp, 'r' if permission == 'U' else permission)
 
     if is_gzip(fp):
         opener = gzip_open
