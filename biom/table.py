@@ -766,7 +766,7 @@ class Table(object):
                                      obs_md, self.table_id,
                                      constructor=constructor)
 
-    def collaspe_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
+    def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
                                      min_group_size=2,
                                      include_collapsed_metadata=True,
                                      constructor=None, one_to_many=False,
