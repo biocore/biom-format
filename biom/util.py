@@ -362,5 +362,7 @@ def biom_open(fp, permission='U'):
         mode = 'rb' if permission in ['U', 'r'] else permission
 
     with opener(fp, mode) as f:
-        yield f
-        f.close()
+        try:
+            yield opener(fp, mode)
+        finally:
+            f.close()
