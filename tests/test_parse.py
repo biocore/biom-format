@@ -155,9 +155,9 @@ class ParseTests(TestCase):
     def test_parse_biom_table_hdf5(self):
         """Make sure we can parse a HDF5 table through the same loader"""
         cwd = os.getcwd()
-        if '/' in __file__:
+        if '/' in __file__[1:]:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'))
+        Table.from_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
     def test_parse_biom_table_str(self):
