@@ -26,17 +26,17 @@ from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list)
-from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
-    list_dict_to_scipy, list_nparray_to_scipy, nparray_to_scipy,
-    list_list_to_scipy)
+#from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
+#    list_dict_to_scipy, list_nparray_to_scipy, nparray_to_scipy,
+#    list_list_to_scipy)
 
-SparseObj = ScipySparseMat
-to_sparse = to_scipy
-dict_to_sparseobj = dict_to_scipy
-list_dict_to_sparseobj = list_dict_to_scipy
-list_nparray_to_sparseobj = list_nparray_to_scipy
-nparray_to_sparseobj = nparray_to_scipy
-list_list_to_sparseobj = list_list_to_scipy
+#SparseObj = ScipySparseMat
+#to_sparse = to_scipy
+#dict_to_sparseobj = dict_to_scipy
+#list_dict_to_sparseobj = list_dict_to_scipy
+#list_nparray_to_sparseobj = list_nparray_to_scipy
+#nparray_to_sparseobj = nparray_to_scipy
+#list_list_to_sparseobj = list_list_to_scipy
 
 # Define a variable length string type
 H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
@@ -52,7 +52,6 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 class Table(object):
-
     """Abstract base class representing a Table.
 
     Once created, a Table object is immutable except for its sample/observation
@@ -76,7 +75,6 @@ class Table(object):
         super(Table, self).__setattr__('type', type)
         super(Table, self).__setattr__('table_id', table_id)
         super(Table, self).__setattr__('_data', data)
-        super(Table, self).__setattr__('_dtype', data.dtype)
 
         # Cast to tuple for immutability.
         super(Table, self).__setattr__('sample_ids', tuple(sample_ids))
@@ -113,15 +111,15 @@ class Table(object):
         super(Table, self).__setattr__('_obs_index',
                                        index_list(self.observation_ids))
 
-    def _conv_to_self_type(self, vals, transpose=False, dtype=None):
-        """For converting vectors to a compatible self type"""
-        if dtype is None:
-            dtype = self._dtype
-
-        if isinstance(vals, self._data.__class__):
-            return vals
-        else:
-            return to_sparse(vals, transpose, dtype)
+    #def _conv_to_self_type(self, vals, transpose=False, dtype=None):
+    #    """For converting vectors to a compatible self type"""
+    #    if dtype is None:
+    #        dtype = self._dtype
+#
+#        if isinstance(vals, self._data.__class__):
+#            return vals
+#        else:
+#            return to_sparse(vals, transpose, dtype)
 
     def _verify_metadata(self):
         """Obtain some notion of sanity on object construction with inputs"""
@@ -206,6 +204,14 @@ class Table(object):
             super(Table, self).__setattr__('observation_metadata',
                                            tuple(default_obs_md))
 
+    @property
+    def shape(self):
+        return self._data.shape
+
+    @property
+    def dtype(self):
+        return self._data.dtype
+
     def add_observation_metadata(self, md):
         """Take a dict of metadata and add it to an observation.
 
@@ -241,8 +247,72 @@ class Table(object):
         self._cast_metadata()
 
     def __getitem__(self, args):
-        """Passes through to internal matrix"""
-        return self._data[args]
+        """Handles row or column slices."""
+        if self.is_empty():
+            raise IndexError("Cannot retrieve an element from an empty/null "
+                             "table.")
+
+        try:
+            row, col = args
+        except:
+            raise IndexError("Must specify (row, col).")
+
+        if isinstance(row, slice) and isinstance(col, slice):
+            raise IndexError("Can only slice a single axis.")
+
+        if isinstance(row, slice):
+            if row.start is None and row.stop is None:
+                return self._get_col(col)
+            else:
+                raise IndexError("Can only handle full : slices per axis.")
+        elif isinstance(col, slice):
+            if col.start is None and col.stop is None:
+                return self._get_row(row)
+            else:
+                raise IndexError("Can only handle full : slices per axis.")
+        else:
+            if self._data.getformat() == 'coo':
+                self._data.tocsr()
+
+            return self._data[row, col]
+
+    def _get_row(self, row_idx):
+        """Return the row at ``row_idx``.
+
+        A row vector will be returned as a scipy.sparse matrix in csr format.
+        """
+        if self.is_empty():
+            raise IndexError("Cannot retrieve a row from an empty/null table.")
+
+        num_rows, num_cols = self.shape
+
+        if row_idx >= num_rows or row_idx < 0:
+            raise IndexError("Row index %d is out of bounds." % row_idx)
+
+        self._data = self._data.tocsr()
+        return self._data.getrow(rox_idx)
+
+    def _get_col(self, col_idx):
+        """Return the column at ``col_idx``.
+
+        A column vector will be returned as a scipy.sparse matrix in csc
+        format.
+        """
+        if self.is_empty():
+            raise IndexError("Cannot retrieve a column from an empty/null "
+                             "table.")
+
+        num_rows, num_cols = self.shape
+
+        if col_idx >= num_cols or col_idx < 0:
+            raise IndexError("Column index %d is out of bounds." % col_idx)
+
+        self._data.tocsc()
+
+        col_vector = self.__class__(num_rows, 1, dtype=self.dtype)
+        col_vector._matrix = self._matrix.getcol(col_idx)
+
+        return col_vector
 
     def reduce(self, f, axis):
         """Reduce over axis with f
