@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
-from biom.unit_test import TestCase, main
+from unittest import TestCase, main
 from make_tables import n_nonzero_items, get_next_row_index, get_next_col_index
 
+
 class MakeTablesTests(TestCase):
+
     def setUp(self):
         pass
 
@@ -21,7 +23,7 @@ class MakeTablesTests(TestCase):
         m = 100
         p = 0.01
         exp = 10
-        obs = n_nonzero_items(n,m,p)
+        obs = n_nonzero_items(n, m, p)
         self.assertEqual(obs, exp)
 
     def test_get_next_row_index(self):
@@ -40,12 +42,12 @@ class MakeTablesTests(TestCase):
 
         cur_row = 8
         exp_row = 9
-        obs_row = get_next_row_index(n,cur_row)
+        obs_row = get_next_row_index(n, cur_row)
         self.assertEqual(obs_row, exp_row)
 
-        cur_row = 9 # n = 10, idx of 9 is max row
-        exp_row = 7 
-        obs_row = get_next_row_index(n,cur_row)
+        cur_row = 9  # n = 10, idx of 9 is max row
+        exp_row = 7
+        obs_row = get_next_row_index(n, cur_row)
         self.assertEqual(obs_row, exp_row)
 
         cur_row = 1
@@ -56,7 +58,7 @@ class MakeTablesTests(TestCase):
     def test_get_next_col_index(self):
         """determine the next col index"""
         m = 100
-        
+
         cur_col = 98
         exp_col = 99
         obs_col = get_next_col_index(m, cur_col)

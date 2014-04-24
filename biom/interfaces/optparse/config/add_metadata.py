@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseUsageExample,
@@ -34,7 +34,9 @@ cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 usage_examples = [
     OptparseUsageExample(ShortDesc="Adding sample metadata",
                          LongDesc="Add sample metadata to a BIOM table",
-                         Ex="%prog -i otu_table.biom -o table_with_sample_metadata.biom -m sample_metadata.txt")
+                         Ex="%prog -i otu_table.biom -o "
+                            "table_with_sample_metadata.biom -m "
+                            "sample_metadata.txt")
 ]
 
 inputs = [

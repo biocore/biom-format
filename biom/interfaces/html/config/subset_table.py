@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __author__ = "Evan Bolyen"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -16,11 +16,11 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Evan Bolyen"
 __email__ = "ebolyen@gmail.com"
 
-from pyqi.core.interfaces.html import (HTMLInputOption, HTMLDownload, HTMLPage)
+from pyqi.core.interfaces.html import (HTMLInputOption, HTMLDownload)
 from pyqi.core.command import (make_command_in_collection_lookup_f,
                                make_command_out_collection_lookup_f)
 from pyqi.core.interfaces.html.input_handler import (load_file_contents,
-                                                         load_file_lines)
+                                                     load_file_lines)
 from pyqi.core.interfaces.html.output_handler import newline_list_of_strings
 from biom.commands.table_subsetter import CommandConstructor
 
@@ -49,8 +49,8 @@ inputs = [
 ]
 
 outputs = [
-    HTMLDownload(Parameter=cmd_out_lookup('subset_generator'), 
+    HTMLDownload(Parameter=cmd_out_lookup('subset_generator'),
                  Handler=newline_list_of_strings,
                  FilenameLookup='download-file',
-                 FileExtension='.biom') 
+                 FileExtension='.biom')
 ]

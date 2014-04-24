@@ -8,8 +8,8 @@ from random import shuffle
 if __name__ == '__main__':
     table = parse_biom_table(gzip_open(argv[1]))
 
-    ids = table.ObservationIds[:]
+    ids = table.observation_ids[:]
     shuffle(ids)
     to_keep = set(ids[:int(len(ids) / 2.0)])
 
-    foo = table.filterObservations(lambda x,y,z: y in to_keep)
+    foo = table.filterObservations(lambda x, y, z: y in to_keep)
