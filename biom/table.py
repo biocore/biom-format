@@ -1595,7 +1595,7 @@ class Table(object):
         return table_factory(rep, samp_ids, obs_ids, samp_md or None,
                              obs_md or None)
 
-    def to_hdf5(self, h5grp, generated_by):
+    def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
 
         The expected structure of this group is below. A few basic definitions,
@@ -1634,6 +1634,8 @@ class Table(object):
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
         generated_by : str
+        compress : Boolean  'True' means fiels will be compressed with
+            gzip, 'False' means no compression
 
         See Also
         --------
@@ -1648,7 +1650,7 @@ class Table(object):
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
 
-        def axis_dump(grp, ids, md, order):
+        def axis_dump(grp, ids, md, order, compression=None):
             """Store for an axis"""
             self._data.convert(order)
 
@@ -1658,26 +1660,31 @@ class Table(object):
 
             grp.create_dataset('data', shape=(len_data,),
                                dtype=np.float64,
-                               data=self._data._matrix.data)
+                               data=self._data._matrix.data,
+                               compression=compression)
             grp.create_dataset('indices', shape=(len_data,),
                                dtype=np.int32,
-                               data=self._data._matrix.indices)
+                               data=self._data._matrix.indices,
+                               compression=compression)
             grp.create_dataset('indptr', shape=(len_indptr,),
                                dtype=np.int32,
-                               data=self._data._matrix.indptr)
+                               data=self._data._matrix.indptr,
+                               compression=compression)
 
             # if we store IDs in the table as numpy arrays then this store
             # is cleaner, as is the parse
             grp.create_dataset('ids', shape=(len_ids,),
                                dtype=H5PY_VLEN_STR,
-                               data=[str(i) for i in ids])
+                               data=[str(i) for i in ids],
+                               compression=compression)
 
             if md is not None:
                 md_str = empty(shape=(), dtype=object)
                 md_str[()] = dumps(md)
                 grp.create_dataset('metadata', shape=(1,),
                                    dtype=H5PY_VLEN_STR,
-                                   data=md_str)
+                                   data=md_str,
+                                   compression=compression)
 
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
         h5grp.attrs['type'] = self.type
@@ -1687,11 +1694,13 @@ class Table(object):
         h5grp.attrs['creation-date'] = datetime.now().isoformat()
         h5grp.attrs['shape'] = self._data.shape
         h5grp.attrs['nnz'] = self._data.size
-
+        compression = None
+        if compress is True:
+            compression = 'gzip'
         axis_dump(h5grp.create_group('observation'), self.observation_ids,
-                  self.observation_metadata, 'csr')
+                  self.observation_metadata, 'csr', compression)
         axis_dump(h5grp.create_group('sample'), self.sample_ids,
-                  self.sample_metadata, 'csc')
+                  self.sample_metadata, 'csc', compression)
 
     def get_biom_format_object(self, generated_by):
         """Returns a dictionary representing the table in BIOM format.
