@@ -422,6 +422,9 @@ def list_list_to_scipy(data, dtype=float, shape=None):
         n_cols = len(data[0])
         return ScipySparseMat(n_rows, n_cols, data=data)
 
+    else:
+        raise TableException("Cannot understand input data.")
+
 
 def nparray_to_scipy(data, dtype=float):
     """Convert a numpy array to a ``ScipySparseMat``."""
