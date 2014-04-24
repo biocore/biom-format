@@ -1,11 +1,22 @@
+# Modified from https://github.com/biocore/scikit-bio/
 language: python
 python:
   - "2.7"
+env:
+  - NUMPY_VERSION=1.8
+  - NUMPY_VERSION=1.7
 before_install:
-  - sudo apt-get update -qq
-  - sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran libhdf5-serial-1.8.4 libhdf5-serial-dev
+  - wget http://repo.continuum.io/miniconda/Miniconda-2.2.2-Linux-x86_64.sh -O miniconda.sh
+  - chmod +x miniconda.sh
+  - ./miniconda.sh -b
+  - export PATH=/home/travis/anaconda/bin:$PATH
+  # Update conda itself
+  - conda update --yes conda
 install:
-  - pip install -r requirements.txt .
+  - conda create --yes -n env_name python=$TRAVIS_PYTHON_VERSION pip numpy=$NUMPY_VERSION scipy matplotlib nose pep8 Sphinx
+  - source activate env_name
+  - pip install -e . --no-deps
 script:
   - nosetests
+  - pep8 biom setup.py
   - biom show-install-info
