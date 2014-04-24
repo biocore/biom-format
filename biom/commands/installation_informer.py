@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 from __future__ import division
 from sys import platform, version as python_version, executable
@@ -22,8 +22,10 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
 
+
 class InstallationInformer(Command):
-    BriefDescription = "Provide information about the biom-format installation"
+    BriefDescription = ("Provide information about the biom-format "
+                        "installation")
     LongDescription = ("Provide information about the biom-format "
                        "installation, including settings pulled from the "
                        "configuration file. For more details, see "
@@ -38,30 +40,30 @@ class InstallationInformer(Command):
     def run(self, **kwargs):
         lines = []
 
-        lines.extend(self.getFormattedSystemInfo())
-        lines.extend(self.getFormattedDependencyVersionInfo())
-        lines.extend(self.getFormattedPackageInfo())
+        lines.extend(self.get_formatted_system_info())
+        lines.extend(self.get_formatted_dependency_version_info())
+        lines.extend(self.get_formatted_package_info())
         lines.append('')
 
         return {'install_info_lines': lines}
 
-    def getFormattedSystemInfo(self):
-        return self._format_info(self.getSystemInfo(), 'System information')
+    def get_formatted_system_info(self):
+        return self._format_info(self.get_system_info(), 'System information')
 
-    def getFormattedDependencyVersionInfo(self):
-        return self._format_info(self.getDependencyVersionInfo(),
+    def get_formatted_dependency_version_info(self):
+        return self._format_info(self.get_dependency_version_info(),
                                  'Dependency versions')
 
-    def getFormattedPackageInfo(self):
-        return self._format_info(self.getPackageInfo(),
+    def get_formatted_package_info(self):
+        return self._format_info(self.get_package_info(),
                                  'biom-format package information')
 
-    def getSystemInfo(self):
+    def get_system_info(self):
         return (("Platform", platform),
                 ("Python/GCC version", python_version.replace('\n', ' ')),
                 ("Python executable", executable))
 
-    def getDependencyVersionInfo(self):
+    def get_dependency_version_info(self):
         not_installed_msg = "Not installed"
 
         try:
@@ -85,7 +87,7 @@ class InstallationInformer(Command):
                 ("NumPy version", numpy_lib_version),
                 ("SciPy version", scipy_lib_version))
 
-    def getPackageInfo(self):
+    def get_package_info(self):
         import_error_msg = ("ERROR: Can't find the BIOM library code (or "
                             "numpy) - is it installed and in your "
                             "$PYTHONPATH?")

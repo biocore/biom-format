@@ -1,51 +1,49 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
-import h5py
 import os
-from biom import __version__
-from numpy import array, nan
 from StringIO import StringIO
 import json
-from biom.unit_test import TestCase,main
-from biom.parse import (parse_biom_table_json, parse_biom_table,
-        parse_classic_table_to_rich_table,
-        convert_biom_to_table, convert_table_to_biom,
-        parse_classic_table, generatedby, MetadataMap,
-        parse_biom_table_hdf5)
-
-from biom.table import Table
-from biom.exception import BiomParseException
+from biom import __version__
+import h5py
+from numpy import array
+import numpy.testing as npt
+from unittest import TestCase, main
+from biom.parse import (parse_biom_table_json, parse_classic_table,
+                        generatedby, MetadataMap, parse_biom_table_hdf5)
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Justin Kuczynski","Daniel McDonald", "Adam Robbins-Pianka"]
+__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Adam Robbins-Pianka"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Justin Kuczynski"
 __email__ = "justinak@gmail.com"
 
+
 class ParseTests(TestCase):
+
     """Tests of parse functions"""
 
     def setUp(self):
         """define some top-level data"""
         self.legacy_otu_table1 = legacy_otu_table1
         self.otu_table1 = otu_table1
-        self.otu_table1_floats=otu_table1_floats
+        self.otu_table1_floats = otu_table1_floats
         self.files_to_remove = []
         self.biom_minimal_sparse = biom_minimal_sparse
 
         self.classic_otu_table1_w_tax = classic_otu_table1_w_tax.split('\n')
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
-        self.classic_table_with_complex_metadata = classic_table_with_complex_metadata.split('\n')
+        self.classic_table_with_complex_metadata = \
+            classic_table_with_complex_metadata.split('\n')
 
     def test_parse_biom_table_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
@@ -55,10 +53,11 @@ class ParseTests(TestCase):
         t = parse_biom_table_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
-        self.assertEqual(t.SampleIds, ('Sample1', 'Sample2', 'Sample3',
-                                       'Sample4', 'Sample5', 'Sample6'))
-        self.assertEqual(t.ObservationIds, ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
-                                            'GG_OTU_4', 'GG_OTU_5'))
+        self.assertEqual(t.sample_ids, ('Sample1', 'Sample2', 'Sample3',
+                                        'Sample4', 'Sample5', 'Sample6'))
+        self.assertEqual(t.observation_ids, ('GG_OTU_1', 'GG_OTU_2',
+                                             'GG_OTU_3', 'GG_OTU_4',
+                                             'GG_OTU_5'))
         exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
                                      u'p__Proteobacteria',
                                      u'c__Gammaproteobacteria',
@@ -94,7 +93,7 @@ class ParseTests(TestCase):
                                      u'f__Enterobacteriaceae',
                                      u'g__Escherichia',
                                      u's__']})
-        self.assertEqual(t.ObservationMetadata, exp_obs_md)
+        self.assertEqual(t.observation_metadata, exp_obs_md)
 
         exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
                         u'BarcodeSequence': u'CGCTTATCGAGA',
@@ -120,22 +119,22 @@ class ParseTests(TestCase):
                         u'BarcodeSequence': u'CTAACTACCAAT',
                         u'Description': u'human skin',
                         u'BODY_SITE': u'skin'})
-        self.assertEqual(t.SampleMetadata, exp_samp_md)
+        self.assertEqual(t.sample_metadata, exp_samp_md)
 
         exp = [array([0., 0., 1., 0., 0., 0.]),
                array([5., 1., 0., 2., 3., 1.]),
                array([0., 0., 1., 4., 0., 2.]),
                array([2., 1., 1., 0., 0., 1.]),
                array([0., 1., 1., 0., 0., 0.])]
-        self.assertEqual(list(t.iterObservationData()), exp)
+        npt.assert_equal(list(t.iter_observation_data()), exp)
 
     def test_generatedby(self):
         """get a generatedby string"""
         exp = "BIOM-Format %s" % __version__
         obs = generatedby()
-        self.assertEqual(obs,exp)
+        self.assertEqual(obs, exp)
 
-    def test_MetadataMap(self):
+    def test_metadata_map(self):
         """MetadataMap functions as expected
 
         This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
@@ -143,22 +142,22 @@ class ParseTests(TestCase):
         port it to the BIOM Format project (and keep it under BIOM's BSD
         license).
         """
-        s1 = ['#sample\ta\tb', '#comment line to skip',\
+        s1 = ['#sample\ta\tb', '#comment line to skip',
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
-        exp = ([['x','y','z'],['i','j','k']],\
-               ['sample','a','b'],\
-               ['comment line to skip','more skip'])
-        exp = {'x':{'a':'y','b':'z'},'i':{'a':'j','b':'k'}}
-        obs = MetadataMap.fromFile(s1)
+        exp = ([['x', 'y', 'z'], ['i', 'j', 'k']],
+               ['sample', 'a', 'b'],
+               ['comment line to skip', 'more skip'])
+        exp = {'x': {'a': 'y', 'b': 'z'}, 'i': {'a': 'j', 'b': 'k'}}
+        obs = MetadataMap.from_file(s1)
         self.assertEqual(obs, exp)
 
-        #check that we strip double quotes by default
-        s2 = ['#sample\ta\tb', '#comment line to skip',\
+        # check that we strip double quotes by default
+        s2 = ['#sample\ta\tb', '#comment line to skip',
               '"x "\t" y "\t z ', ' ', '"#more skip"', 'i\t"j"\tk']
-        obs = MetadataMap.fromFile(s2)
+        obs = MetadataMap.from_file(s2)
         self.assertEqual(obs, exp)
 
-    def test_MetadataMap_w_map_fs(self):
+    def test_metadata_map_w_map_fs(self):
         """MetadataMap functions as expected w process_fns
 
         This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
@@ -166,17 +165,17 @@ class ParseTests(TestCase):
         port it to the BIOM Format project (and keep it under BIOM's BSD
         license).
         """
-        s1 = ['#sample\ta\tb', '#comment line to skip',\
+        s1 = ['#sample\ta\tb', '#comment line to skip',
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
-        exp = ([['x','y','z'],['i','j','k']],\
-               ['sample','a','b'],\
-               ['comment line to skip','more skip'])
-        exp = {'x':{'a':'y','b':'zzz'},'i':{'a':'j','b':'kkk'}}
-        process_fns = {'b': lambda x: x*3}
-        obs = MetadataMap.fromFile(s1,process_fns=process_fns)
+        exp = ([['x', 'y', 'z'], ['i', 'j', 'k']],
+               ['sample', 'a', 'b'],
+               ['comment line to skip', 'more skip'])
+        exp = {'x': {'a': 'y', 'b': 'zzz'}, 'i': {'a': 'j', 'b': 'kkk'}}
+        process_fns = {'b': lambda x: x * 3}
+        obs = MetadataMap.from_file(s1, process_fns=process_fns)
         self.assertEqual(obs, exp)
 
-    def test_MetadataMap_w_header(self):
+    def test_metadata_map_w_header(self):
         """MetadataMap functions as expected w user-provided header
 
         This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
@@ -188,36 +187,36 @@ class ParseTests(TestCase):
         # header line in file
         s1 = ['#comment line to skip',
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
-        exp = ([['x','y','z'],['i','j','k']],
-               ['sample','a','b'],\
-               ['comment line to skip','more skip'])
-        exp = {'x':{'a':'y','b':'z'},'i':{'a':'j','b':'k'}}
-        header = ['sample','a','b']
-        obs = MetadataMap.fromFile(s1,header=header)
+        exp = ([['x', 'y', 'z'], ['i', 'j', 'k']],
+               ['sample', 'a', 'b'],
+               ['comment line to skip', 'more skip'])
+        exp = {'x': {'a': 'y', 'b': 'z'}, 'i': {'a': 'j', 'b': 'k'}}
+        header = ['sample', 'a', 'b']
+        obs = MetadataMap.from_file(s1, header=header)
         self.assertEqual(obs, exp)
 
         # number of user-provided headers is fewer than number of columns, and
         # no header line in file
         s1 = ['#comment line to skip',
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
-        exp = ([['x','y','z'],['i','j','k']],
-               ['sample','a'],\
-               ['comment line to skip','more skip'])
-        exp = {'x':{'a':'y'},'i':{'a':'j'}}
-        header = ['sample','a']
-        obs = MetadataMap.fromFile(s1,header=header)
+        exp = ([['x', 'y', 'z'], ['i', 'j', 'k']],
+               ['sample', 'a'],
+               ['comment line to skip', 'more skip'])
+        exp = {'x': {'a': 'y'}, 'i': {'a': 'j'}}
+        header = ['sample', 'a']
+        obs = MetadataMap.from_file(s1, header=header)
         self.assertEqual(obs, exp)
 
         # number of user-provided headers is fewer than number of columns, and
         # header line in file (overridden by user-provided)
-        s1 = ['#sample\ta\tb', '#comment line to skip',\
+        s1 = ['#sample\ta\tb', '#comment line to skip',
               'x \t y \t z ', ' ', '#more skip', 'i\tj\tk']
-        exp = ([['x','y','z'],['i','j','k']],
-               ['sample','a'],\
-               ['comment line to skip','more skip'])
-        exp = {'x':{'a':'y'},'i':{'a':'j'}}
-        header = ['sample','a']
-        obs = MetadataMap.fromFile(s1,header=header)
+        exp = ([['x', 'y', 'z'], ['i', 'j', 'k']],
+               ['sample', 'a'],
+               ['comment line to skip', 'more skip'])
+        exp = {'x': {'a': 'y'}, 'i': {'a': 'j'}}
+        header = ['sample', 'a']
+        obs = MetadataMap.from_file(s1, header=header)
         self.assertEqual(obs, exp)
 
     def test_parse_biom_json(self):
@@ -226,12 +225,14 @@ class ParseTests(TestCase):
         # parse_biom_table methods
         tab1_fh = json.load(StringIO(self.biom_minimal_sparse))
         tab = parse_biom_table_json(tab1_fh)
-        self.assertEqual((tab.SampleIds),('Sample1','Sample2',
-            'Sample3','Sample4','Sample5','Sample6',))
-        self.assertEqual((tab.ObservationIds),('GG_OTU_1','GG_OTU_2',
-            'GG_OTU_3','GG_OTU_4','GG_OTU_5'))
-        self.assertEqual(tab.SampleMetadata,None)
-        self.assertEqual(tab.ObservationMetadata,None)
+        self.assertEqual((tab.sample_ids), ('Sample1', 'Sample2',
+                                            'Sample3', 'Sample4', 'Sample5',
+                                            'Sample6',))
+        self.assertEqual((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
+                                                 'GG_OTU_3', 'GG_OTU_4',
+                                                 'GG_OTU_5'))
+        self.assertEqual(tab.sample_metadata, None)
+        self.assertEqual(tab.observation_metadata, None)
 
     def test_parse_biom_table_str(self):
         """tests for parse_biom_table_str"""
@@ -247,66 +248,90 @@ class ParseTests(TestCase):
         license).
         """
         input = legacy_otu_table1.splitlines()
-        samp_ids = ['Fing','Key','NA']
-        obs_ids = ['0','1','7','3','4']
-        metadata = ['Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium', 'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillales; Lactobacillales; Streptococcaceae; Streptococcus','Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Corynebacteriaceae','Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Staphylococcaceae','Bacteria; Cyanobacteria; Chloroplasts; vectors']
+        samp_ids = ['Fing', 'Key', 'NA']
+        obs_ids = ['0', '1', '7', '3', '4']
+        metadata = [
+            'Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; '
+            'Propionibacterium',
+            'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillal'
+            'es; Lactobacillales; Streptococcaceae; Streptococcus',
+            'Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Coryneb'
+            'acteriaceae',
+            'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Staphylococca'
+            'ceae',
+            'Bacteria; Cyanobacteria; Chloroplasts; vectors']
         md_name = 'Consensus Lineage'
-        data = array([[19111,44536,42],
-                      [1216,3500,6],
-                      [1803,1184,2],
-                      [1722,4903,17],
-                      [589,2074,34]])
+        data = array([[19111, 44536, 42],
+                      [1216, 3500, 6],
+                      [1803, 1184, 2],
+                      [1722, 4903, 17],
+                      [589, 2074, 34]])
 
-        exp = (samp_ids,obs_ids,data,metadata,md_name)
-        obs = parse_classic_table(input,dtype=int)
-        self.assertEqual(obs, exp)
+        exp = (samp_ids, obs_ids, data, metadata, md_name)
+        obs = parse_classic_table(input, dtype=int)
+        npt.assert_equal(obs, exp)
 
 legacy_otu_table1 = """# some comment goes here
 #OTU ID	Fing	Key	NA	Consensus Lineage
-0	19111	44536	42	Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium
+0	19111	44536	42	Bacteria; Actinobacteria; Actinobacteridae; Propioniba\
+cterineae; Propionibacterium
 
-1	1216	3500	6	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillales; Lactobacillales; Streptococcaceae; Streptococcus
-7	1803	1184	2	Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Corynebacteriaceae
-3	1722	4903	17	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Staphylococcaceae
+1	1216	3500	6	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; La\
+ctobacillales; Lactobacillales; Streptococcaceae; Streptococcus
+7	1803	1184	2	Bacteria; Actinobacteria; Actinobacteridae; Gordoniace\
+ae; Corynebacteriaceae
+3	1722	4903	17	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; St\
+aphylococcaceae
 4	589	2074	34	Bacteria; Cyanobacteria; Chloroplasts; vectors
 """
 
 otu_table1 = """# Some comment
 
 OTU ID	Fing	Key	NA	Consensus Lineage
-0	19111	44536	42	Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium
+0	19111	44536	42	Bacteria; Actinobacteria; Actinobacteridae; Propioniba\
+cterineae; Propionibacterium
 # some other comment
-1	1216	3500	6	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillales; Lactobacillales; Streptococcaceae; Streptococcus
-7	1803	1184	2	Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Corynebacteriaceae
+1	1216	3500	6	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; La\
+ctobacillales; Lactobacillales; Streptococcaceae; Streptococcus
+7	1803	1184	2	Bacteria; Actinobacteria; Actinobacteridae; Gordoniace\
+ae; Corynebacteriaceae
 # comments
 #    everywhere!
-3	1722	4903	17	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Staphylococcaceae
+3	1722	4903	17	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; St\
+aphylococcaceae
 4	589	2074	34	Bacteria; Cyanobacteria; Chloroplasts; vectors
 """
 
 otu_table1_floats = """# Some comment
 
 OTU ID	Fing	Key	NA	Consensus Lineage
-0	19111.0	44536.0	42.0	Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; Propionibacterium
+0	19111.0	44536.0	42.0	Bacteria; Actinobacteria; Actinobacteridae; Propio\
+nibacterineae; Propionibacterium
 # some other comment
-1	1216.0	3500.0	6.0	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillales; Lactobacillales; Streptococcaceae; Streptococcus
-7	1803.0	1184.0	2.0	Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Corynebacteriaceae
+1	1216.0	3500.0	6.0	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; La\
+ctobacillales; Lactobacillales; Streptococcaceae; Streptococcus
+7	1803.0	1184.0	2.0	Bacteria; Actinobacteria; Actinobacteridae; Gordoniace\
+ae; Corynebacteriaceae
 # comments
 #    everywhere!
-3	1722.1	4903.2	17	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Staphylococcaceae
+3	1722.1	4903.2	17	Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; St\
+aphylococcaceae
 4	589.6	2074.4	34.5	Bacteria; Cyanobacteria; Chloroplasts; vectors
 """
 
-classic_table_with_complex_metadata="""# some comment
+classic_table_with_complex_metadata = """# some comment
 #OTU ID	sample1	sample2	KEGG_Pathways
 K05842	1.0	3.5	rank1A; rank2A|rank1B; rank2B
 K05841	2.0	4.5	Environmental Information Processing;
 K00508	0.0	0.0	Metabolism; Lipid Metabolism; Linoleic acid metabolism
-K00500	0.5	0.5	Metabolism; Amino Acid Metabolism; Phenylalanine metabolism|Metabolism; Amino Acid Metabolism; Phenylalanine, tyrosine and tryptophan biosynthesis
-K00507	0.0	0.0	Metabolism; Lipid Metabolism; Biosynthesis of unsaturated fatty acids|Organismal Systems; Endocrine System; PPAR signaling pathway
+K00500	0.5	0.5	Metabolism; Amino Acid Metabolism; Phenylalanine metabolism|Me\
+tabolism; Amino Acid Metabolism; Phenylalanine, tyrosine and tryptophan biosyn\
+thesis
+K00507	0.0	0.0	Metabolism; Lipid Metabolism; Biosynthesis of unsaturated fatt\
+y acids|Organismal Systems; Endocrine System; PPAR signaling pathway
 """
 
-biom_minimal_sparse="""
+biom_minimal_sparse = """
     {
         "id":null,
         "format": "Biological Observation Matrix v0.9",
@@ -352,424 +377,737 @@ biom_minimal_sparse="""
 """
 
 classic_otu_table1_w_tax = """#Full OTU Counts
-#OTU ID	PC.354	PC.355	PC.356	PC.481	PC.593	PC.607	PC.634	PC.635	PC.636	Consensus Lineage
-0	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-1	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-2	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Porphyromonadaceae;Parabacteroides
-3	2	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
-4	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-5	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-6	0	0	0	0	0	0	0	1	0	Root;Bacteria;Actinobacteria;Actinobacteria
-7	0	0	2	0	0	0	0	0	2	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-8	1	1	0	2	4	0	0	0	0	Root;Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lactobacillus
-9	0	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+#OTU ID	PC.354	PC.355	PC.356	PC.481	PC.593	PC.607	PC.634	PC.635	PC.636\
+\tConsensus Lineage
+0	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+1	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+2	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Porphyromonadaceae;Parabacteroides
+3	2	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+4	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+5	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+6	0	0	0	0	0	0	0	1	0	Root;Bacteria;Actinobacteria;Actinobac\
+teria
+7	0	0	2	0	0	0	0	0	2	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+8	1	1	0	2	4	0	0	0	0	Root;Bacteria;Firmicutes;Bacilli;Lacto\
+bacillales;Lactobacillaceae;Lactobacillus
+9	0	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 10	0	1	0	0	0	0	0	0	0	Root;Bacteria
-11	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
+11	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
 12	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes
-13	1	0	0	1	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-14	0	0	1	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+13	1	0	0	1	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+14	0	0	1	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 15	0	0	0	0	1	0	0	0	0	Root;Bacteria
-16	1	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+16	1	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 17	0	0	0	1	0	0	4	10	37	Root;Bacteria;Bacteroidetes
-18	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+18	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 19	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes
-20	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+20	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 21	0	0	0	0	0	0	2	3	2	Root;Bacteria;Bacteroidetes
-22	0	0	0	0	2	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-23	14	1	14	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lactobacillus
-24	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-25	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+22	0	0	0	0	2	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+23	14	1	14	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Bacilli;Lacto\
+bacillales;Lactobacillaceae;Lactobacillus
+24	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+25	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
 26	0	0	0	0	0	0	0	1	1	Root;Bacteria;Bacteroidetes
 27	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes
-28	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-29	6	0	4	0	2	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+28	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+29	6	0	4	0	2	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 30	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes
-31	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-32	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-33	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+31	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+32	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+33	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 34	0	0	0	0	0	0	8	10	2	Root;Bacteria
-35	1	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-36	1	0	1	0	0	0	0	1	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-37	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-38	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-39	0	0	0	0	0	0	0	1	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Rikenellaceae;Alistipes
-40	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-41	0	0	1	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+35	1	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+36	1	0	1	0	0	0	0	1	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+37	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+38	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+39	0	0	0	0	0	0	0	1	0	Root;Bacteria;Bacteroidetes;Bacteroid\
+etes;Bacteroidales;Rikenellaceae;Alistipes
+40	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+41	0	0	1	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 42	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes
-43	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-44	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-45	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Erysipelotrichi;Erysipelotrichales;Erysipelotrichaceae;Coprobacillus
+43	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+44	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+45	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Erysipelotric\
+hi;Erysipelotrichales;Erysipelotrichaceae;Coprobacillus
 46	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes
-47	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-48	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-49	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-50	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-51	0	1	0	0	0	0	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
-52	0	2	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-53	0	0	0	0	0	0	2	0	1	Root;Bacteria;Proteobacteria;Deltaproteobacteria
-54	0	0	0	0	0	0	5	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Porphyromonadaceae;Parabacteroides
-55	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Rikenellaceae;Alistipes
+47	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+48	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+49	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+50	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+51	0	1	0	0	0	0	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
+52	0	2	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+53	0	0	0	0	0	0	2	0	1	Root;Bacteria;Proteobacteria;Deltaprot\
+eobacteria
+54	0	0	0	0	0	0	5	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Porphyromonadaceae;Parabacteroides
+55	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Rikenellaceae;Alistipes
 56	0	0	0	0	0	1	0	0	0	Root;Bacteria;Bacteroidetes
 57	0	0	0	0	0	0	0	1	0	Root;Bacteria
-58	1	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-59	0	0	0	0	0	0	0	0	1	Root;Bacteria;Deferribacteres;Deferribacteres;Deferribacterales;Deferribacteraceae;Mucispirillum
-60	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-61	0	0	1	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-62	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-63	1	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-64	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-65	0	0	0	6	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-66	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-67	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-68	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+58	1	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+59	0	0	0	0	0	0	0	0	1	Root;Bacteria;Deferribacteres;Deferrib\
+acteres;Deferribacterales;Deferribacteraceae;Mucispirillum
+60	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+61	0	0	1	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+62	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+63	1	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+64	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+65	0	0	0	6	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+66	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+67	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+68	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 69	0	0	1	0	0	0	0	0	0	Root;Bacteria
-70	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-71	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-72	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+70	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+71	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+72	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 73	0	0	0	0	0	5	0	0	0	Root;Bacteria;Bacteroidetes
-74	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+74	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 75	1	0	1	0	0	0	0	0	0	Root;Bacteria;Bacteroidetes
-76	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-77	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-78	1	0	1	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-79	2	3	8	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-80	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Porphyromonadaceae;Parabacteroides
-81	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
-82	0	0	0	0	0	2	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-83	0	0	0	1	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-84	1	0	0	0	0	0	0	2	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae;Ruminococcus
-85	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Rikenellaceae;Alistipes
+76	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+77	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+78	1	0	1	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+79	2	3	8	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+80	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Porphyromonadaceae;Parabacteroides
+81	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+82	0	0	0	0	0	2	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+83	0	0	0	1	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+84	1	0	0	0	0	0	0	2	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae;Ruminococcus
+85	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Rikenellaceae;Alistipes
 86	0	0	0	0	0	0	0	1	0	Root;Bacteria
-87	0	0	1	0	0	2	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+87	0	0	1	0	0	2	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 88	0	0	0	0	0	0	0	1	0	Root;Bacteria
-89	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-90	0	0	0	9	0	0	3	0	0	Root;Bacteria;Firmicutes;Erysipelotrichi;Erysipelotrichales;Erysipelotrichaceae;Turicibacter
-91	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Butyrivibrio
-92	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+89	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+90	0	0	0	9	0	0	3	0	0	Root;Bacteria;Firmicutes;Erysipelotric\
+hi;Erysipelotrichales;Erysipelotrichaceae;Turicibacter
+91	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Butyrivibrio
+92	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 93	0	0	0	0	0	0	2	1	0	Root;Bacteria;Bacteroidetes
-94	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+94	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 95	0	0	0	2	0	0	0	0	0	Root;Bacteria;Bacteroidetes
-96	0	0	0	1	0	1	0	1	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
+96	0	0	0	1	0	1	0	1	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
 97	0	0	0	0	0	1	0	0	0	Root;Bacteria
 98	0	0	0	0	0	0	0	1	0	Root;Bacteria
-99	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+99	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 100	0	0	0	1	0	0	0	0	0	Root;Bacteria
-101	0	0	0	3	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-102	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-103	0	1	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-104	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-105	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-106	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-107	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-108	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Incertae Sedis XIII;Anaerovorax
-109	0	0	0	1	0	0	1	5	2	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Rikenellaceae;Alistipes
-110	0	0	0	0	0	2	0	0	0	Root;Bacteria;Actinobacteria;Actinobacteria;Coriobacteridae;Coriobacteriales;Coriobacterineae;Coriobacteriaceae;Olsenella
-111	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
-112	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
+101	0	0	0	3	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+102	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+103	0	1	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+104	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+105	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+106	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+107	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+108	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Incertae Sedis XIII;Anaerovorax
+109	0	0	0	1	0	0	1	5	2	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Rikenellaceae;Alistipes
+110	0	0	0	0	0	2	0	0	0	Root;Bacteria;Actinobacteria;Actinobac\
+teria;Coriobacteridae;Coriobacteriales;Coriobacterineae;Coriobacteriaceae;Olse\
+nella
+111	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
+112	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
 113	0	0	0	0	0	1	0	0	0	Root;Bacteria
 114	0	0	0	0	0	1	0	0	0	Root;Bacteria
 115	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes
-116	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
-117	1	0	2	0	0	6	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-118	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-119	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+116	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+117	1	0	2	0	0	6	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+118	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+119	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 120	1	3	1	2	1	9	2	4	5	Root;Bacteria;Bacteroidetes
-121	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-122	0	0	0	1	0	2	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-123	0	0	0	0	0	0	1	0	0	Root;Bacteria;Actinobacteria;Actinobacteria;Coriobacteridae;Coriobacteriales;Coriobacterineae;Coriobacteriaceae
-124	0	0	0	0	0	0	1	0	0	Root;Bacteria;Actinobacteria;Actinobacteria;Coriobacteridae;Coriobacteriales;Coriobacterineae;Coriobacteriaceae
+121	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+122	0	0	0	1	0	2	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+123	0	0	0	0	0	0	1	0	0	Root;Bacteria;Actinobacteria;Actinobac\
+teria;Coriobacteridae;Coriobacteriales;Coriobacterineae;Coriobacteriaceae
+124	0	0	0	0	0	0	1	0	0	Root;Bacteria;Actinobacteria;Actinobac\
+teria;Coriobacteridae;Coriobacteriales;Coriobacterineae;Coriobacteriaceae
 125	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes
 126	0	0	2	0	0	0	0	1	0	Root;Bacteria
-127	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-128	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
+127	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+128	0	0	0	0	0	0	1	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
 129	0	0	0	1	0	0	0	0	0	Root;Bacteria
-130	0	0	0	0	5	2	0	0	0	Root;Bacteria;Proteobacteria;Epsilonproteobacteria;Campylobacterales;Helicobacteraceae;Helicobacter
-131	0	0	1	3	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+130	0	0	0	0	5	2	0	0	0	Root;Bacteria;Proteobacteria;Epsilonpr\
+oteobacteria;Campylobacterales;Helicobacteraceae;Helicobacter
+131	0	0	1	3	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
 132	0	0	0	0	1	0	0	0	0	Root;Bacteria
 133	0	0	1	0	0	0	0	0	0	Root;Bacteria
-134	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
-135	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-136	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+134	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
+135	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+136	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
 137	0	0	0	0	0	0	0	1	0	Root;Bacteria
-138	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-139	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+138	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+139	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 140	0	0	0	0	0	0	1	3	0	Root;Bacteria
-141	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-142	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+141	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+142	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 143	0	0	1	0	0	0	0	0	0	Root;Bacteria
-144	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-145	0	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-146	1	0	0	0	2	0	2	0	3	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-147	0	1	0	1	1	0	0	0	3	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+144	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+145	0	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+146	1	0	0	0	2	0	2	0	3	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+147	0	1	0	1	1	0	0	0	3	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 148	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes
-149	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-150	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-151	0	0	0	1	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-152	0	0	0	1	0	0	1	2	19	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
-153	0	2	1	2	0	0	1	1	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
-154	2	18	0	1	0	0	21	4	4	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
-155	0	0	0	0	0	5	9	5	3	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Rikenellaceae;Alistipes
-156	0	0	1	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-157	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-158	1	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+149	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+150	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+151	0	0	0	1	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+152	0	0	0	1	0	0	1	2	19	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
+153	0	2	1	2	0	0	1	1	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+154	2	18	0	1	0	0	21	4	4	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
+155	0	0	0	0	0	5	9	5	3	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Rikenellaceae;Alistipes
+156	0	0	1	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+157	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+158	1	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 159	0	0	0	0	0	0	0	1	1	Root;Bacteria;Bacteroidetes
-160	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-161	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-162	0	0	0	0	0	3	5	2	6	Root;Bacteria;Deferribacteres;Deferribacteres;Deferribacterales;Deferribacteraceae;Mucispirillum
+160	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+161	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+162	0	0	0	0	0	3	5	2	6	Root;Bacteria;Deferribacteres;Deferrib\
+acteres;Deferribacterales;Deferribacteraceae;Mucispirillum
 163	0	0	0	0	0	0	0	0	1	Root;Bacteria
-164	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-165	2	1	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+164	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+165	2	1	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 166	0	0	0	0	0	0	0	1	0	Root;Bacteria
-167	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-168	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-169	0	2	0	7	0	0	0	2	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-170	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-171	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-172	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+167	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+168	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+169	0	2	0	7	0	0	0	2	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+170	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+171	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+172	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
 173	0	0	0	0	0	1	0	0	0	Root;Bacteria
-174	1	0	0	0	10	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Peptostreptococcaceae;Peptostreptococcaceae Incertae Sedis
+174	1	0	0	0	10	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Peptostreptococcaceae;Peptostreptococcaceae Incertae Sedis
 175	0	0	0	0	1	0	0	0	0	Root;Bacteria;Bacteroidetes
-176	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+176	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 177	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia
-178	0	0	0	2	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-179	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-180	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-181	1	4	2	6	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+178	0	0	0	2	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+179	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+180	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+181	1	4	2	6	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 182	0	0	0	0	0	1	0	0	0	Root;Bacteria
 183	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia
 184	0	0	0	1	0	0	3	1	0	Root;Bacteria;Bacteroidetes
-185	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-186	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-187	0	1	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-188	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-189	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+185	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+186	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+187	0	1	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+188	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+189	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 190	0	0	0	0	0	0	0	1	0	Root;Bacteria
 191	2	1	10	2	24	0	0	1	1	Root;Bacteria
-192	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Bacilli;Lactobacillales;Streptococcaceae;Streptococcus
-193	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Butyrivibrio
-194	0	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae;Acetanaerobacterium
+192	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Bacilli;Lacto\
+bacillales;Streptococcaceae;Streptococcus
+193	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Butyrivibrio
+194	0	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae;Acetanaerobacterium
 195	0	0	0	0	0	1	0	0	0	Root;Bacteria
-196	0	0	0	0	0	1	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+196	0	0	0	0	0	1	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 197	0	1	0	0	0	0	0	0	0	Root;Bacteria
-198	0	2	0	0	0	1	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales
+198	0	2	0	0	0	1	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales
 199	0	0	0	0	0	1	1	0	0	Root;Bacteria
-200	0	0	0	2	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-201	0	0	0	1	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-202	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-203	0	2	2	4	0	5	1	5	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Rikenellaceae;Alistipes
-204	1	4	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-205	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-206	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-207	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-208	0	2	0	2	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-209	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+200	0	0	0	2	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+201	0	0	0	1	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+202	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+203	0	2	2	4	0	5	1	5	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Rikenellaceae;Alistipes
+204	1	4	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+205	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+206	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+207	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+208	0	2	0	2	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+209	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 210	0	0	0	0	0	0	0	0	1	Root;Bacteria
-211	1	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-212	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+211	1	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+212	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 213	0	0	0	0	0	0	0	2	0	Root;Bacteria;Firmicutes
-214	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-215	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+214	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+215	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 216	0	0	0	0	0	0	0	1	0	Root;Bacteria;Bacteroidetes
 217	0	0	0	0	0	2	0	1	0	Root;Bacteria
 218	0	0	0	0	9	1	0	0	0	Root;Bacteria;Bacteroidetes
 219	0	0	0	0	1	0	0	0	0	Root;Bacteria
-220	1	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+220	1	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 221	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes
-222	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-223	0	0	0	0	0	0	0	2	2	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-224	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+222	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+223	0	0	0	0	0	0	0	2	2	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+224	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 225	0	2	1	0	0	0	0	0	0	Root;Bacteria;Bacteroidetes
-226	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+226	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 227	0	1	2	0	9	1	1	1	3	Root;Bacteria;Bacteroidetes
-228	16	0	0	0	12	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-229	0	0	0	0	0	1	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Incertae Sedis XIII
-230	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-231	0	19	2	0	2	0	3	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-232	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+228	16	0	0	0	12	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+229	0	0	0	0	0	1	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Incertae Sedis XIII
+230	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+231	0	19	2	0	2	0	3	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+232	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 233	0	0	0	0	1	0	0	0	0	Root;Bacteria;Bacteroidetes
-234	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lactobacillus
-235	0	1	1	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-236	0	0	0	0	0	2	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales
-237	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-238	0	0	0	0	0	0	0	1	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Rikenellaceae;Alistipes
+234	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Bacilli;Lacto\
+bacillales;Lactobacillaceae;Lactobacillus
+235	0	1	1	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+236	0	0	0	0	0	2	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales
+237	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+238	0	0	0	0	0	0	0	1	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Rikenellaceae;Alistipes
 239	0	0	0	0	0	1	0	0	0	Root;Bacteria
 240	0	0	0	0	0	1	0	0	0	Root;Bacteria
-241	0	0	0	0	0	0	2	0	0	Root;Bacteria;TM7;TM7_genera_incertae_sedis
-242	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-243	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+241	0	0	0	0	0	0	2	0	0	Root;Bacteria;TM7;TM7_genera_incertae_\
+sedis
+242	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+243	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 244	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes
-245	0	0	0	1	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+245	0	0	0	1	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 246	0	0	0	0	0	0	0	1	0	Root;Bacteria
 247	0	0	1	0	0	0	0	0	0	Root;Bacteria;Bacteroidetes
-248	1	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Bacilli;Lactobacillales;Lactobacillaceae;Lactobacillus
+248	1	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Bacilli;Lacto\
+bacillales;Lactobacillaceae;Lactobacillus
 249	1	0	0	0	0	0	0	0	0	Root;Bacteria
-250	1	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-251	0	0	0	1	4	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-252	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-253	0	0	0	0	2	0	0	5	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-254	11	13	6	13	2	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-255	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+250	1	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+251	0	0	0	1	4	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+252	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+253	0	0	0	0	2	0	0	5	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+254	11	13	6	13	2	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+255	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 256	0	0	0	0	0	0	1	0	0	Root;Bacteria
-257	0	0	0	0	0	0	5	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Rikenellaceae;Alistipes
-258	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-259	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-260	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-261	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-262	0	1	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Bryantella
+257	0	0	0	0	0	0	5	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Rikenellaceae;Alistipes
+258	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+259	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+260	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+261	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+262	0	1	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Bryantella
 263	0	0	0	0	1	0	0	0	0	Root;Bacteria
-264	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-265	0	0	0	0	0	2	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-266	0	0	0	2	0	0	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Rikenellaceae;Alistipes
+264	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+265	0	0	0	0	0	2	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+266	0	0	0	2	0	0	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Rikenellaceae;Alistipes
 267	1	0	0	5	17	20	0	0	0	Root;Bacteria
-268	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-269	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
-270	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-271	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-272	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
+268	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+269	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+270	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+271	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+272	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
 273	0	0	0	0	0	0	1	0	0	Root;Bacteria
-274	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-275	0	0	0	0	0	0	1	0	0	Root;Bacteria;Verrucomicrobia;Verrucomicrobiae;Verrucomicrobiales;Verrucomicrobiaceae;Akkermansia
-276	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
+274	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+275	0	0	0	0	0	0	1	0	0	Root;Bacteria;Verrucomicrobia;Verrucom\
+icrobiae;Verrucomicrobiales;Verrucomicrobiaceae;Akkermansia
+276	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
 277	1	0	0	0	0	0	0	0	0	Root;Bacteria
 278	0	0	0	0	0	1	0	0	0	Root;Bacteria
-279	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-280	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-281	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
-282	0	0	0	0	0	0	2	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Porphyromonadaceae;Parabacteroides
-283	0	0	0	0	0	0	2	1	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
-284	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-285	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+279	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+280	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+281	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+282	0	0	0	0	0	0	2	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Porphyromonadaceae;Parabacteroides
+283	0	0	0	0	0	0	2	1	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
+284	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+285	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 286	0	2	3	1	4	0	5	0	4	Root;Bacteria;Bacteroidetes
 287	0	0	0	0	0	0	1	1	1	Root;Bacteria;Bacteroidetes
-288	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-289	0	0	0	0	3	0	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
-290	0	0	0	0	0	0	0	0	2	Root;Bacteria;Firmicutes;Bacilli;Bacillales;Staphylococcaceae;Staphylococcus
+288	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+289	0	0	0	0	3	0	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
+290	0	0	0	0	0	0	0	0	2	Root;Bacteria;Firmicutes;Bacilli;Bacil\
+lales;Staphylococcaceae;Staphylococcus
 291	0	0	0	0	1	0	0	0	0	Root;Bacteria
-292	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-293	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-294	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-295	29	1	10	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-296	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-297	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-298	0	0	0	0	0	0	1	0	0	Root;Bacteria;Actinobacteria;Actinobacteria
-299	0	0	0	0	0	0	1	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+292	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+293	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+294	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+295	29	1	10	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+296	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+297	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+298	0	0	0	0	0	0	1	0	0	Root;Bacteria;Actinobacteria;Actinobac\
+teria
+299	0	0	0	0	0	0	1	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 300	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia
-301	0	0	0	0	0	0	2	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
+301	0	0	0	0	0	0	2	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
 302	0	0	0	0	0	1	0	0	0	Root;Bacteria
 303	0	0	0	0	0	0	0	0	1	Root;Bacteria
 304	0	0	0	0	0	0	0	1	0	Root;Bacteria;Bacteroidetes
-305	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+305	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 306	0	0	0	0	0	0	0	0	1	Root;Bacteria
-307	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-308	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae;Ruminococcaceae Incertae Sedis
-309	0	0	0	1	0	0	0	0	0	Root;Bacteria;Actinobacteria;Actinobacteria;Coriobacteridae;Coriobacteriales;Coriobacterineae;Coriobacteriaceae;Denitrobacterium
+307	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+308	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae;Ruminococcaceae Incertae Sedis
+309	0	0	0	1	0	0	0	0	0	Root;Bacteria;Actinobacteria;Actinobac\
+teria;Coriobacteridae;Coriobacteriales;Coriobacterineae;Coriobacteriaceae;Deni\
+trobacterium
 310	0	0	1	0	0	0	0	0	0	Root;Bacteria
-311	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-312	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-313	0	1	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Porphyromonadaceae;Parabacteroides
+311	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+312	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+313	0	1	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Porphyromonadaceae;Parabacteroides
 314	0	0	1	0	0	0	0	0	0	Root;Bacteria;Bacteroidetes
-315	1	3	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-316	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-317	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
+315	1	3	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+316	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+317	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
 318	0	0	0	0	0	1	0	0	0	Root;Bacteria;Proteobacteria
-319	0	2	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-320	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+319	0	2	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+320	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 321	0	0	0	0	0	0	0	0	1	Root;Bacteria
-322	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-323	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-324	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-325	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-326	0	0	0	0	4	0	0	0	2	Root;Bacteria;Firmicutes;Erysipelotrichi;Erysipelotrichales;Erysipelotrichaceae;Erysipelotrichaceae Incertae Sedis
+322	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+323	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+324	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+325	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+326	0	0	0	0	4	0	0	0	2	Root;Bacteria;Firmicutes;Erysipelotric\
+hi;Erysipelotrichales;Erysipelotrichaceae;Erysipelotrichaceae Incertae Sedis
 327	0	0	0	0	0	0	0	1	0	Root;Bacteria;Bacteroidetes
-328	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+328	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 329	2	2	0	1	0	0	0	0	0	Root;Bacteria;Bacteroidetes
 330	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes
 331	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes
-332	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-333	0	0	0	0	0	6	0	3	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-334	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-335	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+332	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+333	0	0	0	0	0	6	0	3	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+334	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+335	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 336	0	0	1	0	0	0	0	0	0	Root;Bacteria
-337	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+337	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 338	0	0	0	0	0	0	0	1	0	Root;Bacteria
-339	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-340	0	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-341	0	0	1	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+339	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+340	0	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+341	0	0	1	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 342	0	0	0	0	0	1	0	0	0	Root;Bacteria
-343	0	0	0	0	0	0	0	0	1	Root;Bacteria;Actinobacteria;Actinobacteria;Coriobacteridae;Coriobacteriales;Coriobacterineae;Coriobacteriaceae
-344	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-345	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-346	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+343	0	0	0	0	0	0	0	0	1	Root;Bacteria;Actinobacteria;Actinobac\
+teria;Coriobacteridae;Coriobacteriales;Coriobacterineae;Coriobacteriaceae
+344	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+345	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+346	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 347	0	0	0	1	0	0	0	0	0	Root;Bacteria
-348	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-349	0	0	0	0	0	0	1	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-350	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
+348	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+349	0	0	0	0	0	0	1	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+350	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
 351	0	0	0	0	2	2	1	4	1	Root;Bacteria;Bacteroidetes
-352	3	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-353	0	4	4	0	1	2	0	2	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-354	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+352	3	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+353	0	4	4	0	1	2	0	2	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+354	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 355	0	0	0	0	0	0	0	1	0	Root;Bacteria
-356	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-357	0	0	0	4	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+356	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+357	0	0	0	4	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 358	0	0	1	0	0	0	0	0	0	Root;Bacteria
-359	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-360	0	0	1	0	0	0	0	1	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-361	2	0	2	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-362	1	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-363	0	0	0	0	0	1	0	1	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Rikenellaceae
-364	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-365	0	0	0	0	0	2	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-366	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Roseburia
-367	0	0	0	0	1	0	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
-368	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+359	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+360	0	0	1	0	0	0	0	1	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+361	2	0	2	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+362	1	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+363	0	0	0	0	0	1	0	1	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Rikenellaceae
+364	1	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+365	0	0	0	0	0	2	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+366	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Roseburia
+367	0	0	0	0	1	0	0	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
+368	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 369	0	0	0	0	0	1	0	0	0	Root;Bacteria
-370	2	1	0	5	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-371	1	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+370	2	1	0	5	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+371	1	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 372	0	1	0	0	0	0	0	0	0	Root;Bacteria
-373	0	1	0	0	0	0	3	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Clostridiaceae;Clostridiaceae 1;Clostridium
-374	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-375	0	0	0	0	0	0	4	0	0	Root;Bacteria;Firmicutes;Erysipelotrichi;Erysipelotrichales;Erysipelotrichaceae;Erysipelotrichaceae Incertae Sedis
-376	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-377	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
+373	0	1	0	0	0	0	3	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Clostridiaceae;Clostridiaceae 1;Clostridium
+374	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+375	0	0	0	0	0	0	4	0	0	Root;Bacteria;Firmicutes;Erysipelotric\
+hi;Erysipelotrichales;Erysipelotrichaceae;Erysipelotrichaceae Incertae Sedis
+376	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+377	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
 378	0	0	0	0	0	0	0	0	1	Root;Bacteria;Bacteroidetes
-379	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Ruminococcaceae
-380	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Bacilli;Bacillales;Staphylococcaceae;Staphylococcus
-381	0	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-382	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-383	4	9	0	2	0	0	0	2	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-384	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-385	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Bacilli;Lactobacillales;Carnobacteriaceae;Carnobacteriaceae 1
+379	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Ruminococcaceae
+380	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Bacilli;Bacil\
+lales;Staphylococcaceae;Staphylococcus
+381	0	0	2	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+382	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+383	4	9	0	2	0	0	0	2	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+384	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+385	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Bacilli;Lacto\
+bacillales;Carnobacteriaceae;Carnobacteriaceae 1
 386	0	0	1	0	0	0	0	0	0	Root;Bacteria
-387	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-388	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+387	0	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+388	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 389	0	1	0	0	0	0	0	0	0	Root;Bacteria
-390	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+390	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 391	0	0	0	0	0	0	0	0	1	Root;Bacteria;Firmicutes
-392	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-393	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+392	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+393	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 394	0	0	1	0	0	0	0	0	0	Root;Bacteria
-395	1	1	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-396	2	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-397	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-398	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-399	0	0	0	0	0	0	13	0	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Bacteroidaceae;Bacteroides
-400	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-401	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-402	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-403	0	0	0	0	0	0	0	1	0	Root;Bacteria;Bacteroidetes;Bacteroidetes;Bacteroidales;Prevotellaceae
-404	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
-405	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-406	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-407	1	0	0	0	0	4	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
+395	1	1	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+396	2	0	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+397	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+398	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+399	0	0	0	0	0	0	13	0	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Bacteroidaceae;Bacteroides
+400	0	0	0	0	0	0	1	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+401	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+402	0	1	0	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+403	0	0	0	0	0	0	0	1	0	Root;Bacteria;Bacteroidetes;Bacteroide\
+tes;Bacteroidales;Prevotellaceae
+404	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae;Lachnospiraceae Incertae Sedis
+405	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+406	0	0	0	0	0	1	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+407	1	0	0	0	0	4	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
 408	1	5	3	2	0	0	0	0	1	Root;Bacteria;Bacteroidetes
 409	0	0	0	0	0	0	0	1	1	Root;Bacteria;Bacteroidetes
-410	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
-411	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+410	0	0	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
+411	0	0	0	1	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 412	0	0	0	0	2	0	0	0	0	Root;Bacteria;Bacteroidetes
-413	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales
-414	1	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales;Lachnospiraceae
+413	0	0	0	0	0	0	0	1	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales
+414	1	0	1	0	0	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales;Lachnospiraceae
 415	0	0	0	0	0	7	0	2	2	Root;Bacteria;Bacteroidetes
-416	0	1	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Clostridiales"""
+416	0	1	0	0	1	0	0	0	0	Root;Bacteria;Firmicutes;Clostridia;Cl\
+ostridiales"""
 
 classic_otu_table1_no_tax = """#Full OTU Counts
 #OTU ID	PC.354	PC.355	PC.356	PC.481	PC.593	PC.607	PC.634	PC.635	PC.636
@@ -1191,5 +1529,5 @@ classic_otu_table1_no_tax = """#Full OTU Counts
 415	0	0	0	0	0	7	0	2	2
 416	0	1	0	0	1	0	0	0	0"""
 
-if __name__ =='__main__':
+if __name__ == '__main__':
     main()

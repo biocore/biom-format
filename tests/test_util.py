@@ -1,18 +1,18 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from os.path import abspath, dirname, exists
 from tempfile import NamedTemporaryFile
 from biom.parse import parse_biom_table
-from biom.unit_test import TestCase, main
-from biom.util import (natsort, _natsort_key, flatten, unzip,
+from unittest import TestCase, main
+from biom.util import (natsort, flatten, unzip,
                        get_biom_project_dir, parse_biom_config_files,
                        compute_counts_per_sample_stats, safe_md5)
 
@@ -26,10 +26,12 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
+
 class UtilTests(TestCase):
+
     def setUp(self):
         self.biom_otu_table1_w_tax = parse_biom_table(biom_otu_table1_w_tax)
-    
+
     def test_natsort(self):
         """natsort should perform numeric comparisons on strings
 
@@ -40,40 +42,40 @@ class UtilTests(TestCase):
         """
         # string with alpha and numerics sort correctly
         s = 'sample1 sample2 sample11 sample12'.split()
-        self.assertEqual(natsort(s), 
-          'sample1 sample2 sample11 sample12'.split())
+        self.assertEqual(natsort(s),
+                         'sample1 sample2 sample11 sample12'.split())
         s.reverse()
-        self.assertEqual(natsort(s), 
-          'sample1 sample2 sample11 sample12'.split())
-        self.assertEqual(natsort(list('cba321')),list('123abc'))
+        self.assertEqual(natsort(s),
+                         'sample1 sample2 sample11 sample12'.split())
+        self.assertEqual(natsort(list('cba321')), list('123abc'))
 
         # strings with alpha only sort correctly
-        self.assertEqual(natsort(list('cdba')),list('abcd'))
+        self.assertEqual(natsort(list('cdba')), list('abcd'))
 
         # string of ints sort correctly
-        self.assertEqual(natsort(['11','2','1','0']),
-                               ['0','1','2','11'])
+        self.assertEqual(natsort(['11', '2', '1', '0']),
+                         ['0', '1', '2', '11'])
 
         # strings of floats sort correctly
-        self.assertEqual(natsort(['1.11','1.12','1.00','0.009']),
-                               ['0.009','1.00','1.11','1.12'])
+        self.assertEqual(natsort(['1.11', '1.12', '1.00', '0.009']),
+                         ['0.009', '1.00', '1.11', '1.12'])
 
         # string of ints sort correctly
-        self.assertEqual(natsort([('11','A'),('2','B'),('1','C'),('0','D')]),
-                            [('0','D'),('1','C'),('2','B'),('11','A')])
+        self.assertEqual(
+            natsort([('11', 'A'), ('2', 'B'), ('1', 'C'), ('0', 'D')]),
+            [('0', 'D'), ('1', 'C'), ('2', 'B'), ('11', 'A')])
 
     def test_unzip(self):
         """unzip(items) should be the inverse of zip(*items)
-        
+
         This method is ported from PyCogent (http://www.pycogent.org). PyCogent
         is a GPL project, but we obtained permission from the authors of this
         method to port it to the BIOM Format project (and keep it under BIOM's
         BSD license).
         """
         chars = [list('abcde'), list('ghijk')]
-        numbers = [[1,2,3,4,5], [0,0,0,0,0]]
+        numbers = [[1, 2, 3, 4, 5], [0, 0, 0, 0, 0]]
         strings = [["abcde", "fghij", "klmno"], ['xxxxx'] * 3]
-        empty = [[]]
 
         lists = [chars, numbers, strings]
         zipped = [zip(*i) for i in lists]
@@ -90,9 +92,9 @@ class UtilTests(TestCase):
         method to port it to the BIOM Format project (and keep it under BIOM's
         BSD license).
         """
-        self.assertEqual(flatten('abcdef'), list('abcdef')) #test identities
-        self.assertEqual(flatten([]), []) #test empty sequence
-        self.assertEqual(flatten(''), []) #test empty string
+        self.assertEqual(flatten('abcdef'), list('abcdef'))  # test identities
+        self.assertEqual(flatten([]), [])  # test empty sequence
+        self.assertEqual(flatten(''), [])  # test empty string
 
     def test_flatten(self):
         """flatten should remove one level of nesting from nested sequences
@@ -103,7 +105,7 @@ class UtilTests(TestCase):
         BSD license).
         """
         self.assertEqual(flatten(['aa', 'bb', 'cc']), list('aabbcc'))
-        self.assertEqual(flatten([1,[2,3], [[4, [5]]]]), [1, 2, 3, [4,[5]]])
+        self.assertEqual(flatten([1, [2, 3], [[4, [5]]]]), [1, 2, 3, [4, [5]]])
 
     def test_get_biom_project_dir(self):
         """Getting the biom project directory functions as expected.
@@ -123,11 +125,11 @@ class UtilTests(TestCase):
         # Biom-format on OS X. That should cause this test to fail as
         # actual will be path/to/Biom-format and expected will be
         # path/to/biom-format.) Note that we don't need to change anything
-        # in the get_biom_project_dir() function as if the 
+        # in the get_biom_project_dir() function as if the
         # file system is case insenstive, the case of the returned
         # string is irrelevant.
         case_insensitive_filesystem = \
-         exists(__file__.upper()) and exists(__file__.lower())
+            exists(__file__.upper()) and exists(__file__.lower())
 
         actual = get_biom_project_dir()
 
@@ -146,7 +148,7 @@ class UtilTests(TestCase):
             # Make both lowercase if the file system is case insensitive.
             actual = actual.lower()
             expected = expected.lower()
-        self.assertEqual(actual,expected)
+        self.assertEqual(actual, expected)
 
     def test_parse_biom_config_files(self):
         """parse_biom_config_files functions as expected.
@@ -159,7 +161,7 @@ class UtilTests(TestCase):
         fake_file1 = ['key1\tval1', 'key2 val2']
         fake_file2 = ['key2\tval3']
         actual = parse_biom_config_files([fake_file1, fake_file2])
-        expected = {'key1':'val1', 'key2':'val3'}
+        expected = {'key1': 'val1', 'key2': 'val3'}
         self.assertEqual(actual, expected)
 
         # Looking up a nonexistent value returns None.
@@ -167,7 +169,7 @@ class UtilTests(TestCase):
 
         # Empty dict on empty input.
         self.assertEqual(parse_biom_config_files([]), {})
-    
+
     def test_compute_counts_per_sample_stats(self):
         """compute_counts_per_sample_stats functions as expected
 
@@ -177,12 +179,12 @@ class UtilTests(TestCase):
         license).
         """
         actual = compute_counts_per_sample_stats(self.biom_otu_table1_w_tax)
-        self.assertEqual(actual[0],3)
-        self.assertEqual(actual[1],7)
-        self.assertEqual(actual[2],4)
-        self.assertEqual(actual[3],4.5)
-        self.assertEqual(actual[4],{'Sample1':7,'Sample2':3,'Sample3':4,
-                                    'Sample4':6,'Sample5':3,'Sample6':4})
+        self.assertEqual(actual[0], 3)
+        self.assertEqual(actual[1], 7)
+        self.assertEqual(actual[2], 4)
+        self.assertEqual(actual[3], 4.5)
+        self.assertEqual(actual[4], {'Sample1': 7, 'Sample2': 3, 'Sample3': 4,
+                                     'Sample4': 6, 'Sample5': 3, 'Sample6': 4})
 
     def test_compute_counts_per_sample_stats_obs_counts(self):
         """compute_counts_per_sample_stats functions as expected
@@ -194,12 +196,12 @@ class UtilTests(TestCase):
         """
         actual = compute_counts_per_sample_stats(self.biom_otu_table1_w_tax,
                                                  binary_counts=True)
-        self.assertEqual(actual[0],1)
-        self.assertEqual(actual[1],4)
-        self.assertEqual(actual[2],2.5)
-        self.assertEqual(actual[3],2.5)
-        self.assertEqual(actual[4],{'Sample1':2,'Sample2':3,'Sample3':4,
-                                    'Sample4':2,'Sample5':1,'Sample6':3})
+        self.assertEqual(actual[0], 1)
+        self.assertEqual(actual[1], 4)
+        self.assertEqual(actual[2], 2.5)
+        self.assertEqual(actual[3], 2.5)
+        self.assertEqual(actual[4], {'Sample1': 2, 'Sample2': 3, 'Sample3': 4,
+                                     'Sample4': 2, 'Sample5': 1, 'Sample6': 3})
 
     def test_safe_md5(self):
         """Make sure we have the expected md5 with varied input types
@@ -211,18 +213,21 @@ class UtilTests(TestCase):
         """
         exp = 'd3b07384d113edec49eaa6238ad5ff00'
 
-        tmp_f = NamedTemporaryFile(mode='w',prefix='test_safe_md5', suffix='txt')
+        tmp_f = NamedTemporaryFile(
+            mode='w',
+            prefix='test_safe_md5',
+            suffix='txt')
         tmp_f.write('foo\n')
         tmp_f.flush()
 
         obs = safe_md5(open(tmp_f.name, 'U'))
-        self.assertEqual(obs,exp)
-        
+        self.assertEqual(obs, exp)
+
         obs = safe_md5(['foo\n'])
-        self.assertEqual(obs,exp)
-        
+        self.assertEqual(obs, exp)
+
         # unsupported type raises TypeError
-        self.assertRaises(TypeError,safe_md5,42)
+        self.assertRaises(TypeError, safe_md5, 42)
 
 biom_otu_table1_w_tax = """{
      "id":null,
@@ -232,47 +237,57 @@ biom_otu_table1_w_tax = """{
      "generated_by": "QIIME revision XYZ",
      "date": "2011-12-19T19:00:00",
      "rows":[
-        {"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
-        {"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria", "p__Cyanobacteria", "c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichospermum", "s__"]}},
-        {"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea", "p__Euryarchaeota", "c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae", "g__Methanosarcina", "s__"]}},
-        {"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria", "p__Firmicutes", "c__Clostridia", "o__Halanaerobiales", "f__Halanaerobiaceae", "g__Halanaerobium", "s__Halanaerobiumsaccharolyticum"]}},
-        {"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}}
+        {"id":"GG_OTU_1", "metadata":{"taxonomy":["k__Bacteria", "p__Proteoba\
+cteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriac\
+eae", "g__Escherichia", "s__"]}},
+        {"id":"GG_OTU_2", "metadata":{"taxonomy":["k__Bacteria", "p__Cyanobact\
+eria", "c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichosp\
+ermum", "s__"]}},
+        {"id":"GG_OTU_3", "metadata":{"taxonomy":["k__Archaea", "p__Euryarchae\
+ota", "c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae", "\
+g__Methanosarcina", "s__"]}},
+        {"id":"GG_OTU_4", "metadata":{"taxonomy":["k__Bacteria", "p__Firmicute\
+s", "c__Clostridia", "o__Halanaerobiales", "f__Halanaerobiaceae", "g__Halanaer\
+obium", "s__Halanaerobiumsaccharolyticum"]}},
+        {"id":"GG_OTU_5", "metadata":{"taxonomy":["k__Bacteria", "p__Proteobac\
+teria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriace\
+ae", "g__Escherichia", "s__"]}}
         ],
      "columns":[
         {"id":"Sample1", "metadata":{
-                                 "BarcodeSequence":"CGCTTATCGAGA",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"gut",
-                                 "Description":"human gut"}},
+                                "BarcodeSequence":"CGCTTATCGAGA",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"gut",
+                                "Description":"human gut"}},
         {"id":"Sample2", "metadata":{
-                                 "BarcodeSequence":"CATACCAGTAGC",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"gut",
-                                 "Description":"human gut"}},
+                                "BarcodeSequence":"CATACCAGTAGC",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"gut",
+                                "Description":"human gut"}},
         {"id":"Sample3", "metadata":{
-                                 "BarcodeSequence":"CTCTCTACCTGT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"gut",
-                                 "Description":"human gut"}},
+                                "BarcodeSequence":"CTCTCTACCTGT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"gut",
+                                "Description":"human gut"}},
         {"id":"Sample4", "metadata":{
-                                 "BarcodeSequence":"CTCTCGGCCTGT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"skin",
-                                 "Description":"human skin"}},
+                                "BarcodeSequence":"CTCTCGGCCTGT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"skin",
+                                "Description":"human skin"}},
         {"id":"Sample5", "metadata":{
-                                 "BarcodeSequence":"CTCTCTACCAAT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"skin",
-                                 "Description":"human skin"}},
+                                "BarcodeSequence":"CTCTCTACCAAT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"skin",
+                                "Description":"human skin"}},
         {"id":"Sample6", "metadata":{
-                                 "BarcodeSequence":"CTAACTACCAAT",
-                                 "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
-                                 "BODY_SITE":"skin",
-                                 "Description":"human skin"}}
+                                "BarcodeSequence":"CTAACTACCAAT",
+                                "LinkerPrimerSequence":"CATGCTGCCTCCCGTAGGAGT",
+                                "BODY_SITE":"skin",
+                                "Description":"human skin"}}
         ],
      "matrix_type": "sparse",
      "matrix_element_type": "int",
-     "shape": [5, 6], 
+     "shape": [5, 6],
      "data":[[0,2,1],
              [1,0,5],
              [1,1,1],

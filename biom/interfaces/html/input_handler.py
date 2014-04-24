@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 __author__ = "Evan Bolyen"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -16,12 +16,13 @@ __maintainer__ = "Evan Bolyen"
 __email__ = "ebolyen@gmail.com"
 
 import json
-from biom.util import biom_open
 from biom.parse import MetadataMap, parse_biom_table
+
 
 def load_biom_table(table_f):
     """Return a parsed BIOM table."""
     return parse_biom_table(table_f)
+
 
 def load_biom_table_with_file_contents(biom_f):
     """Return a BIOM table and the original open filehandle as a tuple.
@@ -37,16 +38,18 @@ def load_biom_table_with_file_contents(biom_f):
     biom_f.seek(0)
     return table, biom_f
 
+
 def load_json_document(f):
     """Return a parsed JSON object."""
     return json.load(f)
 
+
 def load_metadata(lines):
     """Parse a sample/observation metadata file, return a ``MetadataMap``.
-    
+
     If ``lines`` is ``None``, this function will return ``None``.
     """
     if lines is not None:
-        return MetadataMap.fromFile(lines)
+        return MetadataMap.from_file(lines)
 
     return None

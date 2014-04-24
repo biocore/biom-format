@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
 import sys
 from pyqi.core.interfaces.optparse import (OptparseOption,
@@ -28,6 +28,7 @@ __email__ = "jai.rideout@gmail.com"
 
 cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
 cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
+
 
 def report_table_validity(result_key, data, option_value=None):
     if data:

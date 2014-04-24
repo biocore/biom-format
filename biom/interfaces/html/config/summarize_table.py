@@ -1,16 +1,20 @@
 #!/usr/bin/env python
 
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-#-----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 __author__ = "Evan Bolyen"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Evan Bolyen", "Greg Caporaso", "Jai Ram Rideout", "Daniel McDonald"]
+__credits__ = [
+    "Evan Bolyen",
+    "Greg Caporaso",
+    "Jai Ram Rideout",
+    "Daniel McDonald"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Evan Bolyen"
@@ -19,9 +23,11 @@ __email__ = "ebolyen@gmail.com"
 from pyqi.core.command import (make_command_in_collection_lookup_f,
                                make_command_out_collection_lookup_f)
 from pyqi.core.interfaces.html.output_handler import newline_list_of_strings
-from pyqi.core.interfaces.html import (HTMLInputOption, HTMLDownload, HTMLPage)
+from pyqi.core.interfaces.html import (HTMLInputOption, HTMLDownload)
 from biom.commands.table_summarizer import CommandConstructor
-from biom.interfaces.html.input_handler import load_biom_table_with_file_contents
+from biom.interfaces.html.input_handler import (
+    load_biom_table_with_file_contents
+    )
 
 cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
 cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
@@ -42,9 +48,8 @@ inputs = [
 ]
 
 outputs = [
-    HTMLDownload(Parameter=cmd_out_lookup('biom_summary'), 
+    HTMLDownload(Parameter=cmd_out_lookup('biom_summary'),
                  Handler=newline_list_of_strings,
                  FilenameLookup='download-file',
-                 FileExtension='.biom.summary.txt') 
+                 FileExtension='.biom.summary.txt')
 ]
-

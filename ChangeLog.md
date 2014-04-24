@@ -6,6 +6,9 @@ biom 1.3.1-dev
 
 Changes:
 
+* Support for HDF5
+* Codebase is PEP-8 compliant
+* CSMat has been removed and Scipy is now a required dependency
 * Requires PyQi 0.3.1-dev
 * New HTML interface
 * No longer dependent on dateutil
@@ -91,7 +94,7 @@ Changes:
         * ```--biom_fp``` is now ```--input-fp```
         * ```--output_fp``` is now ```--output-fp```
         * ```--ids_fp``` is now ```--ids```
-* ```biom.parse.parse_mapping``` has been replaced by ```biom.parse.MetadataMap```. ```biom.parse.MetadataMap.fromFile``` can be directly substituted in place of ```biom.parse.parse_mapping```.
+* ```biom.parse.parse_mapping``` has been replaced by ```biom.parse.MetadataMap```. ```biom.parse.MetadataMap.from_file``` can be directly substituted in place of ```biom.parse.parse_mapping```.
 
 Bug Fixes:
 
