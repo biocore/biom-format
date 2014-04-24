@@ -17,7 +17,8 @@ from numpy import array
 import numpy.testing as npt
 from unittest import TestCase, main
 from biom.parse import (parse_biom_table_json, parse_classic_table,
-                        generatedby, MetadataMap, parse_biom_table_hdf5)
+                        generatedby, MetadataMap)
+from biom.table import Table
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -44,89 +45,6 @@ class ParseTests(TestCase):
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
         self.classic_table_with_complex_metadata = \
             classic_table_with_complex_metadata.split('\n')
-
-    def test_parse_biom_table_hdf5(self):
-        """Parse a hdf5 formatted BIOM table"""
-        cwd = os.getcwd()
-        if '/' in __file__:
-            os.chdir(__file__.rsplit('/', 1)[0])
-        t = parse_biom_table_hdf5(h5py.File('test_data/test.biom'))
-        os.chdir(cwd)
-
-        self.assertEqual(t.sample_ids, ('Sample1', 'Sample2', 'Sample3',
-                                        'Sample4', 'Sample5', 'Sample6'))
-        self.assertEqual(t.observation_ids, ('GG_OTU_1', 'GG_OTU_2',
-                                             'GG_OTU_3', 'GG_OTU_4',
-                                             'GG_OTU_5'))
-        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
-                                     u'p__Proteobacteria',
-                                     u'c__Gammaproteobacteria',
-                                     u'o__Enterobacteriales',
-                                     u'f__Enterobacteriaceae',
-                                     u'g__Escherichia',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Bacteria',
-                                     u'p__Cyanobacteria',
-                                     u'c__Nostocophycideae',
-                                     u'o__Nostocales',
-                                     u'f__Nostocaceae',
-                                     u'g__Dolichospermum',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Archaea',
-                                     u'p__Euryarchaeota',
-                                     u'c__Methanomicrobia',
-                                     u'o__Methanosarcinales',
-                                     u'f__Methanosarcinaceae',
-                                     u'g__Methanosarcina',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Bacteria',
-                                     u'p__Firmicutes',
-                                     u'c__Clostridia',
-                                     u'o__Halanaerobiales',
-                                     u'f__Halanaerobiaceae',
-                                     u'g__Halanaerobium',
-                                     u's__Halanaerobiumsaccharolyticum']},
-                      {u'taxonomy': [u'k__Bacteria',
-                                     u'p__Proteobacteria',
-                                     u'c__Gammaproteobacteria',
-                                     u'o__Enterobacteriales',
-                                     u'f__Enterobacteriaceae',
-                                     u'g__Escherichia',
-                                     u's__']})
-        self.assertEqual(t.observation_metadata, exp_obs_md)
-
-        exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CGCTTATCGAGA',
-                        u'Description': u'human gut',
-                        u'BODY_SITE': u'gut'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CATACCAGTAGC',
-                        u'Description': u'human gut',
-                        u'BODY_SITE': u'gut'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTCTCTACCTGT',
-                        u'Description': u'human gut',
-                        u'BODY_SITE': u'gut'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTCTCGGCCTGT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTCTCTACCAAT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTAACTACCAAT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'})
-        self.assertEqual(t.sample_metadata, exp_samp_md)
-
-        exp = [array([0., 0., 1., 0., 0., 0.]),
-               array([5., 1., 0., 2., 3., 1.]),
-               array([0., 0., 1., 4., 0., 2.]),
-               array([2., 1., 1., 0., 0., 1.]),
-               array([0., 1., 1., 0., 0., 0.])]
-        npt.assert_equal(list(t.iter_observation_data()), exp)
 
     def test_generatedby(self):
         """get a generatedby string"""
@@ -233,6 +151,14 @@ class ParseTests(TestCase):
                                                  'GG_OTU_5'))
         self.assertEqual(tab.sample_metadata, None)
         self.assertEqual(tab.observation_metadata, None)
+
+    def test_parse_biom_table_hdf5(self):
+        """Make sure we can parse a HDF5 table through the same loader"""
+        cwd = os.getcwd()
+        if '/' in __file__[1:]:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        Table.from_hdf5(h5py.File('test_data/test.biom'))
+        os.chdir(cwd)
 
     def test_parse_biom_table_str(self):
         """tests for parse_biom_table_str"""

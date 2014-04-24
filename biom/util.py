@@ -350,6 +350,9 @@ def biom_open(fp, permission='U'):
             opener = h5py.File
             mode = 'r' if permission == 'U' else permission
 
+    if h5py.is_hdf5(fp):
+        return h5py.File(fp, 'r' if permission == 'U' else permission)
+
     if is_gzip(fp):
         opener = gzip_open
         mode = 'rb' if permission in ['U', 'r'] else permission

@@ -35,7 +35,8 @@ def load_biom_table_with_file_contents(biom_f):
     using it!
     """
     table = parse_biom_table(biom_f)
-    biom_f.seek(0)
+    if hasattr(biom_f, 'seek'):
+        biom_f.seek(0)
     return table, biom_f
 
 
