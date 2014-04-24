@@ -14,7 +14,7 @@ from string import maketrans
 import numpy as np
 from biom import __version__
 from biom.exception import BiomParseException
-from biom.table import table_factory, nparray_to_sparseobj, Table
+from biom.table import table_factory, nparray_to_sparse, Table
 from functools import partial
 import json
 from numpy import asarray
@@ -319,7 +319,7 @@ def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
     if obs_mapping is not None:
         obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
 
-    data = nparray_to_sparseobj(data)
+    data = nparray_to_sparse(data)
 
     return table_factory(data, sample_ids, obs_ids, sample_metadata,
                          obs_metadata)

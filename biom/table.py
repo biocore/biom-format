@@ -28,18 +28,7 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list)
 
-from scipy.sparse import csc_matrix, csr_matrix
-#from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
-#    list_dict_to_scipy, list_nparray_to_scipy, nparray_to_scipy,
-#    list_list_to_scipy)
-#
-#SparseObj = ScipySparseMat
-#to_sparse = to_scipy
-#dict_to_sparseobj = dict_to_scipy
-#list_dict_to_sparseobj = list_dict_to_scipy
-#list_nparray_to_sparseobj = list_nparray_to_scipy
-#nparray_to_sparseobj = nparray_to_scipy
-#list_list_to_sparseobj = list_list_to_scipy
+from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix
 
 # Define a variable length string type
 H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
@@ -57,17 +46,9 @@ __email__ = "daniel.mcdonald@colorado.edu"
 class Table(object):
     """Abstract base class representing a Table.
 
-    Once created, a Table object is immutable except for its sample/observation
-    metadata, which can be modified in place via add_sample_metadata and
-    add_observation_metadata.
+    Give in to the power of the Table!
 
-    Code to simulate immutability taken from here:
-        http://en.wikipedia.org/wiki/Immutable_object
     """
-
-    def __setattr__(self, *args):
-        raise TypeError("A Table object cannot be modified once created.")
-    __delattr__ = __setattr__
 
     def __init__(self, data, sample_ids, observation_ids, sample_metadata=None,
                  observation_metadata=None, table_id=None,
@@ -75,30 +56,27 @@ class Table(object):
         if type is None:
             type = 'Unspecified'
 
-        super(Table, self).__setattr__('type', type)
-        super(Table, self).__setattr__('table_id', table_id)
-        super(Table, self).__setattr__('_data', data)
+        self.type = type
+        self.table_id = table_id
+        self._data = data
 
         # Cast to tuple for immutability.
-        super(Table, self).__setattr__('sample_ids', tuple(sample_ids))
-        super(Table, self).__setattr__('observation_ids',
-                                       tuple(observation_ids))
+        self.sample_ids = tuple(sample_ids)
+        self.observation_ids = tuple(observation_ids)
 
         if sample_metadata is not None:
-            super(Table, self).__setattr__('sample_metadata',
-                                           tuple(sample_metadata))
+            self.sample_metadata = tuple(sample_metadata)
         else:
-            super(Table, self).__setattr__('sample_metadata', None)
+            self.sample_metadata = None
 
         if observation_metadata is not None:
-            super(Table, self).__setattr__('observation_metadata',
-                                           tuple(observation_metadata))
+            self.observation_metadata = tuple(observation_metadata)
         else:
-            super(Table, self).__setattr__('observation_metadata', None)
+            self.observation_metadata = None
 
         # These will be set by _index_ids()
-        super(Table, self).__setattr__('_sample_index', None)
-        super(Table, self).__setattr__('_obs_index', None)
+        self._sample_index = None
+        self._obs_index = None
 
         self._verify_metadata()
         self._cast_metadata()
@@ -109,20 +87,34 @@ class Table(object):
 
         Should only be called in constructor as this modifies state.
         """
-        super(Table, self).__setattr__('_sample_index',
-                                       index_list(self.sample_ids))
-        super(Table, self).__setattr__('_obs_index',
-                                       index_list(self.observation_ids))
+        self._sample_index = index_list(self.sample_ids)
+        self._obs_index = index_list(self.observation_ids)
 
-    #def _conv_to_self_type(self, vals, transpose=False, dtype=None):
-    #    """For converting vectors to a compatible self type"""
-    #    if dtype is None:
-    #        dtype = self._dtype
-#
-#        if isinstance(vals, self._data.__class__):
-#            return vals
-#        else:
-#            return to_sparse(vals, transpose, dtype)
+    def _conv_to_self_type(self, vals, transpose=False, dtype=None):
+        """For converting vectors to a compatible self type"""
+        if dtype is None:
+            dtype = self._dtype
+
+        if isspmatrix(vals):
+            return vals
+        else:
+            return to_sparse(vals, transpose, dtype)
+
+    def _to_dense(self, vec):
+        """Converts a row/col vector to a dense numpy array.
+
+        Always returns a 1-D row vector for consistency with numpy iteration
+        over arrays.
+        """
+        dense_vec = np.asarray(vec.todense())
+
+        if vec.shape == (1, 1):
+            # Handle the special case where we only have a single element, but
+            # we don't want to return a numpy scalar / 0-d array. We still want
+            # to return a vector of length 1.
+            return dense_vec.reshape(1)
+        else:
+            return np.squeeze(dense_vec)
 
     def _verify_metadata(self):
         """Obtain some notion of sanity on object construction with inputs"""
@@ -167,7 +159,7 @@ class Table(object):
         # if we have a list of [None], set to None
         if self.sample_metadata is not None:
             if self.sample_metadata.count(None) == len(self.sample_metadata):
-                super(Table, self).__setattr__('sample_metadata', None)
+                self.sample_metadata = None
 
         if self.sample_metadata is not None:
             for samp_md in self.sample_metadata:
@@ -182,14 +174,13 @@ class Table(object):
                                          repr(samp_md))
 
                 default_samp_md.append(d)
-            super(Table, self).__setattr__('sample_metadata',
-                                           tuple(default_samp_md))
+            self.sample_metadata = tuple(default_samp_md)
 
         # if we have a list of [None], set to None
         if self.observation_metadata is not None:
             none_count = self.observation_metadata.count(None)
             if none_count == len(self.observation_metadata):
-                super(Table, self).__setattr__('observation_metadata', None)
+                self.observation_metadata = None
 
         if self.observation_metadata is not None:
             for obs_md in self.observation_metadata:
@@ -204,8 +195,7 @@ class Table(object):
                                          repr(obs_md))
 
                 default_obs_md.append(d)
-            super(Table, self).__setattr__('observation_metadata',
-                                           tuple(default_obs_md))
+            self.observation_metadata = tuple(default_obs_md)
 
     @property
     def shape(self):
@@ -230,10 +220,9 @@ class Table(object):
                     self.observation_metadata[
                         self.get_observation_index(id_)].update(md_entry)
         else:
-            super(Table, self).__setattr__('observation_metadata',
-                                           tuple([md[id_] if id_ in md else
-                                                  None for id_ in
-                                                  self.observation_ids]))
+            self.observation_metadata = tuple([md[id_] if id_ in md else
+                                               None for id_ in
+                                               self.observation_ids])
         self._cast_metadata()
 
     def add_sample_metadata(self, md):
@@ -247,10 +236,8 @@ class Table(object):
                     self.sample_metadata[
                         self.get_sample_index(id_)].update(md_entry)
         else:
-            super(Table, self).__setattr__('sample_metadata',
-                                           tuple([md[id_] if id_ in md else
-                                                  None
-                                                  for id_ in self.sample_ids]))
+            self.sample_metadata = tuple([md[id_] if id_ in md else
+                                          None for id_ in self.sample_ids])
         self._cast_metadata()
 
     def __getitem__(self, args):
@@ -583,22 +570,6 @@ class Table(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def _to_dense(self, vec):
-        """Converts a row/col vector to a dense numpy array.
-
-        Always returns a 1-D row vector for consistency with numpy iteration
-        over arrays.
-        """
-        dense_vec = np.asarray(vec.todense())
-
-        if vec.shape == (1, 1):
-            # Handle the special case where we only have a single element, but
-            # we don't want to return a numpy scalar / 0-d array. We still want
-            # to return a vector of length 1.
-            return dense_vec.reshape(1)
-        else:
-            return np.squeeze(dense_vec)
-
     def sample_data(self, id_):
         """Return observations associated with sample id ``id_``"""
         if id_ not in self._sample_index:
@@ -700,9 +671,9 @@ class Table(object):
             obs_md = None
 
         return self.__class__(self._conv_to_self_type(vals),
-                              self.sample_ids[:], obs_order[
-                                  :], self.sample_metadata,
-                              obs_md, self.table_id)
+                              self.sample_ids[:],
+                              obs_order[:], self.sample_metadata, obs_md,
+                              self.table_id)
 
     def sort_by_sample_id(self, sort_f=natsort):
         """Return a table where samples are sorted by ``sort_f``
@@ -744,7 +715,7 @@ class Table(object):
             if not xor(f(s_val, s_id, s_md), invert):
                 continue
 
-            # there is an implicit converstion to numpy types, want to make
+            # there is an implicit conversion to numpy types, want to make
             # sure to convert back to underlying representation.
             samp_vals.append(self._conv_to_self_type(s_val))
             samp_metadata.append(s_md)
@@ -1683,18 +1654,15 @@ class Table(object):
         obs_md = loads(h5grp['observation'].get('metadata', no_md)[0])
         samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
 
-        # construct the sparse representation
-        rep = SparseObj(len(obs_ids), len(samp_ids))
-
         # load the data
         data_path = partial(os.path.join, order)
         data = h5grp[data_path("data")]
         indices = h5grp[data_path("indices")]
         indptr = h5grp[data_path("indptr")]
         cs = (data, indices, indptr)
-        rep._matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
+        matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
 
-        return table_factory(rep, samp_ids, obs_ids, samp_md or None,
+        return table_factory(matrix, samp_ids, obs_ids, samp_md or None,
                              obs_md or None)
 
     def to_hdf5(self, h5grp, generated_by):
@@ -1748,21 +1716,21 @@ class Table(object):
         """
         def axis_dump(grp, ids, md, order):
             """Store for an axis"""
-            self._data.convert(order)
+            self._data = self._data.asformat(order)
 
             len_ids = len(ids)
-            len_indptr = len(self._data._matrix.indptr)
-            len_data = self._data.size
+            len_indptr = len(self._data.indptr)
+            len_data = self.nnz
 
             grp.create_dataset('data', shape=(len_data,),
                                dtype=np.float64,
-                               data=self._data._matrix.data)
+                               data=self._data.data)
             grp.create_dataset('indices', shape=(len_data,),
                                dtype=np.int32,
-                               data=self._data._matrix.indices)
+                               data=self._data.indices)
             grp.create_dataset('indptr', shape=(len_indptr,),
                                dtype=np.int32,
-                               data=self._data._matrix.indptr)
+                               data=self._data.indptr)
 
             # if we store IDs in the table as numpy arrays then this store
             # is cleaner, as is the parse
@@ -1783,8 +1751,8 @@ class Table(object):
         h5grp.attrs['format-version'] = (2, 0)
         h5grp.attrs['generated-by'] = generated_by
         h5grp.attrs['creation-date'] = datetime.now().isoformat()
-        h5grp.attrs['shape'] = self._data.shape
-        h5grp.attrs['nnz'] = self._data.size
+        h5grp.attrs['shape'] = self.shape
+        h5grp.attrs['nnz'] = self.nnz
 
         axis_dump(h5grp.create_group('observation'), self.observation_ids,
                   self.observation_metadata, 'csr')
@@ -1821,7 +1789,7 @@ class Table(object):
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
         try:
-            num_rows, num_cols = self._data.shape
+            num_rows, num_cols = self.shape
         except:
             num_rows = num_cols = 0
         has_data = True if num_rows > 0 and num_cols > 0 else False
@@ -1908,7 +1876,7 @@ class Table(object):
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
         try:
-            num_rows, num_cols = self._data.shape
+            num_rows, num_cols = self.shape
         except:
             num_rows = num_cols = 0
         has_data = True if num_rows > 0 and num_cols > 0 else False
@@ -2116,7 +2084,7 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
 
     # if we have a numpy array
     if isinstance(data, ndarray):
-        data = nparray_to_sparseobj(data, dtype)
+        data = nparray_to_sparse(data, dtype)
 
     # if we have a list of things
     elif isinstance(data, list):
@@ -2125,28 +2093,25 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
                                  "an empty table.")
 
         elif isinstance(data[0], ndarray):
-            data = list_nparray_to_sparseobj(data, dtype)
+            data = list_nparray_to_sparse(data, dtype)
 
         elif isinstance(data[0], dict):
-            data = list_dict_to_sparseobj(data, dtype)
+            data = list_dict_to_sparse(data, dtype)
 
         elif isinstance(data[0], list):
-            data = list_list_to_sparseobj(data, dtype, shape=shape)
+            data = list_list_to_sparse(data, dtype, shape=shape)
 
         else:
             raise TableException("Unknown nested list type")
 
     # if we have a dict representation
-    elif isinstance(data, dict) and not isinstance(data, SparseObj):
-        data = dict_to_sparseobj(data, dtype)
+    elif isinstance(data, dict):
+        data = dict_to_sparse(data, dtype)
 
     elif isinstance(data, tuple) and isinstance(data[0], ndarray):
-        # give it a go...
-        # there isn't a CSMat equivilent
-        from biom.backends.scipysparse import coo_arrays_to_scipy
-        data = coo_arrays_to_scipy(data)
+        data = coo_arrays_to_sparse(data)
 
-    elif isinstance(data, SparseObj):
+    elif isspmatrix(data):
         pass
 
     else:
@@ -2162,7 +2127,234 @@ def get_zerod_matrix(mat, dtype=float):
     """Returns a zerod matrix"""
     if isinstance(mat, ndarray):
         return zeros(mat.shape, dtype=float)
-    elif isinstance(mat, SparseObj):
-        return SparseObj(*mat.shape, dtype=float)
+    elif isspmatrix(mat):
+        return coo_matrix(*mat.shape, dtype=float)
     else:
         raise TableException("Unknown mat type")
+
+
+def to_sparse(values, transpose=False, dtype=float):
+    """Try to return a populated scipy.sparse matrix.
+
+    NOTE: assumes the max value observed in row and col defines the size of the
+    matrix.
+    """
+    # if it is a vector
+    if isinstance(values, ndarray) and len(values.shape) == 1:
+        if transpose:
+            mat = nparray_to_sparse(values[:, newaxis], dtype)
+        else:
+            mat = nparray_to_sparse(values, dtype)
+        return mat
+    if isinstance(values, ndarray):
+        if transpose:
+            mat = nparray_to_sparse(values.T, dtype)
+        else:
+            mat = nparray_to_sparse(values, dtype)
+        return mat
+    # the empty list
+    elif isinstance(values, list) and len(values) == 0:
+        return coo_matrix((0, 0))
+    # list of np vectors
+    elif isinstance(values, list) and isinstance(values[0], ndarray):
+        mat = list_nparray_to_sparse(values, dtype)
+        if transpose:
+            mat = mat.T
+        return mat
+    # list of dicts, each representing a row in row order
+    elif isinstance(values, list) and isinstance(values[0], dict):
+        mat = list_dict_to_sparse(values, dtype)
+        if transpose:
+            mat = mat.T
+        return mat
+    # list of scipy.sparse matrices, each representing a row in row order
+    elif isinstance(values, list) and isspmatrix(values[0]):
+        mat = list_scipy_to_sparse(values, dtype)
+        if transpose:
+            mat = mat.T
+        return mat
+    elif isinstance(values, dict):
+        mat = dict_to_sparse(values, dtype)
+        if transpose:
+            mat = mat.T
+        return mat
+    elif isspmatrix(values):
+        mat = values
+        if transpose:
+            mat = mat.transpose()
+        return mat
+    else:
+        raise TableException("Unknown input type")
+
+
+def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
+    """Map directly on to the coo_matrix constructor
+
+    data must be (values, (rows, cols))
+    """
+    if shape is None:
+        values, (rows, cols) = data
+        n_rows = max(rows) + 1
+        n_cols = max(cols) + 1
+    else:
+        n_rows, n_cols = shape
+
+    # coo_matrix allows zeros to be added as data, and this affects
+    # nnz, items, and iteritems. Clean them out here, as this is
+    # the only time these zeros can creep in.
+    # Note: coo_matrix allows duplicate entries; the entries will
+    # be summed when converted. Not really sure how we want to
+    # handle this generally within BIOM- I'm okay with leaving it
+    # as undefined behavior for now.
+    matrix = coo_matrix(data, shape=(n_rows, n_cols), dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def list_list_to_sparse(data, dtype=float, shape=None):
+    """Convert a list of lists into a scipy.sparse matrix.
+
+    [[row, col, value], ...]
+    """
+    rows, cols, values = izip(*data)
+
+    if shape is None:
+        n_rows = max(rows) + 1
+        n_cols = max(cols) + 1
+    else:
+        n_rows, n_cols = shape
+
+    matrix = coo_matrix((values, (rows, cols)), shape=(n_rows, n_cols))
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def nparray_to_sparse(data, dtype=float):
+    """Convert a numpy array to a scipy.sparse matrix."""
+    if len(data.shape) == 1:
+        shape = (1, data.shape[0])
+    else:
+        shape = data.shape
+
+    matrix = coo_matrix(data, shape=shape, dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def list_nparray_to_sparse(data, dtype=float):
+    """Takes a list of numpy arrays and creates a scipy.sparse matrix."""
+    matrix = coo_matrix(data, shape=(len(data), len(data[0])), dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def list_sparse_to_sparse(data, dtype=float):
+    """Takes a list of scipy.sparse matrices and creates a scipy.sparse mat."""
+    if isspmatrix(data[0]):
+        if data[0].shape[0] > data[0].shape[1]:
+            is_col = True
+            n_cols = len(data)
+            n_rows = data[0].shape[0]
+        else:
+            is_col = False
+            n_rows = len(data)
+            n_cols = data[0].shape[1]
+    else:
+        all_keys = flatten([d.keys() for d in data])
+        n_rows = max(all_keys, key=itemgetter(0))[0] + 1
+        n_cols = max(all_keys, key=itemgetter(1))[1] + 1
+        if n_rows > n_cols:
+            is_col = True
+            n_cols = len(data)
+        else:
+            is_col = False
+            n_rows = len(data)
+
+    rows = []
+    cols = []
+    vals = []
+    for row_idx, row in enumerate(data):
+        for (foo, col_idx), val in row.items():
+            if is_col:
+                # transpose
+                rows.append(foo)
+                cols.append(row_idx)
+                vals.append(val)
+            else:
+                rows.append(row_idx)
+                cols.append(col_idx)
+                vals.append(val)
+
+    matrix = coo_matrix((vals, (rows, cols)), shape=(n_rows, n_cols),
+                        dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def list_dict_to_sparse(data, dtype=float):
+    """Takes a list of dict {(row,col):val} and creates a scipy.sparse mat."""
+    if isspmatrix(data[0]):
+        if data[0].shape[0] > data[0].shape[1]:
+            is_col = True
+            n_cols = len(data)
+            n_rows = data[0].shape[0]
+        else:
+            is_col = False
+            n_rows = len(data)
+            n_cols = data[0].shape[1]
+    else:
+        all_keys = flatten([d.keys() for d in data])
+        n_rows = max(all_keys, key=itemgetter(0))[0] + 1
+        n_cols = max(all_keys, key=itemgetter(1))[1] + 1
+        if n_rows > n_cols:
+            is_col = True
+            n_cols = len(data)
+        else:
+            is_col = False
+            n_rows = len(data)
+
+    rows = []
+    cols = []
+    vals = []
+    for row_idx, row in enumerate(data):
+        for (foo, col_idx), val in row.items():
+            if is_col:
+                # transpose
+                rows.append(foo)
+                cols.append(row_idx)
+                vals.append(val)
+            else:
+                rows.append(row_idx)
+                cols.append(col_idx)
+                vals.append(val)
+
+    matrix = coo_matrix((vals, (rows, cols)), shape=(n_rows, n_cols),
+                        dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def dict_to_sparse(data, dtype=float):
+    """Takes a dict {(row,col):val} and creates a scipy.sparse matrix."""
+    n_rows = max(data.keys(), key=itemgetter(0))[0] + 1
+    n_cols = max(data.keys(), key=itemgetter(1))[1] + 1
+
+    rows = []
+    cols = []
+    vals = []
+    for (r, c), v in data.items():
+        rows.append(r)
+        cols.append(c)
+        vals.append(v)
+
+    matrix = coo_matrix((vals, (rows, cols)), shape=(n_rows, n_cols),
+                        dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
