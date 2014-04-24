@@ -21,6 +21,7 @@ from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, zeros, empty
 import h5py
+import numpy as np
 
 from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
@@ -214,6 +215,10 @@ class Table(object):
     def dtype(self):
         return self._data.dtype
 
+    @property
+    def nnz(self):
+        return self._data.nnz
+
     def add_observation_metadata(self, md):
         """Take a dict of metadata and add it to an observation.
 
@@ -274,7 +279,7 @@ class Table(object):
                 raise IndexError("Can only handle full : slices per axis.")
         else:
             if self._data.getformat() == 'coo':
-                self._data.tocsr()
+                self._data = self._data.tocsr()
 
             return self._data[row, col]
 
@@ -309,12 +314,8 @@ class Table(object):
         if col_idx >= num_cols or col_idx < 0:
             raise IndexError("Column index %d is out of bounds." % col_idx)
 
-        self._data.tocsc()
-
-        col_vector = self.__class__(num_rows, 1, dtype=self.dtype)
-        col_vector._matrix = self._matrix.getcol(col_idx)
-
-        return col_vector
+        self._data = self._data.tocsc()
+        return self._data.getcol(col_idx)
 
     def reduce(self, f, axis):
         """Reduce over axis with f
@@ -346,13 +347,21 @@ class Table(object):
         ``observation`` : return a vector with a sum for each observation
         """
         if axis == 'whole':
-            return self._data.sum()
+            axis = None
         elif axis == 'sample':
-            return self._data.sum(axis=0)
+            axis = 0
         elif axis == 'observation':
-            return self._data.sum(axis=1)
+            axis = 1
         else:
             raise TableException("Unknown axis '%s'" % axis)
+
+        matrix_sum = np.squeeze(np.asarray(self._data.sum(axis=axis)))
+
+        # We only want to return a scalar if the whole matrix was summed.
+        if axis is not None and matrix_sum.shape == ():
+            matrix_sum = matrix_sum.reshape(1)
+
+        return matrix_sum
 
     def transpose(self):
         """Return a new table that is the transpose of this table.
@@ -363,9 +372,14 @@ class Table(object):
         sample_md_copy = deepcopy(self.sample_metadata)
         obs_md_copy = deepcopy(self.observation_metadata)
 
-        return self.__class__(self._data.T, self.observation_ids[:],
-                              self.sample_ids[:], obs_md_copy, sample_md_copy,
-                              self.table_id)
+        if self._data.getformat() == 'lil':
+            # lil's transpose method doesn't have the copy kwarg, but all of
+            # the others do.
+            self._data = self._data.tocsr()
+
+        return self.__class__(self._data.transpose(copy=True),
+                              self.observation_ids[:], self.sample_ids[:],
+                              obs_md_copy, sample_md_copy, self.table_id)
 
     def get_sample_index(self, samp_id):
         """Returns the sample index for sample ``samp_id``"""
@@ -387,7 +401,7 @@ class Table(object):
         if samp_id not in self._sample_index:
             raise UnknownID("SampleId %s not found!" % samp_id)
 
-        return self._data[self._obs_index[obs_id], self._sample_index[samp_id]]
+        return self[self._obs_index[obs_id], self._sample_index[samp_id]]
 
     def __str__(self):
         """Stringify self
@@ -456,7 +470,7 @@ class Table(object):
                       '%s%s%s' % (observation_column_name, delim, samp_ids)]
 
         for obs_id, obs_values in zip(self.observation_ids, self._iter_obs()):
-            str_obs_vals = delim.join(map(str, self._conv_to_np(obs_values)))
+            str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
 
             if header_key and self.observation_metadata is not None:
                 md = self.observation_metadata[self._obs_index[obs_id]]
@@ -482,25 +496,24 @@ class Table(object):
 
     def _iter_samp(self):
         """Return sample vectors of data matrix vectors"""
-        rows, cols = self._data.shape
-        for c in range(cols):
+        for c in range(self.shape[1]):
             # this pulls out col vectors but need to convert to the expected
             # row vector
-            colvec = self._data.get_col(c)
-            yield colvec.T
+            colvec = self._get_col(c)
+            yield colvec.transpose(copy=True)
 
     def _iter_obs(self):
         """Return observation vectors of data matrix"""
-        for r in range(self._data.shape[0]):
-            yield self._data.get_row(r)
+        for r in range(self.shape[0]):
+            yield self._get_row(r)
 
     def get_table_density(self):
         """Returns the fraction of nonzero elements in the table."""
         density = 0.0
 
         if not self.is_empty():
-            density = (self._data.size / (len(self.sample_ids) *
-                                          len(self.observation_ids)))
+            density = (self.nnz /
+                       (len(self.sample_ids) * len(self.observation_ids)))
 
         return density
 
@@ -514,7 +527,7 @@ class Table(object):
             return "Observation metadata are not the same"
         if self.sample_metadata != other.sample_metadata:
             return "Sample metadata are not the same"
-        if not self._data_equality(other):
+        if not self._data_equality(other._data):
             return "Data elements are not the same"
 
         return "Tables appear equal"
@@ -529,45 +542,74 @@ class Table(object):
             return False
         if self.sample_metadata != other.sample_metadata:
             return False
-        if not self._data_equality(other):
+        if not self._data_equality(other._data):
             return False
 
         return True
 
     def _data_equality(self, other):
-        """Two SparseObj matrices are equal if the items are equal"""
-        if isinstance(self, other.__class__):
-            return sorted(self._data.items()) == sorted(other._data.items())
+        """Return ``True`` if both matrices are equal.
 
-        for s_v, o_v in izip(self.iter_sample_data(),
-                             other.iter_sample_data()):
-            if not (s_v == o_v).all():
-                return False
+        Matrices are equal iff the following items are equal:
+        - shape
+        - dtype
+        - size (nnz)
+        - matrix data (more expensive, so checked last)
+
+        The sparse format does not need to be the same between the two
+        matrices. ``self`` and ``other`` will be converted to csr format if
+        necessary before performing the final comparison.
+
+        """
+        if self._data.shape != other.shape:
+            return False
+
+        if self._data.dtype != other.dtype:
+            return False
+
+        if self._data.nnz != other.nnz:
+            return False
+
+        self._data = self._data.tocsr()
+        other = other.tocsr()
+
+        # From:
+        # http://mail.scipy.org/pipermail/scipy-user/2008-April/016276.html
+        if abs(self._data - other).nnz > 0:
+            return False
 
         return True
 
     def __ne__(self, other):
         return not (self == other)
 
-    def _conv_to_np(self, v):
-        """Converts a vector to a numpy array
+    def _to_dense(self, vec):
+        """Converts a row/col vector to a dense numpy array.
 
-        Always returns a row vector for consistancy with numpy iteration over
-        arrays
+        Always returns a 1-D row vector for consistency with numpy iteration
+        over arrays.
         """
-        return SparseObj.convert_vector_to_dense(v)
+        dense_vec = np.asarray(vec.todense())
+
+        if vec.shape == (1, 1):
+            # Handle the special case where we only have a single element, but
+            # we don't want to return a numpy scalar / 0-d array. We still want
+            # to return a vector of length 1.
+            return dense_vec.reshape(1)
+        else:
+            return np.squeeze(dense_vec)
 
     def sample_data(self, id_):
         """Return observations associated with sample id ``id_``"""
         if id_ not in self._sample_index:
             raise UnknownID("ID %s is not a known sample ID!" % id_)
-        return self._conv_to_np(self._data[:, self._sample_index[id_]])
+        return self._to_dense(self[:, self._sample_index[id_]])
 
     def observation_data(self, id_):
         """Return samples associated with observation id ``id_``"""
         if id_ not in self._obs_index:
             raise UnknownID("ID %s is not a known observation ID!" % id_)
-        return self._conv_to_np(self._data[self._obs_index[id_], :])
+        return self._to_dense(self[self._obs_index[id_], :])
 
     def copy(self):
         """Returns a copy of the table"""
@@ -579,14 +621,14 @@ class Table(object):
     def iter_sample_data(self):
         """Yields sample values"""
         for samp_v in self._iter_samp():
-            yield self._conv_to_np(samp_v)
+            yield self._to_dense(samp_v)
 
     def iter_observation_data(self):
         """Yields observation values"""
         for obs_v in self._iter_obs():
-            yield self._conv_to_np(obs_v)
+            yield self._to_dense(obs_v)
 
-    def iter_samples(self, conv_to_np=True):
+    def iter_samples(self, dense=True):
         """Yields ``(sample_value, sample_id, sample_metadata)``
 
         NOTE: will return ``None`` in ``sample_metadata`` positions if
@@ -599,12 +641,12 @@ class Table(object):
 
         iterator = izip(self._iter_samp(), self.sample_ids, samp_metadata)
         for samp_v, samp_id, samp_md in iterator:
-            if conv_to_np:
-                yield (self._conv_to_np(samp_v), samp_id, samp_md)
+            if dense:
+                yield (self._to_dense(samp_v), samp_id, samp_md)
             else:
                 yield (samp_v, samp_id, samp_md)
 
-    def iter_observations(self, conv_to_np=True):
+    def iter_observations(self, dense=True):
         """Yields ``(observation_value, observation_id, observation_metadata)``
 
         NOTE: will return ``None`` in ``observation_metadata`` positions if
@@ -617,8 +659,8 @@ class Table(object):
 
         iterator = izip(self._iter_obs(), self.observation_ids, obs_metadata)
         for obs_v, obs_id, obs_md in iterator:
-            if conv_to_np:
-                yield (self._conv_to_np(obs_v), obs_id, obs_md)
+            if dense:
+                yield (self._to_dense(obs_v), obs_id, obs_md)
             else:
                 yield (obs_v, obs_id, obs_md)
 
@@ -629,7 +671,7 @@ class Table(object):
 
         for id_ in sample_order:
             cur_idx = self._sample_index[id_]
-            vals.append(self._conv_to_np(self[:, cur_idx]))
+            vals.append(self._to_dense(self[:, cur_idx]))
 
             if self.sample_metadata is not None:
                 samp_md.append(self.sample_metadata[cur_idx])
@@ -777,7 +819,7 @@ class Table(object):
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for samp_v, samp_id, samp_md in self.iter_samples(conv_to_np=False):
+        for samp_v, samp_id, samp_md in self.iter_samples(dense=False):
             bin = f(samp_md)
 
             # try to make it hashable...
@@ -815,7 +857,7 @@ class Table(object):
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for obs_v, obs_id, obs_md in self.iter_observations(conv_to_np=False):
+        for obs_v, obs_id, obs_md in self.iter_observations(dense=False):
             bin = f(obs_md)
 
             # try to make it hashable...
@@ -1343,7 +1385,7 @@ class Table(object):
             dtype = 'int'
             op = lambda x: x.nonzero()[0].size
         else:
-            dtype = self._data.dtype
+            dtype = self.dtype
             op = lambda x: x.sum()
 
         if axis is 'sample':
