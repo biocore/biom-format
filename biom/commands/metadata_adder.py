@@ -115,8 +115,8 @@ class MetadataAdder(Command):
         # parse mapping files
         if sample_metadata is not None:
             sample_metadata = MetadataMap.from_file(sample_metadata,
-                                                   process_fns=process_fns,
-                                                   header=sample_header)
+                                                    process_fns=process_fns,
+                                                    header=sample_header)
 
         if observation_metadata is not None:
             observation_metadata = MetadataMap.from_file(
