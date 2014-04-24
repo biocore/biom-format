@@ -247,11 +247,20 @@ def get_axis_indices(biom_str, to_keep, axis):
     return idxs, json.dumps(subset)[1:-1]  # trim off { and }
 
 
-def parse_biom_table(fp):
+def parse_biom_table(fp, samples=None, observations=None):
+    if samples is not None and observations is not None:
+        raise BiomParseException("Could not subset based on samples and "
+                                 "observations at the same time. Specify only "
+                                 "a list of samples OR a list of observations,"
+                                 " but not both.")
     try:
-        return Table.from_hdf5(fp)
+        return Table.from_hdf5(fp, samples=samples, observations=observations)
     except:
         pass
+
+    if samples is not None or observations is not None:
+        raise BiomParseException("Could not subset on a json biom table. It is"
+                                 " only supported on HDF5 biom tables.")
 
     if hasattr(fp, 'read'):
         return parse_biom_table_json(json.load(fp))

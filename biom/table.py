@@ -46,7 +46,8 @@ H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
-               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka"]
+               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
+               "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -1504,7 +1505,8 @@ class Table(object):
                               obs_ids[:], sample_md, obs_md)
 
     @classmethod
-    def from_hdf5(cls, h5grp, order='observation'):
+    def from_hdf5(cls, h5grp, order='observation', samples=None,
+                  observations=None):
         """Parse an HDF5 formatted BIOM table
 
         The expected structure of this group is below. A few basic definitions,
@@ -1539,11 +1541,15 @@ class Table(object):
         ./sample/indptr          : (N+1,) dataset of int32
         [./sample/metadata]      : Optional, JSON str, in index order with ids
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         h5grp : a h5py ``Group`` or an open h5py ``File``
         order : 'observation' or 'sample' to indicate which data ordering to
             load the table as
+        samples : list
+            Samples to parse
+        observations : list
+            Observations to parse
 
         Returns
         -------
@@ -1562,14 +1568,50 @@ class Table(object):
         if order not in ('observation', 'sample'):
             raise ValueError("Unknown order %s!" % order)
 
-        # fetch all of the IDs
-        obs_ids = h5grp['observation/ids'][:]
-        samp_ids = h5grp['sample/ids'][:]
+        if samples is not None and observations is not None:
+            raise ValueError("Subsetting from samples and observations at the "
+                             "same time is not supported. Provide either "
+                             "samples or observations but not both")
 
-        # fetch all of the metadata
+        # fetch the IDs
+        if observations is not None:
+            # Get the index of the observation ids to include
+            obs_idx = np.in1d(h5grp['observation/ids'], observations)
+            # Retrieve only the obs ids that we are interested on
+            obs_ids = h5grp['observation/ids'][np.where(obs_idx)]
+            # Check that all observations have been found on the hdf5 file
+            if len(obs_ids) != len(observations):
+                raise ValueError("The following observation ids have not been "
+                                 "found in the biom table: %s" %
+                                 set(observations) - set(obs_ids))
+        else:
+            # Get all the observation ids
+            obs_ids = h5grp['observation/ids'][:]
+            obs_idx = np.array([True] * len(obs_ids))
+
+        if samples is not None:
+            # Get the index of the sample ids to include
+            samp_idx = np.in1d(h5grp['sample/ids'], samples)
+            # Retrieve only the sample ids that we are interested on
+            samp_ids = h5grp['sample/ids'][np.where(samp_idx)]
+            # Check that all samples have been found on the hdf5 file
+            if len(samp_ids) != len(samples):
+                raise ValueError("The following sample ids have not been found"
+                                 " in the biom table: %s" %
+                                 set(samples) - set(samp_ids))
+        else:
+            # Get all the sample ids
+            samp_ids = h5grp['sample/ids'][:]
+            samp_idx = np.array([True] * len(samp_ids))
+
+        # fetch the metadata
         no_md = np.array(["[]"])
-        obs_md = loads(h5grp['observation'].get('metadata', no_md)[0])
-        samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
+        obs_md = np.asarray(loads(h5grp['observation'].get('metadata',
+                                                           no_md)[0]))
+        obs_md = list(obs_md[np.where(obs_idx)])
+
+        samp_md = np.asarray(loads(h5grp['sample'].get('metadata', no_md)[0]))
+        samp_md = list(samp_md[np.where(samp_idx)])
 
         # construct the sparse representation
         rep = SparseObj(len(obs_ids), len(samp_ids))
