@@ -20,10 +20,13 @@ from warnings import warn
 
 try:
     import h5py
-    _have_h5py = True
+    HAVE_H5PY = True
+    H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
+
 except ImportError:
     warn("h5py is not available")
-    _have_h5py = False
+    HAVE_H5PY = False
+    H5PY_VLEN_STR = None
 
 from numpy import mean, median, min, max
 
@@ -349,7 +352,7 @@ def biom_open(fp, permission='U'):
     opener = open
     mode = permission
 
-    if _have_h5py:
+    if HAVE_H5PY:
         if h5py.is_hdf5(fp):
             opener = h5py.File
             mode = 'r' if permission == 'U' else permission
