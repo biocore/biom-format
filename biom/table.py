@@ -281,7 +281,7 @@ class Table(object):
             raise IndexError("Row index %d is out of bounds." % row_idx)
 
         self._data = self._data.tocsr()
-        return self._data.getrow(rox_idx)
+        return self._data.getrow(row_idx)
 
     def _get_col(self, col_idx):
         """Return the column at ``col_idx``.
