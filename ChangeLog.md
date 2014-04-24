@@ -6,6 +6,9 @@ biom 1.3.1-dev
 
 Changes:
 
+* Support for HDF5
+* Codebase is PEP-8 compliant
+* CSMat has been removed and Scipy is now a required dependency
 * Requires PyQi 0.3.1-dev
 * New HTML interface
 * No longer dependent on dateutil
