@@ -403,15 +403,27 @@ def list_list_to_scipy(data, dtype=float, shape=None):
 
     [[row, col, value], ...]
     """
-    rows, cols, values = izip(*data)
+    if len(data) == 3:
+        # data is [[rows], [cols], [vals]]
+        rows, cols, values = izip(*data)
+        if shape is None:
+            n_rows = max(rows) + 1
+            n_cols = max(cols) + 1
+        else:
+            n_rows, n_cols = shape
+        return ScipySparseMat(n_rows, n_cols, data=(values, (rows, cols)))
 
-    if shape is None:
-        n_rows = max(rows) + 1
-        n_cols = max(cols) + 1
+    elif len(data) == 2:
+        # data is [[row_1_values], [row_2_values], ..., [row_N_values]]
+        # (i.e., dense)
+        n_rows = len(data)
+        if not n_rows:
+            raise TableException("Data table is empty!")
+        n_cols = len(data[0])
+        return ScipySparseMat(n_rows, n_cols, data=data)
+
     else:
-        n_rows, n_cols = shape
-
-    return ScipySparseMat(n_rows, n_cols, data=(values, (rows, cols)))
+        raise TableException("Cannot understand input data.")
 
 
 def nparray_to_scipy(data, dtype=float):
