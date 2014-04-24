@@ -16,24 +16,30 @@ from copy import deepcopy
 from datetime import datetime
 from json import dumps
 from operator import itemgetter, xor, add
+from functools import reduce
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, zeros, empty
 import h5py
 
-from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list)
-from functools import reduce
+from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
+    list_dict_to_scipy, list_nparray_to_scipy, nparray_to_scipy,
+    list_list_to_scipy)
+
+SparseObj = ScipySparseMat
+to_sparse = to_scipy
+dict_to_sparseobj = dict_to_scipy
+list_dict_to_sparseobj = list_dict_to_scipy
+list_nparray_to_sparseobj = list_nparray_to_scipy
+nparray_to_sparseobj = nparray_to_scipy
+list_list_to_sparseobj = list_list_to_scipy
 
 # Define a variable length string type
 H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
-
-SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
-    list_nparray_to_sparseobj, nparray_to_sparseobj, \
-    list_list_to_sparseobj = get_sparse_backend()
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
