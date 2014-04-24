@@ -17,25 +17,32 @@ from datetime import datetime
 from json import dumps, loads
 from functools import reduce, partial
 from operator import itemgetter, xor, add
+from functools import reduce
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, zeros, empty
 import h5py
 
-from biom import get_sparse_backend
 from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list)
 
 from scipy.sparse import csc_matrix, csr_matrix
+from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
+    list_dict_to_scipy, list_nparray_to_scipy, nparray_to_scipy,
+    list_list_to_scipy)
+
+SparseObj = ScipySparseMat
+to_sparse = to_scipy
+dict_to_sparseobj = dict_to_scipy
+list_dict_to_sparseobj = list_dict_to_scipy
+list_nparray_to_sparseobj = list_nparray_to_scipy
+nparray_to_sparseobj = nparray_to_scipy
+list_list_to_sparseobj = list_list_to_scipy
 
 # Define a variable length string type
 H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
-
-SparseObj, to_sparse, dict_to_sparseobj, list_dict_to_sparseobj, \
-    list_nparray_to_sparseobj, nparray_to_sparseobj, \
-    list_list_to_sparseobj = get_sparse_backend()
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -142,13 +149,13 @@ class Table(object):
 
         if self.sample_metadata is not None and \
            n_samp != len(self.sample_metadata):
-            raise TableException("sample_metadata not in a compatible shape \
-                                   with data matrix!")
+            raise TableException("sample_metadata not in a compatible shape"
+                                 "with data matrix!")
 
         if self.observation_metadata is not None and \
            n_obs != len(self.observation_metadata):
-            raise TableException("observation_metadata not in a compatible \
-                                   shape with data matrix!")
+            raise TableException("observation_metadata not in a compatible"
+                                 "shape with data matrix!")
 
     def _cast_metadata(self):
         """Casts all metadata to defaultdict to support default values.
@@ -365,6 +372,7 @@ class Table(object):
             if header_value is None:
                 raise TableException(
                     "You need to specify both header_key and header_value")
+
         if header_value is not None:
             if header_key is None:
                 raise TableException(
@@ -1840,12 +1848,6 @@ class Table(object):
             else:
                 rows.append('{"id": "%s", "metadata": %s}],' % (obs[1],
                                                                 dumps(obs[2])))
-
-            # if we are not on the last row
-            # if obs_index != max_row_idx:
-            #    data.append("[%s]," % ','.join(map(repr, obs[0])))
-            # else:
-            #    data.append("[%s]]," % ','.join(map(repr, obs[0])))
 
             # turns out its a pain to figure out when to place commas. the
             # simple work around, at the expense of a little memory

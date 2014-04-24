@@ -25,8 +25,6 @@ def make_sparse_fill(t, to, ts):
 
 
 def make_table(lowobs, highobs, ostep, lowsamp, highsamp, sstep):
-    # table_obs = list(set(randint(lowobs,highobs,nobs)))
-    # table_samp = list(set(randint(lowsamp,highsamp,nsamp)))
     table_obs = range(lowobs, highobs, ostep)
     table_samp = range(lowsamp, highsamp, sstep)
     table_data = SparseObj(len(table_obs), len(table_samp))
