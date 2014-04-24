@@ -36,10 +36,13 @@ def load_biom_table_with_file_contents(biom_fp):
     Users of this function are responsible for closing the filehandle when done
     using it!
     """
-    biom_f = biom_open(biom_fp, 'U')
-    table = parse_biom_table(biom_f)
-    biom_f.seek(0)
-    return table, biom_f
+    with biom_open(biom_fp, 'U') as biom_f:
+        table = parse_biom_table(biom_f)
+
+        if hasattr(biom_f, 'seek'):
+            biom_f.seek(0)
+
+        return table, biom_f
 
 
 def load_json_document(fp):

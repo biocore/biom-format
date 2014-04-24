@@ -14,7 +14,7 @@ from string import maketrans
 import numpy as np
 from biom import __version__
 from biom.exception import BiomParseException
-from biom.table import table_factory, nparray_to_sparseobj
+from biom.table import table_factory, nparray_to_sparseobj, Table
 from functools import partial
 import json
 from numpy import asarray
@@ -248,92 +248,17 @@ def get_axis_indices(biom_str, to_keep, axis):
 
 
 def parse_biom_table(fp):
+    try:
+        return Table.from_hdf5(fp)
+    except:
+        pass
+
     if hasattr(fp, 'read'):
         return parse_biom_table_json(json.load(fp))
     elif isinstance(fp, list):
         return parse_biom_table_json(json.loads(''.join(fp)))
     else:
         return parse_biom_table_json(json.loads(fp))
-
-
-def parse_biom_table_hdf5(h5grp, order='observation'):
-    """Parse an HDF5 formatted BIOM table
-
-    The expected structure of this group is below. A few basic definitions,
-    N is the number of observations and M is the number of samples. Data are
-    stored in both compressed sparse row (for observation oriented operations)
-    and compressed sparse column (for sample oriented operations).
-
-    ### ADD IN SCIPY SPARSE CSC/CSR URLS
-    ### ADD IN WIKIPEDIA PAGE LINK TO CSR
-    ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
-    ###     THOUGH
-    ### METADATA ARE NOT REPRESENTED HERE YET
-    ./id                     : str, an arbitrary ID
-    ./type                   : str, the table type (e.g, OTU table)
-    ./format-url             : str, a URL that describes the format
-    ./format-version         : two element tuple of int32, major and minor
-    ./generated-by           : str, what generated this file
-    ./creation-date          : str, ISO format
-    ./shape                  : two element tuple of int32, N by M
-    ./nnz                    : int32 or int64, number of non zero elements
-    ./observation            : Group
-    ./observation/ids        : (N,) dataset of str or vlen str
-    ./observation/data       : (N,) dataset of float64
-    ./observation/indices    : (N,) dataset of int32
-    ./observation/indptr     : (M+1,) dataset of int32
-    [./observation/metadata] : Optional, JSON str, in index order with ids
-    ./sample                 : Group
-    ./sample/ids             : (M,) dataset of str or vlen str
-    ./sample/data            : (M,) dataset of float64
-    ./sample/indices         : (M,) dataset of int32
-    ./sample/indptr          : (N+1,) dataset of int32
-    [./sample/metadata]      : Optional, JSON str, in index order with ids
-    Paramters
-    ---------
-    h5grp : a h5py ``Group`` or an open h5py ``File``
-    order : 'observation' or 'sample' to indicate which data ordering to load
-        the table as
-
-    Returns
-    -------
-    Table
-        A BIOM ``Table`` object
-
-    See Also
-    --------
-    Table.format_hdf5
-
-    Examples
-    --------
-    ### is it okay to actually create files in doctest?
-
-    """
-    if order not in ('observation', 'sample'):
-        raise ValueError("Unknown order %s!" % order)
-
-    # fetch all of the IDs
-    obs_ids = h5grp['observation/ids'][:]
-    samp_ids = h5grp['sample/ids'][:]
-
-    # fetch all of the metadata
-    no_md = np.array(["[]"])
-    obs_md = json.loads(h5grp['observation'].get('metadata', no_md)[0])
-    samp_md = json.loads(h5grp['sample'].get('metadata', no_md)[0])
-
-    # construct the sparse representation
-    rep = ScipySparseMat(len(obs_ids), len(samp_ids))
-
-    # load the data
-    data_path = partial(os.path.join, order)
-    data = h5grp[data_path("data")]
-    indices = h5grp[data_path("indices")]
-    indptr = h5grp[data_path("indptr")]
-    cs = (data, indices, indptr)
-    rep._matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
-
-    return table_factory(rep, samp_ids, obs_ids, samp_md or None,
-                         obs_md or None)
 
 
 def parse_biom_table_json(json_table, data_pump=None):
