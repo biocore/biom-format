@@ -361,8 +361,8 @@ def biom_open(fp, permission='U'):
         opener = gzip_open
         mode = 'rb' if permission in ['U', 'r'] else permission
 
-    with opener(fp, mode) as f:
-        try:
-            yield opener(fp, mode)
-        finally:
-            f.close()
+    f = opener(fp, mode)
+    try:
+        yield f
+    finally:
+        f.close()
