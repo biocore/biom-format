@@ -640,9 +640,8 @@ def biom_meta_to_string(metadata, replace_str=':'):
     # metadata is just a string (not a list)
     if isinstance(metadata, str) or isinstance(metadata, unicode):
         return metadata.replace(';', replace_str)
-
     elif isinstance(metadata, list):
-        transtab = maketrans(';|', replace_str)
+        transtab = maketrans(';|', ''.join([replace_str, replace_str]))
         # metadata is list of lists
         if isinstance(metadata[0], list):
             new_metadata = []
@@ -664,7 +663,6 @@ def convert_biom_to_table(biom_f, header_key=None, header_value=None,
                           md_format=None):
     """Convert a biom table to a contigency table"""
     table = parse_biom_table(biom_f)
-
     if md_format is None:
         md_format = biom_meta_to_string
 

@@ -369,6 +369,7 @@ class Table(object):
             if header_value is None:
                 raise TableException(
                     "You need to specify both header_key and header_value")
+
         if header_value is not None:
             if header_key is None:
                 raise TableException(
