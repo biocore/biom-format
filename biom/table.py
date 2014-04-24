@@ -1564,6 +1564,8 @@ class Table(object):
         if order not in ('observation', 'sample'):
             raise ValueError("Unknown order %s!" % order)
 
+        shape = h5grp.attrs['shape']
+
         # fetch all of the IDs
         obs_ids = h5grp['observation/ids'][:]
         samp_ids = h5grp['sample/ids'][:]
@@ -1582,7 +1584,11 @@ class Table(object):
         indices = h5grp[data_path("indices")]
         indptr = h5grp[data_path("indptr")]
         cs = (data, indices, indptr)
-        rep._matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
+
+        if order == 'sample':
+            rep._matrix = csc_matrix(cs, shape=shape)
+        else:
+            rep._matrix = csr_matrix(cs, shape=shape)
 
         return table_factory(rep, samp_ids, obs_ids, samp_md or None,
                              obs_md or None)
