@@ -1593,7 +1593,7 @@ class Table(object):
         return table_factory(rep, samp_ids, obs_ids, samp_md or None,
                              obs_md or None)
 
-    def to_hdf5(self, h5grp, generated_by, compress=False):
+    def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
 
         The expected structure of this group is below. A few basic definitions,
@@ -1632,6 +1632,8 @@ class Table(object):
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
         generated_by : str
+        compress : Boolean  'True' means fiels will be compressed with
+            gzip, 'False' means no compression
 
         See Also
         --------
@@ -1646,7 +1648,7 @@ class Table(object):
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
 
-        def axis_dump(grp, ids, md, order,compression=None):
+        def axis_dump(grp, ids, md, order, compression=None):
             """Store for an axis"""
             self._data.convert(order)
 
