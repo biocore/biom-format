@@ -8,6 +8,8 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 #-----------------------------------------------------------------------------
 
+from contextlib import contextmanager
+
 from sys import argv, stdout, stderr
 from collections import defaultdict
 from os import getenv
@@ -15,13 +17,22 @@ from os.path import (abspath, dirname, exists, split, splitext)
 import re
 from hashlib import md5
 from gzip import open as gzip_open
+from warnings import warn
+
+try:
+    import h5py
+    _have_h5py = True
+except ImportError:
+    warn("h5py is not available")
+    _have_h5py = False
+
 from numpy import mean, median, min, max
 from pyqi.util import pyqi_system_call
 from pyqi.core.log import StdErrLogger
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso", 
+__credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
@@ -31,7 +42,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 def get_biom_format_version_string():
     """Returns the current Biom file format version."""
     return "Biological Observation Matrix 1.0.0"
- 
+
 def get_biom_format_url_string():
     """Returns the current Biom file format description URL."""
     return __url__
@@ -73,9 +84,9 @@ def flatten(items):
     function to port it to the BIOM Format project (and keep it under BIOM's
     BSD license).
     """
-    result = [] 
+    result = []
     for i in items:
-        try: 
+        try:
             result.extend(i)
         except:
             result.append(i)
@@ -100,7 +111,7 @@ def _natsort_key(item):
     for ii in range(len(chunks)):
         if chunks[ii] and chunks[ii][0] in '0123456789':
             if '.' in chunks[ii]: numtype = float
-            else: numtype = int 
+            else: numtype = int
             # wrap in tuple with '0' to explicitly specify numbers come first
             chunks[ii] = (0, numtype(chunks[ii]))
         else:
@@ -224,7 +235,7 @@ def parse_biom_config_file(biom_config_file):
 
 def compute_counts_per_sample_stats(table, binary_counts=False):
     """Return summary statistics on per-sample observation counts
-    
+
         table: a BIOM table object
         binary_counts: count the number of unique observations per
          sample, rather than the sum of the total counts (i.e., counts
@@ -242,7 +253,7 @@ def compute_counts_per_sample_stats(table, binary_counts=False):
         else:
             sample_counts[sample_id] = count_vector.sum()
     counts = sample_counts.values()
-    
+
     return (min(counts),
             max(counts),
             median(counts),
@@ -251,7 +262,7 @@ def compute_counts_per_sample_stats(table, binary_counts=False):
 
 def safe_md5(open_file, block_size=2**20):
     """Computes an md5 sum without loading the file into memory
-    
+
     This method is based on the answers given in:
     http://stackoverflow.com/questions/1131220/get-md5-hash-of-a-files-without-open-it-in-python
 
@@ -262,7 +273,7 @@ def safe_md5(open_file, block_size=2**20):
     """
     data = True
     result = md5()
-    
+
     ## While a little hackish, this allows this code to
     ## safely work either with a file object or a list of lines.
     if isinstance(open_file,file):
@@ -279,7 +290,7 @@ def safe_md5(open_file, block_size=2**20):
     else:
         raise TypeError,\
          "safe_md5 can only handle a file handle or list of lines but recieved %r." % type(open_file)
-         
+
     while data:
         data = data_getter(data_getter_i)
         if data:
@@ -289,18 +300,19 @@ def safe_md5(open_file, block_size=2**20):
 def is_gzip(fp):
     """Checks the first two bytes of the file for the gzip magic number
 
-    If the first two bytes of the file are 1f 8b (the "magic number" of a 
+    If the first two bytes of the file are 1f 8b (the "magic number" of a
     gzip file), return True; otherwise, return false.
-    
+
     This function is ported from QIIME (http://www.qiime.org). QIIME is a GPL
     project, but we obtained permission from the authors of this function to
     port it to the BIOM Format project (and keep it under BIOM's BSD license).
     """
     return open(fp, 'rb').read(2) == '\x1f\x8b'
 
+@contextmanager
 def biom_open(fp, permission='U'):
     """Wrapper to allow opening of gzipped or non-compressed files
-    
+
     Read or write the contents of a file
 
     file_fp : file path
@@ -309,13 +321,24 @@ def biom_open(fp, permission='U'):
     If the file is binary, be sure to pass in a binary mode (append 'b' to
     the mode); opening a binary file in text mode (e.g., in default mode 'U')
     will have unpredictable results.
-    
+
     This function is ported from QIIME (http://www.qiime.org), previously named
     qiime_open. QIIME is a GPL project, but we obtained permission from the
     authors of this function to port it to the BIOM Format project (and keep it
     under BIOM's BSD license).
     """
+    opener = open
+    mode = permission
+
+    if _have_h5py:
+        if h5py.is_hdf5(fp):
+            opener = h5py.File
+            mode = 'r' if permission == 'U' else permission
+
     if is_gzip(fp):
-        return gzip_open(fp,'rb')
-    else:
-        return open(fp, permission)
+        opener = gzip_open
+        mode = 'rb' if permission in ['U', 'r'] else permission
+
+    with opener(fp, mode) as f:
+        yield f
+        f.close()
