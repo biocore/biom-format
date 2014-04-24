@@ -24,7 +24,7 @@ from numpy import ndarray, asarray, zeros, empty
 from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
-                       prefer_self, index_list, H5PY_VLEN_STR)
+                       prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
 from scipy.sparse import csc_matrix, csr_matrix
 from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
@@ -1556,6 +1556,10 @@ class Table(object):
         ### is it okay to actually create files in doctest?
 
         """
+        if not HAVE_H5PY:
+            raise RuntimeError("h5py is not in the environment, HDF5 support "
+                               "is not available")
+
         if order not in ('observation', 'sample'):
             raise ValueError("Unknown order %s!" % order)
 
@@ -1631,6 +1635,10 @@ class Table(object):
         ### is it okay to actually create files in doctest?
 
         """
+        if not HAVE_H5PY:
+            raise RuntimeError("h5py is not in the environment, HDF5 support "
+                               "is not available")
+
         def axis_dump(grp, ids, md, order):
             """Store for an axis"""
             self._data.convert(order)
