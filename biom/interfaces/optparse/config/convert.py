@@ -43,7 +43,6 @@ inputs = [
                    ShortName='i', Name='input-fp',
                    Help='the input table filepath, either in BIOM or classic '
                    'format'),
-    OptparseOption(Parameter=cmd_in_lookup('matrix_type'), ShortName='t'),
     OptparseOption(Parameter=cmd_in_lookup('biom_to_classic_table'),
                    Type=None, Action='store_true', ShortName='b'),
     OptparseOption(Parameter=cmd_in_lookup('sparse_biom_to_dense_biom'),
@@ -63,7 +62,6 @@ inputs = [
     OptparseOption(Parameter=cmd_in_lookup('header_key')),
     OptparseOption(Parameter=cmd_in_lookup('output_metadata_id')),
     OptparseOption(Parameter=cmd_in_lookup('process_obs_metadata')),
-    OptparseOption(Parameter=cmd_in_lookup('table_type')),
     OptparseOption(Parameter=None,
                    Type='new_filepath',
                    ShortName='o',
