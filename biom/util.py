@@ -14,6 +14,7 @@ from os.path import abspath, dirname, exists
 import re
 from hashlib import md5
 from gzip import open as gzip_open
+import h5py
 from numpy import mean, median, min, max
 
 __author__ = "Daniel McDonald"
@@ -331,6 +332,8 @@ def biom_open(fp, permission='U'):
     authors of this function to port it to the BIOM Format project (and keep it
     under BIOM's BSD license).
     """
+    if h5py.is_hdf5(fp):
+        return h5py.File(fp, 'r' if permission == 'U' else permission)
     if is_gzip(fp):
         return gzip_open(fp, 'rb')
     else:
