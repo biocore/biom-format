@@ -48,11 +48,13 @@ usage_examples = [
 inputs = [
     OptparseOption(Parameter=cmd_in_lookup('table'),
                    Type='existing_filepath',
-                   Handler=load_hdf5_or_json, ShortName='i',
+                   Handler=None, ShortName='i',
                    Name='input-fp',
                    Help='the input filepath to validate against the BIOM '
                    'format specification'),
-
+    OptparseOption(Parameter=cmd_in_lookup('is_json'),
+                   Type=None,
+                   Action='store_true'),
     OptparseOption(Parameter=cmd_in_lookup('format_version'), ShortName='f'),
 
     OptparseOption(Parameter=cmd_in_lookup('detailed_report'), Type=None,

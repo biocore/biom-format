@@ -9,12 +9,13 @@
 # -----------------------------------------------------------------------------
 
 from __future__ import division
+import json
 from datetime import datetime
 from operator import and_
 from functools import reduce
 from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
-from biom.util import HAVE_H5PY
+from biom.util import HAVE_H5PY, biom_open
 
 
 __author__ = "Daniel McDonald"
@@ -38,6 +39,9 @@ class TableValidator(Command):
         CommandIn(Name='table', DataType=object,
                   Description='the input BIOM JSON object (e.g., the output '
                   'of json.load)', Required=True),
+        CommandIn(Name='is_json', DataType=bool,
+                  Description='the input type',
+                  Required=False, Default=False),
         CommandIn(Name='format_version', DataType=str,
                   Description='the specific format version to validate '
                   'against', Required=False,
@@ -62,24 +66,29 @@ class TableValidator(Command):
                       'taxon table'])
     MatrixTypes = set(['sparse', 'dense'])
     ElementTypes = {'int': int, 'str': str, 'float': float, 'unicode': unicode}
+    HDF5FormatVersions = set([(2, 0)])
 
     def run(self, **kwargs):
-        table = kwargs['table']
+        is_json = kwargs['is_json']
 
-        if isinstance(table, dict):
-            return self._validate_json(**kwargs)
-        elif HAVE_H5PY:
-            return self._validate_hdf5(**kwargs)
-        elif not HAVE_H5PY:
-            raise IOError("h5py is not installed, can only validate JSON "
-                          "tables")
+        # this is not pyqi-appriopriate, but how we parse this thing is
+        # dependent on runtime options :(
+        with biom_open(kwargs['table']) as f:
+            if is_json:
+                kwargs['table'] = json.load(f)
+                return self._validate_json(**kwargs)
+            elif HAVE_H5PY:
+                kwargs['table'] = f
+                return self._validate_hdf5(**kwargs)
+            elif not HAVE_H5PY:
+                raise IOError("h5py is not installed, can only validate JSON "
+                              "tables")
 
     def _validate_hdf5(self, **kwargs):
         table = kwargs['table']
 
         # Need to make this an attribute so that we have this info during
         # validation.
-        self._format_version = kwargs['format_version']
         detailed_report = kwargs['detailed_report']
 
         report_lines = []
@@ -90,6 +99,7 @@ class TableValidator(Command):
 
         required_attrs = [
             ('format-url', self._valid_format_url),
+            ('format-version', self._valid_hdf5_format_version),
             ('type', self._valid_type),
             ('shape', self._valid_shape),
             ('nnz', self._valid_nnz),
@@ -287,6 +297,25 @@ class TableValidator(Command):
         else:
             return ''
 
+    def _check_date(self, val):
+        valid_times = ["%Y-%m-%d",
+                       "%Y-%m-%dT%H:%M",
+                       "%Y-%m-%dT%H:%M:%S",
+                       "%Y-%m-%dT%H:%M:%S.%f"]
+        valid_time = False
+        for fmt in valid_times:
+            try:
+                datetime.strptime(val, fmt)
+                valid_time = True
+                break
+            except:
+                pass
+
+        if valid_time:
+            return ''
+        else:
+            return "Timestamp does not appear to be ISO 8601"
+
     def _valid_creation_date(self, table):
         """Verify datetime can be parsed
 
@@ -294,27 +323,16 @@ class TableValidator(Command):
                                           note that a 'T' separates the date
                                           and time)
         """
-        d = table.attrs['creation-date']
-        try:
-            datetime.strptime(d, "%Y-%m-%dT%H:%M:%S")
-        except:
-            return "Timestamp does not appear to be ISO 8601"
-        else:
-            return ''
+        return self._check_date(table.attrs['creation-date'])
 
-    def _valid_datetime(self, table_json):
+    def _valid_datetime(self, table):
         """Verify datetime can be parsed
 
         Expects ISO 8601 datetime format (for example, 2011-12-19T19:00:00
                                           note that a 'T' separates the date
                                           and time)
         """
-        try:
-            datetime.strptime(table_json['date'], "%Y-%m-%dT%H:%M:%S")
-        except:
-            return "Timestamp does not appear to be ISO 8601"
-        else:
-            return ''
+        return self._check_date(table['date'])
 
     def _valid_sparse_data(self, table_json):
         """All index positions must be integers and values are of dtype"""
@@ -360,6 +378,14 @@ class TableValidator(Command):
 
         return ''
 
+    def _valid_hdf5_format_version(self, table):
+        """Format must be the expected version"""
+        ver = table.attrs['format-version']
+        if tuple(ver) not in self.HDF5FormatVersions:
+            return "Invalid format version '%s'" % str(ver)
+        else:
+            return ""
+
     def _valid_format(self, table_json):
         """Format must be the expected version"""
         if table_json['format'] != self._format_version:
@@ -368,14 +394,16 @@ class TableValidator(Command):
         else:
             return ''
 
-    def _valid_type(self, table_json):
+    def _valid_type(self, table):
         """Table must be a known table type"""
-        if table_json['type'].lower() not in self.TableTypes:
-            return "Unknown BIOM type: %s" % table_json['type']
+        key = self._json_or_hdf5_key(table, 'type')
+        value = self._json_or_hdf5_get(table, key)
+        if value.lower() not in self.TableTypes:
+            return "Unknown BIOM type: %s" % value
         else:
             return ''
 
-    def _valid_generated_by(self, table_json):
+    def _valid_generated_by(self, table):
         """Validate the generated_by field"""
         key = self._json_or_hdf5_key(table, 'generated_by')
         value = self._json_or_hdf5_get(table, key)

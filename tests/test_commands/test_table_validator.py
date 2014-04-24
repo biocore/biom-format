@@ -10,16 +10,16 @@
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Jai Ram Rideout"]
+__credits__ = ["Jai Ram Rideout", "Daniel McDonald"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Jai Ram Rideout"
 __email__ = "jai.rideout@gmail.com"
 
+import os
 import json
-from biom.commands.table_validator import TableValidator
 from unittest import TestCase, main
-
+from biom.commands.table_validator import TableValidator
 
 class TableValidatorTests(TestCase):
 
@@ -30,18 +30,47 @@ class TableValidatorTests(TestCase):
         self.rich_sparse_otu = json.loads(rich_sparse_otu)
         self.rich_dense_otu = json.loads(rich_dense_otu)
         self.min_dense_otu = json.loads(min_dense_otu)
+        self.to_remove = []
+
+    def tearDown(self):
+        for f in self.to_remove:
+            os.remove(f)
+
+    def test_valid_hdf5(self):
+        print __file__
+
+    def test_invalid_hdf5(self):
+        print __file__
+
+
 
     def test_valid(self):
         """Correctly validates a table that is indeed... valid."""
         exp = {'valid_table': True, 'report_lines': []}
-        obs = self.cmd(table_json=self.min_sparse_otu)
+
+        f = open('valid_test1','w')
+        f.write(json.dumps(self.min_sparse_otu))
+        f.close()
+        self.to_remove.append('valid_test1')
+
+        obs = self.cmd(table='valid_test1', is_json=True)
         self.assertEqual(obs, exp)
 
-        obs = self.cmd(table_json=self.rich_sparse_otu)
+        f = open('valid_test2','w')
+        f.write(json.dumps(self.rich_sparse_otu))
+        f.close()
+        self.to_remove.append('valid_test2')
+
+        obs = self.cmd(table='valid_test2', is_json=True)
         self.assertEqual(obs, exp)
 
         # Soldier, report!!
-        obs = self.cmd(table_json=self.min_sparse_otu, detailed_report=True)
+        f = open('valid_test3','w')
+        f.write(json.dumps(self.rich_sparse_otu))
+        f.close()
+        self.to_remove.append('valid_test3')
+
+        obs = self.cmd(table='valid_test3', detailed_report=True, is_json=True)
         self.assertTrue(obs['valid_table'])
         self.assertTrue(len(obs['report_lines']) > 0)
 
@@ -49,7 +78,13 @@ class TableValidatorTests(TestCase):
         """Correctly invalidates a table that is... invalid."""
         del self.min_sparse_otu['date']
         exp = {'valid_table': False, 'report_lines': ["Missing field: 'date'"]}
-        obs = self.cmd(table_json=self.min_sparse_otu)
+
+        f = open('invalid_test1','w')
+        f.write(json.dumps(self.min_sparse_otu))
+        f.close()
+        self.to_remove.append('invalid_test1')
+
+        obs = self.cmd(table='invalid_test1', is_json=True)
         self.assertEqual(obs, exp)
 
         self.rich_dense_otu['shape'][1] = 42
@@ -57,7 +92,13 @@ class TableValidatorTests(TestCase):
                'report_lines': ['Incorrect number of cols: [0, 0, 1, 0, 0, 0]',
                                 "Number of columns in 'columns' is not equal "
                                 "to 'shape'"]}
-        obs = self.cmd(table_json=self.rich_dense_otu)
+
+        f = open('invalid_test2','w')
+        f.write(json.dumps(self.rich_dense_otu))
+        f.close()
+        self.to_remove.append('invalid_test2')
+
+        obs = self.cmd(table='invalid_test2', is_json=True)
         self.assertEqual(obs, exp)
 
     def test_valid_format_url(self):
@@ -75,7 +116,7 @@ class TableValidatorTests(TestCase):
         """Should match format string"""
         table = self.min_sparse_otu
 
-        self.cmd._format_version = 'Biological Observation Matrix 1.0.0'
+        self.cmd._format_version = '1.0.0'
         obs = self.cmd._valid_format(table)
         self.assertTrue(len(obs) == 0)
 
@@ -358,7 +399,7 @@ class TableValidatorTests(TestCase):
 
 rich_sparse_otu = """{
 "id":null,
-"format": "Biological Observation Matrix 1.0.0",
+"format": "1.0.0",
 "format_url": "http://biom-format.org",
 "type": "OTU table",
 "generated_by": "QIIME revision XYZ",
@@ -459,7 +500,7 @@ rich_sparse_otu = """{
 
 min_sparse_otu = """{
         "id":null,
-        "format": "Biological Observation Matrix 1.0.0",
+        "format": "1.0.0",
         "format_url": "http://biom-format.org",
         "type": "OTU table",
         "generated_by": "QIIME revision XYZ",
@@ -502,7 +543,7 @@ min_sparse_otu = """{
 
 rich_dense_otu = """{
      "id":null,
-     "format": "Biological Observation Matrix 1.0.0",
+     "format": "1.0.0",
      "format_url": "http://biom-format.org",
      "type": "OTU table",
      "generated_by": "QIIME revision XYZ",
@@ -592,7 +633,7 @@ rich_dense_otu = """{
 
 min_dense_otu = """ {
         "id":null,
-        "format": "Biological Observation Matrix 1.0.0",
+        "format": "1.0.0",
         "format_url": "http://biom-format.org",
         "type": "OTU table",
         "generated_by": "QIIME revision XYZ",
