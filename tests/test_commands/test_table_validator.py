@@ -19,7 +19,17 @@ __email__ = "jai.rideout@gmail.com"
 import os
 import json
 from unittest import TestCase, main
+from shutil import copy
+
+import numpy.testing as npt
+
 from biom.commands.table_validator import TableValidator
+from biom.util import HAVE_H5PY
+
+
+if HAVE_H5PY:
+    import h5py
+
 
 class TableValidatorTests(TestCase):
 
@@ -32,17 +42,37 @@ class TableValidatorTests(TestCase):
         self.min_dense_otu = json.loads(min_dense_otu)
         self.to_remove = []
 
+        cur_path = os.path.split(os.path.abspath(__file__))[0]
+        examples_path = os.path.join(cur_path.rsplit('/', 2)[0], 'examples')
+        self.hdf5_file_valid = os.path.join(examples_path,
+                                            'min_sparse_otu_table_hdf5.biom')
+
     def tearDown(self):
         for f in self.to_remove:
             os.remove(f)
 
+    @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
     def test_valid_hdf5(self):
-        print __file__
+        """Test a valid HDF5 table"""
+        exp = {'valid_table': True, 'report_lines': []}
+        obs = self.cmd(table=self.hdf5_file_valid, is_json=False)
+        self.assertEqual(obs, exp)
 
+    @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
     def test_invalid_hdf5(self):
-        print __file__
+        """Test an invalid HDF5 table"""
+        exp = {'valid_table': False,
+               'report_lines': ["Missing attribute: 'creation-date'"]}
 
+        copy(self.hdf5_file_valid, 'invalid.hdf5')
+        self.to_remove.append('invalid.hdf5')
 
+        f = h5py.File('invalid.hdf5', 'a')
+        del f.attrs['creation-date']
+        f.close()
+
+        obs = self.cmd(table='invalid.hdf5', is_json=False)
+        self.assertEqual(obs, exp)
 
     def test_valid(self):
         """Correctly validates a table that is indeed... valid."""
