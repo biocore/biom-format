@@ -10,13 +10,13 @@
 # -----------------------------------------------------------------------------
 
 from __future__ import division
-
+import os
 import numpy as np
 from copy import deepcopy
 from datetime import datetime
-from json import dumps
+from json import dumps, loads
+from functools import reduce, partial
 from operator import itemgetter, xor, add
-from functools import reduce
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, zeros, empty
@@ -26,10 +26,12 @@ from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list)
+
+from scipy.sparse import csc_matrix, csr_matrix
 #from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
 #    list_dict_to_scipy, list_nparray_to_scipy, nparray_to_scipy,
 #    list_list_to_scipy)
-
+#
 #SparseObj = ScipySparseMat
 #to_sparse = to_scipy
 #dict_to_sparseobj = dict_to_scipy
@@ -1571,7 +1573,89 @@ class Table(object):
         return self.__class__(self._conv_to_self_type(vals), sample_ids[:],
                               obs_ids[:], sample_md, obs_md)
 
-    def format_hdf5(self, h5grp, generated_by):
+    @classmethod
+    def from_hdf5(cls, h5grp, order='observation'):
+        """Parse an HDF5 formatted BIOM table
+
+        The expected structure of this group is below. A few basic definitions,
+        N is the number of observations and M is the number of samples. Data
+        are stored in both compressed sparse row (for observation oriented
+        operations) and compressed sparse column (for sample oriented
+        operations).
+
+        ### ADD IN SCIPY SPARSE CSC/CSR URLS
+        ### ADD IN WIKIPEDIA PAGE LINK TO CSR
+        ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
+        ###     THOUGH
+        ### METADATA ARE NOT REPRESENTED HERE YET
+        ./id                     : str, an arbitrary ID
+        ./type                   : str, the table type (e.g, OTU table)
+        ./format-url             : str, a URL that describes the format
+        ./format-version         : two element tuple of int32, major and minor
+        ./generated-by           : str, what generated this file
+        ./creation-date          : str, ISO format
+        ./shape                  : two element tuple of int32, N by M
+        ./nnz                    : int32 or int64, number of non zero elements
+        ./observation            : Group
+        ./observation/ids        : (N,) dataset of str or vlen str
+        ./observation/data       : (N,) dataset of float64
+        ./observation/indices    : (N,) dataset of int32
+        ./observation/indptr     : (M+1,) dataset of int32
+        [./observation/metadata] : Optional, JSON str, in index order with ids
+        ./sample                 : Group
+        ./sample/ids             : (M,) dataset of str or vlen str
+        ./sample/data            : (M,) dataset of float64
+        ./sample/indices         : (M,) dataset of int32
+        ./sample/indptr          : (N+1,) dataset of int32
+        [./sample/metadata]      : Optional, JSON str, in index order with ids
+
+        Paramters
+        ---------
+        h5grp : a h5py ``Group`` or an open h5py ``File``
+        order : 'observation' or 'sample' to indicate which data ordering to
+            load the table as
+
+        Returns
+        -------
+        Table
+            A BIOM ``Table`` object
+
+        See Also
+        --------
+        Table.format_hdf5
+
+        Examples
+        --------
+        ### is it okay to actually create files in doctest?
+
+        """
+        if order not in ('observation', 'sample'):
+            raise ValueError("Unknown order %s!" % order)
+
+        # fetch all of the IDs
+        obs_ids = h5grp['observation/ids'][:]
+        samp_ids = h5grp['sample/ids'][:]
+
+        # fetch all of the metadata
+        no_md = np.array(["[]"])
+        obs_md = loads(h5grp['observation'].get('metadata', no_md)[0])
+        samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
+
+        # construct the sparse representation
+        rep = SparseObj(len(obs_ids), len(samp_ids))
+
+        # load the data
+        data_path = partial(os.path.join, order)
+        data = h5grp[data_path("data")]
+        indices = h5grp[data_path("indices")]
+        indptr = h5grp[data_path("indptr")]
+        cs = (data, indices, indptr)
+        rep._matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
+
+        return table_factory(rep, samp_ids, obs_ids, samp_md or None,
+                             obs_md or None)
+
+    def to_hdf5(self, h5grp, generated_by):
         """Store CSC and CSR in place
 
         The expected structure of this group is below. A few basic definitions,
