@@ -53,9 +53,9 @@ inputs = [
 
     HTMLInputOption(Parameter=cmd_in_lookup('sc_pipe_separated'),
                     Handler=string_list_handler,
-                    Help='comma-separated list of the metadata fields to split'
+                    Help='comma-separated list of the metadata fields to split '
                     'on semicolons and pipes ("|"). This is useful for '
-                    ' hierarchical data such as functional categories with '
+                    'hierarchical data such as functional categories with '
                     'one-to-many mappings (e.g. x;y;z|x;y;w)'),
 
     HTMLInputOption(Parameter=cmd_in_lookup('int_fields'),
