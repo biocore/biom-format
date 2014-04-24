@@ -20,4 +20,4 @@ __version__ = "1.3.1-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
-__all__ = ['table', 'parse', 'util', 'unit_test', 'exception']
+__all__ = ['table', 'parse', 'util', 'exception']
