@@ -10,6 +10,7 @@
 
 from __future__ import division
 import os
+from string import maketrans
 import numpy as np
 from biom import __version__
 from biom.exception import BiomParseException
@@ -641,19 +642,13 @@ def biom_meta_to_string(metadata, replace_str=':'):
         return metadata.replace(';', replace_str)
 
     elif isinstance(metadata, list):
-
+        transtab = maketrans(';|', replace_str)
         # metadata is list of lists
         if isinstance(metadata[0], list):
             new_metadata = []
             for x in metadata:
                 # replace erroneus delimiters
-                values = [
-                    y.replace(
-                        ';',
-                        replace_str).replace(
-                        '|',
-                        replace_str).strip(
-                    ) for y in x]
+                values = [y.strip().trans(transtab) for y in x]
                 new_metadata.append("; ".join(values))
             return "|".join(new_metadata)
 
