@@ -80,7 +80,7 @@ class TableValidator(Command):
             elif HAVE_H5PY:
                 kwargs['table'] = f
                 return self._validate_hdf5(**kwargs)
-            elif not HAVE_H5PY:
+            else:
                 raise IOError("h5py is not installed, can only validate JSON "
                               "tables")
 
