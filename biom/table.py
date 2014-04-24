@@ -766,12 +766,12 @@ class Table(object):
                                      obs_md, self.table_id,
                                      constructor=constructor)
 
-    def collase_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
-                                    min_group_size=2,
-                                    include_collapsed_metadata=True,
-                                    constructor=None, one_to_many=False,
-                                    one_to_many_mode='add',
-                                    one_to_many_md_key='Path', strict=False):
+    def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
+                                     min_group_size=2,
+                                     include_collapsed_metadata=True,
+                                     constructor=None, one_to_many=False,
+                                     one_to_many_mode='add',
+                                     one_to_many_md_key='Path', strict=False):
         """Collapse samples in a table by sample metadata
 
         Bin samples by metadata then collapse each bin into a single sample.
