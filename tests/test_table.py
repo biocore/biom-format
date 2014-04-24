@@ -12,18 +12,20 @@ import os
 from tempfile import mktemp
 from unittest import TestCase, main
 
-import h5py
 import numpy.testing as npt
 from numpy import where, zeros, array
 from scipy.sparse import coo_matrix
 
-from biom.util import unzip
+from biom.util import unzip, HAVE_H5PY
 from biom.table import (TableException, Table, UnknownID,
                         prefer_self, index_list, dict_to_nparray,
                         list_dict_to_nparray, table_factory,
                         list_list_to_nparray, to_sparse,
-                        nparray_to_sparse, list_nparray_to_sparse,
-                        get_zerod_matrix)
+                        nparray_to_sparseobj, list_nparray_to_sparseobj,
+                        SparseObj, get_zerod_matrix,)
+
+if HAVE_H5PY:
+    import h5py
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -218,6 +220,7 @@ class TableTests(TestCase):
             for f in self.to_remove:
                 os.remove(f)
 
+    @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
     def test_from_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
         cwd = os.getcwd()
@@ -301,6 +304,7 @@ class TableTests(TestCase):
                array([0., 1., 1., 0., 0., 0.])]
         npt.assert_equal(list(t.iter_observation_data()), exp)
 
+    @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
     def test_to_hdf5(self):
         """Write a file"""
         fname = mktemp()
