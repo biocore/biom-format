@@ -26,11 +26,12 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
-from scipy.sparse import csc_matrix, csr_matrix
+from scipy.sparse import csc_matrix, csr_matrix, coo_matrix
 from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
                                        list_dict_to_scipy,
                                        list_nparray_to_scipy, nparray_to_scipy,
-                                       list_list_to_scipy)
+                                       list_list_to_scipy,
+                                       coo_arrays_to_scipy)
 
 SparseObj = ScipySparseMat
 to_sparse = to_scipy
@@ -39,6 +40,7 @@ list_dict_to_sparseobj = list_dict_to_scipy
 list_nparray_to_sparseobj = list_nparray_to_scipy
 nparray_to_sparseobj = nparray_to_scipy
 list_list_to_sparseobj = list_list_to_scipy
+coo_arrays_to_sparseobj = coo_arrays_to_scipy
 
 
 __author__ = "Daniel McDonald"
@@ -1958,7 +1960,8 @@ def list_dict_to_nparray(data, dtype=float):
 
 
 def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
-                  observation_metadata=None, table_id=None, **kwargs):
+                  observation_metadata=None, table_id=None,
+                  input_is_dense=False, **kwargs):
     """Construct a table
 
     Attempts to make 'data' through various means of juggling. Data can be:
@@ -2025,7 +2028,11 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
             data = list_dict_to_sparseobj(data, dtype)
 
         elif isinstance(data[0], list):
-            data = list_list_to_sparseobj(data, dtype, shape=shape)
+            if input_is_dense:
+                d = coo_matrix(data)
+                data = coo_arrays_to_sparseobj((d.data, (d.row, d.col)))
+            else:
+                data = list_list_to_sparseobj(data, dtype, shape=shape)
 
         else:
             raise TableException("Unknown nested list type")
