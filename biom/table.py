@@ -20,12 +20,11 @@ from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, zeros, empty
-import h5py
 
 from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
-                       prefer_self, index_list)
+                       prefer_self, index_list, H5PY_VLEN_STR)
 
 from scipy.sparse import csc_matrix, csr_matrix
 from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
@@ -40,8 +39,6 @@ list_nparray_to_sparseobj = list_nparray_to_scipy
 nparray_to_sparseobj = nparray_to_scipy
 list_list_to_sparseobj = list_list_to_scipy
 
-# Define a variable length string type
-H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
