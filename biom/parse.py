@@ -19,7 +19,6 @@ from functools import partial
 import json
 from numpy import asarray
 from scipy.sparse import csr_matrix, csc_matrix
-from biom.backends.scipysparse import ScipySparseMat
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
