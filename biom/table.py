@@ -270,8 +270,8 @@ class Table(object):
 
         A row vector will be returned as a scipy.sparse matrix in csr format.
         """
-        self._data.convert('csr')
-        return self._data.get_row(row_idx)
+        self._data.tocsr()
+        return self._data.getrow(row_idx)
 
     def _get_col(self, col_idx):
         """Return the column at ``col_idx``.
@@ -279,8 +279,8 @@ class Table(object):
         A column vector will be returned as a scipy.sparse matrix in csc
         format.
         """
-        self._data.convert('csc')
-        return self._data.get_col(col_idx)
+        self._data.tocsc()
+        return self._data.getcol(col_idx)
 
     def reduce(self, f, axis):
         """Reduce over axis with f
