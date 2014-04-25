@@ -278,7 +278,6 @@ def parse_biom_table_json(json_table, data_pump=None):
                                   sample_metadata, obs_metadata,
                                   shape=json_table['shape'],
                                   dtype=dtype)
-
     return table_obj
 
 

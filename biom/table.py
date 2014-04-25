@@ -2226,7 +2226,8 @@ def list_list_to_sparse(data, dtype=float, shape=None):
     else:
         n_rows, n_cols = shape
 
-    matrix = coo_matrix((values, (rows, cols)), shape=(n_rows, n_cols))
+    matrix = coo_matrix((values, (rows, cols)), shape=(n_rows, n_cols),
+                        dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
