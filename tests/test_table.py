@@ -192,7 +192,6 @@ class TableTests(TestCase):
         self.vals4 = to_sparse({(0, 0): 1, (0, 1): 2, (1, 0): 3, (1, 1): 4})
         self.st3 = Table(self.vals3, ['b', 'c'], ['2', '3'])
         self.st4 = Table(self.vals4, ['c', 'd'], ['3', '4'])
-        self._to_dict_f = lambda x: sorted(x.items())
         self.st_rich = Table(to_sparse(self.vals),
                              ['a', 'b'], ['1', '2'],
                              [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
@@ -745,9 +744,9 @@ class SparseTableTests(TestCase):
 
     def test_data_equality(self):
         """check equality between tables"""
-        self.assertTrue(self.st1._data_equality(self.st2))
-        self.assertTrue(self.st1._data_equality(self.st1))
-        self.assertFalse(self.st1._data_equality(self.st3))
+        self.assertTrue(self.st1._data_equality(self.st2._data))
+        self.assertTrue(self.st1._data_equality(self.st1._data))
+        self.assertFalse(self.st1._data_equality(self.st3._data))
 
     def test_nonzero(self):
         """Return a list of nonzero positions"""
@@ -903,55 +902,34 @@ class SparseTableTests(TestCase):
         obs = self.st1.delimited_self(observation_column_name='Taxon')
         self.assertEqual(obs, exp)
 
-    def test_conv_to_np(self):
-        """Should convert a self styled vector to numpy type"""
-        input_row = coo_matrix((1, 3))
-        input_row[(0, 0)] = 10
-        exp = array([10.0, 0, 0])
-        obs = self.st1._conv_to_np(input_row)
-        npt.assert_equal(obs, exp)
-
-        input_col = coo_matrix((3, 1))
-        input_col[(0, 0)] = 12
-        exp = array([12.0, 0, 0])
-        obs = self.st1._conv_to_np(input_col)
-        npt.assert_equal(obs, exp)
-
-        # 1x1
-        input_vec = coo_matrix((1, 1))
-        input_vec[(0, 0)] = 42
-        exp = array([42.0])
-        obs = self.st1._conv_to_np(input_vec)
-        npt.assert_equal(obs, exp)
-
     def test_conv_to_self_type(self):
         """Should convert other to sparse type"""
-        exp = coo_matrix((2, 2))
+        exp = lil_matrix((2, 2))
         exp[(0, 0)] = 5
         exp[(0, 1)] = 6
         exp[(1, 0)] = 7
         exp[(1, 1)] = 8
         obs = self.st1._conv_to_self_type(self.vals)
-        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
+        self.assertEqual((obs != exp).sum(), 0)
 
-        exp = coo_matrix((2, 2))
+        exp = lil_matrix((2, 2))
         exp[(0, 0)] = 5
         exp[(0, 1)] = 7
         exp[(1, 0)] = 6
         exp[(1, 1)] = 8
         obs = self.st1._conv_to_self_type(self.vals, transpose=True)
-        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
+        self.assertEqual((obs != exp).sum(), 0)
 
         # passing a single vector
-        exp = coo_matrix((1, 3))
+        exp = lil_matrix((1, 3))
         exp[(0, 0)] = 2
         exp[(0, 1)] = 0
         exp[(0, 2)] = 3
         obs = self.st1._conv_to_self_type(array([2, 0, 3]))
-        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
+        self.assertEqual((obs != exp).sum(), 0)
 
         # passing a list of dicts
-        exp = coo_matrix((2, 3))
+        exp = lil_matrix((2, 3))
         exp[(0, 0)] = 5
         exp[(0, 1)] = 6
         exp[(0, 2)] = 7
@@ -960,7 +938,7 @@ class SparseTableTests(TestCase):
         exp[(1, 2)] = 10
         obs = self.st1._conv_to_self_type([{(0, 0): 5, (0, 1): 6, (0, 2): 7},
                                            {(1, 0): 8, (1, 1): 9, (1, 2): 10}])
-        self.assertEqual(sorted(obs.items()), sorted(exp.items()))
+        self.assertEqual((obs != exp).sum(), 0)
 
     def test_iter(self):
         """Should iterate over samples"""
@@ -970,30 +948,33 @@ class SparseTableTests(TestCase):
 
     def test_iter_obs(self):
         """Iterate over observations of sparse matrix"""
-        r1 = coo_matrix((1, 2))
-        r2 = coo_matrix((1, 2))
+        r1 = lil_matrix((1, 2))
+        r2 = lil_matrix((1, 2))
         r1[(0, 0)] = 5
         r1[(0, 1)] = 6
         r2[(0, 0)] = 7
         r2[(0, 1)] = 8
 
-        exp = map(self._to_dict_f, [r1, r2])
-        obs = map(self._to_dict_f, self.st1._iter_obs())
+        exp = [r1.tocsr(), r2.tocsr()]
+        obs = list(self.st1._iter_obs())
 
-        self.assertEqual(obs, exp)
+        for o,e in zip(obs, exp):
+            self.assertEqual((o != e).sum(), 0)
 
     def test_iter_samp(self):
         """Iterate over samples of sparse matrix"""
-        c1 = coo_matrix((1, 2))
-        c2 = coo_matrix((1, 2))
+        c1 = lil_matrix((1, 2))
+        c2 = lil_matrix((1, 2))
         c1[(0, 0)] = 5
         c1[(0, 1)] = 7
         c2[(0, 0)] = 6
         c2[(0, 1)] = 8
-        exp = map(self._to_dict_f, [c1, c2])
-        obs = map(self._to_dict_f, self.st1._iter_samp())
 
-        self.assertEqual(obs, exp)
+        exp = [c1.tocsc(), c2.tocsc()]
+        obs = list(self.st1._iter_samp())
+
+        for o,e in zip(obs, exp):
+            self.assertEqual((o != e).sum(), 0)
 
     def test_iter_samples(self):
         """Iterates samples"""
