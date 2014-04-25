@@ -1713,15 +1713,15 @@ class Table(object):
 
             grp.create_dataset('data', shape=(len_data,),
                                dtype=np.float64,
-                               data=self._data._matrix.data,
+                               data=self._data.data,
                                compression=compression)
             grp.create_dataset('indices', shape=(len_data,),
                                dtype=np.int32,
-                               data=self._data._matrix.indices,
+                               data=self._data.indices,
                                compression=compression)
             grp.create_dataset('indptr', shape=(len_indptr,),
                                dtype=np.int32,
-                               data=self._data._matrix.indptr,
+                               data=self._data.indptr,
                                compression=compression)
 
             # if we store IDs in the table as numpy arrays then this store

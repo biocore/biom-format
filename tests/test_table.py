@@ -22,7 +22,7 @@ from biom.table import (TableException, Table, UnknownID,
                         list_dict_to_nparray, table_factory,
                         list_list_to_nparray, to_sparse,
                         nparray_to_sparse, list_nparray_to_sparse,
-                        get_zerod_matrix,)
+                        get_zerod_matrix, to_sparse)
 
 if HAVE_H5PY:
     import h5py
@@ -571,8 +571,8 @@ class TableTests(TestCase):
 
     def test_get_value_by_ids(self):
         """Return the value located in the matrix by the ids"""
-        t1 = Table(array([[5, 6], [7, 8]]), [1, 2], [3, 4])
-        t2 = Table(array([[5, 6], [7, 8]]), ['a', 'b'], ['c', 'd'])
+        t1 = Table(to_sparse(array([[5, 6], [7, 8]])), [1, 2], [3, 4])
+        t2 = Table(to_sparse(array([[5, 6], [7, 8]])), ['a', 'b'], ['c', 'd'])
 
         self.assertEqual(5, t1.get_value_by_ids(3, 1))
         self.assertEqual(6, t1.get_value_by_ids(3, 2))
