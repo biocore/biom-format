@@ -9,8 +9,7 @@
 # -----------------------------------------------------------------------------
 
 from math import ceil
-from biom.table import table_factory, SparseObj
-from biom.backends.csmat import CSMat
+from biom.table import table_factory, Table
 
 
 def n_nonzero_items(n, m, p):
@@ -59,13 +58,13 @@ if __name__ == '__main__':
     row_ids = map(str, range(n))
     col_ids = map(str, range(m))
 
-    obj = SparseObj(n, m)
+    obj = Table(n, m)
 
     cur_row = -1
     cur_col = -1
     rcv = {}
 
-    if isinstance(obj, CSMat):
+    if isinstance(obj, Table):
         for i in range(n_nonzero_items(n, m, p)):
             cur_row = get_next_row_index(n, cur_row)
             cur_col = get_next_col_index(m, cur_col)
