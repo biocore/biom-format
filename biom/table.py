@@ -54,9 +54,9 @@ class Table(object):
 
     def __init__(self, data, sample_ids, observation_ids, sample_metadata=None,
                  observation_metadata=None, table_id=None,
-                 type=None, **kwargs):
-        if type is None:
-            type = 'Unspecified'
+                 type_=None, **kwargs):
+        #if type is None:
+        #    type = 'Unspecified'
 
         self.type = type
         self.table_id = table_id
@@ -285,8 +285,8 @@ class Table(object):
         if row_idx >= num_rows or row_idx < 0:
             raise IndexError("Row index %d is out of bounds." % row_idx)
 
-        self._data = self._data.tocsr()
-        return self._data.getrow(row_idx)
+        self._data.convert('csr')
+        return self._data.get_row(row_idx)
 
     def _get_col(self, col_idx):
         """Return the column at ``col_idx``.
@@ -303,8 +303,8 @@ class Table(object):
         if col_idx >= num_cols or col_idx < 0:
             raise IndexError("Column index %d is out of bounds." % col_idx)
 
-        self._data = self._data.tocsc()
-        return self._data.getcol(col_idx)
+        self._data.convert('csc')
+        return self._data.get_col(col_idx)
 
     def reduce(self, f, axis):
         """Reduce over axis with f
