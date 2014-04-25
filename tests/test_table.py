@@ -21,8 +21,8 @@ from biom.table import (TableException, Table, UnknownID,
                         prefer_self, index_list, dict_to_nparray,
                         list_dict_to_nparray, table_factory,
                         list_list_to_nparray, to_sparse,
-                        nparray_to_sparseobj, list_nparray_to_sparseobj,
-                        SparseObj, get_zerod_matrix,)
+                        nparray_to_sparse, list_nparray_to_sparse,
+                        get_zerod_matrix,)
 
 if HAVE_H5PY:
     import h5py

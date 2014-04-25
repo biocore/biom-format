@@ -19,20 +19,13 @@ from functools import reduce, partial
 from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
-from numpy import ndarray, asarray, zeros, empty
-import h5py
-import numpy as np
+from numpy import ndarray, asarray, zeros, empty, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix
 
 from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
-
-from biom.backends.scipysparse import list_list_to_scipy, coo_arrays_to_scipy
-
-list_list_to_sparseobj = list_list_to_scipy
-coo_arrays_to_sparseobj = coo_arrays_to_scipy
 
 
 __author__ = "Daniel McDonald"
@@ -46,7 +39,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 class Table(object):
-    """Abstract base class representing a Table.
+    """Teh Table.
 
     Give in to the power of the Table!
 
@@ -54,15 +47,15 @@ class Table(object):
 
     def __init__(self, data, sample_ids, observation_ids, sample_metadata=None,
                  observation_metadata=None, table_id=None,
-                 type_=None, **kwargs):
-        #if type is None:
-        #    type = 'Unspecified'
+                 type=None, **kwargs):
 
         self.type = type
         self.table_id = table_id
         self._data = data
 
         # Cast to tuple for immutability.
+        ### it is nice to be able to change IDs in an interpreter... maybe
+        ### we do full mutability support?
         self.sample_ids = tuple(sample_ids)
         self.observation_ids = tuple(observation_ids)
 
@@ -95,7 +88,7 @@ class Table(object):
     def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
         if dtype is None:
-            dtype = self._dtype
+            dtype = self.dtype
 
         if isspmatrix(vals):
             return vals
@@ -277,14 +270,6 @@ class Table(object):
 
         A row vector will be returned as a scipy.sparse matrix in csr format.
         """
-        if self.is_empty():
-            raise IndexError("Cannot retrieve a row from an empty/null table.")
-
-        num_rows, num_cols = self.shape
-
-        if row_idx >= num_rows or row_idx < 0:
-            raise IndexError("Row index %d is out of bounds." % row_idx)
-
         self._data.convert('csr')
         return self._data.get_row(row_idx)
 
@@ -294,15 +279,6 @@ class Table(object):
         A column vector will be returned as a scipy.sparse matrix in csc
         format.
         """
-        if self.is_empty():
-            raise IndexError("Cannot retrieve a column from an empty/null "
-                             "table.")
-
-        num_rows, num_cols = self.shape
-
-        if col_idx >= num_cols or col_idx < 0:
-            raise IndexError("Column index %d is out of bounds." % col_idx)
-
         self._data.convert('csc')
         return self._data.get_col(col_idx)
 
@@ -734,8 +710,7 @@ class Table(object):
         # transpose is necessary as the underlying storage is sample == col
         return self.__class__(
             self._conv_to_self_type(samp_vals, transpose=True),
-            samp_ids[:], self.observation_ids[
-                :], samp_metadata,
+            samp_ids[:], self.observation_ids[:], samp_metadata,
             self.observation_metadata, self.table_id)
 
     def filter_observations(self, f, invert=False):
@@ -851,12 +826,12 @@ class Table(object):
                                      obs_md, self.table_id,
                                      constructor=constructor)
 
-    def collase_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
-                                    min_group_size=2,
-                                    include_collapsed_metadata=True,
-                                    constructor=None, one_to_many=False,
-                                    one_to_many_mode='add',
-                                    one_to_many_md_key='Path', strict=False):
+    def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
+                                     min_group_size=2,
+                                     include_collapsed_metadata=True,
+                                     constructor=None, one_to_many=False,
+                                     one_to_many_mode='add',
+                                     one_to_many_md_key='Path', strict=False):
         """Collapse samples in a table by sample metadata
 
         Bin samples by metadata then collapse each bin into a single sample.
@@ -2054,7 +2029,7 @@ def list_dict_to_nparray(data, dtype=float):
 
 def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
                   observation_metadata=None, table_id=None,
-                  input_is_dense=False, **kwargs):
+                  input_is_dense=False, transpose=False, **kwargs):
     """Construct a table
 
     Attempts to make 'data' through various means of juggling. Data can be:
@@ -2123,9 +2098,9 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
         elif isinstance(data[0], list):
             if input_is_dense:
                 d = coo_matrix(data)
-                data = coo_arrays_to_sparseobj((d.data, (d.row, d.col)))
+                data = coo_arrays_to_sparse((d.data, (d.row, d.col)))
             else:
-                data = list_list_to_sparseobj(data, dtype, shape=shape)
+                data = list_list_to_sparse(data, dtype, shape=shape)
 
         else:
             raise TableException("Unknown nested list type")
@@ -2195,7 +2170,7 @@ def to_sparse(values, transpose=False, dtype=float):
         return mat
     # list of scipy.sparse matrices, each representing a row in row order
     elif isinstance(values, list) and isspmatrix(values[0]):
-        mat = list_scipy_to_sparse(values, dtype)
+        mat = list_sparse_to_sparse(values, dtype)
         if transpose:
             mat = mat.T
         return mat
