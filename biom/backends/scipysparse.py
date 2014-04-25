@@ -38,16 +38,15 @@ class ScipySparseMat(object):
     Based on CSMat implementation by Daniel McDonald.
     """
 
-    @staticmethod
-    def convert_vector_to_dense(vec):
+    def todense(self):
         """Converts a ScipySparseMat row/column vector to a dense numpy array.
 
         The numpy array that is returned will always be a 1-dimensional row
         vector.
         """
-        dense_vec = asarray(vec._matrix.todense())
+        dense_vec = asarray(self._matrix.todense())
 
-        if vec.shape == (1, 1):
+        if self.shape == (1, 1):
             # Handle the special case where we only have a single element, but
             # we don't want to return a numpy scalar / 0-d array. We still want
             # to return a vector of length 1.
@@ -130,7 +129,7 @@ class ScipySparseMat(object):
         if not self.is_empty:
             self._matrix = self._matrix.asformat(fmt)
 
-    def transpose(self):
+    def transpose(self, copy=False):
         """Return a transposed copy of ``self``."""
         transposed = self.__class__(self.shape[1], self.shape[0],
                                     dtype=self.dtype)
@@ -141,7 +140,7 @@ class ScipySparseMat(object):
             if self.fmt == 'lil':
                 self.convert('csr')
 
-            transposed._matrix = self._matrix.transpose(copy=True)
+            transposed._matrix = self._matrix.transpose(copy=copy)
 
         return transposed
     T = property(transpose)

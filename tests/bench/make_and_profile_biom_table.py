@@ -8,7 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from biom.table import SparseObj, SparseOTUTable
+from biom.table import Table
 from numpy.random import random
 
 from sys import argv
@@ -27,9 +27,9 @@ def make_sparse_fill(t, to, ts):
 def make_table(lowobs, highobs, ostep, lowsamp, highsamp, sstep):
     table_obs = range(lowobs, highobs, ostep)
     table_samp = range(lowsamp, highsamp, sstep)
-    table_data = SparseObj(len(table_obs), len(table_samp))
+    table_data = Table(len(table_obs), len(table_samp))
     make_sparse_fill(table_obs, table_samp, table_data)
-    return SparseOTUTable(table_data, table_samp, table_obs)
+    return Table(table_data, table_samp, table_obs)
 
 t1 = make_table(t1lo, t1ho, t1so, t1ls, t1hs, t1ss)
 t2 = make_table(t2lo, t2ho, t2so, t2ls, t2hs, t2ss)
