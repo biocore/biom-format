@@ -267,7 +267,7 @@ def compute_counts_per_sample_stats(table, binary_counts=False):
         if binary_counts:
             sample_counts[sample_id] = (count_vector != 0).sum()
         else:
-            sample_counts[sample_id] = count_vector.sum()
+            sample_counts[sample_id] = float(count_vector.sum())
     counts = sample_counts.values()
 
     return (min(counts),
