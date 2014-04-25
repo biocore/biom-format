@@ -20,7 +20,7 @@ from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, zeros, empty, newaxis
-from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix
+from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
 from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
@@ -2275,22 +2275,8 @@ def list_sparse_to_sparse(data, dtype=float):
             is_col = False
             n_rows = len(data)
 
-    rows = []
-    cols = []
-    vals = []
-    for row_idx, row in enumerate(data):
-        for (foo, col_idx), val in row.items():
-            if is_col:
-                # transpose
-                rows.append(foo)
-                cols.append(row_idx)
-                vals.append(val)
-            else:
-                rows.append(row_idx)
-                cols.append(col_idx)
-                vals.append(val)
-
-    matrix = coo_matrix((vals, (rows, cols)), shape=(n_rows, n_cols),
+    data = vstack(data)
+    matrix = coo_matrix(data, shape=(n_rows, n_cols),
                         dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
