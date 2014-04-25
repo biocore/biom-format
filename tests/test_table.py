@@ -903,27 +903,6 @@ class SparseTableTests(TestCase):
         obs = self.st1.delimited_self(observation_column_name='Taxon')
         self.assertEqual(obs, exp)
 
-    def test_conv_to_np(self):
-        """Should convert a self styled vector to numpy type"""
-        input_row = coo_matrix((1, 3))
-        input_row[(0, 0)] = 10
-        exp = array([10.0, 0, 0])
-        obs = self.st1._conv_to_np(input_row)
-        npt.assert_equal(obs, exp)
-
-        input_col = coo_matrix((3, 1))
-        input_col[(0, 0)] = 12
-        exp = array([12.0, 0, 0])
-        obs = self.st1._conv_to_np(input_col)
-        npt.assert_equal(obs, exp)
-
-        # 1x1
-        input_vec = coo_matrix((1, 1))
-        input_vec[(0, 0)] = 42
-        exp = array([42.0])
-        obs = self.st1._conv_to_np(input_vec)
-        npt.assert_equal(obs, exp)
-
     def test_conv_to_self_type(self):
         """Should convert other to sparse type"""
         exp = coo_matrix((2, 2))
