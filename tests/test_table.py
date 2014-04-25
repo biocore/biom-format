@@ -602,15 +602,11 @@ class TableTests(TestCase):
     def test_immutability(self):
         """Test Table object immutability."""
         # Try to set members to something completely different.
-        self.assertRaises(TypeError, self.st1.__setattr__, 'sample_ids',
-                          ['foo', 'bar'])
-        self.assertRaises(TypeError, self.simple_derived.__setattr__,
-                          'observation_ids', ['foo', 'bar'])
-        self.assertRaises(TypeError, self.st2.__setattr__,
-                          'sample_metadata', [{'foo': 'bar'}, {'bar': 'baz'}])
-        self.assertRaises(TypeError, self.st1.__setattr__,
-                          'observation_metadata', [{'foo': 'bar'},
-                                                   {'bar': 'baz'}])
+        with self.assertRaises(TypeError):
+            self.st1.sample_ids[0] = 'foo'
+
+        with self.assertRaises(TypeError):
+            self.st1.observation_ids[0] = 'bar'
 
 
 class SparseTableTests(TestCase):

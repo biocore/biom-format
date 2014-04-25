@@ -1740,7 +1740,7 @@ class Table(object):
                                    compression=compression)
 
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
-        h5grp.attrs['type'] = self.type
+        h5grp.attrs['type'] = self.type if self.type else ""
         h5grp.attrs['format-url'] = "http://biom-format.org"
         h5grp.attrs['format-version'] = (2, 0)
         h5grp.attrs['generated-by'] = generated_by
