@@ -249,11 +249,6 @@ def get_axis_indices(biom_str, to_keep, axis):
 
 def parse_biom_table(fp, samples=None, observations=None,
                      input_is_dense=False):
-    if samples is not None and observations is not None:
-        raise BiomParseException("Could not subset based on samples and "
-                                 "observations at the same time. Specify only "
-                                 "a list of samples OR a list of observations,"
-                                 " but not both.")
     try:
         return Table.from_hdf5(fp, samples=samples, observations=observations)
     except:

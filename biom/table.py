@@ -1572,11 +1572,6 @@ class Table(object):
         if order not in ('observation', 'sample'):
             raise ValueError("Unknown order %s!" % order)
 
-        if samples is not None and observations is not None:
-            raise ValueError("Subsetting from samples and observations at the "
-                             "same time is not supported. Provide either "
-                             "samples or observations but not both")
-
         # fetch the IDs
         if observations is not None:
             # Get the index of the observation ids to include
