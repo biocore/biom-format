@@ -1641,6 +1641,12 @@ class Table(object):
         indices = h5grp[data_path("indices")]
         indptr = h5grp[data_path("indptr")]
         cs = (data, indices, indptr)
+
+        if order == 'sample':
+            matrix = csc_matrix(cs, shape=shape)
+        else:
+            matrix = csr_matrix(cs, shape=shape)
+
         matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
 
         return table_factory(matrix, samp_ids, obs_ids, samp_md or None,
