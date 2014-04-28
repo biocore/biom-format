@@ -1578,12 +1578,12 @@ class Table(object):
             # Get the index of the observation ids to include
             obs_idx = np.in1d(h5grp['observation/ids'], observations)
             # Retrieve only the obs ids that we are interested on
-            obs_ids = h5grp['observation/ids'][np.where(obs_idx)]
+            obs_ids = h5grp['observation/ids'][obs_idx]
             # Check that all observations have been found on the hdf5 file
             if len(obs_ids) != len(observations):
                 raise ValueError("The following observation ids have not been "
                                  "found in the biom table: %s" %
-                                 set(observations) - set(obs_ids))
+                                 (set(observations) - set(obs_ids)))
         else:
             # Get all the observation ids
             obs_ids = h5grp['observation/ids'][:]
@@ -1593,12 +1593,12 @@ class Table(object):
             # Get the index of the sample ids to include
             samp_idx = np.in1d(h5grp['sample/ids'], samples)
             # Retrieve only the sample ids that we are interested on
-            samp_ids = h5grp['sample/ids'][np.where(samp_idx)]
+            samp_ids = h5grp['sample/ids'][samp_idx]
             # Check that all samples have been found on the hdf5 file
             if len(samp_ids) != len(samples):
                 raise ValueError("The following sample ids have not been found"
                                  " in the biom table: %s" %
-                                 set(samples) - set(samp_ids))
+                                 (set(samples) - set(samp_ids)))
         else:
             # Get all the sample ids
             samp_ids = h5grp['sample/ids'][:]
@@ -1617,10 +1617,43 @@ class Table(object):
         rep = SparseObj(len(obs_ids), len(samp_ids))
 
         # load the data
+        if order == 'sample':
+            idx1 = samp_idx
+            idx2 = np.where(obs_idx)[0]
+        else:
+            idx1 = obs_idx
+            idx2 = np.where(samp_idx)[0]
+
+        translate = {}
+        for i, j in enumerate(idx2):
+            translate[j] = i
+
         data_path = partial(os.path.join, order)
-        data = h5grp[data_path("data")]
-        indices = h5grp[data_path("indices")]
-        indptr = h5grp[data_path("indptr")]
+
+        h5_data = h5grp[data_path("data")]
+        h5_indices = h5grp[data_path("indices")]
+        h5_indptr = h5grp[data_path("indptr")]
+
+        indices = []
+        data = []
+        indptr = [0]
+
+        keep = np.where(idx1)[0]
+        for i in keep:
+            start = h5_indptr[i]
+            end = h5_indptr[i+1]
+
+            org_indices = h5_indices[start:end]
+            skip = np.in1d(org_indices, idx2)
+            trans_indices = [translate[j] for j in org_indices[skip]]
+
+            indices = np.append(indices, trans_indices)
+            data = np.append(data, h5_data[start:end][skip])
+
+            indptr.append(len(data))
+
+        indices = np.asarray(indices, dtype=np.int)
+
         cs = (data, indices, indptr)
         rep._matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
 
