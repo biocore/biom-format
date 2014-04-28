@@ -1625,6 +1625,7 @@ class Table(object):
             raise ValueError("Unknown order %s!" % order)
 
         shape = h5grp.attrs['shape']
+        type = h5grp.attrs['type']
 
         # fetch all of the IDs
         obs_ids = h5grp['observation/ids'][:]
@@ -1650,7 +1651,7 @@ class Table(object):
         matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
 
         return table_factory(matrix, samp_ids, obs_ids, samp_md or None,
-                             obs_md or None)
+                             obs_md or None, type=type)
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
