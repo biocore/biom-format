@@ -143,10 +143,10 @@ class ParseTests(TestCase):
         # parse_biom_table methods
         tab1_fh = json.load(StringIO(self.biom_minimal_sparse))
         tab = parse_biom_table_json(tab1_fh)
-        self.assertEqual((tab.sample_ids), ('Sample1', 'Sample2',
+        npt.assert_equal((tab.sample_ids), ('Sample1', 'Sample2',
                                             'Sample3', 'Sample4', 'Sample5',
                                             'Sample6',))
-        self.assertEqual((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
+        npt.assert_equal((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
                                                  'GG_OTU_3', 'GG_OTU_4',
                                                  'GG_OTU_5'))
         self.assertEqual(tab.sample_metadata, None)

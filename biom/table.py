@@ -53,11 +53,9 @@ class Table(object):
         self.table_id = table_id
         self._data = data
 
-        # Cast to tuple for immutability.
-        ### it is nice to be able to change IDs in an interpreter... maybe
-        ### we do full mutability support?
-        self.sample_ids = tuple(sample_ids)
-        self.observation_ids = tuple(observation_ids)
+        # using object to allow for variable length strings
+        self.sample_ids = np.asarray(sample_ids, dtype=object)
+        self.observation_ids = np.asarray(observation_ids, dtype=object)
 
         if sample_metadata is not None:
             self.sample_metadata = tuple(sample_metadata)
@@ -450,7 +448,7 @@ class Table(object):
 
     def is_empty(self):
         """Returns ``True`` if the table is empty"""
-        if not self.sample_ids or not self.observation_ids:
+        if not self.sample_ids.size or not self.observation_ids.size:
             return True
         else:
             return False
@@ -499,9 +497,9 @@ class Table(object):
 
     def __eq__(self, other):
         """Equality is determined by the data matrix, metadata, and IDs"""
-        if self.observation_ids != other.observation_ids:
+        if np.any(self.observation_ids != other.observation_ids):
             return False
-        if self.sample_ids != other.sample_ids:
+        if np.any(self.sample_ids != other.sample_ids):
             return False
         if self.observation_metadata != other.observation_metadata:
             return False

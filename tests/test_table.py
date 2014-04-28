@@ -215,9 +215,9 @@ class TableTests(TestCase):
         t = Table.from_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
-        self.assertEqual(t.sample_ids, ('Sample1', 'Sample2', 'Sample3',
+        npt.assert_equal(t.sample_ids, ('Sample1', 'Sample2', 'Sample3',
                                         'Sample4', 'Sample5', 'Sample6'))
-        self.assertEqual(t.observation_ids, ('GG_OTU_1', 'GG_OTU_2',
+        npt.assert_equal(t.observation_ids, ('GG_OTU_1', 'GG_OTU_2',
                                              'GG_OTU_3', 'GG_OTU_4',
                                              'GG_OTU_5'))
         exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
@@ -582,15 +582,6 @@ class TableTests(TestCase):
         self.assertTrue(Table(array([]), [], []).is_empty())
         self.assertFalse(self.simple_derived.is_empty())
 
-    def test_immutability(self):
-        """Test Table object immutability."""
-        # Try to set members to something completely different.
-        with self.assertRaises(TypeError):
-            self.st1.sample_ids[0] = 'foo'
-
-        with self.assertRaises(TypeError):
-            self.st1.observation_ids[0] = 'bar'
-
 
 class SparseTableTests(TestCase):
 
@@ -652,16 +643,16 @@ class SparseTableTests(TestCase):
         """Should transpose a sparse table"""
         obs = self.st1.transpose()
 
-        self.assertEqual(obs.sample_ids, self.st1.observation_ids)
-        self.assertEqual(obs.observation_ids, self.st1.sample_ids)
+        npt.assert_equal(obs.sample_ids, self.st1.observation_ids)
+        npt.assert_equal(obs.observation_ids, self.st1.sample_ids)
         npt.assert_equal(obs.sample_data('1'), self.st1.observation_data('1'))
         npt.assert_equal(obs.sample_data('2'), self.st1.observation_data('2'))
         self.assertEqual(obs.transpose(), self.st1)
 
         obs = self.st_rich.transpose()
 
-        self.assertEqual(obs.sample_ids, self.st_rich.observation_ids)
-        self.assertEqual(obs.observation_ids, self.st_rich.sample_ids)
+        npt.assert_equal(obs.sample_ids, self.st_rich.observation_ids)
+        npt.assert_equal(obs.observation_ids, self.st_rich.sample_ids)
         self.assertEqual(obs.sample_metadata,
                          self.st_rich.observation_metadata)
         self.assertEqual(obs.observation_metadata,
@@ -717,13 +708,11 @@ class SparseTableTests(TestCase):
     def test_eq(self):
         """sparse equality"""
         self.assertTrue(self.st1 == self.st2)
-        object.__setattr__(self.st1, 'observation_ids', [1, 2, 3])
+        self.st1.observation_ids = array(["1", "2", "3"], dtype=object)
         self.assertFalse(self.st1 == self.st2)
 
-        object.__setattr__(self.st1, 'observation_ids',
-                           self.st2.observation_ids)
-        object.__setattr__(self.st1, '_data',
-                           nparray_to_sparse(array([[1, 2], [10, 20]])))
+        self.st1.observation_ids = self.st2.observation_ids
+        self.st1._data = nparray_to_sparse(array([[1, 2], [10, 20]]))
         self.assertFalse(self.st1 == self.st2)
 
     def test_data_equality(self):
