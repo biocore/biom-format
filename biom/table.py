@@ -2124,16 +2124,6 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
                  table_id=table_id, **kwargs)
 
 
-def get_zerod_matrix(mat, dtype=float):
-    """Returns a zerod matrix"""
-    if isinstance(mat, ndarray):
-        return zeros(mat.shape, dtype=float)
-    elif isspmatrix(mat):
-        return coo_matrix(*mat.shape, dtype=float)
-    else:
-        raise TableException("Unknown mat type")
-
-
 def to_sparse(values, transpose=False, dtype=float):
     """Try to return a populated scipy.sparse matrix.
 

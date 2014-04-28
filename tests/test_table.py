@@ -22,7 +22,7 @@ from biom.table import (TableException, Table, UnknownID,
                         list_dict_to_nparray, table_factory,
                         list_list_to_nparray, to_sparse,
                         nparray_to_sparse, list_nparray_to_sparse,
-                        get_zerod_matrix, to_sparse)
+                        to_sparse)
 
 if HAVE_H5PY:
     import h5py
@@ -38,22 +38,6 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 class SupportTests(TestCase):
-    @npt.dec.knownfailureif(True, "flagged for deprecation")
-    def test_get_zerod_matrix(self):
-        """returns a zerod matrix"""
-        # THIS METHOD IS NOT USED IN BIOM, CAN IT BE REMOVED?
-
-        foo = array([[1, 2, 3], [4, 5, 6]])
-        exp = zeros((2, 3))
-        obs = get_zerod_matrix(foo)
-        npt.assert_equal(obs, exp)
-
-        foo = coo_matrix((2, 3))
-        foo[1, 2] = 3
-        exp = coo_matrix((2, 3))
-        obs = get_zerod_matrix(foo)
-        self.assertEqual(obs, exp)
-
     def test_table_factory_sparse_nparray(self):
         """beat the table_factory sparsely to death"""
         # nparray test
