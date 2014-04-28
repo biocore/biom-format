@@ -6,6 +6,7 @@ biom 1.3.1-dev
 
 Changes:
 
+* NumPy 1.7 or above is required
 * Support for HDF5
 * Codebase is PEP-8 compliant
 * CSMat has been removed and Scipy is now a required dependency

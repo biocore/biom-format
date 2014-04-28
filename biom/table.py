@@ -20,17 +20,18 @@ from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, zeros, empty
-import h5py
 
 from biom.exception import TableException, UnknownID
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
-                       prefer_self, index_list)
+                       prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
-from scipy.sparse import csc_matrix, csr_matrix
+from scipy.sparse import csc_matrix, csr_matrix, coo_matrix
 from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
-    list_dict_to_scipy, list_nparray_to_scipy, nparray_to_scipy,
-    list_list_to_scipy)
+                                       list_dict_to_scipy,
+                                       list_nparray_to_scipy, nparray_to_scipy,
+                                       list_list_to_scipy,
+                                       coo_arrays_to_scipy)
 
 SparseObj = ScipySparseMat
 to_sparse = to_scipy
@@ -39,9 +40,8 @@ list_dict_to_sparseobj = list_dict_to_scipy
 list_nparray_to_sparseobj = list_nparray_to_scipy
 nparray_to_sparseobj = nparray_to_scipy
 list_list_to_sparseobj = list_list_to_scipy
+coo_arrays_to_sparseobj = coo_arrays_to_scipy
 
-# Define a variable length string type
-H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -767,12 +767,12 @@ class Table(object):
                                      obs_md, self.table_id,
                                      constructor=constructor)
 
-    def collase_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
-                                    min_group_size=2,
-                                    include_collapsed_metadata=True,
-                                    constructor=None, one_to_many=False,
-                                    one_to_many_mode='add',
-                                    one_to_many_md_key='Path', strict=False):
+    def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
+                                     min_group_size=2,
+                                     include_collapsed_metadata=True,
+                                     constructor=None, one_to_many=False,
+                                     one_to_many_mode='add',
+                                     one_to_many_md_key='Path', strict=False):
         """Collapse samples in a table by sample metadata
 
         Bin samples by metadata then collapse each bin into a single sample.
@@ -1565,6 +1565,10 @@ class Table(object):
         ### is it okay to actually create files in doctest?
 
         """
+        if not HAVE_H5PY:
+            raise RuntimeError("h5py is not in the environment, HDF5 support "
+                               "is not available")
+
         if order not in ('observation', 'sample'):
             raise ValueError("Unknown order %s!" % order)
 
@@ -1603,6 +1607,8 @@ class Table(object):
             # Get all the sample ids
             samp_ids = h5grp['sample/ids'][:]
             samp_idx = np.array([True] * len(samp_ids))
+
+        shape = (len(obs_ids), len(samp_ids))
 
         # fetch the metadata
         no_md = np.array(["[]"])
@@ -1655,12 +1661,16 @@ class Table(object):
         indices = np.asarray(indices, dtype=np.int)
 
         cs = (data, indices, indptr)
-        rep._matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
+
+        if order == 'sample':
+            rep._matrix = csc_matrix(cs, shape=shape)
+        else:
+            rep._matrix = csr_matrix(cs, shape=shape)
 
         return table_factory(rep, samp_ids, obs_ids, samp_md or None,
                              obs_md or None)
 
-    def to_hdf5(self, h5grp, generated_by):
+    def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
 
         The expected structure of this group is below. A few basic definitions,
@@ -1699,6 +1709,8 @@ class Table(object):
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
         generated_by : str
+        compress : Boolean  'True' means fiels will be compressed with
+            gzip, 'False' means no compression
 
         See Also
         --------
@@ -1709,7 +1721,11 @@ class Table(object):
         ### is it okay to actually create files in doctest?
 
         """
-        def axis_dump(grp, ids, md, order):
+        if not HAVE_H5PY:
+            raise RuntimeError("h5py is not in the environment, HDF5 support "
+                               "is not available")
+
+        def axis_dump(grp, ids, md, order, compression=None):
             """Store for an axis"""
             self._data.convert(order)
 
@@ -1719,26 +1735,31 @@ class Table(object):
 
             grp.create_dataset('data', shape=(len_data,),
                                dtype=np.float64,
-                               data=self._data._matrix.data)
+                               data=self._data._matrix.data,
+                               compression=compression)
             grp.create_dataset('indices', shape=(len_data,),
                                dtype=np.int32,
-                               data=self._data._matrix.indices)
+                               data=self._data._matrix.indices,
+                               compression=compression)
             grp.create_dataset('indptr', shape=(len_indptr,),
                                dtype=np.int32,
-                               data=self._data._matrix.indptr)
+                               data=self._data._matrix.indptr,
+                               compression=compression)
 
             # if we store IDs in the table as numpy arrays then this store
             # is cleaner, as is the parse
             grp.create_dataset('ids', shape=(len_ids,),
                                dtype=H5PY_VLEN_STR,
-                               data=[str(i) for i in ids])
+                               data=[str(i) for i in ids],
+                               compression=compression)
 
             if md is not None:
                 md_str = empty(shape=(), dtype=object)
                 md_str[()] = dumps(md)
                 grp.create_dataset('metadata', shape=(1,),
                                    dtype=H5PY_VLEN_STR,
-                                   data=md_str)
+                                   data=md_str,
+                                   compression=compression)
 
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
         h5grp.attrs['type'] = self.type
@@ -1748,11 +1769,13 @@ class Table(object):
         h5grp.attrs['creation-date'] = datetime.now().isoformat()
         h5grp.attrs['shape'] = self._data.shape
         h5grp.attrs['nnz'] = self._data.size
-
+        compression = None
+        if compress is True:
+            compression = 'gzip'
         axis_dump(h5grp.create_group('observation'), self.observation_ids,
-                  self.observation_metadata, 'csr')
+                  self.observation_metadata, 'csr', compression)
         axis_dump(h5grp.create_group('sample'), self.sample_ids,
-                  self.sample_metadata, 'csc')
+                  self.sample_metadata, 'csc', compression)
 
     def get_biom_format_object(self, generated_by):
         """Returns a dictionary representing the table in BIOM format.
@@ -2027,7 +2050,8 @@ def list_dict_to_nparray(data, dtype=float):
 
 
 def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
-                  observation_metadata=None, table_id=None, **kwargs):
+                  observation_metadata=None, table_id=None,
+                  input_is_dense=False, **kwargs):
     """Construct a table
 
     Attempts to make 'data' through various means of juggling. Data can be:
@@ -2094,7 +2118,11 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
             data = list_dict_to_sparseobj(data, dtype)
 
         elif isinstance(data[0], list):
-            data = list_list_to_sparseobj(data, dtype, shape=shape)
+            if input_is_dense:
+                d = coo_matrix(data)
+                data = coo_arrays_to_sparseobj((d.data, (d.row, d.col)))
+            else:
+                data = list_list_to_sparseobj(data, dtype, shape=shape)
 
         else:
             raise TableException("Unknown nested list type")

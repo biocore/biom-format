@@ -8,13 +8,26 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
+from contextlib import contextmanager
+
 from collections import defaultdict
 from os import getenv
 from os.path import abspath, dirname, exists
 import re
 from hashlib import md5
 from gzip import open as gzip_open
-import h5py
+from warnings import warn
+
+try:
+    import h5py
+    HAVE_H5PY = True
+    H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
+
+except ImportError:
+    warn("h5py is not available")
+    HAVE_H5PY = False
+    H5PY_VLEN_STR = None
+
 from numpy import mean, median, min, max
 
 __author__ = "Daniel McDonald"
@@ -315,6 +328,7 @@ def is_gzip(fp):
     return open(fp, 'rb').read(2) == '\x1f\x8b'
 
 
+@contextmanager
 def biom_open(fp, permission='U'):
     """Wrapper to allow opening of gzipped or non-compressed files
 
@@ -332,9 +346,23 @@ def biom_open(fp, permission='U'):
     authors of this function to port it to the BIOM Format project (and keep it
     under BIOM's BSD license).
     """
-    if h5py.is_hdf5(fp):
-        return h5py.File(fp, 'r' if permission == 'U' else permission)
+    if permission not in ['r', 'w', 'U', 'rb', 'wb']:
+        raise IOError("Unknown mode: %s" % permission)
+
+    opener = open
+    mode = permission
+
+    if HAVE_H5PY:
+        if h5py.is_hdf5(fp):
+            opener = h5py.File
+            mode = 'r' if permission == 'U' else permission
+
     if is_gzip(fp):
-        return gzip_open(fp, 'rb')
-    else:
-        return open(fp, permission)
+        opener = gzip_open
+        mode = 'rb' if permission in ['U', 'r'] else permission
+
+    f = opener(fp, mode)
+    try:
+        yield f
+    finally:
+        f.close()
