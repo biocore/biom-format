@@ -1505,6 +1505,45 @@ class Table(object):
                               obs_ids[:], sample_md, obs_md)
 
     @classmethod
+    def _get_ids(cls, source_ids, desired_ids):
+        """
+        Parameters
+        ----------
+        source_ids : array like
+            The complete list of ids
+        desired_ids : array like
+            The desired ids that we are looking for
+
+        Returns
+        -------
+        ids : numpy array
+            The ids that we are looking for
+        idx : numpy array
+            Boolean array indicating the indexes where the desired_ids are in
+            source_ids
+
+        Raises
+        ------
+        ValueError
+            If not all desired_ids are in source_ids
+        """
+        if desired_ids is not None:
+            # Get the index of the source ids to include
+            idx = np.in1d(source_ids, desired_ids)
+            # Retrieve only the ids that we are interested on
+            ids = source_ids[idx]
+            # Check that all desired ids have been found on source ids
+            if len(ids) != len(desired_ids):
+                raise ValueError("The following ids have not been found in "
+                                 "the biom table: %s" %
+                                 (set(desired_ids) - set(ids)))
+        else:
+            # Get all the observation ids
+            ids = source_ids[:]
+            idx = np.array([True] * len(ids))
+        return ids, idx
+
+    @classmethod
     def from_hdf5(cls, h5grp, order='observation', samples=None,
                   observations=None):
         """Parse an HDF5 formatted BIOM table
@@ -1573,35 +1612,8 @@ class Table(object):
             raise ValueError("Unknown order %s!" % order)
 
         # fetch the IDs
-        if observations is not None:
-            # Get the index of the observation ids to include
-            obs_idx = np.in1d(h5grp['observation/ids'], observations)
-            # Retrieve only the obs ids that we are interested on
-            obs_ids = h5grp['observation/ids'][obs_idx]
-            # Check that all observations have been found on the hdf5 file
-            if len(obs_ids) != len(observations):
-                raise ValueError("The following observation ids have not been "
-                                 "found in the biom table: %s" %
-                                 (set(observations) - set(obs_ids)))
-        else:
-            # Get all the observation ids
-            obs_ids = h5grp['observation/ids'][:]
-            obs_idx = np.array([True] * len(obs_ids))
-
-        if samples is not None:
-            # Get the index of the sample ids to include
-            samp_idx = np.in1d(h5grp['sample/ids'], samples)
-            # Retrieve only the sample ids that we are interested on
-            samp_ids = h5grp['sample/ids'][samp_idx]
-            # Check that all samples have been found on the hdf5 file
-            if len(samp_ids) != len(samples):
-                raise ValueError("The following sample ids have not been found"
-                                 " in the biom table: %s" %
-                                 (set(samples) - set(samp_ids)))
-        else:
-            # Get all the sample ids
-            samp_ids = h5grp['sample/ids'][:]
-            samp_idx = np.array([True] * len(samp_ids))
+        obs_ids, obs_idx = cls._get_ids(h5grp['observation/ids'], observations)
+        samp_ids, samp_idx = cls._get_ids(h5grp['sample/ids'], samples)
 
         shape = (len(obs_ids), len(samp_ids))
 
