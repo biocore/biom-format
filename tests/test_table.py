@@ -913,6 +913,27 @@ class SparseTableTests(TestCase):
                                            {(1, 0): 8, (1, 1): 9, (1, 2): 10}])
         self.assertEqual((obs != exp).sum(), 0)
 
+    def test_to_dense(self):
+        """Should convert a self styled vector to numpy type"""
+        input_row = lil_matrix((1, 3))
+        input_row[(0, 0)] = 10
+        exp = array([10.0, 0, 0])
+        obs = self.st1._to_dense(input_row)
+        npt.assert_equal(obs, exp)
+
+        input_col = lil_matrix((3, 1))
+        input_col[(0, 0)] = 12
+        exp = array([12.0, 0, 0])
+        obs = self.st1._to_dense(input_col)
+        npt.assert_equal(obs, exp)
+
+        # 1x1
+        input_vec = lil_matrix((1, 1))
+        input_vec[(0, 0)] = 42
+        exp = array([42.0])
+        obs = self.st1._to_dense(input_vec)
+        npt.assert_equal(obs, exp)
+
     def test_iter(self):
         """Should iterate over samples"""
         exp = [(array([5, 7]), 'a', None), (array([6, 8]), 'b', None)]
