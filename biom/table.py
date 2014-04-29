@@ -26,7 +26,7 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
-from scipy.sparse import csc_matrix, csr_matrix, coo_matrix
+from scipy.sparse import csc_matrix, csr_matrix, coo_matrix, lil_matrix
 from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
                                        list_dict_to_scipy,
                                        list_nparray_to_scipy, nparray_to_scipy,
@@ -1541,12 +1541,12 @@ class Table(object):
 
     @classmethod
     def _subset_samples_hdf5(cls, h5grp, samples):
-        """"""
+        """Parse an HDF5 formatted BIOM table subsetting the samples"""
         # fetch the IDs
         obs_ids = h5grp['observation/ids'][:]
         samp_ids, samp_idx = cls._get_ids(h5grp['sample/ids'], samples)
 
-        shape = (len(obs_ids), len(samp_ids))
+        shape = (len(samp_ids), len(obs_ids))
 
         # fetch the metadata
         no_md = np.array(["[]"])
@@ -1561,33 +1561,24 @@ class Table(object):
 
         # load the data
         data_path = partial(os.path.join, 'sample')
-        h5_data = h5grp[data_path("data")]
-        h5_indices = h5grp[data_path("indices")]
-        h5_indptr = h5grp[data_path("indptr")]
+        data = h5grp[data_path("data")]
+        indices = h5grp[data_path("indices")]
+        indptr = h5grp[data_path("indptr")]
 
         keep = np.where(samp_idx)[0]
-        indices = []
-        indptr = [0]
-        data = []
-        for i in keep:
-            start = h5_indptr[i]
-            end = h5_indptr[i+1]
+        mat = lil_matrix(shape)
+        for j, i in enumerate(keep):
+            start = indptr[i]
+            end = indptr[i+1]
+            mat[j, indices[start:end]] = data[start:end]
 
-            indices = np.append(indices, h5_indices[start:end])
-            data = np.append(data, h5_data[start:end])
-
-            indptr.append(len(data))
-
-        indices = np.asarray(indices, dtype=np.int)
-
-        cs = (data, indices, indptr)
-        rep._matrix = csc_matrix(cs, shape=shape)
+        rep._matrix = mat.transpose().asformat("csr")
 
         return rep, samp_ids, obs_ids, samp_md or None, obs_md or None
 
     @classmethod
     def _subset_observations_hdf5(cls, h5grp, observations):
-        """"""
+        """Parse an HDF5 formatted BIOM table subsetting the observations"""
         # fetch the IDs
         obs_ids, obs_idx = cls._get_ids(h5grp['observation/ids'], observations)
         samp_ids = h5grp['sample/ids'][:]
@@ -1596,7 +1587,6 @@ class Table(object):
 
         # fetch the metadata
         no_md = np.array(["[]"])
-
         obs_md = np.asarray(loads(h5grp['observation'].get('metadata',
                                                            no_md)[0]))
         obs_md = list(obs_md[np.where(obs_idx)])
@@ -1613,22 +1603,13 @@ class Table(object):
         h5_indptr = h5grp[data_path("indptr")]
 
         keep = np.where(obs_idx)[0]
-        indices = []
-        indptr = [0]
-        data = []
-        for i in keep:
+        mat = lil_matrix(shape)
+        for j, i in enumerate(keep):
             start = h5_indptr[i]
             end = h5_indptr[i+1]
+            mat[j, h5_indices[start:end]] = h5_data[start:end]
 
-            indices = np.append(indices, h5_indices[start:end])
-            data = np.append(data, h5_data[start:end])
-
-            indptr.append(len(data))
-
-        indices = np.asarray(indices, dtype=np.int)
-
-        cs = (data, indices, indptr)
-        rep._matrix = csr_matrix(cs, shape=shape)
+        rep._matrix = mat.asformat("csr")
 
         return rep, samp_ids, obs_ids, samp_md or None, obs_md or None
 
