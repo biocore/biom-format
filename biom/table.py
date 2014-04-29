@@ -1527,22 +1527,137 @@ class Table(object):
         ValueError
             If not all desired_ids are in source_ids
         """
-        if desired_ids is not None:
-            desired_ids = np.asarray(desired_ids)
-            # Get the index of the source ids to include
-            idx = np.in1d(source_ids, desired_ids)
-            # Retrieve only the ids that we are interested on
-            ids = source_ids[idx]
-            # Check that all desired ids have been found on source ids
-            if ids.shape != desired_ids.shape:
-                raise ValueError("The following ids could not be found in the "
-                                 "biom table: %s" %
-                                 (set(desired_ids) - set(ids)))
-        else:
-            # Get all the observation ids
-            ids = source_ids[:]
-            idx = np.ones(ids.shape, dtype=bool)
+        desired_ids = np.asarray(desired_ids)
+        # Get the index of the source ids to include
+        idx = np.in1d(source_ids, desired_ids)
+        # Retrieve only the ids that we are interested on
+        ids = source_ids[idx]
+        # Check that all desired ids have been found on source ids
+        if ids.shape != desired_ids.shape:
+            raise ValueError("The following ids could not be found in the "
+                             "biom table: %s" %
+                             (set(desired_ids) - set(ids)))
         return ids, idx
+
+    @classmethod
+    def _subset_samples_hdf5(cls, h5grp, samples):
+        """"""
+        # fetch the IDs
+        obs_ids = h5grp['observation/ids'][:]
+        samp_ids, samp_idx = cls._get_ids(h5grp['sample/ids'], samples)
+
+        shape = (len(obs_ids), len(samp_ids))
+
+        # fetch the metadata
+        no_md = np.array(["[]"])
+
+        obs_md = loads(h5grp['observation'].get('metadata', no_md)[0])
+
+        samp_md = np.asarray(loads(h5grp['sample'].get('metadata', no_md)[0]))
+        samp_md = list(samp_md[np.where(samp_idx)])
+
+        # construct the sparse representation
+        rep = SparseObj(len(obs_ids), len(samp_ids))
+
+        # load the data
+        data_path = partial(os.path.join, 'sample')
+        h5_data = h5grp[data_path("data")]
+        h5_indices = h5grp[data_path("indices")]
+        h5_indptr = h5grp[data_path("indptr")]
+
+        keep = np.where(samp_idx)[0]
+        indices = []
+        indptr = [0]
+        data = []
+        for i in keep:
+            start = h5_indptr[i]
+            end = h5_indptr[i+1]
+
+            indices = np.append(indices, h5_indices[start:end])
+            data = np.append(data, h5_data[start:end])
+
+            indptr.append(len(data))
+
+        indices = np.asarray(indices, dtype=np.int)
+
+        cs = (data, indices, indptr)
+        rep._matrix = csc_matrix(cs, shape=shape)
+
+        return rep, samp_ids, obs_ids, samp_md or None, obs_md or None
+
+    @classmethod
+    def _subset_observations_hdf5(cls, h5grp, observations):
+        """"""
+        # fetch the IDs
+        obs_ids, obs_idx = cls._get_ids(h5grp['observation/ids'], observations)
+        samp_ids = h5grp['sample/ids'][:]
+
+        shape = (len(obs_ids), len(samp_ids))
+
+        # fetch the metadata
+        no_md = np.array(["[]"])
+
+        obs_md = np.asarray(loads(h5grp['observation'].get('metadata',
+                                                           no_md)[0]))
+        obs_md = list(obs_md[np.where(obs_idx)])
+
+        samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
+
+        # construct the sparse representation
+        rep = SparseObj(len(obs_ids), len(samp_ids))
+
+        # load the data
+        data_path = partial(os.path.join, 'observation')
+        h5_data = h5grp[data_path("data")]
+        h5_indices = h5grp[data_path("indices")]
+        h5_indptr = h5grp[data_path("indptr")]
+
+        keep = np.where(obs_idx)[0]
+        indices = []
+        indptr = [0]
+        data = []
+        for i in keep:
+            start = h5_indptr[i]
+            end = h5_indptr[i+1]
+
+            indices = np.append(indices, h5_indices[start:end])
+            data = np.append(data, h5_data[start:end])
+
+            indptr.append(len(data))
+
+        indices = np.asarray(indices, dtype=np.int)
+
+        cs = (data, indices, indptr)
+        rep._matrix = csr_matrix(cs, shape=shape)
+
+        return rep, samp_ids, obs_ids, samp_md or None, obs_md or None
+
+    @classmethod
+    def _parse_hdf5(cls, h5grp):
+        """Parses the hdf5 file without doing any subsetting"""
+        shape = h5grp.attrs['shape']
+
+        # fetch all of the IDs
+        obs_ids = h5grp['observation/ids'][:]
+        samp_ids = h5grp['sample/ids'][:]
+
+        # fetch all of the metadata
+        no_md = np.array(["[]"])
+        obs_md = loads(h5grp['observation'].get('metadata', no_md)[0])
+        samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
+
+        # construct the sparse representation
+        rep = SparseObj(len(obs_ids), len(samp_ids))
+
+        # load the data
+        data_path = partial(os.path.join, 'observation')
+        data = h5grp[data_path("data")]
+        indices = h5grp[data_path("indices")]
+        indptr = h5grp[data_path("indptr")]
+        cs = (data, indices, indptr)
+
+        rep._matrix = csr_matrix(cs, shape=shape)
+        return rep, samp_ids, obs_ids, samp_md or None, obs_md or None
 
     @classmethod
     def from_hdf5(cls, h5grp, order='observation', samples=None,
@@ -1586,9 +1701,9 @@ class Table(object):
         h5grp : a h5py ``Group`` or an open h5py ``File``
         order : 'observation' or 'sample' to indicate which data ordering to
             load the table as
-        samples : list
+        samples : 1-D array_like
             Samples to parse
-        observations : list
+        observations : 1-D array_like
             Observations to parse
 
         Returns
@@ -1609,74 +1724,24 @@ class Table(object):
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
 
-        if order not in ('observation', 'sample'):
-            raise ValueError("Unknown order %s!" % order)
+        if samples is not None and observations is not None:
+            raise ValueError('Subsetting samples and observations at the same '
+                             'time is not supported. Please specify either '
+                             'samples or observations but not both.')
 
-        # fetch the IDs
-        obs_ids, obs_idx = cls._get_ids(h5grp['observation/ids'], observations)
-        samp_ids, samp_idx = cls._get_ids(h5grp['sample/ids'], samples)
-
-        shape = (len(obs_ids), len(samp_ids))
-
-        # fetch the metadata
-        no_md = np.array(["[]"])
-        obs_md = np.asarray(loads(h5grp['observation'].get('metadata',
-                                                           no_md)[0]))
-        obs_md = list(obs_md[np.where(obs_idx)])
-
-        samp_md = np.asarray(loads(h5grp['sample'].get('metadata', no_md)[0]))
-        samp_md = list(samp_md[np.where(samp_idx)])
-
-        # construct the sparse representation
-        rep = SparseObj(len(obs_ids), len(samp_ids))
-
-        # load the data
-        if order == 'sample':
-            idx1 = samp_idx
-            idx2 = np.where(obs_idx)[0]
+        # Check if we have to subset
+        if samples is not None:
+            # Subset samples
+            values = cls._subset_samples_hdf5(h5grp, samples)
+        elif observations is not None:
+            # Subset observations
+            values = cls._subset_observations_hdf5(h5grp, observations)
         else:
-            idx1 = obs_idx
-            idx2 = np.where(samp_idx)[0]
-
-        translate = {}
-        for i, j in enumerate(idx2):
-            translate[j] = i
-
-        data_path = partial(os.path.join, order)
-
-        h5_data = h5grp[data_path("data")]
-        h5_indices = h5grp[data_path("indices")]
-        h5_indptr = h5grp[data_path("indptr")]
-
-        indices = []
-        data = []
-        indptr = [0]
-
-        keep = np.where(idx1)[0]
-        for i in keep:
-            start = h5_indptr[i]
-            end = h5_indptr[i+1]
-
-            org_indices = h5_indices[start:end]
-            skip = np.in1d(org_indices, idx2)
-            trans_indices = [translate[j] for j in org_indices[skip]]
-
-            indices = np.append(indices, trans_indices)
-            data = np.append(data, h5_data[start:end][skip])
-
-            indptr.append(len(data))
-
-        indices = np.asarray(indices, dtype=np.int)
-
-        cs = (data, indices, indptr)
-
-        if order == 'sample':
-            rep._matrix = csc_matrix(cs, shape=shape)
-        else:
-            rep._matrix = csr_matrix(cs, shape=shape)
-
-        return table_factory(rep, samp_ids, obs_ids, samp_md or None,
-                             obs_md or None)
+            # No subsetting
+            values = cls._parse_hdf5(h5grp)
+        # Decode returned values
+        rep, samp_ids, obs_ids, samp_md, obs_md = values
+        return table_factory(rep, samp_ids, obs_ids, samp_md, obs_md)
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
