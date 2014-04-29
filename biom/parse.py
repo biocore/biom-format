@@ -9,22 +9,18 @@
 # ----------------------------------------------------------------------------
 
 from __future__ import division
-import os
 from string import maketrans
-import numpy as np
 from biom import __version__
 from biom.exception import BiomParseException
 from biom.table import table_factory, nparray_to_sparseobj, Table
-from functools import partial
 import json
 from numpy import asarray
-from scipy.sparse import csr_matrix, csc_matrix
-from biom.backends.scipysparse import ScipySparseMat
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso",
-               "Jose Carlos Clemente Litran", "Adam Robbins-Pianka"]
+               "Jose Carlos Clemente Litran", "Adam Robbins-Pianka",
+               "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -247,11 +243,18 @@ def get_axis_indices(biom_str, to_keep, axis):
     return idxs, json.dumps(subset)[1:-1]  # trim off { and }
 
 
-def parse_biom_table(fp, input_is_dense=False):
+def parse_biom_table(fp, samples=None, observations=None,
+                     input_is_dense=False):
     try:
-        return Table.from_hdf5(fp)
+        return Table.from_hdf5(fp, samples=samples, observations=observations)
     except:
         pass
+
+    if samples is not None or observations is not None:
+        raise BiomParseException("Could not subset on a BIOM 1.0 table. It is"
+                                 " only supported on BIOM 2.0 tables. If you "
+                                 "want to load a subset of your table, upload "
+                                 "your table to BIOM 2.0")
 
     if hasattr(fp, 'read'):
         return parse_biom_table_json(json.load(fp),
