@@ -1641,8 +1641,7 @@ class Table(object):
         return rep, samp_ids, obs_ids, samp_md or None, obs_md or None
 
     @classmethod
-    def from_hdf5(cls, h5grp, order='observation', samples=None,
-                  observations=None):
+    def from_hdf5(cls, h5grp, samples=None, observations=None):
         """Parse an HDF5 formatted BIOM table
 
         The expected structure of this group is below. A few basic definitions,
@@ -1680,8 +1679,6 @@ class Table(object):
         Parameters
         ----------
         h5grp : a h5py ``Group`` or an open h5py ``File``
-        order : 'observation' or 'sample' to indicate which data ordering to
-            load the table as
         samples : 1-D array_like
             Samples to parse
         observations : 1-D array_like
