@@ -2103,7 +2103,8 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
         elif isinstance(data[0], list):
             if input_is_dense:
                 d = coo_matrix(data)
-                data = coo_arrays_to_sparse((d.data, (d.row, d.col)))
+                data = coo_arrays_to_sparse((d.data, (d.row, d.col)),
+                                            dtype=dtype)
             else:
                 data = list_list_to_sparse(data, dtype, shape=shape)
 
@@ -2331,13 +2332,10 @@ def dict_to_sparse(data, dtype=float):
     rows = []
     cols = []
     vals = []
-    for (r, c), v in data.items():
+    for (r, c), v in data.iteritems():
         rows.append(r)
         cols.append(c)
         vals.append(v)
 
-    matrix = coo_matrix((vals, (rows, cols)), shape=(n_rows, n_cols),
-                        dtype=dtype)
-    matrix = matrix.tocsr()
-    matrix.eliminate_zeros()
-    return matrix
+    return coo_arrays_to_sparse((vals, (rows, cols)),
+                                shape=(n_rows, n_cols), dtype=dtype)
