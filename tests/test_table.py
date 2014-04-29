@@ -22,7 +22,11 @@ from biom.table import (TableException, Table, UnknownID,
                         list_dict_to_nparray, table_factory,
                         list_list_to_nparray, to_sparse,
                         nparray_to_sparse, list_nparray_to_sparse,
-                        to_sparse)
+                        to_sparse, list_dict_to_sparse, dict_to_sparse,
+                        coo_arrays_to_sparse,list_list_to_sparse,
+                        nparray_to_sparse, list_dict_to_sparse, dict_to_sparse,
+                        to_sparse, list_sparse_to_sparse,
+                        list_nparray_to_sparse)
 
 if HAVE_H5PY:
     import h5py
@@ -1406,6 +1410,165 @@ class SparseOTUTableTests(TestCase):
         obs = self.float_table.get_biom_format_object('foo')
         del obs['date']
         self.assertEqual(obs, exp)
+
+class SupportTests(TestCase):
+
+    def test_coo_arrays_to_sparse(self):
+        """convert (values, (row, col)) to scipy"""
+        n_rows, n_cols = 3, 4
+        exp_d = lil_matrix((n_rows, n_cols))
+        exp_d[(0, 0)] = 10
+        exp_d[(1, 3)] = 5
+        exp_d[(2, 1)] = 2
+        exp_d = exp_d.tocoo()
+        exp = lil_matrix((n_rows, n_cols))
+        exp[(0, 0)] = 10
+        exp[(1, 3)] = 5
+        exp[(2, 1)] = 2
+        data = (array([5.0, 2.0, 10.0]), (array([1, 2, 0]), array([3, 1, 0])))
+        obs = coo_arrays_to_sparse(data, shape=(n_rows, n_cols))
+        self.assertEqual((obs != exp).sum(), 0)
+
+    def test_list_list_to_sparse(self):
+        """convert [[row,col,value], ...] to scipy"""
+        input = [[0, 0, 1], [1, 1, 5.0], [0, 2, 6]]
+        exp = lil_matrix((2, 3))
+        exp[(0, 0)] = 1.0
+        exp[(1, 1)] = 5.0
+        exp[(0, 2)] = 6
+        obs = list_list_to_sparse(input)
+        self.assertEqual((obs != exp).sum(), 0)
+
+    def test_nparray_to_sparse(self):
+        """Convert nparray to sparse"""
+        input = array([[1, 2, 3, 4], [-1, 6, 7, 8], [9, 10, 11, 12]])
+        exp = lil_matrix((3, 4))
+        exp[(0, 0)] = 1
+        exp[(0, 1)] = 2
+        exp[(0, 2)] = 3
+        exp[(0, 3)] = 4
+        exp[(1, 0)] = -1
+        exp[(1, 1)] = 6
+        exp[(1, 2)] = 7
+        exp[(1, 3)] = 8
+        exp[(2, 0)] = 9
+        exp[(2, 1)] = 10
+        exp[(2, 2)] = 11
+        exp[(2, 3)] = 12
+        obs = nparray_to_sparse(input)
+        self.assertEqual((obs != exp).sum(), 0)
+
+    def test_list_dict_to_sparse(self):
+        """Take a list of dicts and condense down to a single dict"""
+        input = [{(0, 0): 10, (0, 1): 2}, {(1, 2): 15}, {(0, 3): 7}]
+        exp = lil_matrix((3, 4))
+        exp[(0, 0)] = 10
+        exp[(0, 1)] = 2
+        exp[(1, 2)] = 15
+        exp[(2, 3)] = 7
+        obs = list_dict_to_sparse(input)
+        self.assertEqual((obs != exp).sum(), 0)
+
+
+    def test_dict_to_sparse(self):
+        """Take a dict and convert to sparse"""
+        input = {(0, 1): 5, (1, 0): 2, (2, 1): 6}
+        exp = lil_matrix((3, 2))
+        exp[(0, 1)] = 5
+        exp[(1, 0)] = 2
+        exp[(2, 1)] = 6
+        obs = dict_to_sparse(input)
+        self.assertEqual((obs != exp).sum(), 0)
+
+    def test_to_sparse(self):
+        """Convert to expected sparse types"""
+        vals = {(0, 0): 5, (0, 1): 6, (1, 0): 7, (1, 1): 8}
+        obs = to_sparse(vals)
+        exp = lil_matrix((2, 2))
+        exp[(0, 0)] = 5
+        exp[(0, 1)] = 6
+        exp[(1, 0)] = 7
+        exp[(1, 1)] = 8
+        self.assertEqual((obs != exp).sum(), 0)
+
+        input = {(0, 1): 5, (10, 8): -1.23}
+
+        exp = lil_matrix((11, 9))
+        exp[(0, 1)] = 5
+        exp[(10, 8)] = -1.23
+        obs = to_sparse(input)
+        self.assertEqual((obs != exp).sum(), 0)
+
+        # test transpose
+        exp = lil_matrix((9, 11))
+        exp[(1, 0)] = 5
+        exp[(8, 10)] = -1.23
+        obs = to_sparse(input, transpose=True)
+        self.assertEqual((obs != exp).sum(), 0)
+
+        # passing a list of dicts, transpose
+        exp = lil_matrix((3, 2))
+        exp[(0, 0)] = 5.0
+        exp[(1, 0)] = 6.0
+        exp[(2, 0)] = 7.0
+        exp[(0, 1)] = 8.0
+        exp[(1, 1)] = 9.0
+        exp[(2, 1)] = 10.0
+        obs = to_sparse([{(0, 0): 5, (0, 1): 6, (0, 2): 7},
+                        {(1, 0): 8, (1, 1): 9, (1, 2): 10}],
+                       transpose=True)
+        self.assertEqual((obs != exp).sum(), 0)
+
+        # passing a list of lil_matrix
+        exp = lil_matrix((2, 3))
+        exp[(0, 0)] = 5
+        exp[(0, 1)] = 6
+        exp[(0, 2)] = 7
+        exp[(1, 0)] = 8
+        exp[(1, 1)] = 9
+        exp[(1, 2)] = 10
+        row1 = lil_matrix((1, 3))
+        row1[(0, 0)] = 5
+        row1[(0, 1)] = 6
+        row1[(0, 2)] = 7
+        row2 = lil_matrix((1, 3))
+        row2[(0, 0)] = 8
+        row2[(0, 1)] = 9
+        row2[(0, 2)] = 10
+        obs = to_sparse([row1, row2])
+        self.assertEqual((obs != exp).sum(), 0)
+
+        # test empty set
+        exp = lil_matrix((0, 0))
+        obs = to_sparse([])
+        self.assertEqual((obs != exp).sum(), 0)
+
+    def test_list_nparray_to_sparse(self):
+        """lists of nparrays to sparse"""
+        ins = [array([0, 2, 1, 0]), array([1, 0, 0, 1])]
+        exp = lil_matrix((2, 4))
+        exp[(0, 1)] = 2
+        exp[(0, 2)] = 1
+        exp[(1, 0)] = 1
+        exp[(1, 3)] = 1
+        obs = list_nparray_to_sparse(ins)
+        self.assertEqual((obs != exp).sum(), 0)
+
+
+    def test_list_sparse_to_sparse(self):
+        """list of lil_matrix to sparse"""
+        ins = [lil_matrix((1, 4)), lil_matrix((1, 4))]
+        ins[0][0, 0] = 5
+        ins[0][0, 1] = 10
+        ins[1][0, 2] = 1
+        ins[1][0, 3] = 2
+        exp = lil_matrix((2, 4))
+        exp[0, 0] = 5
+        exp[0, 1] = 10
+        exp[1, 2] = 1
+        exp[1, 3] = 2
+        obs = list_sparse_to_sparse(ins)
+        self.assertEqual((obs != exp).sum(), 0)
 
 if __name__ == '__main__':
     main()
