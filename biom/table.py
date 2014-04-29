@@ -1528,19 +1528,20 @@ class Table(object):
             If not all desired_ids are in source_ids
         """
         if desired_ids is not None:
+            desired_ids = np.asarray(desired_ids)
             # Get the index of the source ids to include
             idx = np.in1d(source_ids, desired_ids)
             # Retrieve only the ids that we are interested on
             ids = source_ids[idx]
             # Check that all desired ids have been found on source ids
-            if len(ids) != len(desired_ids):
-                raise ValueError("The following ids have not been found in "
-                                 "the biom table: %s" %
+            if ids.shape != desired_ids.shape:
+                raise ValueError("The following ids could not be found in the "
+                                 "biom table: %s" %
                                  (set(desired_ids) - set(ids)))
         else:
             # Get all the observation ids
             ids = source_ids[:]
-            idx = np.array([True] * len(ids))
+            idx = np.ones(ids.shape, dtype=bool)
         return ids, idx
 
     @classmethod
