@@ -251,8 +251,8 @@ def parse_biom_table(fp, samples=None, observations=None,
         pass
 
     if samples is not None or observations is not None:
-        raise BiomParseException("Could not subset on a biom 1.0 table. It is"
-                                 " only supported on biom 2.0 tables. If you "
+        raise BiomParseException("Could not subset on a BIOM 1.0 table. It is"
+                                 " only supported on BIOM 2.0 tables. If you "
                                  "want to load a subset of your table, upload "
                                  "your table to BIOM 2.0")
 
