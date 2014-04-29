@@ -448,70 +448,17 @@ class TableTests(TestCase):
         npt.assert_equal(list(t.iter_observation_data()), exp)
 
     @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
-    def test_from_hdf5_subset(self):
-        """Parse a observation and sample subset of a hdf5 formatted BIOM table
-        """
-        observations = ['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5']
-        samples = ['Sample2', 'Sample4', 'Sample6']
-
-        cwd = os.getcwd()
-        if '/' in __file__:
-            os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'), samples=samples,
-                            observations=observations)
-        os.chdir(cwd)
-
-        self.assertEqual(t.sample_ids, ('Sample2', 'Sample4', 'Sample6'))
-        self.assertEqual(t.observation_ids, ('GG_OTU_1', 'GG_OTU_3',
-                                             'GG_OTU_5'))
-        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
-                                     u'p__Proteobacteria',
-                                     u'c__Gammaproteobacteria',
-                                     u'o__Enterobacteriales',
-                                     u'f__Enterobacteriaceae',
-                                     u'g__Escherichia',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Archaea',
-                                     u'p__Euryarchaeota',
-                                     u'c__Methanomicrobia',
-                                     u'o__Methanosarcinales',
-                                     u'f__Methanosarcinaceae',
-                                     u'g__Methanosarcina',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Bacteria',
-                                     u'p__Proteobacteria',
-                                     u'c__Gammaproteobacteria',
-                                     u'o__Enterobacteriales',
-                                     u'f__Enterobacteriaceae',
-                                     u'g__Escherichia',
-                                     u's__']})
-        self.assertEqual(t.observation_metadata, exp_obs_md)
-
-        exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CATACCAGTAGC',
-                        u'Description': u'human gut',
-                        u'BODY_SITE': u'gut'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTCTCGGCCTGT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTAACTACCAAT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'})
-        self.assertEqual(t.sample_metadata, exp_samp_md)
-
-        exp = [array([0., 0., 0.]),
-               array([0., 4., 2.]),
-               array([1., 0., 0.])]
-        npt.assert_equal(list(t.iter_observation_data()), exp)
-
-    @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
     def test_from_hdf5_subset_error(self):
         """hdf5 biom table parse throws error with invalid parameters"""
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
+
+        # Raises an error if trying to subset samples and observations
+        with self.assertRaises(ValueError):
+            Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            observations=['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'],
+                            samples=['Sample2', 'Sample4', 'Sample6'])
 
         # Raises an error if not all the given samples are in the OTU table
         with self.assertRaises(ValueError):
