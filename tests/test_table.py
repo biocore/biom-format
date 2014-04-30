@@ -205,6 +205,43 @@ class TableTests(TestCase):
 
         self.to_remove = []
 
+
+        # 1 0 2
+        # 3 0 4
+        self.mat1 = Table(to_sparse(array([[1, 0, 2], [3, 0, 4]])),
+                          ['s1', 's2', 's3'], ['o1', 'o2'])
+
+        # Empty/null cases (i.e., 0x0, 0xn, nx0).
+        ids = lambda X :['x%d' % e for e in range(0,X)]
+        self.null1 = Table(array([]), [], [])
+        self.null2 = Table(zeros((0,42)), ids(42), [])
+        self.null3 = Table(zeros((42, 0)), [], ids(42))
+        self.nulls = [self.null1, self.null2, self.null3]
+
+        # 0 0
+        # 0 0
+        self.empty = Table(zeros((2, 2)), ids(2), ids(2))
+
+        # 1 0 3
+        h = array([[1, 0, 3]])
+        self.row_vec = Table(h, ids(3),ids(1))
+
+        # 1
+        # 0
+        # 3
+        h = array([[1], [0], [3]])
+        self.col_vec = Table(h, ids(1), ids(3))
+
+        # 1x1
+        h = array ([[42]])
+        self.single_ele = Table(h, ['a'], ['b'])
+
+        # Explicit zeros.
+        self.explicit_zeros = None
+        #self.explicit_zeros = Table(2, 3, data=([1, 2, 3, 0, 4],
+        #                                        ([0, 0, 1, 1, 1],
+        #                                        [0, 2, 0, 1, 2])))
+
     def tearDown(self):
         if self.to_remove:
             for f in self.to_remove:
@@ -586,6 +623,173 @@ class TableTests(TestCase):
         self.assertTrue(Table(array([]), [], []).is_empty())
         self.assertFalse(self.simple_derived.is_empty())
 
+#     def test_
+#     -        """Should convert a self styled vector to numpy type"""
+#  -        input_row = SparseObj(1, 3)
+#  -        input_row[(0, 0)] = 10
+#  -        exp = array([10.0, 0, 0])
+#  -        obs = self.st1._conv_to_np(input_row)
+#  -        npt.assert_equal(obs, exp)
+#  -
+#  -        input_col = SparseObj(3, 1)
+#  -        input_col[(0, 0)] = 12
+#  -        exp = array([12.0, 0, 0])
+#  -        obs = self.st1._conv_to_np(input_col)
+#  -        npt.assert_equal(obs, exp)
+#  -
+#  -        # 1x1
+#  -        input_vec = SparseObj(1, 1)
+#  -        input_vec[(0, 0)] = 42
+#  -        exp = array([42.0])
+#  -        obs = self.st1._conv_to_np(input_vec)
+#  -        npt.assert_equal(obs, exp)
+
+    def test_convert_vector_to_dense(self):
+        """Properly converts ScipySparseMat vectors to dense numpy repr."""
+        exp = array([1, 0, 3])
+        obs = Table._to_dense(self.row_vec)
+        assert_array_equal(obs, exp)
+
+        exp = array([1, 0, 3])
+        obs = Table._to_dense(self.col_vec)
+        assert_array_equal(obs, exp)
+
+        exp = array([42])
+        obs = Table._to_dense(self.single_ele)
+        assert_array_equal(obs, exp)
+
+    def test_shape(self):
+        """What kind of shape are you in?"""
+        assert_array_equal(self.null1.shape, (0, 0))
+        assert_array_equal(self.null2.shape, (0, 42))
+        assert_array_equal(self.null3.shape, (42, 0))
+        assert_array_equal(self.mat1.shape, (2, 3))
+        assert_array_equal(self.empty.shape, (2, 2))
+        assert_array_equal(self.row_vec.shape, (1, 3))
+        assert_array_equal(self.col_vec.shape, (3, 1))
+        assert_array_equal(self.single_ele.shape, (1, 1))
+
+    def test_dtype(self):
+        """What's your type?"""
+        for m in self.nulls:
+            self.assertEqual(m.dtype, None)
+
+        self.assertEqual(self.empty.dtype, float)
+        self.assertEqual(self.row_vec.dtype, float)
+
+    def test_nnz(self):
+        """What is your NNZ?"""
+        for m in self.nulls:
+            self.assertEqual(m.size, 0)
+
+        self.assertEqual(self.empty.size, 0)
+        self.assertEqual(self.single_ele.size, 1)
+        self.assertEqual(self.mat1.size, 4)
+        self.assertEqual(self.explicit_zeros.size, 4)
+
+    def test_get_row(self):
+        """Test grabbing a row from the matrix."""
+        for m in self.nulls:
+            with self.assertRaises(IndexError):
+                m.get_row(0)
+
+        exp = Table(1, 3, data=array([[1, 0, 2]]))
+        obs = self.mat1.get_row(0)
+        self.assertEqual(obs, exp)
+
+        self.assertEqual(self.row_vec.get_row(0), self.row_vec)
+
+    def test_get_col(self):
+        """Test grabbing a column from the matrix."""
+        for m in self.nulls:
+            with self.assertRaises(IndexError):
+                m.get_col(0)
+
+        exp = Table(data=to_sparse(array([[1], [3]])))
+        obs = self.mat1.get_col(0)
+        self.assertEqual(obs, exp)
+
+        self.assertEqual(self.col_vec.get_col(0), self.col_vec)
+
+    def test_eq(self):
+        """Test whether two matrices are equal."""
+        self.assertTrue(self.null1 == ScipySparseMat(0, 0))
+        self.assertTrue(self.null2 == ScipySparseMat(0, 42))
+        self.assertTrue(self.null3 == ScipySparseMat(42, 0))
+        self.assertTrue(self.empty == ScipySparseMat(2, 2))
+
+        mat2 = Table(2, 3, data=array([[1, 0, 2], [3, 0, 4]]))
+        self.assertTrue(self.mat1 == mat2)
+
+        # Sparse format shouldn't matter.
+        mat2.convert('lil')
+        self.assertNotEqual(self.mat1.fmt, mat2.fmt)
+        self.assertTrue(self.mat1 == mat2)
+
+        # Equality works in both directions.
+        self.assertTrue(mat2 == self.mat1)
+
+    def test_ne(self):
+        """Test whether two matrices are not equal."""
+        # Wrong type.
+        self.assertTrue(self.null1 != array([]))
+
+        # Wrong shape.
+        self.assertTrue(self.null2 != self.null3)
+        self.assertTrue(self.empty != ScipySparseMat(2, 1))
+
+        # Wrong dtype.
+        self.assertTrue(self.empty != ScipySparseMat(2, 2, dtype=int))
+
+        # Wrong size.
+        wrong_size = Table(2, 2)
+        self.assertTrue(self.empty == wrong_size)
+        wrong_size[1, 0] = 42
+        self.assertTrue(self.empty != wrong_size)
+
+        # Wrong size.
+        wrong_data = self.mat1.copy()
+        self.assertTrue(self.mat1 == wrong_data)
+        wrong_data[0, 2] = 42
+        self.assertTrue(self.mat1 != wrong_data)
+        self.assertTrue(wrong_data != self.mat1)
+
+    def test_getitem(self):
+        """Test getting an element from the matrix."""
+        for m in self.nulls:
+            with self.assertRaises(IndexError):
+                m[0, 0]
+
+        with self.assertRaises(IndexError):
+            self.empty[0]
+
+        with self.assertRaises(IndexError):
+            self.empty[:, :]
+
+        with self.assertRaises(IndexError):
+            self.empty[0:1, 0]
+
+        with self.assertRaises(IndexError):
+            self.empty[0, 0:1]
+
+        exp = Table(2, 1)
+        obs = self.empty[:, 0]
+        self.assertEqual(obs, exp)
+
+        # Extracting a column.
+        obs = self.mat1[:, 2]
+        self.assertEqual(obs, self.mat1.get_col(2))
+
+        # Extracting a row.
+        obs = self.mat1[1, :]
+        self.assertEqual(obs, self.mat1.get_row(1))
+
+        # Extracting a single element.
+        self.assertEqual(self.empty[1, 1], 0)
+        self.assertEqual(self.mat1[1, 2], 4)
+
+        with self.assertRaises(IndexError):
+            self.mat1[1, 3]
 
 class SparseTableTests(TestCase):
 
@@ -1410,6 +1614,16 @@ class SparseOTUTableTests(TestCase):
         obs = self.float_table.get_biom_format_object('foo')
         del obs['date']
         self.assertEqual(obs, exp)
+
+# test_convert_vector_to_dense(self):
+# test_shape
+# test_dtype
+# test_size -> test_nnz
+# test_get_row
+# test_get_col
+# test_eq
+# test_ne
+# test_getitem
 
 class SupportTests(TestCase):
 
