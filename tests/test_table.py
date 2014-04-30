@@ -646,17 +646,25 @@ class TableTests(TestCase):
 
     def test_convert_vector_to_dense(self):
         """Properly converts ScipySparseMat vectors to dense numpy repr."""
+        input_row = lil_matrix((1, 3))
+        input_row[(0, 0)] = 1
+        input_row[(0, 2)] = 3
         exp = array([1, 0, 3])
-        obs = Table._to_dense(self.row_vec)
-        assert_array_equal(obs, exp)
+        obs = self.row_vec._to_dense(input_row)
+        npt.assert_array_equal(obs, exp)
 
+        input_row = lil_matrix((3, 1))
+        input_row[(0, 0)] = 1
+        input_row[(2, 0)] = 3
         exp = array([1, 0, 3])
-        obs = Table._to_dense(self.col_vec)
-        assert_array_equal(obs, exp)
+        obs = self.row_vec._to_dense(input_row)
+        npt.assert_array_equal(obs, exp)
 
+        input_row = lil_matrix((1, 1))
+        input_row[(0, 0)] = 42
         exp = array([42])
-        obs = Table._to_dense(self.single_ele)
-        assert_array_equal(obs, exp)
+        obs = self.single_ele._to_dense(input_row)
+        npt.assert_array_equal(obs, exp)
 
     def test_shape(self):
         """What kind of shape are you in?"""
