@@ -72,11 +72,10 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
             offset += end - start
             offset_rows += 1
     arr.data = data[:nnz]
-    arr.indices = indices[:nnz]    
-    arr.indptr = indptr[:m-offset_rows]
+    arr.indices = indices[:nnz]
+    arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
     
-
 def filter_sparse_array(arr, ids, metadata, function, axis, invert, remove=True):
     fmt = arr.getformat()
     if fmt not in {'csc', 'csr'}:
