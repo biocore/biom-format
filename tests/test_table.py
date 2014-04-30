@@ -1311,80 +1311,35 @@ class SparseTableTests(TestCase):
         table.filter(f, 'sample', invert=True)
         self.assertEqual(table, exp_table)
 
-    def test_filter_samples(self):
-        """Filters samples by arbitrary function"""
-        f_value = lambda v, id_, md: (v <= 5).any()
-        f_id = lambda v, id_, md: id_ == 'a'
-        f_md = lambda v, id_, md: md['barcode'] == 'ttgg'
-
-        val_sd = to_sparse({(0, 0): 5, (1, 0): 7})
-        exp_value = Table(val_sd, ['a'], ['1', '2'],
-                          [{'barcode': 'aatt'}],
-                          [{'taxonomy': ['k__a', 'p__b']},
-                           {'taxonomy': ['k__a', 'p__c']}])
-        id_sd = to_sparse({(0, 0): 5, (1, 0): 7})
-        exp_id = Table(id_sd, ['a'], ['1', '2'],
-                       [{'barcode': 'aatt'}],
-                       [{'taxonomy': ['k__a', 'p__b']},
-                        {'taxonomy': ['k__a', 'p__c']}])
-        md_sd = to_sparse({(0, 0): 6, (1, 0): 8})
-        exp_md = Table(md_sd, ['b'], ['1', '2'],
-                       [{'barcode': 'ttgg'}], [{'taxonomy': ['k__a', 'p__b']},
-                                               {'taxonomy': ['k__a', 'p__c']}])
-
-        obs_value = self.st_rich.filter_samples(f_value)
-        obs_id = self.st_rich.filter_samples(f_id)
-        obs_md = self.st_rich.filter_samples(f_md)
-
-        self.assertEqual(obs_value, exp_value)
-        self.assertEqual(obs_id, exp_id)
-        self.assertEqual(obs_md, exp_md)
-
-        inv_sd = to_sparse({(0, 0): 6, (1, 0): 8})
-        exp_inv = Table(inv_sd, ['b'], ['1', '2'],
-                        [{'barcode': 'ttgg'}],
-                        [{'taxonomy': ['k__a', 'p__b']},
-                         {'taxonomy': ['k__a', 'p__c']}])
-        obs_inv = self.st_rich.filter_samples(f_value, invert=True)
-        self.assertEqual(obs_inv, exp_inv)
-        self.assertRaises(TableException, self.st_rich.filter_samples,
-                          lambda x, y, z: False)
-
-    def test_filter_observations(self):
-        """Filters observations by arbitrary function"""
-        f_value = lambda v, id_, md: (v <= 5).any()
-        f_id = lambda v, id_, md: id_ == '1'
-        f_md = lambda v, id_, md: md['taxonomy'][1] == 'p__c'
-
-        val_sd = to_sparse({(0, 0): 5, (0, 1): 6})
-        exp_value = Table(val_sd, ['a', 'b'], ['1'],
+    def test_filter_observations_id(self):
+        f = lambda id_, md: id_ == '1'
+        values = csr_matrix(np.array([[5., 6.]]))
+        exp_table = Table(values, ['a', 'b'], ['1'],
                           [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
                           [{'taxonomy': ['k__a', 'p__b']}])
-        id_sd = to_sparse({(0, 0): 5, (0, 1): 6})
-        exp_id = Table(id_sd, ['a', 'b'], ['1'],
-                       [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
-                       [{'taxonomy': ['k__a', 'p__b']}])
-        md_sd = to_sparse({(0, 0): 7, (0, 1): 8})
-        exp_md = Table(md_sd, ['a', 'b'], ['2'],
-                       [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
-                       [{'taxonomy': ['k__a', 'p__c']}])
+        table = self.st_rich
+        table.filter(f, 'observation')
+        self.assertEqual(table, exp_table)
 
-        obs_value = self.st_rich.filter_observations(f_value)
-        obs_id = self.st_rich.filter_observations(f_id)
-        obs_md = self.st_rich.filter_observations(f_md)
+    def test_filter_observations_metadata(self):
+        f = lambda id_, md: md['taxonomy'][1] == 'p__c'
+        values = csr_matrix(np.array([[7., 8.]]))
+        exp_table = Table(values, ['a', 'b'], ['2'],
+                          [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
+                          [{'taxonomy': ['k__a', 'p__c']}])
+        table = self.st_rich
+        table.filter(f, 'observation')
+        self.assertEqual(table, exp_table)
 
-        self.assertEqual(obs_value, exp_value)
-        self.assertEqual(obs_id, exp_id)
-        self.assertEqual(obs_md, exp_md)
-
-        inv_sd = to_sparse({(0, 0): 7, (0, 1): 8})
-        exp_inv = Table(inv_sd, ['a', 'b'], ['2'],
-                        [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
-                        [{'taxonomy': ['k__a', 'p__c']}])
-        obs_inv = self.st_rich.filter_observations(f_value, invert=True)
-        self.assertEqual(obs_inv, exp_inv)
-        self.assertRaises(TableException, self.st_rich.filter_observations,
-                          lambda x, y, z: False)
+    def test_filter_observations_invert(self):
+        f = lambda id_, md: md['taxonomy'][1] == 'p__c'
+        values = csr_matrix(np.array([[5., 6.]]))
+        exp_table = Table(values, ['a', 'b'], ['1'],
+                          [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
+                          [{'taxonomy': ['k__a', 'p__b']}])
+        table = self.st_rich
+        table.filter(f, 'observation', invert=True)
+        self.assertEqual(table, exp_table)
 
     def test_transform_observations(self):
         """Transform observations by arbitrary function"""
