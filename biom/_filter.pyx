@@ -42,24 +42,15 @@ cdef _zero_columns_csc(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
             data[j] = 0
     arr.eliminate_zeros()
 
-cdef _zero_columns_csr(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
-    cdef Py_ssize_t i, col
+cdef _zero_columns_CSR_or_rows_CSC(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
+    """Zero out rows or columns for a matrix in CSC or CSR format
+    respectively."""
+    cdef Py_ssize_t i, col_or_row
     cdef cnp.ndarray[cnp.int32_t, ndim=1] indices = arr.indices
     cdef cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
     for i in range(arr.indices.size):
-        col = indices[i]
-        if booleans[col]:
-            continue
-        data[i] = 0
-    arr.eliminate_zeros()
-    
-cdef _zero_rows_csc(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
-    cdef Py_ssize_t i, row
-    cdef cnp.ndarray[cnp.int32_t, ndim=1] indices = arr.indices
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
-    for i in range(arr.indices.size):
-        row = indices[i]
-        if booleans[row]:
+        col_or_row = indices[i]
+        if booleans[col_or_row]:
             continue
         data[i] = 0
     arr.eliminate_zeros()
@@ -113,7 +104,7 @@ def filter_sparse_array(arr, ids, metadata, function, axis, invert, remove=True)
             if fmt == 'csr':
                 _zero_rows_csr(arr, bools)
             elif fmt == 'csc':
-                _zero_rows_csc(arr, bools)
+                _zero_columns_CSR_or_rows_CSC(arr, bools)
     elif axis == 1:
         if remove:
             arr = arr.tocsc().T  # arr is CSR after transposing
@@ -121,7 +112,7 @@ def filter_sparse_array(arr, ids, metadata, function, axis, invert, remove=True)
             arr = arr.T  # Back to CSC
         else:
             if fmt == 'csr':
-                _zero_columns_csr(arr, bools)
+                _zero_columns_CSR_or_rows_CSC(arr, bools)
             elif fmt == 'csc':
                 _zero_columns_csc(arr, bools)
     else:
