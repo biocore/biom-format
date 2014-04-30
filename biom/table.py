@@ -27,6 +27,8 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
+from ._filter import filter_sparse_array
+
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -705,6 +707,28 @@ class Table(object):
             ids
         """
         return self.sort_observation_order(sort_f(self.observation_ids))
+
+    def filter(self, ids_to_keep, axis, invert=False):
+        if axis == 'sample':
+            axis = 0
+            ids = self.sample_ids
+            metadata = self.sample_metadata
+        elif axis == 'observation':
+            axis = 1
+            ids = self.observation_ids
+            metadata = self.observation_metadata
+        else:
+            raise ValueError("Wrong axis")
+
+        ids, metadata = filter_sparse_array(self._data, ids, metadata, f, axis,
+                                            invert=invert)
+
+        if axis == 0:
+            self.sample_ids = ids
+            self.sample_metadata = metadata
+        elif axis == 1:
+            self.observation_ids = ids
+            self.observation_metadata = metadata
 
     # a good refactor in the future is a general filter() method and then
     # specify the axis, like Table.reduce
