@@ -1273,6 +1273,44 @@ class SparseTableTests(TestCase):
         for o, e in zip(obs, exp):
             self.assertEqual(o, e)
 
+    def test_filter_sample_id(self):
+        f = lambda id_, md: id_ == 'a'
+
+        values = csr_matrix(np.array([[5.],
+                                      [7.]]))
+        exp_table = Table(values, ['a'], ['1', '2'],
+                          [{'barcode': 'aatt'}],
+                          [{'taxonomy': ['k__a', 'p__b']},
+                           {'taxonomy': ['k__a', 'p__c']}])
+
+        table = self.st_rich
+        table.filter(f, 'sample')
+        self.assertEqual(table, exp_table)
+
+    def test_filter_sample_metadata(self):
+        f = lambda id_, md: md['barcode'] == 'ttgg'
+        values = csr_matrix(np.array([[6.],
+                                      [8.]]))
+        exp_table = Table(values, ['b'], ['1', '2'],
+                          [{'barcode': 'ttgg'}],
+                          [{'taxonomy': ['k__a', 'p__b']},
+                           {'taxonomy': ['k__a', 'p__c']}])
+        table = self.st_rich
+        table.filter(f, 'sample')
+        self.assertEqual(table, exp_table)
+        
+    def test_filter_sample_invert(self):
+        f = lambda id_, md: md['barcode'] == 'aatt'
+        values = csr_matrix(np.array([[6.],
+                                      [8.]]))
+        exp_table = Table(values, ['b'], ['1', '2'],
+                          [{'barcode': 'ttgg'}],
+                          [{'taxonomy': ['k__a', 'p__b']},
+                           {'taxonomy': ['k__a', 'p__c']}])
+        table = self.st_rich
+        table.filter(f, 'sample', invert=True)
+        self.assertEqual(table, exp_table)
+
     def test_filter_samples(self):
         """Filters samples by arbitrary function"""
         f_value = lambda v, id_, md: (v <= 5).any()
