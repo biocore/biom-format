@@ -710,11 +710,11 @@ class Table(object):
 
     def filter(self, ids_to_keep, axis, invert=False):
         if axis == 'sample':
-            axis = 0
+            axis = 1
             ids = self.sample_ids
             metadata = self.sample_metadata
         elif axis == 'observation':
-            axis = 1
+            axis = 0
             ids = self.observation_ids
             metadata = self.observation_metadata
         else:
@@ -729,10 +729,10 @@ class Table(object):
                                                  invert=invert)
 
         self._data = arr
-        if axis == 0:
+        if axis == 1:
             self.sample_ids = ids
             self.sample_metadata = metadata
-        elif axis == 1:
+        elif axis == 0:
             self.observation_ids = ids
             self.observation_metadata = metadata
 
