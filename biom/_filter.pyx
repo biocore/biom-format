@@ -66,7 +66,6 @@ cdef _zero_rows_csc(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
 
 cdef cnp.ndarray[cnp.int8_t, ndim=1] _make_filter_array(ids, metadata, func, bint invert):
     cdef cnp.ndarray[cnp.int8_t, ndim=1] bools = np.empty(len(ids), dtype=np.int8)
-    if func
     for i in range(len(ids)):
         bools[i] = func(ids[i], metadata[i]) ^ invert
     return bools
@@ -105,28 +104,25 @@ def filter_sparse_array(arr, ids, metadata, function, axis, invert, remove=True)
         raise TypeError("Format not supported (use CSC/CSR)")
 
     cdef cnp.ndarray[cnp.int8_t, ndim=1] bools = _make_filter_array(ids, metadata, function, invert)
-    
+
     if axis == 0:
-        if fmt == 'csr':
-            if remove:
-                _remove_rows_csr(arr, bools)
-            else:
+        if remove:
+            arr = arr.tocsr()
+            _remove_rows_csr(arr, bools)
+        else:
+            if fmt == 'csr':
                 _zero_rows_csr(arr, bools)
-        elif fmt == 'csc':
-            if remove:
-                raise TypeError("Compacting array not supported (CSC, axis 0)")
-            else:
+            elif fmt == 'csc':
                 _zero_rows_csc(arr, bools)
     elif axis == 1:
-        if fmt == 'csr':
-            if remove:
-                raise TypeError("Compacting array not supported (CSR, axis 1)")
-            else:
+        if remove:
+            arr = arr.tocsc().T  # arr is CSR after transposing
+            _remove_rows_csr(arr, bools)
+            arr = arr.T  # Back to CSC
+        else:
+            if fmt == 'csr':
                 _zero_columns_csr(arr, bools)
-        elif fmt == 'csc':
-            if remove:
-                _remove_columns_csc(arr, bools)
-            else:
+            elif fmt == 'csc':
                 _zero_columns_csc(arr, bools)
     else:
         raise ValueError("Unsupported axis")
@@ -135,4 +131,4 @@ def filter_sparse_array(arr, ids, metadata, function, axis, invert, remove=True)
         ids = tuple(compress(ids, bools))
         metadata = tuple(compress(metadata, bools))
 
-    return ids, metadata
+    return arr, ids, metadata

@@ -718,11 +718,17 @@ class Table(object):
             ids = self.observation_ids
             metadata = self.observation_metadata
         else:
-            raise ValueError("Wrong axis")
+            raise ValueError("Unsupported axis")
 
-        ids, metadata = filter_sparse_array(self._data, ids, metadata, f, axis,
-                                            invert=invert)
+        arr = self._data
+        arr, ids, metadata = filter_sparse_array(arr,
+                                                 ids,
+                                                 metadata,
+                                                 ids_to_keep,
+                                                 axis,
+                                                 invert=invert)
 
+        self._data = arr
         if axis == 0:
             self.sample_ids = ids
             self.sample_metadata = metadata
