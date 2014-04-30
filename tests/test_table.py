@@ -214,8 +214,8 @@ class TableTests(TestCase):
         # Empty/null cases (i.e., 0x0, 0xn, nx0).
         ids = lambda X :['x%d' % e for e in range(0,X)]
         self.null1 = Table(array([]), [], [])
-        self.null2 = Table(zeros((0,42)), ids(42), [])
-        self.null3 = Table(zeros((42, 0)), [], ids(42))
+        self.null2 = Table(zeros((0,42), dtype=float), ids(42), [])
+        self.null3 = Table(zeros((42, 0), dtype=float), [], ids(42))
         self.nulls = [self.null1, self.null2, self.null3]
 
         # 0 0
@@ -223,7 +223,7 @@ class TableTests(TestCase):
         self.empty = Table(zeros((2, 2)), ids(2), ids(2))
 
         # 1 0 3
-        h = array([[1, 0, 3]])
+        h = array([[1.0, 0.0, 3.0]])
         self.row_vec = Table(h, ids(3),ids(1))
 
         # 1
