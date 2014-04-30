@@ -14,30 +14,18 @@ import numpy as np
 cimport numpy as cnp
 
 
-cdef _zero_rows_csr(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
-    cdef Py_ssize_t m, n, row, j
+cdef _zero_rows_CSR_or_columns_CSC(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans, int axis):
+    """Zero out rows or columns for a matrix in CSR or CSC format
+    respectively."""
+    cdef Py_ssize_t m, n, row_or_col, j
     cdef cnp.int32_t start, end
     cdef cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
     cdef cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
-    m, n = arr.shape
-    for row in range(m):
-        if booleans[row]:
+    n = arr.shape[axis]
+    for row_or_col in range(n):
+        if booleans[row_or_col]:
             continue
-        start, end = indptr[row], indptr[row+1]
-        for j in range(start, end):
-            data[j] = 0
-    arr.eliminate_zeros()
-    
-cdef _zero_columns_csc(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
-    cdef Py_ssize_t m, n, col, j
-    cdef cnp.int32_t start, end
-    cdef cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
-    cdef cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
-    m, n = arr.shape
-    for col in range(n):
-        if booleans[col]:
-            continue
-        start, end = indptr[col], indptr[col+1]
+        start, end = indptr[row_or_col], indptr[row_or_col+1]
         for j in range(start, end):
             data[j] = 0
     arr.eliminate_zeros()
@@ -102,7 +90,7 @@ def filter_sparse_array(arr, ids, metadata, function, axis, invert, remove=True)
             _remove_rows_csr(arr, bools)
         else:
             if fmt == 'csr':
-                _zero_rows_csr(arr, bools)
+                 _zero_rows_CSR_or_columns_CSC(arr, bools, axis)
             elif fmt == 'csc':
                 _zero_columns_CSR_or_rows_CSC(arr, bools)
     elif axis == 1:
@@ -114,7 +102,7 @@ def filter_sparse_array(arr, ids, metadata, function, axis, invert, remove=True)
             if fmt == 'csr':
                 _zero_columns_CSR_or_rows_CSC(arr, bools)
             elif fmt == 'csc':
-                _zero_columns_csc(arr, bools)
+                 _zero_rows_CSR_or_columns_CSC(arr, bools, axis)
     else:
         raise ValueError("Unsupported axis")
 
