@@ -106,7 +106,7 @@ def filter_sparse_array(arr, ids, metadata, function, axis, invert, remove=True)
         raise ValueError("Unsupported axis")
 
     if remove:
-        ids = tuple(compress(ids, bools))
+        ids = np.asarray(list(compress(ids, bools)), dtype=object)
         metadata = tuple(compress(metadata, bools))
 
     return arr, ids, metadata
