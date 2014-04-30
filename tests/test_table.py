@@ -213,9 +213,9 @@ class TableTests(TestCase):
 
         # Empty/null cases (i.e., 0x0, 0xn, nx0).
         ids = lambda X :['x%d' % e for e in range(0,X)]
-        self.null1 = Table(zeros((0, 0)), [], [])
-        self.null2 = Table(zeros((0,42), dtype=float), ids(42), [])
-        self.null3 = Table(zeros((42, 0), dtype=float), [], ids(42))
+        self.null1 = Table(to_sparse(zeros((0, 0))), [], [])
+        self.null2 = Table(to_sparse(zeros((0,42), dtype=float)), ids(42), [])
+        self.null3 = Table(to_sparse(zeros((42, 0), dtype=float)), [], ids(42))
         self.nulls = [self.null1, self.null2, self.null3]
 
         # 0 0
@@ -697,15 +697,18 @@ class TableTests(TestCase):
 
     def test_get_row(self):
         """Test grabbing a row from the matrix."""
-        for m in self.nulls:
+        # note that we only have to test the first two elements don't have that
+        # row according to the underlying scipy sparse matrix
+        for i in range(0, 2):
             with self.assertRaises(IndexError):
-                m.get_row(0)
+                self.nulls[i]._get_row(0)
 
-        exp = Table(1, 3, data=array([[1, 0, 2]]))
-        obs = self.mat1.get_row(0)
-        self.assertEqual(obs, exp)
+        exp = lil_matrix((1, 3))
+        exp[(0, 0)] = 1
+        exp[(0, 2)] = 2
 
-        self.assertEqual(self.row_vec.get_row(0), self.row_vec)
+        obs = self.mat1._get_row(0)
+        self.assertEqual((obs != exp).sum(), 0)
 
     def test_get_col(self):
         """Test grabbing a column from the matrix."""
