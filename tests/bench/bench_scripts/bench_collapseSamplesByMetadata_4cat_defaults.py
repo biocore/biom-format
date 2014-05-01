@@ -10,3 +10,4 @@ if __name__ == '__main__':
     md = [{'FOO': i % 4} for i in range(len(table.sample_ids))]
     table.sample_metadata = md
 
+    table.collapseSamplesByMetadata(lambda x: x['FOO'])

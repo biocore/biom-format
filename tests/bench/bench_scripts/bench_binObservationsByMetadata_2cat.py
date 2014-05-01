@@ -11,3 +11,4 @@ if __name__ == '__main__':
               for i, obs_id in enumerate(table.observation_ids)])
     table.addObservationMetadata(md)
 
+    table.binObservationsByMetadata(lambda x: x['FOO'])

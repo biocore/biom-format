@@ -9,3 +9,4 @@ if __name__ == '__main__':
     table = parse_biom_table(gzip_open(argv[1]))
 
     id_ = choice(table.sample_ids)
+    table.filter_samples(lambda x, y, z: y == id_)

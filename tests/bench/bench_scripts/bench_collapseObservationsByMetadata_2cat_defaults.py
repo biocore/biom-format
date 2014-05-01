@@ -10,3 +10,4 @@ if __name__ == '__main__':
     md = [{'FOO': i % 2} for i in range(len(table.observation_ids))]
     table.observation_metadata = md
 
+    table.collapseObservationsByMetadata(lambda x: x['FOO'])
