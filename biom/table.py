@@ -1629,7 +1629,7 @@ class Table(object):
             raise ValueError("Unknown order %s!" % order)
 
         shape = h5grp.attrs['shape']
-        type = h5grp.attrs['type']
+        type = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
         # fetch all of the IDs
         obs_ids = h5grp['observation/ids'][:]
