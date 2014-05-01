@@ -497,6 +497,8 @@ class Table(object):
 
     def __eq__(self, other):
         """Equality is determined by the data matrix, metadata, and IDs"""
+        if isinstance(other, self.__class__) == False:
+            return False
         if np.any(self.observation_ids != other.observation_ids):
             return False
         if np.any(self.sample_ids != other.sample_ids):

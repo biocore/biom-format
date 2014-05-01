@@ -752,7 +752,7 @@ class TableTests(TestCase):
     def test_ne(self):
         """Test whether two matrices are not equal."""
         # Wrong type.
-        #self.assertTrue(self.null1 != array([]))
+        self.assertTrue(self.null1 != array([]))
 
         # Wrong shape.
         ids = lambda X :['x%d' % e for e in range(0,X)]
