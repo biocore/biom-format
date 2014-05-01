@@ -2029,7 +2029,7 @@ def list_dict_to_nparray(data, dtype=float):
     mat = zeros((n_rows, n_cols), dtype=dtype)
 
     for row_idx, row in enumerate(data):
-        for (foo, col_idx), val in row.iteritems():
+        for (_, col_idx), val in row.iteritems():
             mat[row_idx, col_idx] = val
 
     return mat
