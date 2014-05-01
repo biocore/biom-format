@@ -2309,10 +2309,10 @@ def list_dict_to_sparse(data, dtype=float):
     cols = []
     vals = []
     for row_idx, row in enumerate(data):
-        for (foo, col_idx), val in row.items():
+        for (row_val, col_idx), val in row.items():
             if is_col:
                 # transpose
-                rows.append(foo)
+                rows.append(row_val)
                 cols.append(row_idx)
                 vals.append(val)
             else:

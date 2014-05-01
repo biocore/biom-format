@@ -11,4 +11,3 @@ if __name__ == '__main__':
               for i, s_id in enumerate(table.sample_ids)])
     table.addSampleMetadata(md)
 
-    foo = table.binSamplesByMetadata(lambda x: x['FOO'])

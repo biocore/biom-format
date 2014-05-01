@@ -12,4 +12,3 @@ if __name__ == '__main__':
     shuffle(ids)
     to_keep = set(ids[:int(len(ids) / 2.0)])
 
-    foo = table.filterObservations(lambda x, y, z: y in to_keep)
