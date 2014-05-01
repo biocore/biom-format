@@ -505,6 +505,8 @@ class Table(object):
             return False
         if self.sample_metadata != other.sample_metadata:
             return False
+        if self.type != other.type:
+            return False
         if not self._data_equality(other._data):
             return False
 
