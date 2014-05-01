@@ -40,7 +40,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 class Table(object):
 
-    """Teh Table.
+    """The (canonically pronounced 'teh') Table.
 
     Give in to the power of the Table!
 
@@ -1652,8 +1652,6 @@ class Table(object):
             matrix = csc_matrix(cs, shape=shape)
         else:
             matrix = csr_matrix(cs, shape=shape)
-
-        matrix = csc_matrix(cs) if order == 'sample' else csr_matrix(cs)
 
         return table_factory(matrix, samp_ids, obs_ids, samp_md or None,
                              obs_md or None, type=type)
