@@ -719,14 +719,12 @@ class TableTests(TestCase):
             with self.assertRaises(IndexError):
                 self.nulls[i]._get_col(0)
 
-        exp = lil_matrix((2, 3))
+        exp = lil_matrix((2, 1))
         exp[(0, 0)] = 1
         exp[(1, 0)] = 3
         
         obs = self.mat1._get_col(0)
-        print obs
-        print exp
-        self.assertEqual(array((obs != exp), dtype=int).sum(), 0)
+        self.assertEqual((obs != exp).sum(), 0)
 
 
     def test_eq(self):
