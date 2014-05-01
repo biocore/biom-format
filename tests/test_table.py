@@ -23,7 +23,7 @@ from biom.table import (TableException, Table, UnknownID,
                         list_list_to_nparray, to_sparse,
                         nparray_to_sparse, list_nparray_to_sparse,
                         to_sparse, list_dict_to_sparse, dict_to_sparse,
-                        coo_arrays_to_sparse,list_list_to_sparse,
+                        coo_arrays_to_sparse, list_list_to_sparse,
                         nparray_to_sparse, list_dict_to_sparse, dict_to_sparse,
                         to_sparse, list_sparse_to_sparse,
                         list_nparray_to_sparse)
@@ -42,6 +42,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 class SupportTests(TestCase):
+
     def test_table_factory_sparse_nparray(self):
         """beat the table_factory sparsely to death"""
         # nparray test
@@ -205,16 +206,15 @@ class TableTests(TestCase):
 
         self.to_remove = []
 
-
         # 1 0 2
         # 3 0 4
         self.mat1 = Table(to_sparse(array([[1, 0, 2], [3, 0, 4]])),
                           ['s1', 's2', 's3'], ['o1', 'o2'])
 
         # Empty/null cases (i.e., 0x0, 0xn, nx0).
-        ids = lambda X :['x%d' % e for e in range(0,X)]
+        ids = lambda X: ['x%d' % e for e in range(0, X)]
         self.null1 = Table(to_sparse(zeros((0, 0))), [], [])
-        self.null2 = Table(to_sparse(zeros((0,42), dtype=float)), ids(42), [])
+        self.null2 = Table(to_sparse(zeros((0, 42), dtype=float)), ids(42), [])
         self.null3 = Table(to_sparse(zeros((42, 0), dtype=float)), [], ids(42))
         self.nulls = [self.null1, self.null2, self.null3]
 
@@ -224,7 +224,7 @@ class TableTests(TestCase):
 
         # 1 0 3
         h = array([[1.0, 0.0, 3.0]])
-        self.row_vec = Table(h, ids(3),ids(1))
+        self.row_vec = Table(h, ids(3), ids(1))
 
         # 1
         # 0
@@ -233,7 +233,7 @@ class TableTests(TestCase):
         self.col_vec = Table(to_sparse(h), ids(1), ids(3))
 
         # 1x1
-        h = array ([[42]])
+        h = array([[42]])
         self.single_ele = Table(to_sparse(h), ['a'], ['b'])
 
         # Explicit zeros.
@@ -246,7 +246,7 @@ class TableTests(TestCase):
             for f in self.to_remove:
                 os.remove(f)
 
-    @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
         cwd = os.getcwd()
@@ -330,7 +330,7 @@ class TableTests(TestCase):
                array([0., 1., 1., 0., 0., 0.])]
         npt.assert_equal(list(t.iter_observation_data()), exp)
 
-    @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5(self):
         """Write a file"""
         fname = mktemp()
@@ -348,7 +348,7 @@ class TableTests(TestCase):
                                                           'generated-by',
                                                           'creation-date',
                                                           'shape', 'nnz']))
-        
+
         obs = Table.from_hdf5(h5)
         self.assertEqual(obs, self.st_rich)
 
@@ -487,7 +487,7 @@ class TableTests(TestCase):
         self.assertEqual(t.observation_metadata[0]['taxonomy'], ['A', 'B'])
         self.assertEqual(t.observation_metadata[1]['taxonomy'], ['B', 'C'])
         self.assertEqual(t.observation_metadata[2]['taxonomy'],
-                                                  ['E', 'D', 'F'])
+                         ['E', 'D', 'F'])
 
     def test_add_observation_metadata_one_entry(self):
         """ add_observationMetadata functions with single md entry """
@@ -503,7 +503,7 @@ class TableTests(TestCase):
         self.assertEqual(t.observation_metadata[0]['taxonomy'], ['A', 'B'])
         self.assertEqual(t.observation_metadata[1]['taxonomy'], ['B', 'C'])
         self.assertEqual(t.observation_metadata[2]['taxonomy'],
-                                                  ['E', 'D', 'F'])
+                         ['E', 'D', 'F'])
 
     def test_add_observation_metadata_two_entries(self):
         """ add_observationMetadata functions with more than one md entry """
@@ -637,7 +637,7 @@ class TableTests(TestCase):
 #  -        obs = self.st1._conv_to_np(input_col)
 #  -        npt.assert_equal(obs, exp)
 #  -
-#  -        # 1x1
+# -        # 1x1
 #  -        input_vec = SparseObj(1, 1)
 #  -        input_vec[(0, 0)] = 42
 #  -        exp = array([42.0])
@@ -722,17 +722,16 @@ class TableTests(TestCase):
         exp = lil_matrix((2, 1))
         exp[(0, 0)] = 1
         exp[(1, 0)] = 3
-        
+
         obs = self.mat1._get_col(0)
         self.assertEqual((obs != exp).sum(), 0)
-
 
     def test_eq(self):
         """Test whether two matrices are equal."""
         # Empty/null cases (i.e., 0x0, 0xn, nx0).
-        ids = lambda X :['x%d' % e for e in range(0,X)]
+        ids = lambda X: ['x%d' % e for e in range(0, X)]
         a = Table(to_sparse(zeros((0, 0))), [], [])
-        b = Table(to_sparse(zeros((0,42), dtype=float)), ids(42), [])
+        b = Table(to_sparse(zeros((0, 42), dtype=float)), ids(42), [])
         c = Table(to_sparse(zeros((42, 0), dtype=float)), [], ids(42))
         d = Table(to_sparse(zeros((2, 2))), ids(2), ids(2))
 
@@ -742,7 +741,7 @@ class TableTests(TestCase):
         self.assertTrue(self.empty == d)
 
         mat2 = Table(to_sparse(array([[1, 0, 2], [3, 0, 4]])),
-                          ['s1', 's2', 's3'], ['o1', 'o2'])
+                     ['s1', 's2', 's3'], ['o1', 'o2'])
         self.assertTrue(self.mat1 == mat2)
 
         # Sparse format shouldn't matter; can someone help me assess that this
@@ -760,7 +759,7 @@ class TableTests(TestCase):
         self.assertTrue(self.null1 != array([]))
 
         # Wrong shape.
-        ids = lambda X :['x%d' % e for e in range(0,X)]
+        ids = lambda X: ['x%d' % e for e in range(0, X)]
         d = Table(to_sparse(ones((1, 1))), ids(1), ids(1))
         self.assertTrue(self.null2 != self.null3)
         self.assertTrue(self.empty != d)
@@ -772,14 +771,14 @@ class TableTests(TestCase):
         # Wrong size.
         wrong_size = Table(to_sparse(zeros((2, 2))), ids(2), ids(2))
         self.assertTrue(self.empty == wrong_size)
-        wrong_size = Table(to_sparse(ones((1,1))), ['a'], ['c'])
+        wrong_size = Table(to_sparse(ones((1, 1))), ['a'], ['c'])
         self.assertTrue(self.empty != wrong_size)
 
         # Wrong size.
         wrong_data = self.mat1.copy()
         self.assertTrue(self.mat1 == wrong_data)
         wrong_data = Table(to_sparse(array([[42, 0, 2], [3, 0, 4]])),
-                          ['s1', 's2', 's3'], ['o1', 'o2'])
+                           ['s1', 's2', 's3'], ['o1', 'o2'])
         self.assertTrue(self.mat1 != wrong_data)
         self.assertTrue(wrong_data != self.mat1)
 
@@ -819,6 +818,7 @@ class TableTests(TestCase):
 
         with self.assertRaises(IndexError):
             self.mat1[1, 3]
+
 
 class SparseTableTests(TestCase):
 
@@ -1189,7 +1189,7 @@ class SparseTableTests(TestCase):
         exp = [r1.tocsr(), r2.tocsr()]
         obs = list(self.st1._iter_obs())
 
-        for o,e in zip(obs, exp):
+        for o, e in zip(obs, exp):
             self.assertEqual((o != e).sum(), 0)
 
     def test_iter_samp(self):
@@ -1204,7 +1204,7 @@ class SparseTableTests(TestCase):
         exp = [c1.tocsc(), c2.tocsc()]
         obs = list(self.st1._iter_samp())
 
-        for o,e in zip(obs, exp):
+        for o, e in zip(obs, exp):
             self.assertEqual((o != e).sum(), 0)
 
     def test_iter_samples(self):
@@ -1654,6 +1654,7 @@ class SparseOTUTableTests(TestCase):
 # test_ne
 # test_getitem
 
+
 class SupportTests(TestCase):
 
     def test_coo_arrays_to_sparse(self):
@@ -1712,7 +1713,6 @@ class SupportTests(TestCase):
         obs = list_dict_to_sparse(input)
         self.assertEqual((obs != exp).sum(), 0)
 
-
     def test_dict_to_sparse(self):
         """Take a dict and convert to sparse"""
         input = {(0, 1): 5, (1, 0): 2, (2, 1): 6}
@@ -1758,8 +1758,8 @@ class SupportTests(TestCase):
         exp[(1, 1)] = 9.0
         exp[(2, 1)] = 10.0
         obs = to_sparse([{(0, 0): 5, (0, 1): 6, (0, 2): 7},
-                        {(1, 0): 8, (1, 1): 9, (1, 2): 10}],
-                       transpose=True)
+                         {(1, 0): 8, (1, 1): 9, (1, 2): 10}],
+                        transpose=True)
         self.assertEqual((obs != exp).sum(), 0)
 
         # passing a list of lil_matrix
@@ -1796,7 +1796,6 @@ class SupportTests(TestCase):
         exp[(1, 3)] = 1
         obs = list_nparray_to_sparse(ins)
         self.assertEqual((obs != exp).sum(), 0)
-
 
     def test_list_sparse_to_sparse(self):
         """list of lil_matrix to sparse"""

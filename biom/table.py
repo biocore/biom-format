@@ -39,6 +39,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 class Table(object):
+
     """Teh Table.
 
     Give in to the power of the Table!
@@ -950,7 +951,7 @@ class Table(object):
 
             n_s = len(new_s_md)
             s_idx = dict([(bin_, i) for i, bin_ in
-                         enumerate(sorted(new_s_md))])
+                          enumerate(sorted(new_s_md))])
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
@@ -1165,7 +1166,7 @@ class Table(object):
 
             n_obs = len(new_obs_md)
             obs_idx = dict([(bin_, i)
-                           for i, bin_ in enumerate(sorted(new_obs_md))])
+                            for i, bin_ in enumerate(sorted(new_obs_md))])
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
