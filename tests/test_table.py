@@ -109,7 +109,7 @@ class SupportTests(TestCase):
         exp = Table(exp_data, samp_ids, obs_ids)
         input_ = [[0, 1, 5], [1, 2, 10]]
         obs = table_factory(input_, samp_ids, obs_ids)
-        self.assertTrue(obs, exp)
+        self.assertEqual(obs, exp)
 
     def test_table_exception(self):
         """Make sure a TableException can be raised"""
