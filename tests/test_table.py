@@ -349,6 +349,7 @@ class TableTests(TestCase):
                                                           'generated-by',
                                                           'creation-date',
                                                           'shape', 'nnz']))
+        
         obs = Table.from_hdf5(h5)
         self.assertEqual(obs, self.st_rich)
 
@@ -712,15 +713,22 @@ class TableTests(TestCase):
 
     def test_get_col(self):
         """Test grabbing a column from the matrix."""
-        for m in self.nulls:
+        # note that we only have to test the first and last element, these
+        # don't have that column according to the underlying scipy sparse
+        # matrix
+        for i in [0, 2]:
             with self.assertRaises(IndexError):
-                m.get_col(0)
+                self.nulls[i]._get_col(0)
 
-        exp = Table(data=to_sparse(array([[1], [3]])))
-        obs = self.mat1.get_col(0)
-        self.assertEqual(obs, exp)
+        exp = lil_matrix((2, 3))
+        exp[(0, 0)] = 1
+        exp[(1, 0)] = 3
+        
+        obs = self.mat1._get_col(0)
+        print obs
+        print exp
+        self.assertEqual(array((obs != exp), dtype=int).sum(), 0)
 
-        self.assertEqual(self.col_vec.get_col(0), self.col_vec)
 
     def test_eq(self):
         """Test whether two matrices are equal."""
@@ -796,17 +804,17 @@ class TableTests(TestCase):
         with self.assertRaises(IndexError):
             self.empty[0, 0:1]
 
-        exp = Table(2, 1)
+        exp = lil_matrix((2, 1))
         obs = self.empty[:, 0]
-        self.assertEqual(obs, exp)
+        self.assertEqual((obs != exp).sum(), 0)
 
         # Extracting a column.
         obs = self.mat1[:, 2]
-        self.assertEqual(obs, self.mat1.get_col(2))
+        self.assertEqual((obs != self.mat1._get_col(2)).sum(), 0)
 
         # Extracting a row.
         obs = self.mat1[1, :]
-        self.assertEqual(obs, self.mat1.get_row(1))
+        self.assertEqual((obs != self.mat1._get_row(1)).sum(), 0)
 
         # Extracting a single element.
         self.assertEqual(self.empty[1, 1], 0)
