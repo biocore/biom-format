@@ -230,17 +230,16 @@ class TableTests(TestCase):
         # 0
         # 3
         h = array([[1], [0], [3]])
-        self.col_vec = Table(h, ids(1), ids(3))
+        self.col_vec = Table(to_sparse(h), ids(1), ids(3))
 
         # 1x1
         h = array ([[42]])
-        self.single_ele = Table(h, ['a'], ['b'])
+        self.single_ele = Table(to_sparse(h), ['a'], ['b'])
 
         # Explicit zeros.
-        self.explicit_zeros = None
-        #self.explicit_zeros = Table(2, 3, data=([1, 2, 3, 0, 4],
-        #                                        ([0, 0, 1, 1, 1],
-        #                                        [0, 2, 0, 1, 2])))
+        self.explicit_zeros = Table(to_sparse(array([[0, 0, 1], [1, 0, 0],
+                                                     [1, 0, 2]])),
+                                    ['a', 'b', 'c'], ['x', 'y', 'z'])
 
     def tearDown(self):
         if self.to_remove:
@@ -689,12 +688,12 @@ class TableTests(TestCase):
     def test_nnz(self):
         """What is your NNZ?"""
         for m in self.nulls:
-            self.assertEqual(m.size, 0)
+            self.assertEqual(m.nnz, 0)
 
-        self.assertEqual(self.empty.size, 0)
-        self.assertEqual(self.single_ele.size, 1)
-        self.assertEqual(self.mat1.size, 4)
-        self.assertEqual(self.explicit_zeros.size, 4)
+        self.assertEqual(self.empty.nnz, 0)
+        self.assertEqual(self.single_ele.nnz, 1)
+        self.assertEqual(self.mat1.nnz, 4)
+        self.assertEqual(self.explicit_zeros.nnz, 4)
 
     def test_get_row(self):
         """Test grabbing a row from the matrix."""
