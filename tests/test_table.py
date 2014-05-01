@@ -13,7 +13,7 @@ from tempfile import mktemp
 from unittest import TestCase, main
 
 import numpy.testing as npt
-from numpy import where, zeros, array
+from numpy import where, zeros, array, ones
 from scipy.sparse import coo_matrix, lil_matrix
 
 from biom.util import unzip, HAVE_H5PY
@@ -752,25 +752,29 @@ class TableTests(TestCase):
     def test_ne(self):
         """Test whether two matrices are not equal."""
         # Wrong type.
-        self.assertTrue(self.null1 != array([]))
+        #self.assertTrue(self.null1 != array([]))
 
         # Wrong shape.
+        ids = lambda X :['x%d' % e for e in range(0,X)]
+        d = Table(to_sparse(ones((1, 1))), ids(1), ids(1))
         self.assertTrue(self.null2 != self.null3)
-        self.assertTrue(self.empty != ScipySparseMat(2, 1))
+        self.assertTrue(self.empty != d)
 
         # Wrong dtype.
-        self.assertTrue(self.empty != ScipySparseMat(2, 2, dtype=int))
+        d = Table(to_sparse(zeros((2, 2))), ids(2), ids(2), type=float)
+        self.assertTrue(self.empty != d)
 
         # Wrong size.
-        wrong_size = Table(2, 2)
+        wrong_size = Table(to_sparse(zeros((2, 2))), ids(2), ids(2))
         self.assertTrue(self.empty == wrong_size)
-        wrong_size[1, 0] = 42
+        wrong_size = Table(to_sparse(ones((1,1))), ['a'], ['c'])
         self.assertTrue(self.empty != wrong_size)
 
         # Wrong size.
         wrong_data = self.mat1.copy()
         self.assertTrue(self.mat1 == wrong_data)
-        wrong_data[0, 2] = 42
+        wrong_data = Table(to_sparse(array([[42, 0, 2], [3, 0, 4]])),
+                          ['s1', 's2', 's3'], ['o1', 'o2'])
         self.assertTrue(self.mat1 != wrong_data)
         self.assertTrue(wrong_data != self.mat1)
 
