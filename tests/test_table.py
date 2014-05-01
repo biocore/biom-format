@@ -623,27 +623,6 @@ class TableTests(TestCase):
         self.assertTrue(Table(array([]), [], []).is_empty())
         self.assertFalse(self.simple_derived.is_empty())
 
-#     def test_
-#     -        """Should convert a self styled vector to numpy type"""
-#  -        input_row = SparseObj(1, 3)
-#  -        input_row[(0, 0)] = 10
-#  -        exp = array([10.0, 0, 0])
-#  -        obs = self.st1._conv_to_np(input_row)
-#  -        npt.assert_equal(obs, exp)
-#  -
-#  -        input_col = SparseObj(3, 1)
-#  -        input_col[(0, 0)] = 12
-#  -        exp = array([12.0, 0, 0])
-#  -        obs = self.st1._conv_to_np(input_col)
-#  -        npt.assert_equal(obs, exp)
-#  -
-# -        # 1x1
-#  -        input_vec = SparseObj(1, 1)
-#  -        input_vec[(0, 0)] = 42
-#  -        exp = array([42.0])
-#  -        obs = self.st1._conv_to_np(input_vec)
-#  -        npt.assert_equal(obs, exp)
-
     def test_convert_vector_to_dense(self):
         """Properly converts ScipySparseMat vectors to dense numpy repr."""
         input_row = lil_matrix((1, 3))
@@ -1643,16 +1622,6 @@ class SparseOTUTableTests(TestCase):
         obs = self.float_table.get_biom_format_object('foo')
         del obs['date']
         self.assertEqual(obs, exp)
-
-# test_convert_vector_to_dense(self):
-# test_shape
-# test_dtype
-# test_size -> test_nnz
-# test_get_row
-# test_get_col
-# test_eq
-# test_ne
-# test_getitem
 
 
 class SupportTests(TestCase):
