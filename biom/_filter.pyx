@@ -9,6 +9,8 @@
 from __future__ import division
 
 from itertools import compress
+from collections import Iterable
+from types import FunctionType
 
 import numpy as np
 cimport numpy as cnp
@@ -76,12 +78,19 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
     arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
     
-def filter_sparse_array(arr, ids, metadata, function, axis, invert, remove=True):
+def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert, remove=True):
     fmt = arr.getformat()
     if fmt not in {'csc', 'csr'}:
         raise TypeError("Format not supported (use CSC/CSR)")
 
-    cdef cnp.ndarray[cnp.int8_t, ndim=1] bools = _make_filter_array(ids, metadata, function, invert)
+    cdef cnp.ndarray[cnp.int8_t, ndim=1] bools
+
+    if isinstance(ids_to_keep, Iterable):
+        bools = np.asarray(ids_to_keep, dtype=np.int8)
+    elif isinstance(ids_to_keep, FunctionType):
+        bools = _make_filter_array(ids, metadata, ids_to_keep, invert)
+    else:
+        raise TypeError("ids_to_keep must be an iterable or a function")
 
     if axis == 0:
         if remove:
