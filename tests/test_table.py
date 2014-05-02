@@ -14,7 +14,7 @@ from unittest import TestCase, main
 
 import numpy.testing as npt
 import numpy as np
-from scipy.sparse import coo_matrix, lil_matrix, csr_matrix
+from scipy.sparse import lil_matrix, csr_matrix
 
 from biom.exception import UnknownAxisError, UnknownIDError, TableException
 from biom.util import unzip, HAVE_H5PY
@@ -219,24 +219,24 @@ class TableTests(TestCase):
 
         # 0 0
         # 0 0
-        self.empty = Table(to_sparse(zeros((2, 2))), ids(2), ids(2))
+        self.empty = Table(to_sparse(np.zeros((2, 2))), ids(2), ids(2))
 
         # 1 0 3
-        h = array([[1.0, 0.0, 3.0]])
+        h = np.array([[1.0, 0.0, 3.0]])
         self.row_vec = Table(h, ids(3), ids(1))
 
         # 1
         # 0
         # 3
-        h = array([[1], [0], [3]])
+        h = np.array([[1], [0], [3]])
         self.col_vec = Table(to_sparse(h), ids(1), ids(3))
 
         # 1x1
-        h = array([[42]])
+        h = np.array([[42]])
         self.single_ele = Table(to_sparse(h), ['a'], ['b'])
 
         # Explicit zeros.
-        self.explicit_zeros = Table(to_sparse(array([[0, 0, 1], [1, 0, 0],
+        self.explicit_zeros = Table(to_sparse(np.array([[0, 0, 1], [1, 0, 0],
                                                      [1, 0, 2]])),
                                     ['a', 'b', 'c'], ['x', 'y', 'z'])
 
@@ -633,20 +633,20 @@ class TableTests(TestCase):
         input_row = lil_matrix((1, 3))
         input_row[(0, 0)] = 1
         input_row[(0, 2)] = 3
-        exp = array([1, 0, 3])
+        exp = np.array([1, 0, 3])
         obs = self.row_vec._to_dense(input_row)
         npt.assert_array_equal(obs, exp)
 
         input_row = lil_matrix((3, 1))
         input_row[(0, 0)] = 1
         input_row[(2, 0)] = 3
-        exp = array([1, 0, 3])
+        exp = np.array([1, 0, 3])
         obs = self.row_vec._to_dense(input_row)
         npt.assert_array_equal(obs, exp)
 
         input_row = lil_matrix((1, 1))
         input_row[(0, 0)] = 42
-        exp = array([42])
+        exp = np.array([42])
         obs = self.single_ele._to_dense(input_row)
         npt.assert_array_equal(obs, exp)
 
@@ -714,17 +714,17 @@ class TableTests(TestCase):
         """Test whether two matrices are equal."""
         # Empty/null cases (i.e., 0x0, 0xn, nx0).
         ids = lambda X: ['x%d' % e for e in range(0, X)]
-        a = Table(to_sparse(zeros((0, 0))), [], [])
-        b = Table(to_sparse(zeros((0, 42), dtype=float)), ids(42), [])
-        c = Table(to_sparse(zeros((42, 0), dtype=float)), [], ids(42))
-        d = Table(to_sparse(zeros((2, 2))), ids(2), ids(2))
+        a = Table(to_sparse(np.zeros((0, 0))), [], [])
+        b = Table(to_sparse(np.zeros((0, 42), dtype=float)), ids(42), [])
+        c = Table(to_sparse(np.zeros((42, 0), dtype=float)), [], ids(42))
+        d = Table(to_sparse(np.zeros((2, 2))), ids(2), ids(2))
 
         self.assertTrue(self.null1 == a)
         self.assertTrue(self.null2 == b)
         self.assertTrue(self.null3 == c)
         self.assertTrue(self.empty == d)
 
-        mat2 = Table(to_sparse(array([[1, 0, 2], [3, 0, 4]])),
+        mat2 = Table(to_sparse(np.array([[1, 0, 2], [3, 0, 4]])),
                      ['s1', 's2', 's3'], ['o1', 'o2'])
         self.assertTrue(self.mat1 == mat2)
 
@@ -740,28 +740,28 @@ class TableTests(TestCase):
     def test_ne(self):
         """Test whether two matrices are not equal."""
         # Wrong type.
-        self.assertTrue(self.null1 != array([]))
+        self.assertTrue(self.null1 != np.array([]))
 
         # Wrong shape.
         ids = lambda X: ['x%d' % e for e in range(0, X)]
-        d = Table(to_sparse(ones((1, 1))), ids(1), ids(1))
+        d = Table(to_sparse(np.ones((1, 1))), ids(1), ids(1))
         self.assertTrue(self.null2 != self.null3)
         self.assertTrue(self.empty != d)
 
         # Wrong dtype.
-        d = Table(to_sparse(zeros((2, 2))), ids(2), ids(2), type=float)
+        d = Table(to_sparse(np.zeros((2, 2))), ids(2), ids(2), type=float)
         self.assertTrue(self.empty != d)
 
         # Wrong size.
-        wrong_size = Table(to_sparse(zeros((2, 2))), ids(2), ids(2))
+        wrong_size = Table(to_sparse(np.zeros((2, 2))), ids(2), ids(2))
         self.assertTrue(self.empty == wrong_size)
-        wrong_size = Table(to_sparse(ones((1, 1))), ['a'], ['c'])
+        wrong_size = Table(to_sparse(np.ones((1, 1))), ['a'], ['c'])
         self.assertTrue(self.empty != wrong_size)
 
         # Wrong size.
         wrong_data = self.mat1.copy()
         self.assertTrue(self.mat1 == wrong_data)
-        wrong_data = Table(to_sparse(array([[42, 0, 2], [3, 0, 4]])),
+        wrong_data = Table(to_sparse(np.array([[42, 0, 2], [3, 0, 4]])),
                            ['s1', 's2', 's3'], ['o1', 'o2'])
         self.assertTrue(self.mat1 != wrong_data)
         self.assertTrue(wrong_data != self.mat1)
@@ -1636,7 +1636,9 @@ class SupportTests(TestCase):
         exp[(0, 0)] = 10
         exp[(1, 3)] = 5
         exp[(2, 1)] = 2
-        data = (array([5.0, 2.0, 10.0]), (array([1, 2, 0]), array([3, 1, 0])))
+        data = (np.array([5.0, 2.0, 10.0]),
+                (np.array([1, 2, 0]),
+                 np.array([3, 1, 0])))
         obs = coo_arrays_to_sparse(data, shape=(n_rows, n_cols))
         self.assertEqual((obs != exp).sum(), 0)
 
@@ -1652,7 +1654,7 @@ class SupportTests(TestCase):
 
     def test_nparray_to_sparse(self):
         """Convert nparray to sparse"""
-        input = array([[1, 2, 3, 4], [-1, 6, 7, 8], [9, 10, 11, 12]])
+        input = np.array([[1, 2, 3, 4], [-1, 6, 7, 8], [9, 10, 11, 12]])
         exp = lil_matrix((3, 4))
         exp[(0, 0)] = 1
         exp[(0, 1)] = 2
@@ -1755,7 +1757,7 @@ class SupportTests(TestCase):
 
     def test_list_nparray_to_sparse(self):
         """lists of nparrays to sparse"""
-        ins = [array([0, 2, 1, 0]), array([1, 0, 0, 1])]
+        ins = [np.array([0, 2, 1, 0]), np.array([1, 0, 0, 1])]
         exp = lil_matrix((2, 4))
         exp[(0, 1)] = 2
         exp[(0, 2)] = 1
