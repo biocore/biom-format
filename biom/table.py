@@ -22,7 +22,7 @@ from collections import defaultdict, Hashable
 from numpy import ndarray, asarray, zeros, empty, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
-from biom.exception import TableException, UnknownID
+from biom.exception import TableException, UnknownAxisError, UnknownIDError
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
@@ -211,8 +211,8 @@ class Table(object):
         if self.observation_metadata is not None:
             for id_, md_entry in md.items():
                 if self.observation_exists(id_):
-                    self.observation_metadata[
-                        self.get_observation_index(id_)].update(md_entry)
+                    idx = self.index(id_, 'observation')
+                    self.observation_metadata[idx].update(md_entry)
         else:
             self.observation_metadata = tuple([md[id_] if id_ in md else
                                                None for id_ in
@@ -227,8 +227,8 @@ class Table(object):
         if self.sample_metadata is not None:
             for id_, md_entry in md.items():
                 if self.sample_exists(id_):
-                    self.sample_metadata[
-                        self.get_sample_index(id_)].update(md_entry)
+                    idx = self.index(id_, 'sample')
+                    self.sample_metadata[idx].update(md_entry)
         else:
             self.sample_metadata = tuple([md[id_] if id_ in md else
                                           None for id_ in self.sample_ids])
@@ -345,27 +345,66 @@ class Table(object):
                               self.observation_ids[:], self.sample_ids[:],
                               obs_md_copy, sample_md_copy, self.table_id)
 
-    def get_sample_index(self, samp_id):
-        """Returns the sample index for sample ``samp_id``"""
-        if samp_id not in self._sample_index:
-            raise UnknownID("SampleId %s not found!" % samp_id)
-        return self._sample_index[samp_id]
+    def index(self, id_, axis):
+        """Return the index of the identified sample/observation.
 
-    def get_observation_index(self, obs_id):
-        """Returns the observation index for observation ``obs_id``"""
-        if obs_id not in self._obs_index:
-            raise UnknownID("ObservationId %s not found!" % obs_id)
-        return self._obs_index[obs_id]
+        Parameters
+        ----------
+        id_ : str
+            ID of the sample or observation whose index will be returned.
+        axis : {'sample', 'observation'}
+            Axis to search for `id_`.
+
+        Returns
+        -------
+        int
+            Index of the sample/observation identified by `id_`.
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+        UnknownIDError
+            If provided an unrecognized sample/observation ID.
+
+        Examples
+        --------
+
+        >>> import numpy as np
+        >>> from biom.table import table_factory
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = table_factory(data, ['S1', 'S2', 'S3'], ['O1', 'O2'])
+
+        Get the index of the observation with ID "O2":
+
+        >>> table.index('O2', 'observation')
+        1
+
+        Get the index of the sample with ID "S1":
+
+        >>> table.index('S1', 'sample')
+        0
+
+        """
+        if axis == 'sample':
+            idx_lookup = self._sample_index
+        elif axis == 'observation':
+            idx_lookup = self._obs_index
+        else:
+            raise UnknownAxisError(axis)
+
+        if id_ not in idx_lookup:
+            raise UnknownIDError(id_, axis)
+
+        return idx_lookup[id_]
 
     def get_value_by_ids(self, obs_id, samp_id):
-        """Return value in the matrix corresponding to ``(obs_id, samp_id)``
-        """
-        if obs_id not in self._obs_index:
-            raise UnknownID("ObservationId %s not found!" % obs_id)
-        if samp_id not in self._sample_index:
-            raise UnknownID("SampleId %s not found!" % samp_id)
-
-        return self[self._obs_index[obs_id], self._sample_index[samp_id]]
+        """Return value in the matrix corresponding to ``(obs_id, samp_id)``"""
+        return self[self.index(obs_id, 'observation'),
+                    self.index(samp_id, 'sample')]
 
     def __str__(self):
         """Stringify self
@@ -553,15 +592,11 @@ class Table(object):
 
     def sample_data(self, id_):
         """Return observations associated with sample id ``id_``"""
-        if id_ not in self._sample_index:
-            raise UnknownID("ID %s is not a known sample ID!" % id_)
-        return self._to_dense(self[:, self._sample_index[id_]])
+        return self._to_dense(self[:, self.index(id_, 'sample')])
 
     def observation_data(self, id_):
         """Return samples associated with observation id ``id_``"""
-        if id_ not in self._obs_index:
-            raise UnknownID("ID %s is not a known observation ID!" % id_)
-        return self._to_dense(self[self._obs_index[id_], :])
+        return self._to_dense(self[self.index(id_, 'observation'), :])
 
     def copy(self):
         """Returns a copy of the table"""
@@ -622,7 +657,7 @@ class Table(object):
         vals = []
 
         for id_ in sample_order:
-            cur_idx = self._sample_index[id_]
+            cur_idx = self.index(id_, 'sample')
             vals.append(self._to_dense(self[:, cur_idx]))
 
             if self.sample_metadata is not None:
@@ -642,7 +677,7 @@ class Table(object):
         vals = []
 
         for id_ in obs_order:
-            cur_idx = self._obs_index[id_]
+            cur_idx = self.index(id_, 'observation')
             vals.append(self[cur_idx, :])
 
             if self.observation_metadata is not None:

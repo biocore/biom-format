@@ -16,17 +16,16 @@ import numpy.testing as npt
 from numpy import where, zeros, array, ones
 from scipy.sparse import coo_matrix, lil_matrix
 
+from biom.exception import UnknownAxisError, UnknownIDError, TableException
 from biom.util import unzip, HAVE_H5PY
-from biom.table import (TableException, Table, UnknownID,
-                        prefer_self, index_list, dict_to_nparray,
+from biom.table import (Table, prefer_self, index_list, dict_to_nparray,
                         list_dict_to_nparray, table_factory,
-                        list_list_to_nparray, to_sparse,
-                        nparray_to_sparse, list_nparray_to_sparse,
-                        to_sparse, list_dict_to_sparse, dict_to_sparse,
-                        coo_arrays_to_sparse, list_list_to_sparse,
-                        nparray_to_sparse, list_dict_to_sparse, dict_to_sparse,
-                        to_sparse, list_sparse_to_sparse,
-                        list_nparray_to_sparse)
+                        list_list_to_nparray, to_sparse, nparray_to_sparse,
+                        list_nparray_to_sparse, to_sparse, list_dict_to_sparse,
+                        dict_to_sparse, coo_arrays_to_sparse,
+                        list_list_to_sparse, nparray_to_sparse,
+                        list_dict_to_sparse, dict_to_sparse, to_sparse,
+                        list_sparse_to_sparse, list_nparray_to_sparse)
 
 if HAVE_H5PY:
     import h5py
@@ -352,23 +351,29 @@ class TableTests(TestCase):
         obs = Table.from_hdf5(h5)
         self.assertEqual(obs, self.st_rich)
 
-    def test_get_sample_index(self):
-        """returns the sample index"""
-        self.assertEqual(0, self.simple_derived.get_sample_index(1))
-        self.assertEqual(1, self.simple_derived.get_sample_index(2))
-        self.assertRaises(UnknownID, self.simple_derived.get_sample_index, 3)
+    def test_index_invalid_input(self):
+        """Correctly handles invalid input."""
+        with self.assertRaises(UnknownAxisError):
+            self.simple_derived.index(1, 'brofist')
 
-    def test_get_observation_index(self):
+    def test_index_sample(self):
+        """returns the sample index"""
+        self.assertEqual(0, self.simple_derived.index(1, 'sample'))
+        self.assertEqual(1, self.simple_derived.index(2, 'sample'))
+
+        with self.assertRaises(UnknownIDError):
+            self.simple_derived.index(3, 'sample')
+
+    def test_index_observation(self):
         """returns the observation index"""
-        self.assertEqual(0, self.simple_derived.get_observation_index(3))
-        self.assertEqual(1, self.simple_derived.get_observation_index(4))
-        self.assertRaises(
-            UnknownID,
-            self.simple_derived.get_observation_index,
-            5)
+        self.assertEqual(0, self.simple_derived.index(3, 'observation'))
+        self.assertEqual(1, self.simple_derived.index(4, 'observation'))
+
+        with self.assertRaises(UnknownIDError):
+            self.simple_derived.index(5, 'observation')
 
     def test_index_ids(self):
-        """Index the all the ids!!!"""
+        """Index all the ids!!!"""
         exp_samp = {1: 0, 2: 1}
         exp_obs = {3: 0, 4: 1}
         self.assertEqual(self.simple_derived._sample_index, exp_samp)
@@ -607,8 +612,8 @@ class TableTests(TestCase):
         self.assertEqual(7, t2.get_value_by_ids('d', 'a'))
         self.assertEqual(8, t2.get_value_by_ids('d', 'b'))
 
-        self.assertRaises(UnknownID, t1.get_value_by_ids, 'a', 1)
-        self.assertRaises(UnknownID, t2.get_value_by_ids, 0, 0)
+        self.assertRaises(UnknownIDError, t1.get_value_by_ids, 'a', 1)
+        self.assertRaises(UnknownIDError, t2.get_value_by_ids, 0, 0)
 
     def test_getitem(self):
         """getitem should work as expeceted"""
@@ -1063,14 +1068,14 @@ class SparseTableTests(TestCase):
         exp = array([5, 7])
         obs = self.st1.sample_data('a')
         npt.assert_equal(obs, exp)
-        self.assertRaises(UnknownID, self.st1.sample_data, 'asdasd')
+        self.assertRaises(UnknownIDError, self.st1.sample_data, 'asdasd')
 
     def test_observation_data(self):
         """tested in derived class"""
         exp = array([5, 6])
         obs = self.st1.observation_data('1')
         npt.assert_equal(obs, exp)
-        self.assertRaises(UnknownID, self.st1.observation_data, 'asdsad')
+        self.assertRaises(UnknownIDError, self.st1.observation_data, 'asdsad')
 
     def test_delimited_self(self):
         """Print out self in a delimited form"""
