@@ -16,7 +16,7 @@ before_install:
   # Update conda itself
   - conda update --yes conda
 install:
-  - conda create --yes -n env_name python=$TRAVIS_PYTHON_VERSION pip numpy=$NUMPY_VERSION scipy nose pep8 Sphinx h5py>=2.2.0
+  - conda create --yes -n env_name python=$TRAVIS_PYTHON_VERSION pip numpy=$NUMPY_VERSION scipy nose pep8 Sphinx h5py>=2.2.0 Cython
   - source activate env_name
   - pip install -r requirements.txt -e .
 script:
