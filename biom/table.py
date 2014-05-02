@@ -709,6 +709,23 @@ class Table(object):
         return self.sort_observation_order(sort_f(self.observation_ids))
 
     def filter(self, ids_to_keep, axis, invert=False):
+        """Filter in place a table based on a function or iterable.
+
+        Parameters
+        ----------
+        ids_to_keep : function or iterable
+            If a function, it will be called with the id (a string)
+            and the dictionary of metadata of each sample, and must
+            return a boolean.
+            If it's an iterable, it will be converted to an array of
+            bools.
+        axis : str
+            It controls whether to filter samples or observations. Can
+            be "sample" or "observation".
+        invert : bool
+            If set to True, discard samples or observations where
+            `ids_to_keep` returns True
+        """
         if axis == 'sample':
             axis = 1
             ids = self.sample_ids
