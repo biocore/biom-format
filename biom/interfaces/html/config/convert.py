@@ -37,11 +37,6 @@ inputs = [
                     Type='upload_file',
                     Help='the input table filepath, either in BIOM or classic '
                     'format'),
-    HTMLInputOption(Parameter=cmd_in_lookup('matrix_type'),
-                    Type='multiple_choice',
-                    Choices=['sparse', 'dense'],
-                    Help='the type of BIOM file to create when a classic '
-                    'table is supplied'),
     HTMLInputOption(Parameter=cmd_in_lookup('biom_to_classic_table'),
                     Type=bool),
     HTMLInputOption(Parameter=cmd_in_lookup('sparse_biom_to_dense_biom'),
@@ -61,19 +56,6 @@ inputs = [
                     Choices=['taxonomy', 'naive', 'sc_separated'],
                     Help='Process metadata associated with observations when '
                     'converting from a classic table'),
-    HTMLInputOption(Parameter=cmd_in_lookup('table_type'),
-                    Type='multiple_choice',
-                    Choices=[
-                        'metabolite table',
-                        'gene table',
-                        'otu table',
-                        'pathway table',
-                        'function table',
-                        'ortholog table',
-                        'taxon table'],
-                    Help='The BIOM table type to get converted into. Required '
-                    'when converting a classic table file to a BIOM table '
-                    'file.'),
     HTMLInputOption(Parameter=None,
                     Name='download-file',
                     Required=True,

@@ -62,12 +62,12 @@ class TableConverterTests(TestCase):
         self.assertEqual(len(obs.observation_ids), 14)
         self.assertNotEqual(obs.sample_metadata, None)
         self.assertNotEqual(obs.observation_metadata, None)
-        self.assertEqual(obs.sample_metadata[obs.get_sample_index('p2')],
+        self.assertEqual(obs.sample_metadata[obs.index('p2', 'sample')],
                          {'foo': 'c;b;a'})
-        self.assertEqual(obs.sample_metadata[obs.get_sample_index('not16S.1')],
+        self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
                          {'foo': 'b;c;d'})
         self.assertEqual(obs.observation_metadata[
-            obs.get_observation_index('None11')],
+            obs.index('None11', 'observation')],
             {'taxonomy': 'Unclassified'})
 
         # With processing of metadata (currently only supports observation md).
@@ -82,12 +82,12 @@ class TableConverterTests(TestCase):
         self.assertEqual(len(obs.observation_ids), 14)
         self.assertNotEqual(obs.sample_metadata, None)
         self.assertNotEqual(obs.observation_metadata, None)
-        self.assertEqual(obs.sample_metadata[obs.get_sample_index('p2')],
+        self.assertEqual(obs.sample_metadata[obs.index('p2', 'sample')],
                          {'foo': 'c;b;a'})
-        self.assertEqual(obs.sample_metadata[obs.get_sample_index('not16S.1')],
+        self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
                          {'foo': 'b;c;d'})
         self.assertEqual(obs.observation_metadata[
-            obs.get_observation_index('None11')],
+            obs.index('None11', 'observation')],
             {'taxonomy': ['Unclassified']})
 
     def test_biom_to_classic(self):

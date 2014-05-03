@@ -27,8 +27,6 @@ __email__ = "gregcaporaso@gmail.com"
 
 
 class TableConverter(Command):
-    MatrixTypes = ['sparse', 'dense']
-
     ObservationMetadataTypes = {
         'sc_separated': lambda x: [e.strip() for e in x.split(';')],
         'naive': lambda x: x
