@@ -20,12 +20,11 @@ from biom.exception import UnknownAxisError, UnknownIDError, TableException
 from biom.util import unzip, HAVE_H5PY
 from biom.table import (Table, prefer_self, index_list, dict_to_nparray,
                         list_dict_to_nparray, table_factory,
-                        list_list_to_nparray, to_sparse, nparray_to_sparse,
-                        list_nparray_to_sparse, to_sparse, list_dict_to_sparse,
+                        list_list_to_nparray, list_nparray_to_sparse,
+                        to_sparse, list_dict_to_sparse,
                         dict_to_sparse, coo_arrays_to_sparse,
                         list_list_to_sparse, nparray_to_sparse,
-                        list_dict_to_sparse, dict_to_sparse, to_sparse,
-                        list_sparse_to_sparse, list_nparray_to_sparse)
+                        list_sparse_to_sparse)
 
 if HAVE_H5PY:
     import h5py
