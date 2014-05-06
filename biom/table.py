@@ -651,6 +651,16 @@ class Table(object):
             else:
                 yield (obs_v, obs_id, obs_md)
 
+    def sort_order(self, order, axis='sample'):
+        """Return a new table with `axis` in `order`
+
+        Parameters
+        ----------
+        order : iterable
+            The desired order for axis
+        axis : 
+        """
+
     def sort_sample_order(self, sample_order):
         """Return a new table with samples in ``sample_order``"""
         samp_md = []
