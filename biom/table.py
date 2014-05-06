@@ -342,7 +342,7 @@ class Table(object):
             self._data = self._data.tocsr()
 
         return self.__class__(self._data.transpose(copy=True),
-                              self.observation_ids[:], self.sample_ids[:],
+                              self.sample_ids[:], self.observation_ids[:],
                               obs_md_copy, sample_md_copy, self.table_id)
 
     def index(self, id_, axis):
@@ -601,8 +601,8 @@ class Table(object):
     def copy(self):
         """Returns a copy of the table"""
         # NEEDS TO BE A DEEP COPY, MIGHT NOT GET METADATA! NEED TEST!
-        return self.__class__(self._data.copy(), self.sample_ids[:],
-                              self.observation_ids[:], self.sample_metadata,
+        return self.__class__(self._data.copy(),  self.observation_ids[:],
+                              self.sample_ids[:], self.sample_metadata,
                               self.observation_metadata, self.table_id)
 
     def iter_sample_data(self):
@@ -667,7 +667,7 @@ class Table(object):
             samp_md = None
 
         return self.__class__(self._conv_to_self_type(vals, transpose=True),
-                              sample_order[:], self.observation_ids[:],
+                              self.observation_ids[:], sample_order[:],
                               samp_md,
                               self.observation_metadata, self.table_id)
 
@@ -687,8 +687,8 @@ class Table(object):
             obs_md = None
 
         return self.__class__(self._conv_to_self_type(vals),
-                              self.sample_ids[:],
-                              obs_order[:], self.sample_metadata, obs_md,
+                              obs_order[:], self.sample_ids[:],
+                              self.sample_metadata, obs_md,
                               self.table_id)
 
     def sort_by_sample_id(self, sort_f=natsort):
@@ -748,7 +748,7 @@ class Table(object):
         # transpose is necessary as the underlying storage is sample == col
         return self.__class__(
             self._conv_to_self_type(samp_vals, transpose=True),
-            samp_ids[:], self.observation_ids[:], samp_metadata,
+            self.observation_ids[:], samp_ids[:], samp_metadata,
             self.observation_metadata, self.table_id)
 
     def filter_observations(self, f, invert=False):
@@ -786,8 +786,8 @@ class Table(object):
             raise TableException("All observations were filtered out!")
 
         return self.__class__(
-            self._conv_to_self_type(obs_vals), self.sample_ids[:],
-            obs_ids[:], self.sample_metadata, obs_metadata, self.table_id)
+            self._conv_to_self_type(obs_vals), obs_ids[:], self.sample_ids[:],
+            self.sample_metadata, obs_metadata, self.table_id)
 
     def bin_samples_by_metadata(self, f, constructor=None):
         """Yields tables by metadata
