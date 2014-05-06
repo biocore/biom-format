@@ -119,16 +119,16 @@ class TableValidator(Command):
                              'sample/indices',
                              'sample/indptr']
 
-        for key, method in required_attrs:
-            if key not in table.attrs:
+        for required_attr, attr_validator in required_attrs:
+            if required_attr not in table.attrs:
                 valid_table = False
-                report_lines.append("Missing attribute: '%s'" % key)
+                report_lines.append("Missing attribute: '%s'" % required_attr)
                 continue
 
             if detailed_report:
-                report_lines.append("Validating '%s'..." % key)
+                report_lines.append("Validating '%s'..." % required_attr)
 
-            status_msg = method(table)
+            status_msg = attr_validator(table)
 
             if len(status_msg) > 0:
                 valid_table = False
