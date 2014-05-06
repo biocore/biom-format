@@ -18,7 +18,9 @@ cimport numpy as cnp
 from biom.exception import TableException
 
 
-cdef _zero_rows_CSR_or_columns_CSC(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans, int axis):
+cdef _zero_rows_CSR_or_columns_CSC(arr,
+                                   cnp.ndarray[cnp.uint8_t, ndim=1] booleans,
+                                   int axis):
     """Zero out rows or columns for a matrix in CSR or CSC format
     respectively."""
     cdef Py_ssize_t m, n, row_or_col, j
@@ -34,7 +36,8 @@ cdef _zero_rows_CSR_or_columns_CSC(arr, cnp.ndarray[cnp.uint8_t, ndim=1] boolean
             data[j] = 0
     arr.eliminate_zeros()
 
-cdef _zero_columns_CSR_or_rows_CSC(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
+cdef _zero_columns_CSR_or_rows_CSC(arr,
+                                   cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     """Zero out rows or columns for a matrix in CSC or CSR format
     respectively."""
     cdef Py_ssize_t i, col_or_row
@@ -47,8 +50,12 @@ cdef _zero_columns_CSR_or_rows_CSC(arr, cnp.ndarray[cnp.uint8_t, ndim=1] boolean
         data[i] = 0
     arr.eliminate_zeros()
 
-cdef cnp.ndarray[cnp.uint8_t, ndim=1] _make_filter_array(ids, metadata, func, cnp.uint8_t invert):
-    cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools = np.empty(len(ids), dtype=np.uint8)
+cdef cnp.ndarray[cnp.uint8_t, ndim=1] _make_filter_array(ids,
+                                                         metadata,
+                                                         func,
+                                                         cnp.uint8_t invert):
+    cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
+        np.empty(len(ids), dtype=np.uint8)
     for i in range(len(ids)):
         bools[i] = func(ids[i], metadata[i]) ^ invert
     return bools
@@ -80,7 +87,8 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
     
-def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert, remove=True):
+def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
+                        remove=True):
     fmt = arr.getformat()
     if fmt not in ('csc', 'csr'):
         arr = arr.tocsr()
@@ -89,7 +97,8 @@ def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert, remove=Tr
     cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools
 
     if isinstance(ids_to_keep, Iterable):
-        bools = np.bitwise_xor(np.asarray(ids_to_keep, dtype=bool), invert).view(np.uint8)
+        bools = np.bitwise_xor(np.asarray(ids_to_keep, dtype=bool),
+                               invert).view(np.uint8)
     elif isinstance(ids_to_keep, FunctionType):
         bools = _make_filter_array(ids, metadata, ids_to_keep, invert)
     else:
