@@ -31,7 +31,8 @@ from biom.util import (get_biom_format_version_string,
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
-               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka"]
+               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
+               "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -695,20 +696,22 @@ class Table(object):
                               obs_order[:], self.sample_metadata, obs_md,
                               self.table_id)
 
-    def sort_by_sample_id(self, sort_f=natsort):
-        """Return a table where samples are sorted by ``sort_f``
+    def sort(self, sort_f=natsort, axis='sample'):
+        """Return a table sorted along axis
 
-            ``sort_f`` must take a single parameter: the list of sample ids
+        Parameters
+        ----------
+        sort_f : function
+            A function that takes a list of values and sorts it
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
-        return self.sort_sample_order(sort_f(self.sample_ids))
-
-    def sort_by_observation_id(self, sort_f=natsort):
-        """Return a table where observations are sorted by ``sort_f``
-
-            ``sort_f`` must take a single parameter: the list of observation
-            ids
-        """
-        return self.sort_observation_order(sort_f(self.observation_ids))
+        if axis == 'sample':
+            return self.sort_sample_order(sort_f(self.sample_ids))
+        elif axis == 'observation':
+            return self.sort_observation_order(sort_f(self.observation_ids))
+        else:
+            raise UnknownAxisError(axis)
 
     # a good refactor in the future is a general filter() method and then
     # specify the axis, like Table.reduce
