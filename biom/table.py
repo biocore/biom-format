@@ -46,7 +46,7 @@ class Table(object):
 
     """
 
-    def __init__(self, data, sample_ids, observation_ids, sample_metadata=None,
+    def __init__(self, data, observation_ids, sample_ids, sample_metadata=None,
                  observation_metadata=None, table_id=None,
                  type=None, **kwargs):
 
@@ -2070,7 +2070,7 @@ def list_dict_to_nparray(data, dtype=float):
     return mat
 
 
-def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
+def table_factory(data, observation_ids, sample_ids, sample_metadata=None,
                   observation_metadata=None, table_id=None,
                   input_is_dense=False, transpose=False, **kwargs):
     """Construct a table
@@ -2162,7 +2162,7 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     else:
         raise TableException("Cannot handle data!")
 
-    return Table(data, sample_ids, observation_ids,
+    return Table(data, observation_ids, sample_ids,
                  sample_metadata=sample_metadata,
                  observation_metadata=observation_metadata,
                  table_id=table_id, **kwargs)
