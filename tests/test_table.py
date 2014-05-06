@@ -382,20 +382,20 @@ class TableTests(TestCase):
 
     def test_sample_exists(self):
         """Verify samples exist!"""
-        self.assertTrue(self.simple_derived.exists(1, "sample"))
-        self.assertTrue(self.simple_derived.exists(2, "sample"))
-        self.assertFalse(self.simple_derived.exists(3, "sample"))
+        self.assertTrue(self.simple_derived.exists(1))
+        self.assertTrue(self.simple_derived.exists(2))
+        self.assertFalse(self.simple_derived.exists(3))
 
     def test_observation_exists(self):
         """Verify observation exist!"""
-        self.assertTrue(self.simple_derived.exists(3, "observation"))
-        self.assertTrue(self.simple_derived.exists(4, "observation"))
-        self.assertFalse(self.simple_derived.exists(2, "observation"))
+        self.assertTrue(self.simple_derived.exists(3, axis="observation"))
+        self.assertTrue(self.simple_derived.exists(4, axis="observation"))
+        self.assertFalse(self.simple_derived.exists(2, axis="observation"))
 
     def test_exists_invalid_axis(self):
         """Verify ValueError raised!"""
         with self.assertRaises(UnknownAxisError):
-            self.simple_derived.exists(3, "fooz")
+            self.simple_derived.exists(3, axis="fooz")
 
     def test_union_id_order(self):
         """Combine unique ids, union"""
