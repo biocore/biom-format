@@ -607,7 +607,23 @@ class Table(object):
                               self.observation_metadata, self.table_id)
 
     def iter_data(self, axis='sample'):
-        """Yields sample values"""
+        """Yields sample values
+
+        Parameters
+        ----------
+        axis: 'sample' or 'observation'
+            axis to iterate over
+
+        Returns
+        -------
+        list
+        yields of values for each sample
+
+        Raises
+        ------
+        UnknownAxisError
+            If axis other than 'sample' or 'observation' passed
+        """
         if axis == "sample":
             for samp_v in self._iter_samp():
                 yield self._to_dense(samp_v)
