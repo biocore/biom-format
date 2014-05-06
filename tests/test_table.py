@@ -33,7 +33,8 @@ if HAVE_H5PY:
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
-               "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka"]
+               "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka",
+               "Joshua Shorenstein"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
