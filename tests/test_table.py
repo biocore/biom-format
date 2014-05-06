@@ -33,7 +33,8 @@ if HAVE_H5PY:
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
-               "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka"]
+               "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka",
+               "Joshua Shorenstein"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -381,15 +382,20 @@ class TableTests(TestCase):
 
     def test_sample_exists(self):
         """Verify samples exist!"""
-        self.assertTrue(self.simple_derived.sample_exists(1))
-        self.assertTrue(self.simple_derived.sample_exists(2))
-        self.assertFalse(self.simple_derived.sample_exists(3))
+        self.assertTrue(self.simple_derived.exists(1, "sample"))
+        self.assertTrue(self.simple_derived.exists(2, "sample"))
+        self.assertFalse(self.simple_derived.exists(3, "sample"))
 
     def test_observation_exists(self):
         """Verify observation exist!"""
-        self.assertTrue(self.simple_derived.observation_exists(3))
-        self.assertTrue(self.simple_derived.observation_exists(4))
-        self.assertFalse(self.simple_derived.observation_exists(2))
+        self.assertTrue(self.simple_derived.exists(3, "observation"))
+        self.assertTrue(self.simple_derived.exists(4, "observation"))
+        self.assertFalse(self.simple_derived.exists(2, "observation"))
+
+    def test_exists_invalid_axis(self):
+        """Verify ValueError raised!"""
+        with self.assertRaises(UnknownAxisError):
+            self.simple_derived.exists(3, "fooz")
 
     def test_union_id_order(self):
         """Combine unique ids, union"""

@@ -31,7 +31,8 @@ from biom.util import (get_biom_format_version_string,
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
-               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka"]
+               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
+               "Joshua Shorenstein"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -413,13 +414,27 @@ class Table(object):
         """
         return self.delimited_self()
 
-    def sample_exists(self, id_):
-        """Returns True if sample ``id_`` exists, False otherwise"""
-        return id_ in self._sample_index
+    def exists(self, id_, axis="sample"):
+        """Returns whether id_ exists in axis
 
-    def observation_exists(self, id_):
-        """Returns True if observation ``id_`` exists, False otherwise"""
-        return id_ in self._obs_index
+        Parameters
+        ----------
+        id_: str
+            id to check if exists
+        axis : 'sample' or 'observation'
+            The axis to check
+
+        Returns
+        -------
+        bool
+            True if ``id_`` exists, False otherwise
+        """
+        if axis == "sample":
+            return id_ in self._sample_index
+        elif axis == "observation":
+            return id_ in self._obs_index
+        else:
+            raise UnknownAxisError(axis)
 
     def delimited_self(self, delim='\t', header_key=None, header_value=None,
                        metadata_formatter=str,
