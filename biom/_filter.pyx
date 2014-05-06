@@ -16,7 +16,7 @@ import numpy as np
 cimport numpy as cnp
 
 
-cdef _zero_rows_CSR_or_columns_CSC(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans, int axis):
+cdef _zero_rows_CSR_or_columns_CSC(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans, int axis):
     """Zero out rows or columns for a matrix in CSR or CSC format
     respectively."""
     cdef Py_ssize_t m, n, row_or_col, j
@@ -32,7 +32,7 @@ cdef _zero_rows_CSR_or_columns_CSC(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans
             data[j] = 0
     arr.eliminate_zeros()
 
-cdef _zero_columns_CSR_or_rows_CSC(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
+cdef _zero_columns_CSR_or_rows_CSC(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     """Zero out rows or columns for a matrix in CSC or CSR format
     respectively."""
     cdef Py_ssize_t i, col_or_row
@@ -45,13 +45,13 @@ cdef _zero_columns_CSR_or_rows_CSC(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans
         data[i] = 0
     arr.eliminate_zeros()
 
-cdef cnp.ndarray[cnp.int8_t, ndim=1] _make_filter_array(ids, metadata, func, bint invert):
-    cdef cnp.ndarray[cnp.int8_t, ndim=1] bools = np.empty(len(ids), dtype=np.int8)
+cdef cnp.ndarray[cnp.uint8_t, ndim=1] _make_filter_array(ids, metadata, func, cnp.uint8_t invert):
+    cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools = np.empty(len(ids), dtype=np.uint8)
     for i in range(len(ids)):
         bools[i] = func(ids[i], metadata[i]) ^ invert
     return bools
 
-cdef _remove_rows_csr(arr, cnp.ndarray[cnp.int8_t, ndim=1] booleans):
+cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     cdef Py_ssize_t m, n, row, j, offset, offset_rows, nnz
     cdef cnp.int32_t start, end
     cdef cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
@@ -83,10 +83,10 @@ def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert, remove=Tr
     if fmt not in {'csc', 'csr'}:
         raise TypeError("Format not supported (use CSC/CSR)")
 
-    cdef cnp.ndarray[cnp.int8_t, ndim=1] bools
+    cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools
 
     if isinstance(ids_to_keep, Iterable):
-        bools = np.asarray(ids_to_keep, dtype=np.int8)
+        bools = np.bitwise_xor(np.asarray(ids_to_keep, dtype=bool), invert).view(np.uint8)
     elif isinstance(ids_to_keep, FunctionType):
         bools = _make_filter_array(ids, metadata, ids_to_keep, invert)
     else:
