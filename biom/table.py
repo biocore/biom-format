@@ -697,46 +697,6 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    def sort_sample_order(self, sample_order):
-        """Return a new table with samples in ``sample_order``"""
-        samp_md = []
-        vals = []
-
-        for id_ in sample_order:
-            cur_idx = self.index(id_, 'sample')
-            vals.append(self._to_dense(self[:, cur_idx]))
-
-            if self.sample_metadata is not None:
-                samp_md.append(self.sample_metadata[cur_idx])
-
-        if not samp_md:
-            samp_md = None
-
-        return self.__class__(self._conv_to_self_type(vals, transpose=True),
-                              sample_order[:], self.observation_ids[:],
-                              samp_md,
-                              self.observation_metadata, self.table_id)
-
-    def sort_observation_order(self, obs_order):
-        """Return a new table with observations in ``observation order``"""
-        obs_md = []
-        vals = []
-
-        for id_ in obs_order:
-            cur_idx = self.index(id_, 'observation')
-            vals.append(self[cur_idx, :])
-
-            if self.observation_metadata is not None:
-                obs_md.append(self.observation_metadata[cur_idx])
-
-        if not obs_md:
-            obs_md = None
-
-        return self.__class__(self._conv_to_self_type(vals),
-                              self.sample_ids[:],
-                              obs_order[:], self.sample_metadata, obs_md,
-                              self.table_id)
-
     def sort(self, sort_f=natsort, axis='sample'):
         """Return a table sorted along axis
 
@@ -748,9 +708,10 @@ class Table(object):
             The axis to operate on
         """
         if axis == 'sample':
-            return self.sort_sample_order(sort_f(self.sample_ids))
+            return self.sort_order(sort_f(self.sample_ids))
         elif axis == 'observation':
-            return self.sort_observation_order(sort_f(self.observation_ids))
+            return self.sort_order(sort_f(self.observation_ids),
+                                   axis='observation')
         else:
             raise UnknownAxisError(axis)
 
