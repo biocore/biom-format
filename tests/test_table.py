@@ -328,7 +328,7 @@ class TableTests(TestCase):
                array([0., 0., 1., 4., 0., 2.]),
                array([2., 1., 1., 0., 0., 1.]),
                array([0., 1., 1., 0., 0., 0.])]
-        npt.assert_equal(list(t.iter_data("observation")), exp)
+        npt.assert_equal(list(t.iter_data(axis="observation")), exp)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5(self):
@@ -1230,12 +1230,12 @@ class SparseTableTests(TestCase):
 
     def test_iter_sample_data(self):
         """Iterates data by samples"""
-        gen = self.st1.iter_data("sample")
+        gen = self.st1.iter_data()
         exp = [array([5, 7]), array([6, 8])]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
-        gen = self.st_rich.iter_data("sample")
+        gen = self.st_rich.iter_data()
         exp = [array([5, 7]), array([6, 8])]
         obs = list(gen)
         npt.assert_equal(obs, exp)
@@ -1243,7 +1243,7 @@ class SparseTableTests(TestCase):
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
         vals = {(0, 0): 5, (0, 1): 6, (1, 1): 8}
         st = Table(to_sparse(vals), ['a', 'b'], ['1', '2'])
-        gen = st.iter_data("sample")
+        gen = st.iter_data()
         exp = [array([5, 0]), array([6, 8])]
         obs = list(gen)
         npt.assert_equal(obs, exp)
@@ -1251,7 +1251,7 @@ class SparseTableTests(TestCase):
     def test_iter_sample_data_single_obs(self):
         """Iterates data by samples with a single observation."""
         exp = [array([2.0]), array([0.0]), array([1.0])]
-        obs = list(self.single_obs_st.iter_data("sample"))
+        obs = list(self.single_obs_st.iter_data())
         # We test this way to make sure the observed value is a single element
         # array instead of a numpy scalar.
         for o, e in zip(obs, exp):
@@ -1259,12 +1259,12 @@ class SparseTableTests(TestCase):
 
     def test_iter_observation_data(self):
         """Iterates data by observations"""
-        gen = self.st1.iter_data("observation")
+        gen = self.st1.iter_data(axis="observation")
         exp = [array([5, 6]), array([7, 8])]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
-        gen = self.st_rich.iter_data("observation")
+        gen = self.st_rich.iter_data(axis="observation")
         exp = [array([5, 6]), array([7, 8])]
         obs = list(gen)
         npt.assert_equal(obs, exp)
@@ -1272,7 +1272,7 @@ class SparseTableTests(TestCase):
     def test_iter_observation_data_single_sample(self):
         """Iterates data by observations from a single sample."""
         exp = [array([2.0]), array([0.0]), array([1.0])]
-        obs = list(self.single_sample_st.iter_data("observation"))
+        obs = list(self.single_sample_st.iter_data(axis="observation"))
         for o, e in zip(obs, exp):
             self.assertEqual(o, e)
 

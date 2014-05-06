@@ -607,7 +607,7 @@ class Table(object):
                               self.observation_metadata, self.table_id)
 
     def iter_data(self, axis='sample'):
-        """Yields sample values
+        """Yields axis values
 
         Parameters
         ----------
