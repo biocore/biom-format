@@ -616,8 +616,8 @@ class Table(object):
 
         Returns
         -------
-        list
-        yields of values for each sample
+        generator
+            yields of values for each value in 'axis'
 
         Raises
         ------
