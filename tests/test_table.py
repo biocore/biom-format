@@ -34,7 +34,7 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
                "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka",
-               "Joshua Shorenstein"]
+               "Joshua Shorenstein", "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -476,48 +476,8 @@ class TableTests(TestCase):
         self.assertEqual(t.observation_metadata[1]['non existent key'], None)
         self.assertEqual(t.observation_metadata[2]['non existent key'], None)
 
-    def test_add_observation_metadata_w_existing_metadata(self):
-        """ add_observationMetadata functions with existing metadata """
-        obs_ids = [1, 2, 3]
-        obs_md = [{'a': 9}, {'a': 8}, {'a': 7}]
-        samp_ids = [4, 5, 6, 7]
-        samp_md = [{'d': 0}, {'e': 0}, {'f': 0}, {'g': 0}]
-        d = array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
-        t = Table(d, samp_ids, obs_ids, samp_md, obs_md)
-        self.assertEqual(t.observation_metadata[0]['a'], 9)
-        self.assertEqual(t.observation_metadata[1]['a'], 8)
-        self.assertEqual(t.observation_metadata[2]['a'], 7)
-        obs_md = {1: {'taxonomy': ['A', 'B']},
-                  2: {'taxonomy': ['B', 'C']},
-                  3: {'taxonomy': ['E', 'D', 'F']},
-                  4: {'taxonomy': ['this', 'is', 'ignored']}}
-        t.add_observation_metadata(obs_md)
-        self.assertEqual(t.observation_metadata[0]['a'], 9)
-        self.assertEqual(t.observation_metadata[1]['a'], 8)
-        self.assertEqual(t.observation_metadata[2]['a'], 7)
-        self.assertEqual(t.observation_metadata[0]['taxonomy'], ['A', 'B'])
-        self.assertEqual(t.observation_metadata[1]['taxonomy'], ['B', 'C'])
-        self.assertEqual(t.observation_metadata[2]['taxonomy'],
-                         ['E', 'D', 'F'])
-
-    def test_add_observation_metadata_one_entry(self):
-        """ add_observationMetadata functions with single md entry """
-        obs_ids = [1, 2, 3]
-        obs_md = {1: {'taxonomy': ['A', 'B']},
-                  2: {'taxonomy': ['B', 'C']},
-                  3: {'taxonomy': ['E', 'D', 'F']}}
-        samp_ids = [4, 5, 6, 7]
-        samp_md = [{'d': 0}, {'e': 0}, {'f': 0}, {'g': 0}]
-        d = array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
-        t = Table(d, samp_ids, obs_ids, samp_md, obs_md=None)
-        t.add_observation_metadata(obs_md)
-        self.assertEqual(t.observation_metadata[0]['taxonomy'], ['A', 'B'])
-        self.assertEqual(t.observation_metadata[1]['taxonomy'], ['B', 'C'])
-        self.assertEqual(t.observation_metadata[2]['taxonomy'],
-                         ['E', 'D', 'F'])
-
-    def test_add_observation_metadata_two_entries(self):
-        """ add_observationMetadata functions with more than one md entry """
+    def test_add_metadata_two_entries(self):
+        """ add_metadata functions with more than one md entry """
         obs_ids = [1, 2, 3]
         obs_md = {1: {'taxonomy': ['A', 'B'], 'other': 'h1'},
                   2: {'taxonomy': ['B', 'C'], 'other': 'h2'},
@@ -526,7 +486,7 @@ class TableTests(TestCase):
         samp_md = [{'d': 0}, {'e': 0}, {'f': 0}, {'g': 0}]
         d = array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         t = Table(d, samp_ids, obs_ids, samp_md, obs_md=None)
-        t.add_observation_metadata(obs_md)
+        t.add_metadata(obs_md, axis='observation')
         self.assertEqual(t.observation_metadata[0]['taxonomy'], ['A', 'B'])
         self.assertEqual(t.observation_metadata[1]['taxonomy'], ['B', 'C'])
         self.assertEqual(t.observation_metadata[2]['taxonomy'],
@@ -535,7 +495,13 @@ class TableTests(TestCase):
         self.assertEqual(t.observation_metadata[1]['other'], 'h2')
         self.assertEqual(t.observation_metadata[2]['other'], 'h3')
 
-    def test_add_sample_metadata_one_w_existing_metadata(self):
+        samp_md = {4: {'x': 'y', 'foo': 'bar'}, 5: {'x': 'z'}}
+        t.add_metadata(samp_md, axis='sample')
+        self.assertEqual(t.sample_metadata[0]['x'], 'y')
+        self.assertEqual(t.sample_metadata[0]['foo'], 'bar')
+        self.assertEqual(t.sample_metadata[1]['x'], 'z')
+
+    def test_add_metadata_one_w_existing_metadata(self):
         """ add_sample_metadata functions with existing metadata """
         obs_ids = [1, 2, 3]
         obs_md = [{'a': 0}, {'b': 0}, {'c': 0}]
@@ -556,7 +522,7 @@ class TableTests(TestCase):
                    5: {'barcode': 'GGGG'},
                    7: {'barcode': 'CCCC'},
                    10: {'ignore': 'me'}}
-        t.add_sample_metadata(samp_md)
+        t.add_metadata(samp_md, 'sample')
         self.assertEqual(t.sample_metadata[0]['Treatment'], 'Control')
         self.assertEqual(t.sample_metadata[1]['Treatment'], 'Fasting')
         self.assertEqual(t.sample_metadata[2]['Treatment'], 'Fasting')
@@ -566,7 +532,13 @@ class TableTests(TestCase):
         self.assertEqual(t.sample_metadata[2]['barcode'], 'AAAA')
         self.assertEqual(t.sample_metadata[3]['barcode'], 'CCCC')
 
-    def test_add_sample_metadata_one_entry(self):
+        obs_md = {1: {'foo': 'bar'}}
+        t.add_metadata(obs_md, axis='observation')
+        self.assertEqual(t.observation_metadata[0]['foo'], 'bar')
+        self.assertEqual(t.observation_metadata[1]['foo'], None)
+        self.assertEqual(t.observation_metadata[2]['foo'], None)
+
+    def test_add_metadata_one_entry(self):
         """ add_sample_metadata functions with single md entry """
         obs_ids = [1, 2, 3]
         obs_md = [{'a': 0}, {'b': 0}, {'c': 0}]
@@ -577,7 +549,7 @@ class TableTests(TestCase):
                    7: {'Treatment': 'Control'}}
         d = array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         t = Table(d, samp_ids, obs_ids, samp_md=None, obs_md=obs_md)
-        t.add_sample_metadata(samp_md)
+        t.add_metadata(samp_md, axis='sample')
         self.assertEqual(t.sample_metadata[0]['Treatment'], 'Control')
         self.assertEqual(t.sample_metadata[1]['Treatment'], 'Fasting')
         self.assertEqual(t.sample_metadata[2]['Treatment'], 'Fasting')
@@ -594,7 +566,7 @@ class TableTests(TestCase):
                    7: {'Treatment': 'Control', 'D': ['A', 'D']}}
         d = array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         t = Table(d, samp_ids, obs_ids, samp_md=None, obs_md=obs_md)
-        t.add_sample_metadata(samp_md)
+        t.add_metadata(samp_md, axis='sample')
         self.assertEqual(t.sample_metadata[0]['Treatment'], 'Control')
         self.assertEqual(t.sample_metadata[1]['Treatment'], 'Fasting')
         self.assertEqual(t.sample_metadata[2]['Treatment'], 'Fasting')
@@ -890,47 +862,48 @@ class SparseTableTests(TestCase):
                          self.st_rich.observation_data('2'))
         self.assertEqual(obs.transpose(), self.st_rich)
 
-    def test_sort_observation_order(self):
-        """sort by observations arbitrary order"""
+    def test_sort_order(self):
+        """sorts tables by arbitrary order"""
+        # sort by observations arbitrary order
         vals = {(0, 0): 7, (0, 1): 8, (1, 0): 5, (1, 1): 6}
-        exp = Table(to_sparse(vals),
-                    ['a', 'b'], ['2', '1'])
-        obs = self.st1.sort_observation_order(['2', '1'])
+        exp = Table(to_sparse(vals), ['a', 'b'], ['2', '1'])
+        obs = self.st1.sort_order(['2', '1'], axis='observation')
         self.assertEqual(obs, exp)
-
-    def test_sort_sample_order(self):
-        """sort by observations arbitrary order"""
+        # sort by observations arbitrary order
         vals = {(0, 0): 6, (0, 1): 5,
                 (1, 0): 8, (1, 1): 7}
-        exp = Table(to_sparse(vals),
-                    ['b', 'a'], ['1', '2'])
-
-        obs = self.st1.sort_sample_order(['b', 'a'])
+        exp = Table(to_sparse(vals), ['b', 'a'], ['1', '2'])
+        obs = self.st1.sort_order(['b', 'a'])
         self.assertEqual(obs, exp)
+        # raises an error if a invalid axis is passed
+        with self.assertRaises(UnknownAxisError):
+            self.st1.sort_order(['b', 'a'], axis='foo')
 
-    def test_sort_by_sample_id(self):
-        """sort by samples by a function"""
+    def test_sort(self):
+        """table sorted by a function and provided axis"""
+        # sort by samples by a function
         sort_f = sorted
-        data_in = nparray_to_sparse(
-            array([[1, 2, 3, 8], [4, 5, 6, 9], [7, 8, 9, 11]]))
+        data_in = nparray_to_sparse(array([[1, 2, 3, 8], [4, 5, 6, 9],
+                                           [7, 8, 9, 11]]))
         t = Table(data_in, ['c', 'a', 'b', 'd'], [2, 1, 3])
-        exp_data = nparray_to_sparse(
-            array([[2, 3, 1, 8], [5, 6, 4, 9], [8, 9, 7, 11]]))
+        exp_data = nparray_to_sparse(array([[2, 3, 1, 8], [5, 6, 4, 9],
+                                            [8, 9, 7, 11]]))
         exp = Table(exp_data, ['a', 'b', 'c', 'd'], [2, 1, 3])
-        obs = t.sort_by_sample_id(sort_f=sort_f)
+        obs = t.sort(sort_f=sort_f)
         self.assertEqual(obs, exp)
-
-    def test_sort_by_observation_id(self):
-        """sort by observation ids by a function"""
+        # sort by observation ids by a function
         sort_f = sorted
-        data_in = nparray_to_sparse(
-            array([[1, 2, 3, 8], [4, 5, 6, 9], [7, 8, 9, 11]]), float)
+        data_in = nparray_to_sparse(array([[1, 2, 3, 8], [4, 5, 6, 9],
+                                           [7, 8, 9, 11]]), float)
         t = Table(data_in, ['c', 'a', 'b', 'd'], [2, 1, 3])
-        exp_data = nparray_to_sparse(
-            array([[4, 5, 6, 9], [1, 2, 3, 8], [7, 8, 9, 11]]), float)
+        exp_data = nparray_to_sparse(array([[4, 5, 6, 9], [1, 2, 3, 8],
+                                            [7, 8, 9, 11]]), float)
         exp = Table(exp_data, ['c', 'a', 'b', 'd'], [1, 2, 3])
-        obs = t.sort_by_observation_id(sort_f=sort_f)
+        obs = t.sort(sort_f=sort_f, axis='observation')
         self.assertEqual(obs, exp)
+        # raises an error if a invalid axis is passed
+        with self.assertRaises(UnknownAxisError):
+            t.sort(axis='foo')
 
     def test_eq(self):
         """sparse equality"""

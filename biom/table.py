@@ -32,7 +32,7 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
-               "Joshua Shorenstein"]
+               "Joshua Shorenstein", "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -204,35 +204,37 @@ class Table(object):
     def nnz(self):
         return self._data.nnz
 
-    def add_observation_metadata(self, md):
-        """Take a dict of metadata and add it to an observation.
-
-        ``md`` should be of the form ``{observation_id:{dict_of_metadata}}``
+    def add_metadata(self, md, axis='sample'):
+        """Take a dict of metadata and add it to an axis.
+        Parameters
+        ----------
+        md : dict of dict
+            ``md`` should be of the form ``{id:{dict_of_metadata}}``
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
-        if self.observation_metadata is not None:
-            for id_, md_entry in md.items():
-                if self.exists(id_, axis="observation"):
-                    idx = self.index(id_, 'observation')
-                    self.observation_metadata[idx].update(md_entry)
+        if axis == 'sample':
+            if self.sample_metadata is not None:
+                for id_, md_entry in md.iteritems():
+                    if self.exists(id_):
+                        idx = self.index(id_, axis='sample')
+                        self.sample_metadata[idx].update(md_entry)
+            else:
+                self.sample_metadata = tuple([md[id_] if id_ in md else
+                                              None for id_ in self.sample_ids])
+        elif axis == 'observation':
+            if self.observation_metadata is not None:
+                for id_, md_entry in md.iteritems():
+                    if self.exists(id_, axis="observation"):
+                        idx = self.index(id_, axis='observation')
+                        self.observation_metadata[idx].update(md_entry)
+            else:
+                self.observation_metadata = tuple([md[id_] if id_ in md else
+                                                   None for id_ in
+                                                   self.observation_ids])
         else:
-            self.observation_metadata = tuple([md[id_] if id_ in md else
-                                               None for id_ in
-                                               self.observation_ids])
-        self._cast_metadata()
+            raise UnknownAxisError("Unknown axis: %s" % axis)
 
-    def add_sample_metadata(self, md):
-        """Take a dict of metadata and add it to a sample.
-
-        ``md`` should be of the form ``{sample_id:{dict_of_metadata}}``
-        """
-        if self.sample_metadata is not None:
-            for id_, md_entry in md.items():
-                if self.exists(id_):
-                    idx = self.index(id_, 'sample')
-                    self.sample_metadata[idx].update(md_entry)
-        else:
-            self.sample_metadata = tuple([md[id_] if id_ in md else
-                                          None for id_ in self.sample_ids])
         self._cast_metadata()
 
     def __getitem__(self, args):
@@ -665,60 +667,68 @@ class Table(object):
             else:
                 yield (obs_v, obs_id, obs_md)
 
-    def sort_sample_order(self, sample_order):
-        """Return a new table with samples in ``sample_order``"""
-        samp_md = []
-        vals = []
+    def sort_order(self, order, axis='sample'):
+        """Return a new table with `axis` in `order`
 
-        for id_ in sample_order:
-            cur_idx = self.index(id_, 'sample')
-            vals.append(self._to_dense(self[:, cur_idx]))
-
-            if self.sample_metadata is not None:
-                samp_md.append(self.sample_metadata[cur_idx])
-
-        if not samp_md:
-            samp_md = None
-
-        return self.__class__(self._conv_to_self_type(vals, transpose=True),
-                              sample_order[:], self.observation_ids[:],
-                              samp_md,
-                              self.observation_metadata, self.table_id)
-
-    def sort_observation_order(self, obs_order):
-        """Return a new table with observations in ``observation order``"""
-        obs_md = []
-        vals = []
-
-        for id_ in obs_order:
-            cur_idx = self.index(id_, 'observation')
-            vals.append(self[cur_idx, :])
-
-            if self.observation_metadata is not None:
-                obs_md.append(self.observation_metadata[cur_idx])
-
-        if not obs_md:
-            obs_md = None
-
-        return self.__class__(self._conv_to_self_type(vals),
-                              self.sample_ids[:],
-                              obs_order[:], self.sample_metadata, obs_md,
-                              self.table_id)
-
-    def sort_by_sample_id(self, sort_f=natsort):
-        """Return a table where samples are sorted by ``sort_f``
-
-            ``sort_f`` must take a single parameter: the list of sample ids
+        Parameters
+        ----------
+        order : iterable
+            The desired order for axis
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
-        return self.sort_sample_order(sort_f(self.sample_ids))
+        md = []
+        vals = []
+        if axis == 'sample':
+            for id_ in order:
+                cur_idx = self.index(id_, 'sample')
+                vals.append(self._to_dense(self[:, cur_idx]))
 
-    def sort_by_observation_id(self, sort_f=natsort):
-        """Return a table where observations are sorted by ``sort_f``
+                if self.sample_metadata is not None:
+                    md.append(self.sample_metadata[cur_idx])
 
-            ``sort_f`` must take a single parameter: the list of observation
-            ids
+            if not md:
+                md = None
+
+            return self.__class__(self._conv_to_self_type(vals,
+                                                          transpose=True),
+                                  order[:], self.observation_ids[:], md,
+                                  self.observation_metadata, self.table_id)
+        elif axis == 'observation':
+            for id_ in order:
+                cur_idx = self.index(id_, 'observation')
+                vals.append(self[cur_idx, :])
+
+                if self.observation_metadata is not None:
+                    md.append(self.observation_metadata[cur_idx])
+
+            if not md:
+                md = None
+
+            return self.__class__(self._conv_to_self_type(vals),
+                                  self.sample_ids[:],
+                                  order[:], self.sample_metadata, md,
+                                  self.table_id)
+        else:
+            raise UnknownAxisError(axis)
+
+    def sort(self, sort_f=natsort, axis='sample'):
+        """Return a table sorted along axis
+
+        Parameters
+        ----------
+        sort_f : function
+            A function that takes a list of values and sorts it
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
-        return self.sort_observation_order(sort_f(self.observation_ids))
+        if axis == 'sample':
+            return self.sort_order(sort_f(self.sample_ids))
+        elif axis == 'observation':
+            return self.sort_order(sort_f(self.observation_ids),
+                                   axis='observation')
+        else:
+            raise UnknownAxisError(axis)
 
     # a good refactor in the future is a general filter() method and then
     # specify the axis, like Table.reduce
