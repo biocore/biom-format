@@ -293,10 +293,10 @@ class Table(object):
         # np.apply_along_axis might reduce type conversions here and improve
         # speed. am opting for reduce right now as I think its more readable
         if axis == 'sample':
-            return asarray([reduce(f, v) for v in self.iter_data("sample")])
+            return asarray([reduce(f, v) for v in self.iter_data()])
         elif axis == 'observation':
             return asarray([reduce(f, v) for v in
-                            self.iter_data("observation")])
+                            self.iter_data(axis="observation")])
         else:
             raise TableException("Unknown reduction axis")
 
@@ -1375,7 +1375,7 @@ class Table(object):
         """
         # this is naively implemented. If performance is a concern, private
         # methods can be written to hit against the underlying types directly
-        for o_idx, samp_vals in enumerate(self.iter_data("observation")):
+        for o_idx, samp_vals in enumerate(self.iter_data(axis="observation")):
             for s_idx in samp_vals.nonzero()[0]:
                 yield (self.observation_ids[o_idx], self.sample_ids[s_idx])
 
@@ -1397,16 +1397,16 @@ class Table(object):
         if axis is 'sample':
             # can use np.bincount for CSMat or ScipySparse
             result = zeros(len(self.sample_ids), dtype=dtype)
-            for idx, vals in enumerate(self.iter_data("sample")):
+            for idx, vals in enumerate(self.iter_data()):
                 result[idx] = op(vals)
         elif axis is 'observation':
             # can use np.bincount for CSMat or ScipySparse
             result = zeros(len(self.observation_ids), dtype=dtype)
-            for idx, vals in enumerate(self.iter_data("observation")):
+            for idx, vals in enumerate(self.iter_data(axis="observation")):
                 result[idx] = op(vals)
         else:
             result = zeros(1, dtype=dtype)
-            for vals in self.iter_data("sample"):
+            for vals in self.iter_data():
                 result[0] += op(vals)
 
         return result
