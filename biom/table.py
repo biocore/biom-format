@@ -1305,8 +1305,11 @@ class Table(object):
 
         Parameters
         ----------
-        sort_f : function
-            A function that takes a list of values and sorts it
+        f : function
+            A function that takes three values: an observation/sample value
+            (int or float), an observation/sample id and a observation/sample
+            metadata entry, and return a single value (int or float) that
+            replaces the provided observation/sample value
         axis : 'sample' or 'observation'
             The axis to operate on
         """
@@ -1316,8 +1319,8 @@ class Table(object):
                 new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
             return self.__class__(self._conv_to_self_type(new_m,
                                                           transpose=True),
-                                  self.sample_ids[:], self.observation_ids[
-                                      :], self.sample_metadata,
+                                  self.sample_ids[:], self.observation_ids[:],
+                                  self.sample_metadata,
                                   self.observation_metadata, self.table_id)
         elif axis == 'observation':
             for obs_v, obs_id, obs_md in self.iter_observations():
