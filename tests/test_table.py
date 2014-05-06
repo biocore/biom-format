@@ -1383,7 +1383,7 @@ class SparseTableTests(TestCase):
             {(0, 0): 2., (0, 1): 0.0, (1, 0): 3.0, (1, 1): 0.5})
         st = Table(data, ['1', '2'], ['a', 'b'],
                    [{}, {}], [{'CopyNumber': 3}, {'CopyNumber': 2}])
-        exp = Table(data_exp, ['1', '2'], ['a', 'b']
+        exp = Table(data_exp, ['1', '2'], ['a', 'b'],
                     [{}, {}], [{'CopyNumber': 3}, {'CopyNumber': 2}])
         obs = st.norm_observation_by_metadata('CopyNumber')
         self.assertEqual(obs, exp)
