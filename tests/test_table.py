@@ -885,23 +885,22 @@ class SparseTableTests(TestCase):
                          self.st_rich.observation_data('2'))
         self.assertEqual(obs.transpose(), self.st_rich)
 
-    def test_sort_observation_order(self):
-        """sort by observations arbitrary order"""
+    def test_sort_order(self):
+        """sorts tables by arbitrary order"""
+        # sort by observations arbitrary order
         vals = {(0, 0): 7, (0, 1): 8, (1, 0): 5, (1, 1): 6}
-        exp = Table(to_sparse(vals),
-                    ['a', 'b'], ['2', '1'])
-        obs = self.st1.sort_observation_order(['2', '1'])
+        exp = Table(to_sparse(vals), ['a', 'b'], ['2', '1'])
+        obs = self.st1.sort_order(['2', '1'], axis='observation')
         self.assertEqual(obs, exp)
-
-    def test_sort_sample_order(self):
-        """sort by observations arbitrary order"""
+        # sort by observations arbitrary order
         vals = {(0, 0): 6, (0, 1): 5,
                 (1, 0): 8, (1, 1): 7}
-        exp = Table(to_sparse(vals),
-                    ['b', 'a'], ['1', '2'])
-
-        obs = self.st1.sort_sample_order(['b', 'a'])
+        exp = Table(to_sparse(vals), ['b', 'a'], ['1', '2'])
+        obs = self.st1.sort_order(['b', 'a'])
         self.assertEqual(obs, exp)
+        # raises an error if a invalid axis is passed
+        with self.assertRaises(UnknownAxisError):
+            self.st1.sort_order(['b', 'a'], axis='foo')
 
     def test_sort(self):
         """table sorted by a function and provided axis"""
