@@ -393,7 +393,7 @@ class TableTests(TestCase):
 
     def test_exists_invalid_axis(self):
         """Verify ValueError raised!"""
-        with self.assertRaises(ValueError):
+        with self.assertRaises(UnknownAxisError):
             self.simple_derived.exists(3, "fooz")
 
     def test_union_id_order(self):
