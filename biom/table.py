@@ -211,7 +211,7 @@ class Table(object):
         """
         if self.observation_metadata is not None:
             for id_, md_entry in md.items():
-                if self.observation_exists(id_):
+                if self.exists(id_, "observation"):
                     idx = self.index(id_, 'observation')
                     self.observation_metadata[idx].update(md_entry)
         else:
@@ -227,7 +227,7 @@ class Table(object):
         """
         if self.sample_metadata is not None:
             for id_, md_entry in md.items():
-                if self.sample_exists(id_):
+                if self.exists(id_, "sample"):
                     idx = self.index(id_, 'sample')
                     self.sample_metadata[idx].update(md_entry)
         else:
@@ -1510,13 +1510,14 @@ class Table(object):
             sample_ids.append(id_)
 
             # if we have sample metadata, grab it
-            if self.sample_metadata is None or not self.sample_exists(id_):
+            if self.sample_metadata is None or not self.exists(id_, "sample"):
                 self_md = None
             else:
                 self_md = self.sample_metadata[self_samp_idx[id_]]
 
             # if we have sample metadata, grab it
-            if other.sample_metadata is None or not other.sample_exists(id_):
+            if other.sample_metadata is None or not other.exists(id_,
+                                                                 "sample"):
                 other_md = None
             else:
                 other_md = other.sample_metadata[other_samp_idx[id_]]
@@ -1532,14 +1533,14 @@ class Table(object):
 
             # if we have observation metadata, grab it
             if self.observation_metadata is None or \
-               not self.observation_exists(id_):
+               not self.exists(id_, "observation"):
                 self_md = None
             else:
                 self_md = self.observation_metadata[self_obs_idx[id_]]
 
             # if we have observation metadata, grab it
             if other.observation_metadata is None or \
-                    not other.observation_exists(id_):
+                    not other.exists(id_, "observation"):
                 other_md = None
             else:
                 other_md = other.observation_metadata[other_obs_idx[id_]]
@@ -1560,14 +1561,14 @@ class Table(object):
 
             # see if the observation exists in other, if so, pull it out.
             # if not, set to the placeholder missing
-            if other.observation_exists(obs_id):
+            if other.exists(obs_id, "observation"):
                 other_vec = other.observation_data(obs_id)
             else:
                 other_vec = None
 
             # see if the observation exists in self, if so, pull it out.
             # if not, set to the placeholder missing
-            if self.observation_exists(obs_id):
+            if self.exists(obs_id, "observation"):
                 self_vec = self.observation_data(obs_id)
             else:
                 self_vec = None
