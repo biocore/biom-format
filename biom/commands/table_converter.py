@@ -136,8 +136,8 @@ class TableConverter(Command):
                 raise CommandError(convert_error_msg)
 
             conv_table = table_factory(table._data,
-                                       table.sample_ids,
                                        table.observation_ids,
+                                       table.sample_ids,
                                        table.sample_metadata,
                                        table.observation_metadata,
                                        table.TableId)
@@ -149,8 +149,8 @@ class TableConverter(Command):
                 raise CommandError(convert_error_msg)
 
             conv_table = table_factory(table._data,
-                                       table.sample_ids,
                                        table.observation_ids,
+                                       table.sample_ids,
                                        table.sample_metadata,
                                        table.observation_metadata,
                                        table.table_id)
