@@ -629,6 +629,11 @@ class Table(object):
         axis : str, either 'sample' or 'observation'
             The axis to iterate over
 
+        Returns
+        -------
+        GeneratorType
+            A generator that yields (values, id, metadata)
+
         """
         if axis == 'sample':
             ids = self.sample_ids
