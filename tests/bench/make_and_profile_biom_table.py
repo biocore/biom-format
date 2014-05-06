@@ -29,7 +29,7 @@ def make_table(lowobs, highobs, ostep, lowsamp, highsamp, sstep):
     table_samp = range(lowsamp, highsamp, sstep)
     table_data = Table(len(table_obs), len(table_samp))
     make_sparse_fill(table_obs, table_samp, table_data)
-    return Table(table_data, table_samp, table_obs)
+    return Table(table_data, table_obs, table_samp)
 
 t1 = make_table(t1lo, t1ho, t1so, t1ls, t1hs, t1ss)
 t2 = make_table(t2lo, t2ho, t2so, t2ls, t2hs, t2ss)
