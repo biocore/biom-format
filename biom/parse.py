@@ -272,12 +272,12 @@ def parse_biom_table_json(json_table, data_pump=None, input_is_dense=False):
     dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     if data_pump is None:
-        table_obj = table_factory(json_table['data'], sample_ids, obs_ids,
+        table_obj = table_factory(json_table['data'], obs_ids, sample_ids,
                                   sample_metadata, obs_metadata,
                                   shape=json_table['shape'],
                                   dtype=dtype, input_is_dense=input_is_dense)
     else:
-        table_obj = table_factory(data_pump, sample_ids, obs_ids,
+        table_obj = table_factory(data_pump, obs_ids, sample_ids, 
                                   sample_metadata, obs_metadata,
                                   shape=json_table['shape'],
                                   dtype=dtype, input_is_dense=input_is_dense)
@@ -323,7 +323,7 @@ def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
 
     data = nparray_to_sparse(data)
 
-    return table_factory(data, sample_ids, obs_ids, sample_metadata,
+    return table_factory(data, obs_ids, sample_ids, sample_metadata,
                          obs_metadata)
 
 
