@@ -1310,6 +1310,11 @@ class SparseTableTests(TestCase):
         table.filter(f, 'sample', invert=True)
         self.assertEqual(table, exp_table)
 
+    def test_filter_sample_remove_everything(self):
+        self.assertRaises(TableException,
+                          lambda: self.st_rich.filter(lambda id_, md: False,
+                                                      'sample'))
+
     def test_filter_observations_id(self):
         f = lambda id_, md: id_ == '1'
         values = csr_matrix(np.array([[5., 6.]]))
@@ -1339,6 +1344,11 @@ class SparseTableTests(TestCase):
         table = self.st_rich
         table.filter(f, 'observation', invert=True)
         self.assertEqual(table, exp_table)
+
+    def test_filter_observations_remove_everything(self):
+        self.assertRaises(TableException,
+                          lambda: self.st_rich.filter(lambda id_, md: False,
+                                                      'observation'))
 
     def test_transform_observations(self):
         """Transform observations by arbitrary function"""

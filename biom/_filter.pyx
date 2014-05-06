@@ -15,6 +15,8 @@ from types import FunctionType
 import numpy as np
 cimport numpy as cnp
 
+from biom.exception import TableException
+
 
 cdef _zero_rows_CSR_or_columns_CSC(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans, int axis):
     """Zero out rows or columns for a matrix in CSR or CSC format
@@ -91,6 +93,9 @@ def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert, remove=Tr
         bools = _make_filter_array(ids, metadata, ids_to_keep, invert)
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
+
+    if bools.sum() == 0:
+        raise TableException("All data was filtered out!")
 
     if axis == 0:
         if remove:
