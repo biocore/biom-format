@@ -32,7 +32,8 @@ if HAVE_H5PY:
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
-               "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka"]
+               "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka",
+               "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -901,29 +902,31 @@ class SparseTableTests(TestCase):
         obs = self.st1.sort_sample_order(['b', 'a'])
         self.assertEqual(obs, exp)
 
-    def test_sort_by_sample_id(self):
-        """sort by samples by a function"""
+    def test_sort(self):
+        """table sorted by a function and provided axis"""
+        # sort by samples by a function
         sort_f = sorted
-        data_in = nparray_to_sparse(
+        data_in = nparray_to_sparse(array([[1, 2, 3, 8], [4, 5, 6, 9],
             np.array([[1, 2, 3, 8], [4, 5, 6, 9], [7, 8, 9, 11]]))
         t = Table(data_in, ['c', 'a', 'b', 'd'], [2, 1, 3])
-        exp_data = nparray_to_sparse(
+        exp_data = nparray_to_sparse(array([[2, 3, 1, 8], [5, 6, 4, 9],
             np.array([[2, 3, 1, 8], [5, 6, 4, 9], [8, 9, 7, 11]]))
         exp = Table(exp_data, ['a', 'b', 'c', 'd'], [2, 1, 3])
-        obs = t.sort_by_sample_id(sort_f=sort_f)
+        obs = t.sort(sort_f=sort_f)
         self.assertEqual(obs, exp)
-
-    def test_sort_by_observation_id(self):
-        """sort by observation ids by a function"""
+        # sort by observation ids by a function
         sort_f = sorted
-        data_in = nparray_to_sparse(
+        data_in = nparray_to_sparse(array([[1, 2, 3, 8], [4, 5, 6, 9],
             np.array([[1, 2, 3, 8], [4, 5, 6, 9], [7, 8, 9, 11]]), float)
         t = Table(data_in, ['c', 'a', 'b', 'd'], [2, 1, 3])
-        exp_data = nparray_to_sparse(
+        exp_data = nparray_to_sparse(array([[4, 5, 6, 9], [1, 2, 3, 8],
             np.array([[4, 5, 6, 9], [1, 2, 3, 8], [7, 8, 9, 11]]), float)
         exp = Table(exp_data, ['c', 'a', 'b', 'd'], [1, 2, 3])
-        obs = t.sort_by_observation_id(sort_f=sort_f)
+        obs = t.sort(sort_f=sort_f, axis='observation')
         self.assertEqual(obs, exp)
+        # raises an error if a invalid axis is passed
+        with self.assertRaises(UnknownAxisError):
+            t.sort(axis='foo')
 
     def test_eq(self):
         """sparse equality"""
