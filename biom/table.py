@@ -1559,14 +1559,14 @@ class Table(object):
 
             # see if the observation exists in other, if so, pull it out.
             # if not, set to the placeholder missing
-            if other.exists(obs_id, "observation"):
+            if other.exists(obs_id, axis="observation"):
                 other_vec = other.observation_data(obs_id)
             else:
                 other_vec = None
 
             # see if the observation exists in self, if so, pull it out.
             # if not, set to the placeholder missing
-            if self.exists(obs_id, "observation"):
+            if self.exists(obs_id, axis="observation"):
                 self_vec = self.observation_data(obs_id)
             else:
                 self_vec = None
