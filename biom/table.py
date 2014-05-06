@@ -204,35 +204,39 @@ class Table(object):
     def nnz(self):
         return self._data.nnz
 
-    def add_observation_metadata(self, md):
-        """Take a dict of metadata and add it to an observation.
+    def add_metadata(self, md, axis='sample'):
+        """Take a dict of metadata and add it to an axis.
 
-        ``md`` should be of the form ``{observation_id:{dict_of_metadata}}``
+        Parameters
+        ----------
+        md : dict of dict
+            ``md`` should be of the form ``{id:{dict_of_metadata}}``
+        axis : 'sample' or 'observation'
+            The axis to operate on
+
         """
-        if self.observation_metadata is not None:
-            for id_, md_entry in md.items():
-                if self.observation_exists(id_):
-                    idx = self.index(id_, 'observation')
-                    self.observation_metadata[idx].update(md_entry)
+        if axis == 'sample':
+            if self.sample_metadata is not None:
+                for id_, md_entry in md.iteritems():
+                    if self.sample_exists(id_):
+                        idx = self.index(id_, 'sample')
+                        self.sample_metadata[idx].update(md_entry)
+            else:
+                self.sample_metadata = tuple([md[id_] if id_ in md else
+                                              None for id_ in self.sample_ids])
+        elif axis == 'observation':
+            if self.observation_metadata is not None:
+                for id_, md_entry in md.iteritems():
+                    if self.observation_exists(id_):
+                        idx = self.index(id_, 'observation')
+                        self.observation_metadata[idx].update(md_entry)
+            else:
+                self.observation_metadata = tuple([md[id_] if id_ in md else
+                                                   None for id_ in
+                                                   self.observation_ids])
         else:
-            self.observation_metadata = tuple([md[id_] if id_ in md else
-                                               None for id_ in
-                                               self.observation_ids])
-        self._cast_metadata()
+            raise UnknownAxisError("Unknown axis: %s" % axis)
 
-    def add_sample_metadata(self, md):
-        """Take a dict of metadata and add it to a sample.
-
-        ``md`` should be of the form ``{sample_id:{dict_of_metadata}}``
-        """
-        if self.sample_metadata is not None:
-            for id_, md_entry in md.items():
-                if self.sample_exists(id_):
-                    idx = self.index(id_, 'sample')
-                    self.sample_metadata[idx].update(md_entry)
-        else:
-            self.sample_metadata = tuple([md[id_] if id_ in md else
-                                          None for id_ in self.sample_ids])
         self._cast_metadata()
 
     def __getitem__(self, args):
