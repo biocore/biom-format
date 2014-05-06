@@ -765,7 +765,7 @@ class TableTests(TestCase):
         self.assertTrue(self.mat1 != wrong_data)
         self.assertTrue(wrong_data != self.mat1)
 
-    def test_getitem(self):
+    def test_getitem_2(self):
         """Test getting an element from the matrix."""
         for m in self.nulls:
             with self.assertRaises(IndexError):
