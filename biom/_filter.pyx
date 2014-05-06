@@ -23,7 +23,7 @@ cdef _zero_rows_CSR_or_columns_CSC(arr,
                                    int axis):
     """Zero out rows or columns for a matrix in CSR or CSC format
     respectively."""
-    cdef Py_ssize_t m, n, row_or_col, j
+    cdef Py_ssize_t n, row_or_col
     cdef cnp.int32_t start, end
     cdef cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
     cdef cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
@@ -32,8 +32,7 @@ cdef _zero_rows_CSR_or_columns_CSC(arr,
         if booleans[row_or_col]:
             continue
         start, end = indptr[row_or_col], indptr[row_or_col+1]
-        for j in range(start, end):
-            data[j] = 0
+        data[start:end] = 0
     arr.eliminate_zeros()
 
 cdef _zero_columns_CSR_or_rows_CSC(arr,
