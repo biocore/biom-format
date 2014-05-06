@@ -27,6 +27,8 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
+from ._filter import filter_sparse_array
+
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -719,88 +721,50 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    # a good refactor in the future is a general filter() method and then
-    # specify the axis, like Table.reduce
+    def filter(self, ids_to_keep, axis, invert=False):
+        """Filter in place a table based on a function or iterable.
 
-    # take() is tempting here as well...
-    def filter_samples(self, f, invert=False):
-        """Filter samples from self based on ``f``
-
-        ``f`` must accept three variables, the sample values, sample ID and
-        sample metadata. The function must only return ``True`` or ``False``,
-        where ``True`` indicates that a sample should be retained.
-
-        invert: if ``invert == True``, a return value of ``True`` from ``f``
-        indicates that a sample should be discarded
+        Parameters
+        ----------
+        ids_to_keep : function or iterable
+            If a function, it will be called with the id (a string)
+            and the dictionary of metadata of each sample, and must
+            return a boolean.
+            If it's an iterable, it will be converted to an array of
+            bools.
+        axis : str
+            It controls whether to filter samples or observations. Can
+            be "sample" or "observation".
+        invert : bool
+            If set to True, discard samples or observations where
+            `ids_to_keep` returns True
         """
-        samp_ids = []
-        samp_vals = []
-        samp_metadata = []
+        if axis == 'sample':
+            axis = 1
+            ids = self.sample_ids
+            metadata = self.sample_metadata
+        elif axis == 'observation':
+            axis = 0
+            ids = self.observation_ids
+            metadata = self.observation_metadata
+        else:
+            raise ValueError("Unsupported axis")
 
-        # builtin filter puts all of this into memory and then return to the
-        # for loop. This will impact memory substantially on large sparse
-        # matrices
-        for s_val, s_id, s_md in self.iter_samples():
-            if not xor(f(s_val, s_id, s_md), invert):
-                continue
+        arr = self._data
+        arr, ids, metadata = filter_sparse_array(arr,
+                                                 ids,
+                                                 metadata,
+                                                 ids_to_keep,
+                                                 axis,
+                                                 invert=invert)
 
-            # there is an implicit conversion to numpy types, want to make
-            # sure to convert back to underlying representation.
-            samp_vals.append(self._conv_to_self_type(s_val))
-            samp_metadata.append(s_md)
-            samp_ids.append(s_id)
-
-        # if we don't have any values to keep, throw an exception as we can
-        # create an inconsistancy in which there are observation ids but no
-        # matrix data in the resulting table
-        if not samp_ids:
-            raise TableException("All samples were filtered out!")
-
-        # the additional call to _conv_to_self_type is to convert a list of
-        # vectors to a matrix
-        # transpose is necessary as the underlying storage is sample == col
-        return self.__class__(
-            self._conv_to_self_type(samp_vals, transpose=True),
-            samp_ids[:], self.observation_ids[:], samp_metadata,
-            self.observation_metadata, self.table_id)
-
-    def filter_observations(self, f, invert=False):
-        """Filter observations from self based on ``f``
-
-        ``f`` must accept three variables, the observation values, observation
-        ID and observation metadata. The function must only return ``True`` or
-        ``False``, where ``True`` indicates that an observation should be
-        retained.
-
-        invert: if ``invert == True``, a return value of ``True`` from ``f``
-        indicates that an observation should be discarded
-        """
-        obs_ids = []
-        obs_vals = []
-        obs_metadata = []
-
-        # builtin filter puts all of this into memory and then return to the
-        # for loop. This will impact memory substantially on large sparse
-        # matrices
-        for o_val, o_id, o_md in self.iter_observations():
-            if not xor(f(o_val, o_id, o_md), invert):
-                continue
-
-            # there is an implicit converstion to numpy types, want to make
-            # sure to convert back to underlying representation.
-            obs_vals.append(self._conv_to_self_type(o_val))
-            obs_metadata.append(o_md)
-            obs_ids.append(o_id)
-
-        # if we don't have any values to keep, throw an exception as we can
-        # create an inconsistancy in which there are sample ids but no
-        # matrix data in the resulting table
-        if not obs_vals:
-            raise TableException("All observations were filtered out!")
-
-        return self.__class__(
-            self._conv_to_self_type(obs_vals), self.sample_ids[:],
-            obs_ids[:], self.sample_metadata, obs_metadata, self.table_id)
+        self._data = arr
+        if axis == 1:
+            self.sample_ids = ids
+            self.sample_metadata = metadata
+        elif axis == 0:
+            self.observation_ids = ids
+            self.observation_metadata = metadata
 
     def bin_samples_by_metadata(self, f, constructor=None):
         """Yields tables by metadata

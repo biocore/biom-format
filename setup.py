@@ -8,8 +8,12 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import os
 from setuptools import setup
+from setuptools.extension import Extension
 from glob import glob
+
+import numpy as np
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -46,6 +50,16 @@ classes = """
 """
 classifiers = [s.strip() for s in classes.split('\n') if s]
 
+# Dealing with Cython
+USE_CYTHON = os.environ.get('USE_CYTHON', False)
+ext = '.pyx' if USE_CYTHON else '.c'
+extensions = [Extension("biom._filter",
+                        ["biom/_filter" + ext])]
+
+if USE_CYTHON:
+    from Cython.Build import cythonize
+    extensions = cythonize(extensions)
+
 setup(name='biom-format',
       version=__version__,
       description='Biological Observation Matrix (BIOM) format',
@@ -64,6 +78,8 @@ setup(name='biom-format',
                 'biom/interfaces/html',
                 'biom/interfaces/html/config'
                 ],
+      ext_modules=extensions,
+      include_dirs=[np.get_include()],
       scripts=glob('scripts/*'),
       install_requires=["numpy >= 1.3.0",
                         "pyqi == 0.3.1",
