@@ -217,7 +217,7 @@ class Table(object):
             if self.sample_metadata is not None:
                 for id_, md_entry in md.iteritems():
                     if self.exists(id_):
-                        idx = self.index(id_, axis='sample')
+                        idx = self.index(id_, 'sample')
                         self.sample_metadata[idx].update(md_entry)
             else:
                 self.sample_metadata = tuple([md[id_] if id_ in md else
@@ -226,7 +226,7 @@ class Table(object):
             if self.observation_metadata is not None:
                 for id_, md_entry in md.iteritems():
                     if self.exists(id_, axis="observation"):
-                        idx = self.index(id_, axis='observation')
+                        idx = self.index(id_, 'observation')
                         self.observation_metadata[idx].update(md_entry)
             else:
                 self.observation_metadata = tuple([md[id_] if id_ in md else
