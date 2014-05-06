@@ -461,7 +461,6 @@ class Table(object):
             #OTU ID\tSample1\tSample2
             OTU1\t10\t2
             OTU2\t4\t8
-
         """
         if self.is_empty():
             raise TableException("Cannot delimit self if I don't have data...")
