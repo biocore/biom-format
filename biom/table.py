@@ -217,7 +217,7 @@ class Table(object):
         """
         if axis == 'sample':
             if self.sample_metadata is not None:
-                for id_, md_entry in md.items():
+                for id_, md_entry in md.iteritems():
                     if self.sample_exists(id_):
                         idx = self.index(id_, 'sample')
                         self.sample_metadata[idx].update(md_entry)
@@ -226,7 +226,7 @@ class Table(object):
                                               None for id_ in self.sample_ids])
         elif axis == 'observation':
             if self.observation_metadata is not None:
-                for id_, md_entry in md.items():
+                for id_, md_entry in md.iteritems():
                     if self.observation_exists(id_):
                         idx = self.index(id_, 'observation')
                         self.observation_metadata[idx].update(md_entry)
@@ -235,7 +235,7 @@ class Table(object):
                                                    None for id_ in
                                                    self.observation_ids])
         else:
-            raise ValueError("Unknown axis: %s" % axis)
+            raise UnknownAxisError("Unknown axis: %s" % axis)
 
         self._cast_metadata()
 
