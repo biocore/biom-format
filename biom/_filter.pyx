@@ -82,8 +82,9 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     
 def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert, remove=True):
     fmt = arr.getformat()
-    if fmt not in {'csc', 'csr'}:
-        raise TypeError("Format not supported (use CSC/CSR)")
+    if fmt not in ('csc', 'csr'):
+        arr = arr.tocsr()
+        fmt = 'csr'
 
     cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools
 
