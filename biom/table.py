@@ -821,9 +821,9 @@ class Table(object):
 
         for bin, (samp_ids, samp_values, samp_md) in bins.iteritems():
             data = self._conv_to_self_type(samp_values, transpose=True)
-            yield bin, table_factory(data, samp_ids[:],
-                                     self.observation_ids[:],
-                                     samp_md, self.observation_metadata,
+            yield bin, table_factory(data, self.observation_ids[:],
+                                     samp_ids[:], samp_md,
+                                     self.observation_metadata,
                                      self.table_id,
                                      constructor=constructor)
 
@@ -859,10 +859,9 @@ class Table(object):
 
         for bin, (obs_ids, obs_values, obs_md) in bins.iteritems():
             yield bin, table_factory(self._conv_to_self_type(obs_values),
-                                     self.sample_ids[:], obs_ids[
-                                         :], self.sample_metadata,
-                                     obs_md, self.table_id,
-                                     constructor=constructor)
+                                     obs_ids[:], self.sample_ids[:],
+                                     self.sample_metadata, obs_md,
+                                     self.table_id, constructor=constructor)
 
     def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
                                      min_group_size=2,
@@ -1070,10 +1069,10 @@ class Table(object):
         if 0 in data.shape:
             raise TableException("Collapsed table is empty!")
 
-        return table_factory(data, collapsed_sample_ids,
-                             self.observation_ids[:], collapsed_sample_md,
-                             self.observation_metadata, self.table_id,
-                             constructor=constructor)
+        return table_factory(data, self.observation_id[:],
+                             collapsed_sample_ids, self.observation_ids[:],
+                             collapsed_sample_md, self.observation_metadata,
+                             self.table_id, constructor=constructor)
 
     def collapse_observations_by_metadata(self, metadata_f, reduce_f=add,
                                           norm=True, min_group_size=2,
@@ -1286,7 +1285,7 @@ class Table(object):
         if 0 in data.shape:
             raise TableException("Collapsed table is empty!")
 
-        return table_factory(data, self.sample_ids[:], collapsed_obs_ids,
+        return table_factory(data, collapsed_obs_ids, self.sample_ids[:],
                              self.sample_metadata, collapsed_obs_md,
                              self.table_id,
                              constructor=constructor)
@@ -1688,7 +1687,7 @@ class Table(object):
         else:
             matrix = csr_matrix(cs, shape=shape)
 
-        return table_factory(matrix, samp_ids, obs_ids, samp_md or None,
+        return table_factory(matrix, obs_ids, samp_ids,  samp_md or None,
                              obs_md or None, type=type)
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
@@ -2107,8 +2106,8 @@ def table_factory(data, observation_ids, sample_ids, sample_metadata=None,
                       [9,10,11,12]])
 
         t = table_factory(data,
-                          sample_ids,
                           observation_ids,
+                          sample_ids,
                           sample_md,
                           observation_md)
     """
