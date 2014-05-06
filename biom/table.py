@@ -659,8 +659,43 @@ class Table(object):
         ----------
         order : iterable
             The desired order for axis
-        axis : 
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
+        md = []
+        vals = []
+        if axis == 'sample':
+            for id_ in order:
+                cur_idx = self.index(id_, 'sample')
+                vals.append(self._to_dense(self[:, cur_idx]))
+
+                if self.sample_metadata is not None:
+                    md.append(self.sample_metadata[cur_idx])
+
+            if not md:
+                md = None
+
+            return self.__class__(self._conv_to_self_type(vals,
+                                                          transpose=True),
+                                  order[:], self.observation_ids[:], md,
+                                  self.observation_metadata, self.table_id)
+        elif axis == 'observation':
+            for id_ in order:
+                cur_idx = self.index(id_, 'observation')
+                vals.append(self[cur_idx, :])
+
+                if self.observation_metadata is not None:
+                    md.append(self.observation_metadata[cur_idx])
+
+            if not md:
+                md = None
+
+            return self.__class__(self._conv_to_self_type(vals),
+                                  self.sample_ids[:],
+                                  order[:], self.sample_metadata, md,
+                                  self.table_id)
+        else:
+            raise UnknownAxisError(axis)
 
     def sort_sample_order(self, sample_order):
         """Return a new table with samples in ``sample_order``"""
