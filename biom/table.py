@@ -617,7 +617,7 @@ class Table(object):
         Returns
         -------
         generator
-            yields of values for each value in 'axis'
+            yields list of values for each value in 'axis'
 
         Raises
         ------
