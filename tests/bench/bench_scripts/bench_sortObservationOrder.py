@@ -9,4 +9,4 @@ if __name__ == '__main__':
     table = parse_biom_table(gzip_open(argv[1]))
     ids = table.observation_ids[:]
     shuffle(ids)
-    foo = table.sortObservationOrder(ids)
+    table.sortObservationOrder(ids)

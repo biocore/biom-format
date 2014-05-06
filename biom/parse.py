@@ -14,12 +14,11 @@ from string import maketrans
 import numpy as np
 from biom import __version__
 from biom.exception import BiomParseException
-from biom.table import table_factory, nparray_to_sparseobj, Table
+from biom.table import table_factory, nparray_to_sparse, Table
 from functools import partial
 import json
 from numpy import asarray
 from scipy.sparse import csr_matrix, csc_matrix
-from biom.backends.scipysparse import ScipySparseMat
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -247,21 +246,24 @@ def get_axis_indices(biom_str, to_keep, axis):
     return idxs, json.dumps(subset)[1:-1]  # trim off { and }
 
 
-def parse_biom_table(fp):
+def parse_biom_table(fp, input_is_dense=False):
     try:
         return Table.from_hdf5(fp)
     except:
         pass
 
     if hasattr(fp, 'read'):
-        return parse_biom_table_json(json.load(fp))
+        return parse_biom_table_json(json.load(fp),
+                                     input_is_dense=input_is_dense)
     elif isinstance(fp, list):
-        return parse_biom_table_json(json.loads(''.join(fp)))
+        return parse_biom_table_json(json.loads(''.join(fp)),
+                                     input_is_dense=input_is_dense)
     else:
-        return parse_biom_table_json(json.loads(fp))
+        return parse_biom_table_json(json.loads(fp),
+                                     input_is_dense=input_is_dense)
 
 
-def parse_biom_table_json(json_table, data_pump=None):
+def parse_biom_table_json(json_table, data_pump=None, input_is_dense=False):
     """Parse a biom otu table type"""
     sample_ids = [col['id'] for col in json_table['columns']]
     sample_metadata = [col['metadata'] for col in json_table['columns']]
@@ -273,12 +275,12 @@ def parse_biom_table_json(json_table, data_pump=None):
         table_obj = table_factory(json_table['data'], sample_ids, obs_ids,
                                   sample_metadata, obs_metadata,
                                   shape=json_table['shape'],
-                                  dtype=dtype)
+                                  dtype=dtype, input_is_dense=input_is_dense)
     else:
         table_obj = table_factory(data_pump, sample_ids, obs_ids,
                                   sample_metadata, obs_metadata,
                                   shape=json_table['shape'],
-                                  dtype=dtype)
+                                  dtype=dtype, input_is_dense=input_is_dense)
 
     return table_obj
 
@@ -319,7 +321,7 @@ def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
     if obs_mapping is not None:
         obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
 
-    data = nparray_to_sparseobj(data)
+    data = nparray_to_sparse(data)
 
     return table_factory(data, sample_ids, obs_ids, sample_metadata,
                          obs_metadata)

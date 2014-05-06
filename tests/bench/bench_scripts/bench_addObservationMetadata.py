@@ -7,4 +7,4 @@ from biom.parse import parse_biom_table
 if __name__ == '__main__':
     table = parse_biom_table(gzip_open(argv[1]))
     md = dict([(i, {'foo': 10}) for i in table.observation_ids])
-    foo = table.addObservationMetadata(md)
+    table.addObservationMetadata(md)

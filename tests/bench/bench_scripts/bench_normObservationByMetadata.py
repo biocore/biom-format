@@ -10,4 +10,4 @@ if __name__ == '__main__':
     md = [{'FOO': 10} for i in range(len(table.observation_ids))]
     table.observation_metadata = md
 
-    foo = table.normObservationByMetadata('FOO')
+    table.normObservationByMetadata('FOO')

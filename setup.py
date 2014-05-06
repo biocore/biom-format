@@ -57,7 +57,6 @@ setup(name='biom-format',
       maintainer_email=__email__,
       url='http://www.biom-format.org',
       packages=['biom',
-                'biom/backends',
                 'biom/commands',
                 'biom/interfaces',
                 'biom/interfaces/optparse',
@@ -69,9 +68,9 @@ setup(name='biom-format',
       install_requires=["numpy >= 1.3.0",
                         "pyqi == 0.3.1",
                         "scipy >= 0.13.0"],
-      extras_require={'scipy_sparse': ["scipy >= 0.9.0"],
-                      'test': ["nose >= 0.10.1",
-                               "tox >= 1.6.1"]
+      extras_require={'test': ["nose >= 0.10.1",
+                               "tox >= 1.6.1"],
+                      'hdf5': ["h5py >= 2.2.0"]
                       },
       dependency_links=[
           'https://github.com/bipy/pyqi/archive/master.zip#egg=pyqi-0.3.1-dev'

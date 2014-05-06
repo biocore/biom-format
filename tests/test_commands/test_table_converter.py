@@ -62,12 +62,12 @@ class TableConverterTests(TestCase):
         self.assertEqual(len(obs.observation_ids), 14)
         self.assertNotEqual(obs.sample_metadata, None)
         self.assertNotEqual(obs.observation_metadata, None)
-        self.assertEqual(obs.sample_metadata[obs.get_sample_index('p2')],
+        self.assertEqual(obs.sample_metadata[obs.index('p2', 'sample')],
                          {'foo': 'c;b;a'})
-        self.assertEqual(obs.sample_metadata[obs.get_sample_index('not16S.1')],
+        self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
                          {'foo': 'b;c;d'})
         self.assertEqual(obs.observation_metadata[
-            obs.get_observation_index('None11')],
+            obs.index('None11', 'observation')],
             {'taxonomy': 'Unclassified'})
 
         # With processing of metadata (currently only supports observation md).
@@ -82,12 +82,12 @@ class TableConverterTests(TestCase):
         self.assertEqual(len(obs.observation_ids), 14)
         self.assertNotEqual(obs.sample_metadata, None)
         self.assertNotEqual(obs.observation_metadata, None)
-        self.assertEqual(obs.sample_metadata[obs.get_sample_index('p2')],
+        self.assertEqual(obs.sample_metadata[obs.index('p2', 'sample')],
                          {'foo': 'c;b;a'})
-        self.assertEqual(obs.sample_metadata[obs.get_sample_index('not16S.1')],
+        self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
                          {'foo': 'b;c;d'})
         self.assertEqual(obs.observation_metadata[
-            obs.get_observation_index('None11')],
+            obs.index('None11', 'observation')],
             {'taxonomy': ['Unclassified']})
 
     def test_biom_to_classic(self):
@@ -145,7 +145,7 @@ biom1 = """
  "generated_by": "QIIME 1.6.0-dev",
  "date": "2013-02-09T09:30:11.550590",
  "matrix_type": "sparse",
- "matrix_element_type": "int",
+ "matrix_element_type": "float",
  "shape": [14, 9],
  "data": [[0,0,20],[0,1,18],[0,2,18],[0,3,22],[0,4,4],[1,4,1],[2,0,1],
          [2,4,1],[2,5,1],[3,6,1],[4,4,1],[5,7,20],[6,4,1],[7,4,1],[7,5,1],

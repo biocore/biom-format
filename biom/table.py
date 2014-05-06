@@ -19,32 +19,20 @@ from functools import reduce, partial
 from operator import itemgetter, xor, add
 from itertools import izip
 from collections import defaultdict, Hashable
-from numpy import ndarray, asarray, zeros, empty
+from numpy import ndarray, asarray, zeros, empty, newaxis
+from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
-from biom.exception import TableException, UnknownID
+from biom.exception import TableException, UnknownAxisError, UnknownIDError
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
-
-from scipy.sparse import csc_matrix, csr_matrix
-from biom.backends.scipysparse import (ScipySparseMat, to_scipy, dict_to_scipy,
-                                       list_dict_to_scipy,
-                                       list_nparray_to_scipy, nparray_to_scipy,
-                                       list_list_to_scipy)
-
-SparseObj = ScipySparseMat
-to_sparse = to_scipy
-dict_to_sparseobj = dict_to_scipy
-list_dict_to_sparseobj = list_dict_to_scipy
-list_nparray_to_sparseobj = list_nparray_to_scipy
-nparray_to_sparseobj = nparray_to_scipy
-list_list_to_sparseobj = list_list_to_scipy
 
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
-               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka"]
+               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
+               "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -53,51 +41,37 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 class Table(object):
 
-    """Abstract base class representing a Table.
+    """The (canonically pronounced 'teh') Table.
 
-    Once created, a Table object is immutable except for its sample/observation
-    metadata, which can be modified in place via add_sample_metadata and
-    add_observation_metadata.
+    Give in to the power of the Table!
 
-    Code to simulate immutability taken from here:
-        http://en.wikipedia.org/wiki/Immutable_object
     """
-
-    def __setattr__(self, *args):
-        raise TypeError("A Table object cannot be modified once created.")
-    __delattr__ = __setattr__
 
     def __init__(self, data, sample_ids, observation_ids, sample_metadata=None,
                  observation_metadata=None, table_id=None,
                  type=None, **kwargs):
-        if type is None:
-            type = 'Unspecified'
 
-        super(Table, self).__setattr__('type', type)
-        super(Table, self).__setattr__('table_id', table_id)
-        super(Table, self).__setattr__('_data', data)
-        super(Table, self).__setattr__('_dtype', data.dtype)
+        self.type = type
+        self.table_id = table_id
+        self._data = data
 
-        # Cast to tuple for immutability.
-        super(Table, self).__setattr__('sample_ids', tuple(sample_ids))
-        super(Table, self).__setattr__('observation_ids',
-                                       tuple(observation_ids))
+        # using object to allow for variable length strings
+        self.sample_ids = np.asarray(sample_ids, dtype=object)
+        self.observation_ids = np.asarray(observation_ids, dtype=object)
 
         if sample_metadata is not None:
-            super(Table, self).__setattr__('sample_metadata',
-                                           tuple(sample_metadata))
+            self.sample_metadata = tuple(sample_metadata)
         else:
-            super(Table, self).__setattr__('sample_metadata', None)
+            self.sample_metadata = None
 
         if observation_metadata is not None:
-            super(Table, self).__setattr__('observation_metadata',
-                                           tuple(observation_metadata))
+            self.observation_metadata = tuple(observation_metadata)
         else:
-            super(Table, self).__setattr__('observation_metadata', None)
+            self.observation_metadata = None
 
         # These will be set by _index_ids()
-        super(Table, self).__setattr__('_sample_index', None)
-        super(Table, self).__setattr__('_obs_index', None)
+        self._sample_index = None
+        self._obs_index = None
 
         self._verify_metadata()
         self._cast_metadata()
@@ -108,20 +82,34 @@ class Table(object):
 
         Should only be called in constructor as this modifies state.
         """
-        super(Table, self).__setattr__('_sample_index',
-                                       index_list(self.sample_ids))
-        super(Table, self).__setattr__('_obs_index',
-                                       index_list(self.observation_ids))
+        self._sample_index = index_list(self.sample_ids)
+        self._obs_index = index_list(self.observation_ids)
 
     def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
         if dtype is None:
-            dtype = self._dtype
+            dtype = self.dtype
 
-        if isinstance(vals, self._data.__class__):
+        if isspmatrix(vals):
             return vals
         else:
             return to_sparse(vals, transpose, dtype)
+
+    def _to_dense(self, vec):
+        """Converts a row/col vector to a dense numpy array.
+
+        Always returns a 1-D row vector for consistency with numpy iteration
+        over arrays.
+        """
+        dense_vec = np.asarray(vec.todense())
+
+        if vec.shape == (1, 1):
+            # Handle the special case where we only have a single element, but
+            # we don't want to return a numpy scalar / 0-d array. We still want
+            # to return a vector of length 1.
+            return dense_vec.reshape(1)
+        else:
+            return np.squeeze(dense_vec)
 
     def _verify_metadata(self):
         """Obtain some notion of sanity on object construction with inputs"""
@@ -166,7 +154,7 @@ class Table(object):
         # if we have a list of [None], set to None
         if self.sample_metadata is not None:
             if self.sample_metadata.count(None) == len(self.sample_metadata):
-                super(Table, self).__setattr__('sample_metadata', None)
+                self.sample_metadata = None
 
         if self.sample_metadata is not None:
             for samp_md in self.sample_metadata:
@@ -181,14 +169,13 @@ class Table(object):
                                          repr(samp_md))
 
                 default_samp_md.append(d)
-            super(Table, self).__setattr__('sample_metadata',
-                                           tuple(default_samp_md))
+            self.sample_metadata = tuple(default_samp_md)
 
         # if we have a list of [None], set to None
         if self.observation_metadata is not None:
             none_count = self.observation_metadata.count(None)
             if none_count == len(self.observation_metadata):
-                super(Table, self).__setattr__('observation_metadata', None)
+                self.observation_metadata = None
 
         if self.observation_metadata is not None:
             for obs_md in self.observation_metadata:
@@ -203,46 +190,101 @@ class Table(object):
                                          repr(obs_md))
 
                 default_obs_md.append(d)
-            super(Table, self).__setattr__('observation_metadata',
-                                           tuple(default_obs_md))
+            self.observation_metadata = tuple(default_obs_md)
 
-    def add_observation_metadata(self, md):
-        """Take a dict of metadata and add it to an observation.
+    @property
+    def shape(self):
+        return self._data.shape
 
-        ``md`` should be of the form ``{observation_id:{dict_of_metadata}}``
+    @property
+    def dtype(self):
+        return self._data.dtype
+
+    @property
+    def nnz(self):
+        return self._data.nnz
+
+    def add_metadata(self, md, axis='sample'):
+        """Take a dict of metadata and add it to an axis.
+
+        Parameters
+        ----------
+        md : dict of dict
+            ``md`` should be of the form ``{id:{dict_of_metadata}}``
+        axis : 'sample' or 'observation'
+            The axis to operate on
+
         """
-        if self.observation_metadata is not None:
-            for id_, md_entry in md.items():
-                if self.observation_exists(id_):
-                    self.observation_metadata[
-                        self.get_observation_index(id_)].update(md_entry)
+        if axis == 'sample':
+            if self.sample_metadata is not None:
+                for id_, md_entry in md.iteritems():
+                    if self.sample_exists(id_):
+                        idx = self.index(id_, 'sample')
+                        self.sample_metadata[idx].update(md_entry)
+            else:
+                self.sample_metadata = tuple([md[id_] if id_ in md else
+                                              None for id_ in self.sample_ids])
+        elif axis == 'observation':
+            if self.observation_metadata is not None:
+                for id_, md_entry in md.iteritems():
+                    if self.observation_exists(id_):
+                        idx = self.index(id_, 'observation')
+                        self.observation_metadata[idx].update(md_entry)
+            else:
+                self.observation_metadata = tuple([md[id_] if id_ in md else
+                                                   None for id_ in
+                                                   self.observation_ids])
         else:
-            super(Table, self).__setattr__('observation_metadata',
-                                           tuple([md[id_] if id_ in md else
-                                                  None for id_ in
-                                                  self.observation_ids]))
-        self._cast_metadata()
+            raise UnknownAxisError("Unknown axis: %s" % axis)
 
-    def add_sample_metadata(self, md):
-        """Take a dict of metadata and add it to a sample.
-
-        ``md`` should be of the form ``{sample_id:{dict_of_metadata}}``
-        """
-        if self.sample_metadata is not None:
-            for id_, md_entry in md.items():
-                if self.sample_exists(id_):
-                    self.sample_metadata[
-                        self.get_sample_index(id_)].update(md_entry)
-        else:
-            super(Table, self).__setattr__('sample_metadata',
-                                           tuple([md[id_] if id_ in md else
-                                                  None
-                                                  for id_ in self.sample_ids]))
         self._cast_metadata()
 
     def __getitem__(self, args):
-        """Passes through to internal matrix"""
-        return self._data[args]
+        """Handles row or column slices."""
+        if self.is_empty():
+            raise IndexError("Cannot retrieve an element from an empty/null "
+                             "table.")
+
+        try:
+            row, col = args
+        except:
+            raise IndexError("Must specify (row, col).")
+
+        if isinstance(row, slice) and isinstance(col, slice):
+            raise IndexError("Can only slice a single axis.")
+
+        if isinstance(row, slice):
+            if row.start is None and row.stop is None:
+                return self._get_col(col)
+            else:
+                raise IndexError("Can only handle full : slices per axis.")
+        elif isinstance(col, slice):
+            if col.start is None and col.stop is None:
+                return self._get_row(row)
+            else:
+                raise IndexError("Can only handle full : slices per axis.")
+        else:
+            if self._data.getformat() == 'coo':
+                self._data = self._data.tocsr()
+
+            return self._data[row, col]
+
+    def _get_row(self, row_idx):
+        """Return the row at ``row_idx``.
+
+        A row vector will be returned as a scipy.sparse matrix in csr format.
+        """
+        self._data = self._data.tocsr()
+        return self._data.getrow(row_idx)
+
+    def _get_col(self, col_idx):
+        """Return the column at ``col_idx``.
+
+        A column vector will be returned as a scipy.sparse matrix in csc
+        format.
+        """
+        self._data = self._data.tocsc()
+        return self._data.getcol(col_idx)
 
     def reduce(self, f, axis):
         """Reduce over axis with f
@@ -274,13 +316,21 @@ class Table(object):
         ``observation`` : return a vector with a sum for each observation
         """
         if axis == 'whole':
-            return self._data.sum()
+            axis = None
         elif axis == 'sample':
-            return self._data.sum(axis=0)
+            axis = 0
         elif axis == 'observation':
-            return self._data.sum(axis=1)
+            axis = 1
         else:
             raise TableException("Unknown axis '%s'" % axis)
+
+        matrix_sum = np.squeeze(np.asarray(self._data.sum(axis=axis)))
+
+        # We only want to return a scalar if the whole matrix was summed.
+        if axis is not None and matrix_sum.shape == ():
+            matrix_sum = matrix_sum.reshape(1)
+
+        return matrix_sum
 
     def transpose(self):
         """Return a new table that is the transpose of this table.
@@ -291,31 +341,75 @@ class Table(object):
         sample_md_copy = deepcopy(self.sample_metadata)
         obs_md_copy = deepcopy(self.observation_metadata)
 
-        return self.__class__(self._data.T, self.observation_ids[:],
-                              self.sample_ids[:], obs_md_copy, sample_md_copy,
-                              self.table_id)
+        if self._data.getformat() == 'lil':
+            # lil's transpose method doesn't have the copy kwarg, but all of
+            # the others do.
+            self._data = self._data.tocsr()
 
-    def get_sample_index(self, samp_id):
-        """Returns the sample index for sample ``samp_id``"""
-        if samp_id not in self._sample_index:
-            raise UnknownID("SampleId %s not found!" % samp_id)
-        return self._sample_index[samp_id]
+        return self.__class__(self._data.transpose(copy=True),
+                              self.observation_ids[:], self.sample_ids[:],
+                              obs_md_copy, sample_md_copy, self.table_id)
 
-    def get_observation_index(self, obs_id):
-        """Returns the observation index for observation ``obs_id``"""
-        if obs_id not in self._obs_index:
-            raise UnknownID("ObservationId %s not found!" % obs_id)
-        return self._obs_index[obs_id]
+    def index(self, id_, axis):
+        """Return the index of the identified sample/observation.
+
+        Parameters
+        ----------
+        id_ : str
+            ID of the sample or observation whose index will be returned.
+        axis : {'sample', 'observation'}
+            Axis to search for `id_`.
+
+        Returns
+        -------
+        int
+            Index of the sample/observation identified by `id_`.
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+        UnknownIDError
+            If provided an unrecognized sample/observation ID.
+
+        Examples
+        --------
+
+        >>> import numpy as np
+        >>> from biom.table import table_factory
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = table_factory(data, ['S1', 'S2', 'S3'], ['O1', 'O2'])
+
+        Get the index of the observation with ID "O2":
+
+        >>> table.index('O2', 'observation')
+        1
+
+        Get the index of the sample with ID "S1":
+
+        >>> table.index('S1', 'sample')
+        0
+
+        """
+        if axis == 'sample':
+            idx_lookup = self._sample_index
+        elif axis == 'observation':
+            idx_lookup = self._obs_index
+        else:
+            raise UnknownAxisError(axis)
+
+        if id_ not in idx_lookup:
+            raise UnknownIDError(id_, axis)
+
+        return idx_lookup[id_]
 
     def get_value_by_ids(self, obs_id, samp_id):
-        """Return value in the matrix corresponding to ``(obs_id, samp_id)``
-        """
-        if obs_id not in self._obs_index:
-            raise UnknownID("ObservationId %s not found!" % obs_id)
-        if samp_id not in self._sample_index:
-            raise UnknownID("SampleId %s not found!" % samp_id)
-
-        return self._data[self._obs_index[obs_id], self._sample_index[samp_id]]
+        """Return value in the matrix corresponding to ``(obs_id, samp_id)``"""
+        return self[self.index(obs_id, 'observation'),
+                    self.index(samp_id, 'sample')]
 
     def __str__(self):
         """Stringify self
@@ -384,7 +478,7 @@ class Table(object):
                       '%s%s%s' % (observation_column_name, delim, samp_ids)]
 
         for obs_id, obs_values in zip(self.observation_ids, self._iter_obs()):
-            str_obs_vals = delim.join(map(str, self._conv_to_np(obs_values)))
+            str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
 
             if header_key and self.observation_metadata is not None:
                 md = self.observation_metadata[self._obs_index[obs_id]]
@@ -399,7 +493,7 @@ class Table(object):
 
     def is_empty(self):
         """Returns ``True`` if the table is empty"""
-        if not self.sample_ids or not self.observation_ids:
+        if not self.sample_ids.size or not self.observation_ids.size:
             return True
         else:
             return False
@@ -410,25 +504,24 @@ class Table(object):
 
     def _iter_samp(self):
         """Return sample vectors of data matrix vectors"""
-        rows, cols = self._data.shape
-        for c in range(cols):
+        for c in range(self.shape[1]):
             # this pulls out col vectors but need to convert to the expected
             # row vector
-            colvec = self._data.get_col(c)
-            yield colvec.T
+            colvec = self._get_col(c)
+            yield colvec.transpose(copy=True)
 
     def _iter_obs(self):
         """Return observation vectors of data matrix"""
-        for r in range(self._data.shape[0]):
-            yield self._data.get_row(r)
+        for r in range(self.shape[0]):
+            yield self._get_row(r)
 
     def get_table_density(self):
         """Returns the fraction of nonzero elements in the table."""
         density = 0.0
 
         if not self.is_empty():
-            density = (self._data.size / (len(self.sample_ids) *
-                                          len(self.observation_ids)))
+            density = (self.nnz /
+                       (len(self.sample_ids) * len(self.observation_ids)))
 
         return density
 
@@ -442,60 +535,73 @@ class Table(object):
             return "Observation metadata are not the same"
         if self.sample_metadata != other.sample_metadata:
             return "Sample metadata are not the same"
-        if not self._data_equality(other):
+        if not self._data_equality(other._data):
             return "Data elements are not the same"
 
         return "Tables appear equal"
 
     def __eq__(self, other):
         """Equality is determined by the data matrix, metadata, and IDs"""
-        if self.observation_ids != other.observation_ids:
+        if isinstance(other, self.__class__) is False:
             return False
-        if self.sample_ids != other.sample_ids:
+        if np.any(self.observation_ids != other.observation_ids):
+            return False
+        if np.any(self.sample_ids != other.sample_ids):
             return False
         if self.observation_metadata != other.observation_metadata:
             return False
         if self.sample_metadata != other.sample_metadata:
             return False
-        if not self._data_equality(other):
+        if self.type != other.type:
+            return False
+        if not self._data_equality(other._data):
             return False
 
         return True
 
     def _data_equality(self, other):
-        """Two SparseObj matrices are equal if the items are equal"""
-        if isinstance(self, other.__class__):
-            return sorted(self._data.items()) == sorted(other._data.items())
+        """Return ``True`` if both matrices are equal.
 
-        for s_v, o_v in izip(self.iter_sample_data(),
-                             other.iter_sample_data()):
-            if not (s_v == o_v).all():
-                return False
+        Matrices are equal iff the following items are equal:
+        - shape
+        - dtype
+        - size (nnz)
+        - matrix data (more expensive, so checked last)
+
+        The sparse format does not need to be the same between the two
+        matrices. ``self`` and ``other`` will be converted to csr format if
+        necessary before performing the final comparison.
+
+        """
+        if self._data.shape != other.shape:
+            return False
+
+        if self._data.dtype != other.dtype:
+            return False
+
+        if self._data.nnz != other.nnz:
+            return False
+
+        self._data = self._data.tocsr()
+        other = other.tocsr()
+
+        # From:
+        # http://mail.scipy.org/pipermail/scipy-user/2008-April/016276.html
+        if abs(self._data - other).nnz > 0:
+            return False
 
         return True
 
     def __ne__(self, other):
         return not (self == other)
 
-    def _conv_to_np(self, v):
-        """Converts a vector to a numpy array
-
-        Always returns a row vector for consistancy with numpy iteration over
-        arrays
-        """
-        return SparseObj.convert_vector_to_dense(v)
-
     def sample_data(self, id_):
         """Return observations associated with sample id ``id_``"""
-        if id_ not in self._sample_index:
-            raise UnknownID("ID %s is not a known sample ID!" % id_)
-        return self._conv_to_np(self._data[:, self._sample_index[id_]])
+        return self._to_dense(self[:, self.index(id_, 'sample')])
 
     def observation_data(self, id_):
         """Return samples associated with observation id ``id_``"""
-        if id_ not in self._obs_index:
-            raise UnknownID("ID %s is not a known observation ID!" % id_)
-        return self._conv_to_np(self._data[self._obs_index[id_], :])
+        return self._to_dense(self[self.index(id_, 'observation'), :])
 
     def copy(self):
         """Returns a copy of the table"""
@@ -507,14 +613,14 @@ class Table(object):
     def iter_sample_data(self):
         """Yields sample values"""
         for samp_v in self._iter_samp():
-            yield self._conv_to_np(samp_v)
+            yield self._to_dense(samp_v)
 
     def iter_observation_data(self):
         """Yields observation values"""
         for obs_v in self._iter_obs():
-            yield self._conv_to_np(obs_v)
+            yield self._to_dense(obs_v)
 
-    def iter_samples(self, conv_to_np=True):
+    def iter_samples(self, dense=True):
         """Yields ``(sample_value, sample_id, sample_metadata)``
 
         NOTE: will return ``None`` in ``sample_metadata`` positions if
@@ -527,12 +633,12 @@ class Table(object):
 
         iterator = izip(self._iter_samp(), self.sample_ids, samp_metadata)
         for samp_v, samp_id, samp_md in iterator:
-            if conv_to_np:
-                yield (self._conv_to_np(samp_v), samp_id, samp_md)
+            if dense:
+                yield (self._to_dense(samp_v), samp_id, samp_md)
             else:
                 yield (samp_v, samp_id, samp_md)
 
-    def iter_observations(self, conv_to_np=True):
+    def iter_observations(self, dense=True):
         """Yields ``(observation_value, observation_id, observation_metadata)``
 
         NOTE: will return ``None`` in ``observation_metadata`` positions if
@@ -545,65 +651,73 @@ class Table(object):
 
         iterator = izip(self._iter_obs(), self.observation_ids, obs_metadata)
         for obs_v, obs_id, obs_md in iterator:
-            if conv_to_np:
-                yield (self._conv_to_np(obs_v), obs_id, obs_md)
+            if dense:
+                yield (self._to_dense(obs_v), obs_id, obs_md)
             else:
                 yield (obs_v, obs_id, obs_md)
 
-    def sort_sample_order(self, sample_order):
-        """Return a new table with samples in ``sample_order``"""
-        samp_md = []
-        vals = []
+    def sort_order(self, order, axis='sample'):
+        """Return a new table with `axis` in `order`
 
-        for id_ in sample_order:
-            cur_idx = self._sample_index[id_]
-            vals.append(self._conv_to_np(self[:, cur_idx]))
-
-            if self.sample_metadata is not None:
-                samp_md.append(self.sample_metadata[cur_idx])
-
-        if not samp_md:
-            samp_md = None
-
-        return self.__class__(self._conv_to_self_type(vals, transpose=True),
-                              sample_order[:], self.observation_ids[:],
-                              samp_md,
-                              self.observation_metadata, self.table_id)
-
-    def sort_observation_order(self, obs_order):
-        """Return a new table with observations in ``observation order``"""
-        obs_md = []
-        vals = []
-
-        for id_ in obs_order:
-            cur_idx = self._obs_index[id_]
-            vals.append(self[cur_idx, :])
-
-            if self.observation_metadata is not None:
-                obs_md.append(self.observation_metadata[cur_idx])
-
-        if not obs_md:
-            obs_md = None
-
-        return self.__class__(self._conv_to_self_type(vals),
-                              self.sample_ids[:], obs_order[
-                                  :], self.sample_metadata,
-                              obs_md, self.table_id)
-
-    def sort_by_sample_id(self, sort_f=natsort):
-        """Return a table where samples are sorted by ``sort_f``
-
-            ``sort_f`` must take a single parameter: the list of sample ids
+        Parameters
+        ----------
+        order : iterable
+            The desired order for axis
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
-        return self.sort_sample_order(sort_f(self.sample_ids))
+        md = []
+        vals = []
+        if axis == 'sample':
+            for id_ in order:
+                cur_idx = self.index(id_, 'sample')
+                vals.append(self._to_dense(self[:, cur_idx]))
 
-    def sort_by_observation_id(self, sort_f=natsort):
-        """Return a table where observations are sorted by ``sort_f``
+                if self.sample_metadata is not None:
+                    md.append(self.sample_metadata[cur_idx])
 
-            ``sort_f`` must take a single parameter: the list of observation
-            ids
+            if not md:
+                md = None
+
+            return self.__class__(self._conv_to_self_type(vals,
+                                                          transpose=True),
+                                  order[:], self.observation_ids[:], md,
+                                  self.observation_metadata, self.table_id)
+        elif axis == 'observation':
+            for id_ in order:
+                cur_idx = self.index(id_, 'observation')
+                vals.append(self[cur_idx, :])
+
+                if self.observation_metadata is not None:
+                    md.append(self.observation_metadata[cur_idx])
+
+            if not md:
+                md = None
+
+            return self.__class__(self._conv_to_self_type(vals),
+                                  self.sample_ids[:],
+                                  order[:], self.sample_metadata, md,
+                                  self.table_id)
+        else:
+            raise UnknownAxisError(axis)
+
+    def sort(self, sort_f=natsort, axis='sample'):
+        """Return a table sorted along axis
+
+        Parameters
+        ----------
+        sort_f : function
+            A function that takes a list of values and sorts it
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
-        return self.sort_observation_order(sort_f(self.observation_ids))
+        if axis == 'sample':
+            return self.sort_order(sort_f(self.sample_ids))
+        elif axis == 'observation':
+            return self.sort_order(sort_f(self.observation_ids),
+                                   axis='observation')
+        else:
+            raise UnknownAxisError(axis)
 
     # a good refactor in the future is a general filter() method and then
     # specify the axis, like Table.reduce
@@ -630,7 +744,7 @@ class Table(object):
             if not xor(f(s_val, s_id, s_md), invert):
                 continue
 
-            # there is an implicit converstion to numpy types, want to make
+            # there is an implicit conversion to numpy types, want to make
             # sure to convert back to underlying representation.
             samp_vals.append(self._conv_to_self_type(s_val))
             samp_metadata.append(s_md)
@@ -647,8 +761,7 @@ class Table(object):
         # transpose is necessary as the underlying storage is sample == col
         return self.__class__(
             self._conv_to_self_type(samp_vals, transpose=True),
-            samp_ids[:], self.observation_ids[
-                :], samp_metadata,
+            samp_ids[:], self.observation_ids[:], samp_metadata,
             self.observation_metadata, self.table_id)
 
     def filter_observations(self, f, invert=False):
@@ -705,7 +818,7 @@ class Table(object):
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for samp_v, samp_id, samp_md in self.iter_samples(conv_to_np=False):
+        for samp_v, samp_id, samp_md in self.iter_samples(dense=False):
             bin = f(samp_md)
 
             # try to make it hashable...
@@ -743,7 +856,7 @@ class Table(object):
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for obs_v, obs_id, obs_md in self.iter_observations(conv_to_np=False):
+        for obs_v, obs_id, obs_md in self.iter_observations(dense=False):
             bin = f(obs_md)
 
             # try to make it hashable...
@@ -764,12 +877,12 @@ class Table(object):
                                      obs_md, self.table_id,
                                      constructor=constructor)
 
-    def collase_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
-                                    min_group_size=2,
-                                    include_collapsed_metadata=True,
-                                    constructor=None, one_to_many=False,
-                                    one_to_many_mode='add',
-                                    one_to_many_md_key='Path', strict=False):
+    def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
+                                     min_group_size=2,
+                                     include_collapsed_metadata=True,
+                                     constructor=None, one_to_many=False,
+                                     one_to_many_mode='add',
+                                     one_to_many_md_key='Path', strict=False):
         """Collapse samples in a table by sample metadata
 
         Bin samples by metadata then collapse each bin into a single sample.
@@ -886,7 +999,7 @@ class Table(object):
 
             n_s = len(new_s_md)
             s_idx = dict([(bin_, i) for i, bin_ in
-                         enumerate(sorted(new_s_md))])
+                          enumerate(sorted(new_s_md))])
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
@@ -1101,7 +1214,7 @@ class Table(object):
 
             n_obs = len(new_obs_md)
             obs_idx = dict([(bin_, i)
-                           for i, bin_ in enumerate(sorted(new_obs_md))])
+                            for i, bin_ in enumerate(sorted(new_obs_md))])
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
@@ -1271,7 +1384,7 @@ class Table(object):
             dtype = 'int'
             op = lambda x: x.nonzero()[0].size
         else:
-            dtype = self._data.dtype
+            dtype = self.dtype
             op = lambda x: x.sum()
 
         if axis is 'sample':
@@ -1565,6 +1678,7 @@ class Table(object):
             raise ValueError("Unknown order %s!" % order)
 
         shape = h5grp.attrs['shape']
+        type = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
         # fetch all of the IDs
         obs_ids = h5grp['observation/ids'][:]
@@ -1575,9 +1689,6 @@ class Table(object):
         obs_md = loads(h5grp['observation'].get('metadata', no_md)[0])
         samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
 
-        # construct the sparse representation
-        rep = SparseObj(len(obs_ids), len(samp_ids))
-
         # load the data
         data_path = partial(os.path.join, order)
         data = h5grp[data_path("data")]
@@ -1586,14 +1697,14 @@ class Table(object):
         cs = (data, indices, indptr)
 
         if order == 'sample':
-            rep._matrix = csc_matrix(cs, shape=shape)
+            matrix = csc_matrix(cs, shape=shape)
         else:
-            rep._matrix = csr_matrix(cs, shape=shape)
+            matrix = csr_matrix(cs, shape=shape)
 
-        return table_factory(rep, samp_ids, obs_ids, samp_md or None,
-                             obs_md or None)
+        return table_factory(matrix, samp_ids, obs_ids, samp_md or None,
+                             obs_md or None, type=type)
 
-    def to_hdf5(self, h5grp, generated_by):
+    def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
 
         The expected structure of this group is below. A few basic definitions,
@@ -1632,6 +1743,8 @@ class Table(object):
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
         generated_by : str
+        compress : Boolean  'True' means fiels will be compressed with
+            gzip, 'False' means no compression
 
         See Also
         --------
@@ -1646,50 +1759,57 @@ class Table(object):
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
 
-        def axis_dump(grp, ids, md, order):
+        def axis_dump(grp, ids, md, order, compression=None):
             """Store for an axis"""
-            self._data.convert(order)
+            self._data = self._data.asformat(order)
 
             len_ids = len(ids)
-            len_indptr = len(self._data._matrix.indptr)
-            len_data = self._data.size
+            len_indptr = len(self._data.indptr)
+            len_data = self.nnz
 
             grp.create_dataset('data', shape=(len_data,),
                                dtype=np.float64,
-                               data=self._data._matrix.data)
+                               data=self._data.data,
+                               compression=compression)
             grp.create_dataset('indices', shape=(len_data,),
                                dtype=np.int32,
-                               data=self._data._matrix.indices)
+                               data=self._data.indices,
+                               compression=compression)
             grp.create_dataset('indptr', shape=(len_indptr,),
                                dtype=np.int32,
-                               data=self._data._matrix.indptr)
+                               data=self._data.indptr,
+                               compression=compression)
 
             # if we store IDs in the table as numpy arrays then this store
             # is cleaner, as is the parse
             grp.create_dataset('ids', shape=(len_ids,),
                                dtype=H5PY_VLEN_STR,
-                               data=[str(i) for i in ids])
+                               data=[str(i) for i in ids],
+                               compression=compression)
 
             if md is not None:
                 md_str = empty(shape=(), dtype=object)
                 md_str[()] = dumps(md)
                 grp.create_dataset('metadata', shape=(1,),
                                    dtype=H5PY_VLEN_STR,
-                                   data=md_str)
+                                   data=md_str,
+                                   compression=compression)
 
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
-        h5grp.attrs['type'] = self.type
+        h5grp.attrs['type'] = self.type if self.type else ""
         h5grp.attrs['format-url'] = "http://biom-format.org"
         h5grp.attrs['format-version'] = (2, 0)
         h5grp.attrs['generated-by'] = generated_by
         h5grp.attrs['creation-date'] = datetime.now().isoformat()
-        h5grp.attrs['shape'] = self._data.shape
-        h5grp.attrs['nnz'] = self._data.size
-
+        h5grp.attrs['shape'] = self.shape
+        h5grp.attrs['nnz'] = self.nnz
+        compression = None
+        if compress is True:
+            compression = 'gzip'
         axis_dump(h5grp.create_group('observation'), self.observation_ids,
-                  self.observation_metadata, 'csr')
+                  self.observation_metadata, 'csr', compression)
         axis_dump(h5grp.create_group('sample'), self.sample_ids,
-                  self.sample_metadata, 'csc')
+                  self.sample_metadata, 'csc', compression)
 
     def get_biom_format_object(self, generated_by):
         """Returns a dictionary representing the table in BIOM format.
@@ -1721,7 +1841,7 @@ class Table(object):
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
         try:
-            num_rows, num_cols = self._data.shape
+            num_rows, num_cols = self.shape
         except:
             num_rows = num_cols = 0
         has_data = True if num_rows > 0 and num_cols > 0 else False
@@ -1808,7 +1928,7 @@ class Table(object):
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
         try:
-            num_rows, num_cols = self._data.shape
+            num_rows, num_cols = self.shape
         except:
             num_rows = num_cols = 0
         has_data = True if num_rows > 0 and num_cols > 0 else False
@@ -1957,14 +2077,15 @@ def list_dict_to_nparray(data, dtype=float):
     mat = zeros((n_rows, n_cols), dtype=dtype)
 
     for row_idx, row in enumerate(data):
-        for (foo, col_idx), val in row.iteritems():
+        for (_, col_idx), val in row.iteritems():
             mat[row_idx, col_idx] = val
 
     return mat
 
 
 def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
-                  observation_metadata=None, table_id=None, **kwargs):
+                  observation_metadata=None, table_id=None,
+                  input_is_dense=False, transpose=False, **kwargs):
     """Construct a table
 
     Attempts to make 'data' through various means of juggling. Data can be:
@@ -2016,7 +2137,7 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
 
     # if we have a numpy array
     if isinstance(data, ndarray):
-        data = nparray_to_sparseobj(data, dtype)
+        data = nparray_to_sparse(data, dtype)
 
     # if we have a list of things
     elif isinstance(data, list):
@@ -2025,28 +2146,30 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
                                  "an empty table.")
 
         elif isinstance(data[0], ndarray):
-            data = list_nparray_to_sparseobj(data, dtype)
+            data = list_nparray_to_sparse(data, dtype)
 
         elif isinstance(data[0], dict):
-            data = list_dict_to_sparseobj(data, dtype)
+            data = list_dict_to_sparse(data, dtype)
 
         elif isinstance(data[0], list):
-            data = list_list_to_sparseobj(data, dtype, shape=shape)
+            if input_is_dense:
+                d = coo_matrix(data)
+                data = coo_arrays_to_sparse((d.data, (d.row, d.col)),
+                                            dtype=dtype)
+            else:
+                data = list_list_to_sparse(data, dtype, shape=shape)
 
         else:
             raise TableException("Unknown nested list type")
 
     # if we have a dict representation
-    elif isinstance(data, dict) and not isinstance(data, SparseObj):
-        data = dict_to_sparseobj(data, dtype)
+    elif isinstance(data, dict):
+        data = dict_to_sparse(data, dtype)
 
     elif isinstance(data, tuple) and isinstance(data[0], ndarray):
-        # give it a go...
-        # there isn't a CSMat equivilent
-        from biom.backends.scipysparse import coo_arrays_to_scipy
-        data = coo_arrays_to_scipy(data)
+        data = coo_arrays_to_sparse(data)
 
-    elif isinstance(data, SparseObj):
+    elif isspmatrix(data):
         pass
 
     else:
@@ -2058,11 +2181,212 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
                  table_id=table_id, **kwargs)
 
 
-def get_zerod_matrix(mat, dtype=float):
-    """Returns a zerod matrix"""
-    if isinstance(mat, ndarray):
-        return zeros(mat.shape, dtype=float)
-    elif isinstance(mat, SparseObj):
-        return SparseObj(*mat.shape, dtype=float)
+def to_sparse(values, transpose=False, dtype=float):
+    """Try to return a populated scipy.sparse matrix.
+
+    NOTE: assumes the max value observed in row and col defines the size of the
+    matrix.
+    """
+    # if it is a vector
+    if isinstance(values, ndarray) and len(values.shape) == 1:
+        if transpose:
+            mat = nparray_to_sparse(values[:, newaxis], dtype)
+        else:
+            mat = nparray_to_sparse(values, dtype)
+        return mat
+    if isinstance(values, ndarray):
+        if transpose:
+            mat = nparray_to_sparse(values.T, dtype)
+        else:
+            mat = nparray_to_sparse(values, dtype)
+        return mat
+    # the empty list
+    elif isinstance(values, list) and len(values) == 0:
+        return coo_matrix((0, 0))
+    # list of np vectors
+    elif isinstance(values, list) and isinstance(values[0], ndarray):
+        mat = list_nparray_to_sparse(values, dtype)
+        if transpose:
+            mat = mat.T
+        return mat
+    # list of dicts, each representing a row in row order
+    elif isinstance(values, list) and isinstance(values[0], dict):
+        mat = list_dict_to_sparse(values, dtype)
+        if transpose:
+            mat = mat.T
+        return mat
+    # list of scipy.sparse matrices, each representing a row in row order
+    elif isinstance(values, list) and isspmatrix(values[0]):
+        mat = list_sparse_to_sparse(values, dtype)
+        if transpose:
+            mat = mat.T
+        return mat
+    elif isinstance(values, dict):
+        mat = dict_to_sparse(values, dtype)
+        if transpose:
+            mat = mat.T
+        return mat
+    elif isspmatrix(values):
+        mat = values
+        if transpose:
+            mat = mat.transpose()
+        return mat
     else:
-        raise TableException("Unknown mat type")
+        raise TableException("Unknown input type")
+
+
+def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
+    """Map directly on to the coo_matrix constructor
+
+    data must be (values, (rows, cols))
+    """
+    if shape is None:
+        values, (rows, cols) = data
+        n_rows = max(rows) + 1
+        n_cols = max(cols) + 1
+    else:
+        n_rows, n_cols = shape
+
+    # coo_matrix allows zeros to be added as data, and this affects
+    # nnz, items, and iteritems. Clean them out here, as this is
+    # the only time these zeros can creep in.
+    # Note: coo_matrix allows duplicate entries; the entries will
+    # be summed when converted. Not really sure how we want to
+    # handle this generally within BIOM- I'm okay with leaving it
+    # as undefined behavior for now.
+    matrix = coo_matrix(data, shape=(n_rows, n_cols), dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def list_list_to_sparse(data, dtype=float, shape=None):
+    """Convert a list of lists into a scipy.sparse matrix.
+
+    [[row, col, value], ...]
+    """
+    rows, cols, values = izip(*data)
+
+    if shape is None:
+        n_rows = max(rows) + 1
+        n_cols = max(cols) + 1
+    else:
+        n_rows, n_cols = shape
+
+    matrix = coo_matrix((values, (rows, cols)), shape=(n_rows, n_cols),
+                        dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def nparray_to_sparse(data, dtype=float):
+    """Convert a numpy array to a scipy.sparse matrix."""
+    if len(data.shape) == 1:
+        shape = (1, data.shape[0])
+    else:
+        shape = data.shape
+
+    matrix = coo_matrix(data, shape=shape, dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def list_nparray_to_sparse(data, dtype=float):
+    """Takes a list of numpy arrays and creates a scipy.sparse matrix."""
+    matrix = coo_matrix(data, shape=(len(data), len(data[0])), dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def list_sparse_to_sparse(data, dtype=float):
+    """Takes a list of scipy.sparse matrices and creates a scipy.sparse mat."""
+    if isspmatrix(data[0]):
+        if data[0].shape[0] > data[0].shape[1]:
+            is_col = True
+            n_cols = len(data)
+            n_rows = data[0].shape[0]
+        else:
+            is_col = False
+            n_rows = len(data)
+            n_cols = data[0].shape[1]
+    else:
+        all_keys = flatten([d.keys() for d in data])
+        n_rows = max(all_keys, key=itemgetter(0))[0] + 1
+        n_cols = max(all_keys, key=itemgetter(1))[1] + 1
+        if n_rows > n_cols:
+            is_col = True
+            n_cols = len(data)
+        else:
+            is_col = False
+            n_rows = len(data)
+
+    data = vstack(data)
+    matrix = coo_matrix(data, shape=(n_rows, n_cols),
+                        dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def list_dict_to_sparse(data, dtype=float):
+    """Takes a list of dict {(row,col):val} and creates a scipy.sparse mat."""
+    if isspmatrix(data[0]):
+        if data[0].shape[0] > data[0].shape[1]:
+            is_col = True
+            n_cols = len(data)
+            n_rows = data[0].shape[0]
+        else:
+            is_col = False
+            n_rows = len(data)
+            n_cols = data[0].shape[1]
+    else:
+        all_keys = flatten([d.keys() for d in data])
+        n_rows = max(all_keys, key=itemgetter(0))[0] + 1
+        n_cols = max(all_keys, key=itemgetter(1))[1] + 1
+        if n_rows > n_cols:
+            is_col = True
+            n_cols = len(data)
+        else:
+            is_col = False
+            n_rows = len(data)
+
+    rows = []
+    cols = []
+    vals = []
+    for row_idx, row in enumerate(data):
+        for (row_val, col_idx), val in row.items():
+            if is_col:
+                # transpose
+                rows.append(row_val)
+                cols.append(row_idx)
+                vals.append(val)
+            else:
+                rows.append(row_idx)
+                cols.append(col_idx)
+                vals.append(val)
+
+    matrix = coo_matrix((vals, (rows, cols)), shape=(n_rows, n_cols),
+                        dtype=dtype)
+    matrix = matrix.tocsr()
+    matrix.eliminate_zeros()
+    return matrix
+
+
+def dict_to_sparse(data, dtype=float):
+    """Takes a dict {(row,col):val} and creates a scipy.sparse matrix."""
+    n_rows = max(data.keys(), key=itemgetter(0))[0] + 1
+    n_cols = max(data.keys(), key=itemgetter(1))[1] + 1
+
+    rows = []
+    cols = []
+    vals = []
+    for (r, c), v in data.iteritems():
+        rows.append(r)
+        cols.append(c)
+        vals.append(v)
+
+    return coo_arrays_to_sparse((vals, (rows, cols)),
+                                shape=(n_rows, n_cols), dtype=dtype)

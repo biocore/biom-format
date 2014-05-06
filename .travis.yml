@@ -19,6 +19,6 @@ install:
   - source activate env_name
   - pip install -r requirements.txt .
 script:
-  - nosetests
+  - nosetests --with-doctest
   - pep8 biom setup.py
   - biom show-install-info
