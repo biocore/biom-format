@@ -906,20 +906,20 @@ class SparseTableTests(TestCase):
         """table sorted by a function and provided axis"""
         # sort by samples by a function
         sort_f = sorted
-        data_in = nparray_to_sparse(array([[1, 2, 3, 8], [4, 5, 6, 9],
+        data_in = nparray_to_sparse(
             np.array([[1, 2, 3, 8], [4, 5, 6, 9], [7, 8, 9, 11]]))
         t = Table(data_in, ['c', 'a', 'b', 'd'], [2, 1, 3])
-        exp_data = nparray_to_sparse(array([[2, 3, 1, 8], [5, 6, 4, 9],
+        exp_data = nparray_to_sparse(
             np.array([[2, 3, 1, 8], [5, 6, 4, 9], [8, 9, 7, 11]]))
         exp = Table(exp_data, ['a', 'b', 'c', 'd'], [2, 1, 3])
         obs = t.sort(sort_f=sort_f)
         self.assertEqual(obs, exp)
         # sort by observation ids by a function
         sort_f = sorted
-        data_in = nparray_to_sparse(array([[1, 2, 3, 8], [4, 5, 6, 9],
+        data_in = nparray_to_sparse(
             np.array([[1, 2, 3, 8], [4, 5, 6, 9], [7, 8, 9, 11]]), float)
         t = Table(data_in, ['c', 'a', 'b', 'd'], [2, 1, 3])
-        exp_data = nparray_to_sparse(array([[4, 5, 6, 9], [1, 2, 3, 8],
+        exp_data = nparray_to_sparse(
             np.array([[4, 5, 6, 9], [1, 2, 3, 8], [7, 8, 9, 11]]), float)
         exp = Table(exp_data, ['c', 'a', 'b', 'd'], [1, 2, 3])
         obs = t.sort(sort_f=sort_f, axis='observation')
