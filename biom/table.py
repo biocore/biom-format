@@ -1303,9 +1303,9 @@ class Table(object):
             new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
 
         return self.__class__(self._conv_to_self_type(new_m, transpose=True),
-                              self.sample_ids[:], self.observation_ids[
-                                  :], self.sample_metadata,
-                              self.observation_metadata, self.table_id)
+                              self.observation_ids[:], self.sample_ids[:],
+                              self.sample_metadata, self.observation_metadata,
+                              self.table_id)
 
     def transform_observations(self, f):
         """Iterate over observations, applying a function ``f`` to each value
@@ -1321,8 +1321,8 @@ class Table(object):
             new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
 
         return self.__class__(
-            self._conv_to_self_type(new_m), self.sample_ids[:],
-            self.observation_ids[:], self.sample_metadata,
+            self._conv_to_self_type(new_m), self.observation_ids[:],
+            self.sample_ids[:], self.sample_metadata,
             self.observation_metadata, self.table_id)
 
     def norm_observation_by_sample(self):
@@ -1597,8 +1597,8 @@ class Table(object):
             # accidently force a dense representation in memory
             vals[new_obs_idx] = self._conv_to_self_type(new_vec)
 
-        return self.__class__(self._conv_to_self_type(vals), sample_ids[:],
-                              obs_ids[:], sample_md, obs_md)
+        return self.__class__(self._conv_to_self_type(vals), obs_ids[:],
+                              sample_ids[:], sample_md, obs_md)
 
     @classmethod
     def from_hdf5(cls, h5grp, order='observation'):
