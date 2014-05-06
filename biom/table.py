@@ -1294,47 +1294,42 @@ class Table(object):
                              self.table_id,
                              constructor=constructor)
 
-    def transform_samples(self, f):
-        """Iterate over samples, applying a function ``f`` to each value
+    def transform(self, f, axis='sample'):
+        """Itearte over `axis`, applying a function `f` to each value
 
-        ``f`` must take three values: a sample value (int or float), a sample
-        id, and a sample metadata entry, and return a single value (int or
-        float) that replaces the provided sample value
+        Parameters
+        ----------
+        sort_f : function
+            A function that takes a list of values and sorts it
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
         new_m = []
+        if axis == 'sample':
+            for s_v, s_id, s_md in self.iter_samples():
+                new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
+            return self.__class__(self._conv_to_self_type(new_m,
+                                                          transpose=True),
+                                  self.sample_ids[:], self.observation_ids[
+                                      :], self.sample_metadata,
+                                  self.observation_metadata, self.table_id)
+        elif axis == 'observation':
+            for obs_v, obs_id, obs_md in self.iter_observations():
+                new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
 
-        for s_v, s_id, s_md in self.iter_samples():
-            new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
-
-        return self.__class__(self._conv_to_self_type(new_m, transpose=True),
-                              self.sample_ids[:], self.observation_ids[
-                                  :], self.sample_metadata,
-                              self.observation_metadata, self.table_id)
-
-    def transform_observations(self, f):
-        """Iterate over observations, applying a function ``f`` to each value
-
-        ``f`` must take three values: an observation value (int or float), an
-        observation id, and an observation metadata entry, and return a single
-        value (int or float) that replaces the provided observation value
-
-        """
-        new_m = []
-
-        for obs_v, obs_id, obs_md in self.iter_observations():
-            new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
-
-        return self.__class__(
-            self._conv_to_self_type(new_m), self.sample_ids[:],
-            self.observation_ids[:], self.sample_metadata,
-            self.observation_metadata, self.table_id)
+            return self.__class__(self._conv_to_self_type(new_m),
+                                  self.sample_ids[:], self.observation_ids[:],
+                                  self.sample_metadata,
+                                  self.observation_metadata, self.table_id)
+        else:
+            raise UnknownAxisError(axis)
 
     def norm_observation_by_sample(self):
         """Return new table with vals as relative abundances within each sample
         """
         def f(samp_v, samp_id, samp_md):
             return samp_v / float(samp_v.sum())
-        return self.transform_samples(f)
+        return self.transform(f)
 
     def norm_sample_by_observation(self):
         """Return new table with vals as relative abundances within each obs
@@ -1342,14 +1337,14 @@ class Table(object):
         def f(obs_v, obs_id, obs_md):
             return obs_v / float(obs_v.sum())
         # f = lambda x: x / float(x.sum())
-        return self.transform_observations(f)
+        return self.transform(f, axis='observation')
 
     def norm_observation_by_metadata(self, obs_metadata_id):
         """Return new table with vals divided by obs_metadata_id
         """
         def f(obs_v, obs_id, obs_md):
             return obs_v / obs_md[obs_metadata_id]
-        return self.transform_observations(f)
+        return self.transform(f, axis='observation')
 
     def nonzero(self):
         """Returns locations of nonzero elements within the data matrix
