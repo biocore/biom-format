@@ -433,7 +433,7 @@ class Table(object):
         elif axis == "observation":
             return id_ in self._obs_index
         else:
-            raise UnknownAxisError("Unknown axis: %s" % axis)
+            raise UnknownAxisError(axis)
 
     def delimited_self(self, delim='\t', header_key=None, header_value=None,
                        metadata_formatter=str,
