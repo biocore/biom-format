@@ -1621,7 +1621,7 @@ class SparseOTUTableTests(TestCase):
         self.assertEqual(obs, exp)
 
 
-class SupportTests(TestCase):
+class SupportTests2(TestCase):
 
     def test_coo_arrays_to_sparse(self):
         """convert (values, (row, col)) to scipy"""
