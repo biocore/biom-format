@@ -88,10 +88,34 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     
 def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
                         remove=True):
+    """Filter row/columns of a sparse matrix according to the output of a
+    boolean function.
+
+    Parameters
+    ----------
+    arr : sparse matrix
+    ids : 1D array_like
+    metadata : 1D array_like
+    ids_to_keep : function or iterable
+    axis : int
+    invert : bool
+    remove : bool
+        Whether to "compact" or not the filtered matrix (i.e., keep
+        the original size if ``False``, else reduce the shape of the
+        returned matrix.
+
+    Returns
+    -------
+    arr : sparse matrix
+    ids : 1D ndarray of dtype object
+    metadata : tuple
+    """
     fmt = arr.getformat()
     if fmt not in ('csc', 'csr'):
         arr = arr.tocsr()
         fmt = 'csr'
+
+    invert = bool(invert)
 
     cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools
 
