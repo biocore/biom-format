@@ -413,13 +413,27 @@ class Table(object):
         """
         return self.delimited_self()
 
-    def sample_exists(self, id_):
-        """Returns True if sample ``id_`` exists, False otherwise"""
-        return id_ in self._sample_index
+    def exists(self, id_, axis="sample"):
+        """Returns whether id_ exists in axis
 
-    def observation_exists(self, id_):
-        """Returns True if observation ``id_`` exists, False otherwise"""
-        return id_ in self._obs_index
+        Parameters
+        ----------
+        id_: str
+            id to check if exists
+        axis : 'sample' or 'observation'
+            The axis to check
+
+        Returns
+        -------
+        bool
+            True if ``id_`` exists, False otherwise
+        """
+        if axis == "sample":
+            return id_ in self._sample_index
+        elif axis == "observation":
+            return id_ in self._obs_index
+        else:
+            raise ValueError("Invalid axis: %s" % axis)
 
     def delimited_self(self, delim='\t', header_key=None, header_value=None,
                        metadata_formatter=str,
