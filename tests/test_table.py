@@ -63,7 +63,7 @@ class SupportTests(TestCase):
                    array([9, 10, 11, 12])]
         data = list_nparray_to_sparse(list_np)
         exp = Table(data, obs_ids, samp_ids)
-        obs = table_factory(list_np, obs_ids, samp_ids)
+        obs = table_factory(list_np, samp_ids, obs_ids)
         self.assertEqual(obs, exp)
 
     def test_table_factory_sparse_dict(self):
@@ -208,7 +208,7 @@ class TableTests(TestCase):
         # 1 0 2
         # 3 0 4
         self.mat1 = Table(to_sparse(array([[1, 0, 2], [3, 0, 4]])),
-                          ['o1', 'o2']['s1', 's2', 's3'])
+                          ['o1', 'o2'], ['s1', 's2', 's3'])
 
         # Empty/null cases (i.e., 0x0, 0xn, nx0).
         ids = lambda X: ['x%d' % e for e in range(0, X)]
@@ -1006,7 +1006,7 @@ class SparseTableTests(TestCase):
         data = to_sparse(
             {(0, 0): 5, (0, 1): 6, (0, 2): 0, (1, 0): 7, (1, 1): 9, (1, 2): 2,
              (2, 0): 0, (2, 1): 3, (2, 2): 4})
-        exp = Table(data, ['1', '2', '3, ']['a', 'b', 'c'])
+        exp = Table(data, ['1', '2', '3, '], ['a', 'b', 'c'])
         obs = self.st1.merge(self.st3, sample=u, observation=u)
         self.assertEqual(obs, exp)
 
