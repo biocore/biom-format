@@ -34,7 +34,7 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
-               "Jose Antonio Navas Molina"]
+               "Joshua Shorenstein", "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -208,19 +208,17 @@ class Table(object):
 
     def add_metadata(self, md, axis='sample'):
         """Take a dict of metadata and add it to an axis.
-
         Parameters
         ----------
         md : dict of dict
             ``md`` should be of the form ``{id:{dict_of_metadata}}``
         axis : 'sample' or 'observation'
             The axis to operate on
-
         """
         if axis == 'sample':
             if self.sample_metadata is not None:
                 for id_, md_entry in md.iteritems():
-                    if self.sample_exists(id_):
+                    if self.exists(id_):
                         idx = self.index(id_, 'sample')
                         self.sample_metadata[idx].update(md_entry)
             else:
@@ -229,7 +227,7 @@ class Table(object):
         elif axis == 'observation':
             if self.observation_metadata is not None:
                 for id_, md_entry in md.iteritems():
-                    if self.observation_exists(id_):
+                    if self.exists(id_, axis="observation"):
                         idx = self.index(id_, 'observation')
                         self.observation_metadata[idx].update(md_entry)
             else:
@@ -420,13 +418,27 @@ class Table(object):
         """
         return self.delimited_self()
 
-    def sample_exists(self, id_):
-        """Returns True if sample ``id_`` exists, False otherwise"""
-        return id_ in self._sample_index
+    def exists(self, id_, axis="sample"):
+        """Returns whether id_ exists in axis
 
-    def observation_exists(self, id_):
-        """Returns True if observation ``id_`` exists, False otherwise"""
-        return id_ in self._obs_index
+        Parameters
+        ----------
+        id_: str
+            id to check if exists
+        axis : 'sample' or 'observation'
+            The axis to check
+
+        Returns
+        -------
+        bool
+            True if ``id_`` exists, False otherwise
+        """
+        if axis == "sample":
+            return id_ in self._sample_index
+        elif axis == "observation":
+            return id_ in self._obs_index
+        else:
+            raise UnknownAxisError(axis)
 
     def delimited_self(self, delim='\t', header_key=None, header_value=None,
                        metadata_formatter=str,
@@ -453,7 +465,6 @@ class Table(object):
             #OTU ID\tSample1\tSample2
             OTU1\t10\t2
             OTU2\t4\t8
-
         """
         if self.is_empty():
             raise TableException("Cannot delimit self if I don't have data...")
@@ -1472,13 +1483,13 @@ class Table(object):
             sample_ids.append(id_)
 
             # if we have sample metadata, grab it
-            if self.sample_metadata is None or not self.sample_exists(id_):
+            if self.sample_metadata is None or not self.exists(id_):
                 self_md = None
             else:
                 self_md = self.sample_metadata[self_samp_idx[id_]]
 
             # if we have sample metadata, grab it
-            if other.sample_metadata is None or not other.sample_exists(id_):
+            if other.sample_metadata is None or not other.exists(id_):
                 other_md = None
             else:
                 other_md = other.sample_metadata[other_samp_idx[id_]]
@@ -1494,14 +1505,14 @@ class Table(object):
 
             # if we have observation metadata, grab it
             if self.observation_metadata is None or \
-               not self.observation_exists(id_):
+               not self.exists(id_, axis="observation"):
                 self_md = None
             else:
                 self_md = self.observation_metadata[self_obs_idx[id_]]
 
             # if we have observation metadata, grab it
             if other.observation_metadata is None or \
-                    not other.observation_exists(id_):
+                    not other.exists(id_, axis="observation"):
                 other_md = None
             else:
                 other_md = other.observation_metadata[other_obs_idx[id_]]
@@ -1522,14 +1533,14 @@ class Table(object):
 
             # see if the observation exists in other, if so, pull it out.
             # if not, set to the placeholder missing
-            if other.observation_exists(obs_id):
+            if other.exists(obs_id, axis="observation"):
                 other_vec = other.observation_data(obs_id)
             else:
                 other_vec = None
 
             # see if the observation exists in self, if so, pull it out.
             # if not, set to the placeholder missing
-            if self.observation_exists(obs_id):
+            if self.exists(obs_id, axis="observation"):
                 self_vec = self.observation_data(obs_id)
             else:
                 self_vec = None
