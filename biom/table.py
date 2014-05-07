@@ -235,7 +235,7 @@ class Table(object):
                                                    None for id_ in
                                                    self.observation_ids])
         else:
-            raise UnknownAxisError("Unknown axis: %s" % axis)
+            raise UnknownAxisError(axis)
 
         self._cast_metadata()
 
@@ -322,7 +322,7 @@ class Table(object):
         elif axis == 'observation':
             axis = 1
         else:
-            raise TableException("Unknown axis '%s'" % axis)
+            raise UnknownAxisError(axis)
 
         matrix_sum = np.squeeze(np.asarray(self._data.sum(axis=axis)))
 
@@ -678,7 +678,7 @@ class Table(object):
             iter_ = self._iter_obs()
             metadata = self.observation_metadata
         else:
-            raise UnknownAxisError("Unknown axis: %s" % axis)
+            raise UnknownAxisError(axis)
 
         if metadata is None:
             metadata = (None,) * len(ids)
