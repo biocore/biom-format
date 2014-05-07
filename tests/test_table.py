@@ -1361,7 +1361,7 @@ class SparseTableTests(TestCase):
             {(0, 0): 0.25, (0, 1): 0.0, (1, 0): 0.75, (1, 1): 1.0})
         st = Table(data, ['1', '2'], ['a', 'b'])
         exp = Table(data_exp, ['1', '2'], ['a', 'b'])
-        obs = st.norm(axis='observation')
+        obs = st.norm()
         self.assertEqual(obs, exp)
 
     def test_norm_observation_by_metadata(self):
