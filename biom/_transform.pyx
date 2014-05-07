@@ -12,7 +12,7 @@ import numpy as np
 cimport numpy as cnp
 
 
-def _transform(arr, ids, metadata, function, axis, full):
+def _transform(arr, ids, metadata, function, axis):
     cdef:
         Py_ssize_t n, row_or_col
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
@@ -27,7 +27,4 @@ def _transform(arr, ids, metadata, function, axis, full):
         start, end = indptr[row_or_col], indptr[row_or_col+1]
         id_ = ids[row_or_col]
         md = metadata[row_or_col]
-        if full:
-            arr[row_or_col] = function(arr[row_or_col], id_, md)
-        else:
-            data[start:end] = function(data[start:end], id_, md)
+        data[start:end] = function(data[start:end], id_, md)

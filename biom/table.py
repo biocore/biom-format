@@ -1300,7 +1300,6 @@ class Table(object):
         axis : 'sample' or 'observation'
             The axis to operate on
         """
-        new_m = []
         if axis == 'sample':
             axis = 1
             ids = self.sample_ids
@@ -1314,7 +1313,7 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-        _transform(arr, ids, metadata, f, axis, full)
+        _transform(arr, ids, metadata, f, axis)
         arr.eliminate_zeros()
 
         return self.__class__(arr,
