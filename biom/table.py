@@ -1348,27 +1348,6 @@ class Table(object):
         # f = lambda x: x / float(x.sum())
         return self.transform(f, axis='observation')
 
-    def norm_by_metadata(self, metadata_id, axis='sample'):
-        """Normalize sample or observation values by a metadata category
-
-        Parameters
-        ----------
-        obs_metadata_id : str
-            The metadata category to use when doing normalization
-        axis : str, 'sample' or 'observation'
-            Normalize the values over the specified axis
-
-        Returns
-        -------
-        `Table`
-            A new table with values normalized over the specified axis within
-            the specified metadata category
-        """
-        def f(val, id_, md):
-            return val / md[metadata_id]
-
-        return self.transform(f, axis=axis)
-
     def nonzero(self):
         """Returns locations of nonzero elements within the data matrix
 
