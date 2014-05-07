@@ -1352,13 +1352,6 @@ class Table(object):
 
         return self.transform(f, axis=axis)
 
-    def norm_observation_by_metadata(self, obs_metadata_id):
-        """Return new table with vals divided by obs_metadata_id
-        """
-        def f(obs_v, obs_id, obs_md):
-            return obs_v / obs_md[obs_metadata_id]
-        return self.transform(f, axis='observation')
-
     def nonzero(self):
         """Returns locations of nonzero elements within the data matrix
 
