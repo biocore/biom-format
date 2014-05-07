@@ -28,6 +28,7 @@ from biom.util import (get_biom_format_version_string,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
 from ._filter import filter_sparse_array
+from ._transform import _transform
 
 
 __author__ = "Daniel McDonald"
@@ -1301,26 +1302,28 @@ class Table(object):
         """
         new_m = []
         if axis == 'sample':
-            for s_v, s_id, s_md in self.iter():
-                new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
-            return self.__class__(self._conv_to_self_type(new_m,
-                                                          transpose=True),
-                                  self.sample_ids[:], self.observation_ids[:],
-                                  self.sample_metadata,
-                                  self.observation_metadata, self.table_id)
+            axis = 1
+            ids = self.sample_ids
+            metadata = self.sample_metadata
+            arr = self._data.tocsc().copy()
         elif axis == 'observation':
-            for obs_v, obs_id, obs_md in self.iter(axis='observation'):
-                new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
-
-            return self.__class__(self._conv_to_self_type(new_m),
-                                  self.sample_ids[:], self.observation_ids[:],
-                                  self.sample_metadata,
-                                  self.observation_metadata, self.table_id)
+            axis = 0
+            ids = self.observation_ids
+            metadata = self.observation_metadata
+            arr = self._data.tocsr().copy()
         else:
             raise UnknownAxisError(axis)
 
+        _transform(arr, ids, metadata, f, axis, full)
+        arr.eliminate_zeros()
+
+        return self.__class__(arr,
+                              self.sample_ids[:], self.observation_ids[:],
+                              self.sample_metadata,
+                              self.observation_metadata, self.table_id)
+
     def norm(self, axis='sample'):
-        """Normalize sample values by an observation, or vice versa
+        """Normalize in place sample values by an observation, or vice versa
 
         Parameters
         ----------
