@@ -1319,20 +1319,23 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    def norm_observation_by_sample(self):
-        """Return new table with vals as relative abundances within each sample
-        """
-        def f(samp_v, samp_id, samp_md):
-            return samp_v / float(samp_v.sum())
-        return self.transform(f)
+    def norm(self, axis='sample'):
+        """Normalize sample values by an observation, or vice versa
 
-    def norm_sample_by_observation(self):
-        """Return new table with vals as relative abundances within each obs
+        Parameters
+        ----------
+        axis : 'sample' or 'observation'
+            The axis to use for normalization
+
+        Returns
+        -------
+        `Table`
+            A new table with values normalized over the specified axis
         """
-        def f(obs_v, obs_id, obs_md):
-            return obs_v / float(obs_v.sum())
-        # f = lambda x: x / float(x.sum())
-        return self.transform(f, axis='observation')
+        def f(val, id_, _):
+            return val / float(val.sum())
+
+        return self.transform(f, axis=axis)
 
     def norm_observation_by_metadata(self, obs_metadata_id):
         """Return new table with vals divided by obs_metadata_id
