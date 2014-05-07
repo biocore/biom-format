@@ -235,7 +235,7 @@ class Table(object):
                                                    None for id_ in
                                                    self.observation_ids])
         else:
-            raise UnknownAxisError("Unknown axis: %s" % axis)
+            raise UnknownAxisError(axis)
 
         self._cast_metadata()
 
@@ -322,7 +322,7 @@ class Table(object):
         elif axis == 'observation':
             axis = 1
         else:
-            raise TableException("Unknown axis '%s'" % axis)
+            raise UnknownAxisError(axis)
 
         matrix_sum = np.squeeze(np.asarray(self._data.sum(axis=axis)))
 
@@ -513,7 +513,7 @@ class Table(object):
 
     def __iter__(self):
         """Defined by subclass"""
-        return self.iter_samples()
+        return self.iter()
 
     def _iter_samp(self):
         """Return sample vectors of data matrix vectors"""
@@ -650,41 +650,44 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    def iter_samples(self, dense=True):
-        """Yields ``(sample_value, sample_id, sample_metadata)``
+    def iter(self, dense=True, axis='sample'):
+        """Yields ``(value, id, metadata)``
 
-        NOTE: will return ``None`` in ``sample_metadata`` positions if
-        ``self.sample_metadata`` is set to ``None``
+        NOTE: will return ``None`` in metadata positions if the corresponding
+        axis metadata metadata is set to ``None``
+
+        Parameters
+        ----------
+        dense : bool
+            If True, yield values as a dense vector
+        axis : str, either 'sample' or 'observation'
+            The axis to iterate over
+
+        Returns
+        -------
+        GeneratorType
+            A generator that yields (values, id, metadata)
+
         """
-        if self.sample_metadata is None:
-            samp_metadata = (None,) * len(self.sample_ids)
+        if axis == 'sample':
+            ids = self.sample_ids
+            iter_ = self._iter_samp()
+            metadata = self.sample_metadata
+        elif axis == 'observation':
+            ids = self.observation_ids
+            iter_ = self._iter_obs()
+            metadata = self.observation_metadata
         else:
-            samp_metadata = self.sample_metadata
+            raise UnknownAxisError(axis)
 
-        iterator = izip(self._iter_samp(), self.sample_ids, samp_metadata)
-        for samp_v, samp_id, samp_md in iterator:
+        if metadata is None:
+            metadata = (None,) * len(ids)
+
+        for vals, id_, md in izip(iter_, ids, metadata):
             if dense:
-                yield (self._to_dense(samp_v), samp_id, samp_md)
-            else:
-                yield (samp_v, samp_id, samp_md)
+                vals = self._to_dense(vals)
 
-    def iter_observations(self, dense=True):
-        """Yields ``(observation_value, observation_id, observation_metadata)``
-
-        NOTE: will return ``None`` in ``observation_metadata`` positions if
-        ``self.observation_metadata`` is set to ``None``
-        """
-        if self.observation_metadata is None:
-            obs_metadata = (None,) * len(self.observation_ids)
-        else:
-            obs_metadata = self.observation_metadata
-
-        iterator = izip(self._iter_obs(), self.observation_ids, obs_metadata)
-        for obs_v, obs_id, obs_md in iterator:
-            if dense:
-                yield (self._to_dense(obs_v), obs_id, obs_md)
-            else:
-                yield (obs_v, obs_id, obs_md)
+            yield (vals, id_, md)
 
     def sort_order(self, order, axis='sample'):
         """Return a new table with `axis` in `order`
@@ -810,7 +813,7 @@ class Table(object):
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for samp_v, samp_id, samp_md in self.iter_samples(dense=False):
+        for samp_v, samp_id, samp_md in self.iter(dense=False):
             bin = f(samp_md)
 
             # try to make it hashable...
@@ -848,7 +851,8 @@ class Table(object):
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for obs_v, obs_id, obs_md in self.iter_observations(dense=False):
+        for obs_v, obs_id, obs_md in self.iter(dense=False,
+                                               axis='observation'):
             bin = f(obs_md)
 
             # try to make it hashable...
@@ -1009,7 +1013,7 @@ class Table(object):
             # for each sample
             # for each bin in the metadata
             # for each value associated with the sample
-            for s_v, s_id, s_md in self.iter_samples():
+            for s_v, s_id, s_md in self.iter():
                 md_iter = metadata_f(s_md)
                 while True:
                     try:
@@ -1224,7 +1228,7 @@ class Table(object):
             # for each observation
             # for each bin in the metadata
             # for each value associated with the observation
-            for obs_v, obs_id, obs_md in self.iter_observations():
+            for obs_v, obs_id, obs_md in self.iter(axis='observation'):
                 md_iter = metadata_f(obs_md)
                 while True:
                     try:
@@ -1311,7 +1315,7 @@ class Table(object):
         """
         new_m = []
         if axis == 'sample':
-            for s_v, s_id, s_md in self.iter_samples():
+            for s_v, s_id, s_md in self.iter():
                 new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
             return self.__class__(self._conv_to_self_type(new_m,
                                                           transpose=True),
@@ -1319,7 +1323,7 @@ class Table(object):
                                   self.sample_metadata,
                                   self.observation_metadata, self.table_id)
         elif axis == 'observation':
-            for obs_v, obs_id, obs_md in self.iter_observations():
+            for obs_v, obs_id, obs_md in self.iter(axis='observation'):
                 new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
 
             return self.__class__(self._conv_to_self_type(new_m),
@@ -1860,13 +1864,13 @@ class Table(object):
         # data.
         biom_format_obj["rows"] = []
         biom_format_obj["data"] = []
-        for obs_index, obs in enumerate(self.iter_observations()):
+        for obs_index, obs in enumerate(self.iter(axis='observation')):
             biom_format_obj["rows"].append(
                 {"id": "%s" % obs[1], "metadata": obs[2]})
             # If the matrix is dense, simply convert the numpy array to a list
             # of data values. If the matrix is sparse, we need to store the
             # data in sparse format, as it is given to us in a numpy array in
-            # dense format (i.e. includes zeroes) by iter_observations().
+            # dense format (i.e. includes zeroes) by iter().
             dense_values = list(obs[0])
             sparse_values = []
             for col_index, val in enumerate(dense_values):
@@ -1877,7 +1881,7 @@ class Table(object):
 
         # Fill in details about the columns in the table.
         biom_format_obj["columns"] = []
-        for samp in self.iter_samples():
+        for samp in self.iter():
             biom_format_obj["columns"].append(
                 {"id": "%s" % samp[1], "metadata": samp[2]})
 
@@ -1961,7 +1965,7 @@ class Table(object):
         max_col_idx = len(self.sample_ids) - 1
         rows = ['"rows": [']
         have_written = False
-        for obs_index, obs in enumerate(self.iter_observations()):
+        for obs_index, obs in enumerate(self.iter(axis='observation')):
             # i'm crying on the inside
             if obs_index != max_row_idx:
                 rows.append('{"id": "%s", "metadata": %s},' % (obs[1],
@@ -2001,7 +2005,7 @@ class Table(object):
 
         # Fill in details about the columns in the table.
         columns = ['"columns": [']
-        for samp_index, samp in enumerate(self.iter_samples()):
+        for samp_index, samp in enumerate(self.iter()):
             if samp_index != max_col_idx:
                 columns.append('{"id": "%s", "metadata": %s},' % (samp[1],
                                                                   dumps(

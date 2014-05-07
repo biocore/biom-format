@@ -1172,12 +1172,12 @@ class SparseTableTests(TestCase):
 
     def test_iter_samples(self):
         """Iterates samples"""
-        gen = self.st1.iter_samples()
+        gen = self.st1.iter()
         exp = [(np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
-        gen = self.st_rich.iter_samples()
+        gen = self.st_rich.iter()
         exp = [(np.array([5, 7]), 'a', {'barcode': 'aatt'}),
                (np.array([6, 8]), 'b', {'barcode': 'ttgg'})]
         obs = list(gen)
@@ -1186,19 +1186,19 @@ class SparseTableTests(TestCase):
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
         vals = {(0, 0): 5, (0, 1): 6, (1, 1): 8}
         st = Table(to_sparse(vals), ['a', 'b'], ['1', '2'])
-        gen = st.iter_samples()
+        gen = st.iter()
         exp = [(np.array([5, 0]), 'a', None), (np.array([6, 8]), 'b', None)]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
     def test_iter_observations(self):
         """Iterates observations"""
-        gen = self.st1.iter_observations()
+        gen = self.st1.iter(axis='observation')
         exp = [(np.array([5, 6]), '1', None), (np.array([7, 8]), '2', None)]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
-        gen = self.st_rich.iter_observations()
+        gen = self.st_rich.iter(axis='observation')
         exp = [(np.array([5, 6]), '1', {'taxonomy': ['k__a', 'p__b']}),
                (np.array([7, 8]), '2', {'taxonomy': ['k__a', 'p__c']})]
         obs = list(gen)
@@ -1277,7 +1277,7 @@ class SparseTableTests(TestCase):
         table = self.st_rich
         table.filter(f, 'sample')
         self.assertEqual(table, exp_table)
-        
+
     def test_filter_sample_invert(self):
         f = lambda id_, md: md['barcode'] == 'aatt'
         values = csr_matrix(np.array([[6.],
