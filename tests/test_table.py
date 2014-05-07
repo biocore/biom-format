@@ -1841,7 +1841,7 @@ class SparseTableTests(TestCase):
 
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
-        f = lambda x: x['age']
+        f = lambda id_, md: md['age']
         obs_ids = ['a', 'b', 'c', 'd']
         samp_ids = ['1', '2', '3', '4']
         data = {(0, 0): 1, (0, 1): 2, (0, 2): 3, (0, 3): 4,
@@ -1851,7 +1851,7 @@ class SparseTableTests(TestCase):
         obs_md = [{}, {}, {}, {}]
         samp_md = [{'age': 2, 'foo': 10}, {'age': 4}, {'age': 2, 'bar': 5}, {}]
         t = Table(to_sparse(data), samp_ids, obs_ids, samp_md, obs_md)
-        obs_bins, obs_tables = unzip(t.bin_samples_by_metadata(f))
+        obs_bins, obs_tables = unzip(t.partition(f))
 
         exp_bins = (2, 4, None)
         exp1_data = to_sparse(
@@ -1897,7 +1897,7 @@ class SparseTableTests(TestCase):
 
         # Test passing a different constructor. We should get the same data
         # equality, but different table types.
-        obs_bins, obs_tables = unzip(t.bin_samples_by_metadata(f))
+        obs_bins, obs_tables = unzip(t.partition(f))
 
         obs_sort = (obs_bins[exp1_idx], obs_bins[exp2_idx], obs_bins[exp3_idx])
         self.assertEqual(obs_sort, exp_bins)
@@ -1912,7 +1912,7 @@ class SparseTableTests(TestCase):
     def test_bin_observations_by_metadata(self):
         """Yield tables binned by observation metadata"""
         def make_level_f(level):
-            def f(metadata):
+            def f(id_, metadata):
                 return metadata['taxonomy'][:level]
             return f
 
@@ -1936,13 +1936,13 @@ class SparseTableTests(TestCase):
                            {"taxonomy": ['k__a', 'p__c', 'c__e']}]
         exp_king = Table(data, exp_king_samp_ids, exp_king_obs_ids,
                          observation_metadata=exp_king_obs_md)
-        obs_bins, obs_king = unzip(t.bin_observations_by_metadata(func_king))
+        obs_bins, obs_king = unzip(t.partition(func_king, axis='observation'))
 
         self.assertEqual(obs_king, [exp_king])
         self.assertEqual(obs_bins, [tuple(['k__a'])])
         self.assertEqual(type(obs_king[0]), type(exp_king))
 
-        obs_bins, obs_king = unzip(t.bin_observations_by_metadata(func_king))
+        obs_bins, obs_king = unzip(t.partition(func_king, axis='observation'))
         self.assertEqual(obs_king, [exp_king])
         self.assertEqual(obs_bins, [tuple(['k__a'])])
         self.assertEqual(type(obs_king[0]), Table)
@@ -1963,7 +1963,7 @@ class SparseTableTests(TestCase):
         exp_phy2_obs_md = [{"taxonomy": ['k__a', 'p__c', 'c__e']}]
         exp_phy2 = Table(exp_phy2_data, exp_phy2_samp_ids, exp_phy2_obs_ids,
                          observation_metadata=exp_phy2_obs_md)
-        obs_bins, obs_phy = unzip(t.bin_observations_by_metadata(func_phy))
+        obs_bins, obs_phy = unzip(t.partition(func_phy, axis='observation'))
         self.assertEqual(obs_phy, [exp_phy1, exp_phy2])
         self.assertEqual(obs_bins, [('k__a', 'p__b'), ('k__a', 'p__c')])
 
