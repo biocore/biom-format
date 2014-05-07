@@ -487,7 +487,8 @@ class TableTests(TestCase):
         samp_ids = [4, 5, 6, 7]
         samp_md = [{'d': 0}, {'e': 0}, {'f': 0}, {'g': 0}]
         d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
-        t = Table(d, obs_ids, samp_ids, obs_md=None, sample_md=samp_md)
+        t = Table(d, obs_ids, samp_ids, observation_metadata=None,
+                  sample_metadata=samp_md)
         t.add_metadata(obs_md, axis='observation')
         self.assertEqual(t.observation_metadata[0]['taxonomy'], ['A', 'B'])
         self.assertEqual(t.observation_metadata[1]['taxonomy'], ['B', 'C'])
@@ -513,7 +514,8 @@ class TableTests(TestCase):
                    {'Treatment': 'Fasting'},
                    {'Treatment': 'Control'}]
         d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
-        t = Table(d, obs_ids, samp_ids, obs_md=obs_md, sample_md=samp_md)
+        t = Table(d, obs_ids, samp_ids, observation_metadata=obs_md,
+                 sample_metadata=samp_md)
         self.assertEqual(t.sample_metadata[0]['Treatment'], 'Control')
         self.assertEqual(t.sample_metadata[1]['Treatment'], 'Fasting')
         self.assertEqual(t.sample_metadata[2]['Treatment'], 'Fasting')
