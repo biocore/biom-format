@@ -1362,8 +1362,22 @@ class SparseTableTests(TestCase):
         obs = st.norm_observation_by_sample()
         self.assertEqual(obs, exp)
 
-    def test_norm_observation_by_metadata(self):
-        """normalize observations by sample"""
+    def test_norm_by_metadata_samp(self):
+        """normalize samples by metadata"""
+        data = to_sparse({(0, 0): 8, (0, 1): 0, (1, 0): 8, (1, 1): 1})
+        data_exp = to_sparse(
+            {(0, 0): 2.0, (0, 1): 0.0, (1, 0): 2.0, (1, 1): 0.5})
+        st = Table(data, ['a', 'b'], ['1', '2'],
+                   [{"foo": 4.0}, {"foo": 2.0}],
+                   [{}, {}])
+        exp = Table(data_exp, ['a', 'b'], ['1', '2'],
+                    [{"foo": 4.0}, {"foo": 2.0}],
+                    [{}, {}])
+        obs = st.norm_by_metadata('foo')
+        self.assertEqual(obs, exp)
+
+    def test_norm_by_metadata_obs(self):
+        """normalize observations by metadata"""
         data = to_sparse({(0, 0): 6, (0, 1): 0, (1, 0): 6, (1, 1): 1})
         data_exp = to_sparse(
             {(0, 0): 2., (0, 1): 0.0, (1, 0): 3.0, (1, 1): 0.5})
@@ -1371,7 +1385,7 @@ class SparseTableTests(TestCase):
                    [{}, {}], [{'CopyNumber': 3}, {'CopyNumber': 2}])
         exp = Table(data_exp, ['a', 'b'], ['1', '2'],
                     [{}, {}], [{'CopyNumber': 3}, {'CopyNumber': 2}])
-        obs = st.norm_observation_by_metadata('CopyNumber')
+        obs = st.norm_by_metadata('CopyNumber', axis='observation')
         self.assertEqual(obs, exp)
 
     def test_norm_sample_by_observation(self):
