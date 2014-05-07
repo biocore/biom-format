@@ -1596,7 +1596,7 @@ class Table(object):
             vals[new_obs_idx] = self._conv_to_self_type(new_vec)
 
         return self.__class__(self._conv_to_self_type(vals), obs_ids[:],
-                              sample_ids[:], obs_md, obs_md)
+                              sample_ids[:], obs_md, sample_md)
 
     @classmethod
     def from_hdf5(cls, h5grp, order='observation'):
