@@ -1305,7 +1305,7 @@ class Table(object):
                 new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
             return self.__class__(self._conv_to_self_type(new_m,
                                                           transpose=True),
-                                  self.sample_ids[:], self.observation_ids[:],
+                                  self.observation_ids[:], self.sample_ids[:],
                                   self.sample_metadata,
                                   self.observation_metadata, self.table_id)
         elif axis == 'observation':
