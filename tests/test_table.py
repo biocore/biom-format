@@ -1262,7 +1262,7 @@ class SparseTableTests(TestCase):
                                       [7.]]))
         exp_table = Table(values, ['1', '2'], ['a'],
                           [{'taxonomy': ['k__a', 'p__b']},
-                           {'taxonomy': ['k__a', 'p__c']}]
+                           {'taxonomy': ['k__a', 'p__c']}],
                           [{'barcode': 'aatt'}])
 
         table = self.st_rich
