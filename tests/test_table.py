@@ -33,7 +33,7 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
                "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka",
-               "Jose Antonio Navas Molina"]
+               "Joshua Shorenstein", "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -327,7 +327,8 @@ class TableTests(TestCase):
                np.array([0., 0., 1., 4., 0., 2.]),
                np.array([2., 1., 1., 0., 0., 1.]),
                np.array([0., 1., 1., 0., 0., 0.])]
-        npt.assert_equal(list(t.iter_observation_data()), exp)
+        npt.assert_equal(list(t.iter_data(axis="observation")), exp)
+
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5(self):
@@ -381,15 +382,20 @@ class TableTests(TestCase):
 
     def test_sample_exists(self):
         """Verify samples exist!"""
-        self.assertTrue(self.simple_derived.sample_exists(1))
-        self.assertTrue(self.simple_derived.sample_exists(2))
-        self.assertFalse(self.simple_derived.sample_exists(3))
+        self.assertTrue(self.simple_derived.exists(1))
+        self.assertTrue(self.simple_derived.exists(2))
+        self.assertFalse(self.simple_derived.exists(3))
 
     def test_observation_exists(self):
         """Verify observation exist!"""
-        self.assertTrue(self.simple_derived.observation_exists(3))
-        self.assertTrue(self.simple_derived.observation_exists(4))
-        self.assertFalse(self.simple_derived.observation_exists(2))
+        self.assertTrue(self.simple_derived.exists(3, axis="observation"))
+        self.assertTrue(self.simple_derived.exists(4, axis="observation"))
+        self.assertFalse(self.simple_derived.exists(2, axis="observation"))
+
+    def test_exists_invalid_axis(self):
+        """Verify ValueError raised!"""
+        with self.assertRaises(UnknownAxisError):
+            self.simple_derived.exists(3, axis="fooz")
 
     def test_union_id_order(self):
         """Combine unique ids, union"""
@@ -1166,12 +1172,12 @@ class SparseTableTests(TestCase):
 
     def test_iter_samples(self):
         """Iterates samples"""
-        gen = self.st1.iter_samples()
+        gen = self.st1.iter()
         exp = [(np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
-        gen = self.st_rich.iter_samples()
+        gen = self.st_rich.iter()
         exp = [(np.array([5, 7]), 'a', {'barcode': 'aatt'}),
                (np.array([6, 8]), 'b', {'barcode': 'ttgg'})]
         obs = list(gen)
@@ -1180,19 +1186,19 @@ class SparseTableTests(TestCase):
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
         vals = {(0, 0): 5, (0, 1): 6, (1, 1): 8}
         st = Table(to_sparse(vals), ['a', 'b'], ['1', '2'])
-        gen = st.iter_samples()
+        gen = st.iter()
         exp = [(np.array([5, 0]), 'a', None), (np.array([6, 8]), 'b', None)]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
     def test_iter_observations(self):
         """Iterates observations"""
-        gen = self.st1.iter_observations()
+        gen = self.st1.iter(axis='observation')
         exp = [(np.array([5, 6]), '1', None), (np.array([7, 8]), '2', None)]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
-        gen = self.st_rich.iter_observations()
+        gen = self.st_rich.iter(axis='observation')
         exp = [(np.array([5, 6]), '1', {'taxonomy': ['k__a', 'p__b']}),
                (np.array([7, 8]), '2', {'taxonomy': ['k__a', 'p__c']})]
         obs = list(gen)
@@ -1200,12 +1206,12 @@ class SparseTableTests(TestCase):
 
     def test_iter_sample_data(self):
         """Iterates data by samples"""
-        gen = self.st1.iter_sample_data()
+        gen = self.st1.iter_data()
         exp = [np.array([5, 7]), np.array([6, 8])]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
-        gen = self.st_rich.iter_sample_data()
+        gen = self.st_rich.iter_data()
         exp = [np.array([5, 7]), np.array([6, 8])]
         obs = list(gen)
         npt.assert_equal(obs, exp)
@@ -1213,7 +1219,7 @@ class SparseTableTests(TestCase):
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
         vals = {(0, 0): 5, (0, 1): 6, (1, 1): 8}
         st = Table(to_sparse(vals), ['a', 'b'], ['1', '2'])
-        gen = st.iter_sample_data()
+        gen = st.iter_data()
         exp = [np.array([5, 0]), np.array([6, 8])]
         obs = list(gen)
         npt.assert_equal(obs, exp)
@@ -1221,7 +1227,7 @@ class SparseTableTests(TestCase):
     def test_iter_sample_data_single_obs(self):
         """Iterates data by samples with a single observation."""
         exp = [np.array([2.0]), np.array([0.0]), np.array([1.0])]
-        obs = list(self.single_obs_st.iter_sample_data())
+        obs = list(self.single_obs_st.iter_data())
         # We test this way to make sure the observed value is a single element
         # array instead of a numpy scalar.
         for o, e in zip(obs, exp):
@@ -1229,12 +1235,12 @@ class SparseTableTests(TestCase):
 
     def test_iter_observation_data(self):
         """Iterates data by observations"""
-        gen = self.st1.iter_observation_data()
+        gen = self.st1.iter_data(axis="observation")
         exp = [np.array([5, 6]), np.array([7, 8])]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
-        gen = self.st_rich.iter_observation_data()
+        gen = self.st_rich.iter_data(axis="observation")
         exp = [np.array([5, 6]), np.array([7, 8])]
         obs = list(gen)
         npt.assert_equal(obs, exp)
@@ -1242,7 +1248,7 @@ class SparseTableTests(TestCase):
     def test_iter_observation_data_single_sample(self):
         """Iterates data by observations from a single sample."""
         exp = [np.array([2.0]), np.array([0.0]), np.array([1.0])]
-        obs = list(self.single_sample_st.iter_observation_data())
+        obs = list(self.single_sample_st.iter_data(axis="observation"))
         for o, e in zip(obs, exp):
             self.assertEqual(o, e)
 
@@ -1271,7 +1277,7 @@ class SparseTableTests(TestCase):
         table = self.st_rich
         table.filter(f, 'sample')
         self.assertEqual(table, exp_table)
-        
+
     def test_filter_sample_invert(self):
         f = lambda id_, md: md['barcode'] == 'aatt'
         values = csr_matrix(np.array([[6.],
@@ -1324,23 +1330,27 @@ class SparseTableTests(TestCase):
                           lambda: self.st_rich.filter(lambda id_, md: False,
                                                       'observation'))
 
-    def test_transform_observations(self):
-        """Transform observations by arbitrary function"""
-        def transform_f(v, id, md):
+    def test_transform(self):
+        """Transform axis by arbitrary function"""
+        # Transform observations by arbitrary function
+        def obs_transform_f(v, id, md):
             return np.where(v >= 7, 1, 0)
         sp_sd = to_sparse({(0, 0): 0, (0, 1): 0, (1, 0): 1, (1, 1): 1})
         exp = Table(sp_sd, ['a', 'b'], ['1', '2'])
-        obs = self.st1.transform_observations(transform_f)
+        obs = self.st1.transform(obs_transform_f, axis='observation')
         self.assertEqual(obs, exp)
 
-    def test_transform_samples(self):
-        """Transform samples by arbitrary function"""
-        def transform_f(v, id, md):
+        # """Transform samples by arbitrary function"""
+        def sample_transform_f(v, id, md):
             return np.where(v >= 6, 1, 0)
         sp_sd = to_sparse({(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 1})
         exp = Table(sp_sd, ['a', 'b'], ['1', '2'])
-        obs = self.st1.transform_samples(transform_f)
+        obs = self.st1.transform(sample_transform_f)
         self.assertEqual(obs, exp)
+
+        # Raises UnknownAxisError if a invalid axis is passed
+        with self.assertRaises(UnknownAxisError):
+            self.st1.transform(sample_transform_f, axis='foo')
 
     def test_norm_observation_by_sample(self):
         """normalize observations by sample"""
