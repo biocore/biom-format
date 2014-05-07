@@ -13,6 +13,27 @@ cimport numpy as cnp
 
 
 def _transform(arr, ids, metadata, function, axis):
+    """Transform non-zero values of a sparse array, in place.
+
+    Only non null values can be modified: the density of the sparse
+    matrix can't increase. However, zeroing values is fine.
+
+    Parameters
+    ----------
+    arr : csr_matrix or csc_matrix
+        Matrix whose rows or columns (respectively) are to be
+        transformed.
+    ids : 1D array_like
+        ids along the given axis.
+    metadata : 1D array_like or None
+        metadata along the given axis.
+    function : function
+        A function that takes three values: an array of nonzero values
+        for each colum or row of `arr`, an id string and a metadata
+        dictionary. It must return an array of transformed values.
+    axis : int
+        Transform rows of `arr` if 0, columns if 1.
+    """
     cdef:
         Py_ssize_t n, row_or_col
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr

@@ -1290,15 +1290,19 @@ class Table(object):
     def transform(self, f, axis='sample'):
         """Iterate over `axis`, applying a function `f` to each vector.
 
+        Only non null values can be modified: the density of the table
+        can't increase. However, zeroing values is fine.
+
         Parameters
         ----------
         f : function
-            A function that takes three values: an observation/sample value
-            (array), an observation/sample id and a observation/sample
-            metadata entry, and return a single value (int or float) that
-            replaces the provided observation/sample value
+            A function that takes three values: an array of nonzero
+            values corresponding to each observation or sample, an
+            observation or sample id, and an observation or sample
+            metadata entry. It must return an array of transformed
+            values that replace the original values.
         axis : 'sample' or 'observation'
-            The axis to operate on
+            The axis to operate on.
         """
         if axis == 'sample':
             axis = 1
