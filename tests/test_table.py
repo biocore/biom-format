@@ -1330,23 +1330,25 @@ class SparseTableTests(TestCase):
                           lambda: self.st_rich.filter(lambda id_, md: False,
                                                       'observation'))
 
-    def test_transform(self):
+    def test_transform_observation(self):
         """Transform axis by arbitrary function"""
         # Transform observations by arbitrary function
         def obs_transform_f(v, id, md):
             return np.where(v >= 7, 1, 0)
         sp_sd = to_sparse({(0, 0): 0, (0, 1): 0, (1, 0): 1, (1, 1): 1})
         exp = Table(sp_sd, ['a', 'b'], ['1', '2'])
-        obs = self.st1.transform(obs_transform_f, axis='observation')
-        self.assertEqual(obs, exp)
+        self.st1.transform(obs_transform_f, axis='observation')
+        self.assertEqual(self.st1, exp)
 
+    def test_transform_sample(self):
         # """Transform samples by arbitrary function"""
         def sample_transform_f(v, id, md):
             return np.where(v >= 6, 1, 0)
+
         sp_sd = to_sparse({(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 1})
         exp = Table(sp_sd, ['a', 'b'], ['1', '2'])
-        obs = self.st1.transform(sample_transform_f)
-        self.assertEqual(obs, exp)
+        self.st1.transform(sample_transform_f)
+        self.assertEqual(self.st1, exp)
 
         # Raises UnknownAxisError if a invalid axis is passed
         with self.assertRaises(UnknownAxisError):
@@ -1359,8 +1361,8 @@ class SparseTableTests(TestCase):
             {(0, 0): 0.25, (0, 1): 0.0, (1, 0): 0.75, (1, 1): 1.0})
         st = Table(data, ['a', 'b'], ['1', '2'])
         exp = Table(data_exp, ['a', 'b'], ['1', '2'])
-        obs = st.norm()
-        self.assertEqual(obs, exp)
+        st.norm()
+        self.assertEqual(st, exp)
 
     def test_norm_observation_by_metadata(self):
         """normalize observations by sample"""
@@ -1371,8 +1373,8 @@ class SparseTableTests(TestCase):
                    [{}, {}], [{'CopyNumber': 3}, {'CopyNumber': 2}])
         exp = Table(data_exp, ['a', 'b'], ['1', '2'],
                     [{}, {}], [{'CopyNumber': 3}, {'CopyNumber': 2}])
-        obs = st.norm_observation_by_metadata('CopyNumber')
-        self.assertEqual(obs, exp)
+        st.norm_observation_by_metadata('CopyNumber')
+        self.assertEqual(st, exp)
 
     def test_norm_sample_by_observation(self):
         """normalize sample by observation"""
@@ -1381,8 +1383,8 @@ class SparseTableTests(TestCase):
             {(0, 0): 0.0, (0, 1): 1.0, (1, 0): 0.25, (1, 1): 0.75})
         st = Table(data, ['a', 'b'], ['1', '2'])
         exp = Table(data_exp, ['a', 'b'], ['1', '2'])
-        obs = st.norm(axis='observation')
-        self.assertEqual(obs, exp)
+        st.norm(axis='observation')
+        self.assertEqual(st, exp)
 
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
