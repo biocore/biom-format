@@ -1293,7 +1293,7 @@ class Table(object):
         ----------
         f : function
             A function that takes three values: an observation/sample value
-            (int or float), an observation/sample id and a observation/sample
+            (array), an observation/sample id and a observation/sample
             metadata entry, and return a single value (int or float) that
             replaces the provided observation/sample value
         axis : 'sample' or 'observation'
