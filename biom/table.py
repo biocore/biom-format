@@ -297,10 +297,10 @@ class Table(object):
         # np.apply_along_axis might reduce type conversions here and improve
         # speed. am opting for reduce right now as I think its more readable
         if axis == 'sample':
-            return asarray([reduce(f, v) for v in self.iter_sample_data()])
+            return asarray([reduce(f, v) for v in self.iter_data()])
         elif axis == 'observation':
             return asarray([reduce(f, v) for v in
-                            self.iter_observation_data()])
+                            self.iter_data(axis="observation")])
         else:
             raise TableException("Unknown reduction axis")
 
@@ -623,15 +623,32 @@ class Table(object):
                               self.observation_ids[:], self.sample_metadata,
                               self.observation_metadata, self.table_id)
 
-    def iter_sample_data(self):
-        """Yields sample values"""
-        for samp_v in self._iter_samp():
-            yield self._to_dense(samp_v)
+    def iter_data(self, axis='sample'):
+        """Yields axis values
 
-    def iter_observation_data(self):
-        """Yields observation values"""
-        for obs_v in self._iter_obs():
-            yield self._to_dense(obs_v)
+        Parameters
+        ----------
+        axis: 'sample' or 'observation'
+            axis to iterate over
+
+        Returns
+        -------
+        generator
+            yields list of values for each value in 'axis'
+
+        Raises
+        ------
+        UnknownAxisError
+            If axis other than 'sample' or 'observation' passed
+        """
+        if axis == "sample":
+            for samp_v in self._iter_samp():
+                yield self._to_dense(samp_v)
+        elif axis == "observation":
+            for obs_v in self._iter_obs():
+                yield self._to_dense(obs_v)
+        else:
+            raise UnknownAxisError(axis)
 
     def iter_samples(self, dense=True):
         """Yields ``(sample_value, sample_id, sample_metadata)``
@@ -1343,7 +1360,7 @@ class Table(object):
         """
         # this is naively implemented. If performance is a concern, private
         # methods can be written to hit against the underlying types directly
-        for o_idx, samp_vals in enumerate(self.iter_observation_data()):
+        for o_idx, samp_vals in enumerate(self.iter_data(axis="observation")):
             for s_idx in samp_vals.nonzero()[0]:
                 yield (self.observation_ids[o_idx], self.sample_ids[s_idx])
 
@@ -1365,16 +1382,16 @@ class Table(object):
         if axis is 'sample':
             # can use np.bincount for CSMat or ScipySparse
             result = zeros(len(self.sample_ids), dtype=dtype)
-            for idx, vals in enumerate(self.iter_sample_data()):
+            for idx, vals in enumerate(self.iter_data()):
                 result[idx] = op(vals)
         elif axis is 'observation':
             # can use np.bincount for CSMat or ScipySparse
             result = zeros(len(self.observation_ids), dtype=dtype)
-            for idx, vals in enumerate(self.iter_observation_data()):
+            for idx, vals in enumerate(self.iter_data(axis="observation")):
                 result[idx] = op(vals)
         else:
             result = zeros(1, dtype=dtype)
-            for vals in self.iter_sample_data():
+            for vals in self.iter_data():
                 result[0] += op(vals)
 
         return result
