@@ -816,7 +816,7 @@ class SparseTableTests(TestCase):
         self.st4 = Table(self.vals4, ['3', '4'], ['c', 'd'])
         self._to_dict_f = lambda x: sorted(x.items())
         self.st_rich = Table(to_sparse(self.vals),
-                             ['a', 'b'], ['1', '2'],
+                             ['1', '2'], ['a', 'b'],
                              [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
                              [{'taxonomy': ['k__a', 'p__b']},
                               {'taxonomy': ['k__a', 'p__c']}])
