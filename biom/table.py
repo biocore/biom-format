@@ -766,43 +766,63 @@ class Table(object):
             self.observation_ids = ids
             self.observation_metadata = metadata
 
-    def bin_samples_by_metadata(self, f, constructor=None):
-        """Yields tables by metadata
+    def partition(self, f, axis='sample'):
+        """Yields partitions
 
-        ``f`` is given the sample metadata by row and must return what "bin"
-        the sample is part of.
+        Parameters
+        ----------
+        f : function
+            ``f`` is given the ID and metadata of the vector and must return
+            what partition the vector is part of.
+        axis : str, either 'sample' or 'observation'
+            The axis to iterate over
 
-        ``constructor``: the type of binned tables to create, e.g.
-        SparseTaxonTable. If None, the binned tables will be the same type as
-        this table.
+        Returns
+        -------
+        GeneratorType
+            A generator that yields `Table`
+
         """
-        if constructor is None:
-            constructor = self.__class__
-
-        bins = {}
+        partitions = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for samp_v, samp_id, samp_md in self.iter_samples(dense=False):
-            bin = f(samp_md)
+        for vals, id_, md in self.iter(dense=False, axis=axis):
+            part = f(id_, md)
 
             # try to make it hashable...
-            if not isinstance(bin, Hashable):
-                bin = tuple(bin)
+            if not isinstance(part, Hashable):
+                part = tuple(part)
 
-            if bin not in bins:
-                bins[bin] = [[], [], []]
+            if part not in partitions:
+                partitions[part] = [[], [], []]
 
-            bins[bin][0].append(samp_id)
-            bins[bin][1].append(samp_v)
-            bins[bin][2].append(samp_md)
+            partitions[part][0].append(id_)
+            partitions[part][1].append(vals)
+            partitions[part][2].append(md)
 
-        for bin, (samp_ids, samp_values, samp_md) in bins.iteritems():
-            data = self._conv_to_self_type(samp_values, transpose=True)
-            yield bin, table_factory(data, samp_ids[:],
-                                     self.observation_ids[:],
-                                     samp_md, self.observation_metadata,
-                                     self.table_id,
-                                     constructor=constructor)
+        for part, (ids, values, metadata) in partitions.iteritems():
+            data = self._conv_to_self_type(values, transpose=True)
+
+            if axis == 'sample':
+                samp_ids = ids
+                samp_md = metadata
+                obs_ids = self.observation_ids[:]
+                if self.observation_metadata is not None:
+                    obs_md = self.observation_metadata[:]
+                else:
+                    obs_md = None
+
+            elif axis == 'observation':
+                obs_ids = ids
+                obs_md = metadata
+                samp_ids = self.sample_ids[:]
+                if self.sample_metadata is not None:
+                    samp_md = self.sample_metadata[:]
+                else:
+                    samp_md = None
+
+            yield part, table_factory(data, samp_ids, obs_ids, samp_md, obs_md,
+                                     self.table_id)
 
     def bin_observations_by_metadata(self, f, constructor=None):
         """Yields tables by metadata
