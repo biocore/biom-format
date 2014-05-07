@@ -54,7 +54,9 @@ classifiers = [s.strip() for s in classes.split('\n') if s]
 USE_CYTHON = os.environ.get('USE_CYTHON', False)
 ext = '.pyx' if USE_CYTHON else '.c'
 extensions = [Extension("biom._filter",
-                        ["biom/_filter" + ext])]
+                        ["biom/_filter" + ext]),
+              Extension("biom._transform",
+                        ["biom/_transform" + ext])]
 
 if USE_CYTHON:
     from Cython.Build import cythonize
