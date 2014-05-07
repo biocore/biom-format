@@ -898,11 +898,11 @@ class Table(object):
 
         There are two supported modes for handling one-to-many relationships
         via ``one_to_many_mode``: ``add`` and ``divide``. ``add`` will add the
-        vector counts to each partition that the vector maps to, which may increase
-        the total number of counts in the output table. ``divide`` will divide
-        a vectors's counts by the number of metadata that the vector has before
-        adding the counts to each partition. This will not increase the total number
-        of counts in the output table.
+        vector counts to each partition that the vector maps to, which may
+        increase the total number of counts in the output table. ``divide``
+        will divide a vectors's counts by the number of metadata that the
+        vector has before adding the counts to each partition. This will not
+        increase the total number of counts in the output table.
 
         If ``one_to_many_md_key`` is specified, that becomes the metadata
         key that describes the collapsed path. If a value is not specified,
@@ -1835,13 +1835,11 @@ class Table(object):
         columns = ['"columns": [']
         for samp_index, samp in enumerate(self.iter()):
             if samp_index != max_col_idx:
-                columns.append('{"id": "%s", "metadata": %s},' % (samp[1],
-                                                                  dumps(
-                                                                  samp[2])))
+                columns.append('{"id": "%s", "metadata": %s},' % (
+                    samp[1], dumps(samp[2])))
             else:
-                columns.append('{"id": "%s", "metadata": %s}]' % (samp[1],
-                                                                  dumps(
-                                                                  samp[2])))
+                columns.append('{"id": "%s", "metadata": %s}]' % (
+                    samp[1], dumps(samp[2])))
 
         rows = ''.join(rows)
         columns = ''.join(columns)
