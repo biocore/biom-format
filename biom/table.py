@@ -49,9 +49,9 @@ class Table(object):
 
     """
 
-    def __init__(self, data, observation_ids, sample_ids, sample_metadata=None,
-                 observation_metadata=None, table_id=None,
-                 type=None, **kwargs):
+    def __init__(self, data, observation_ids, sample_ids,
+                 observation_metadata=None, sample_metadata=None,
+                 table_id=None, type=None, **kwargs):
 
         self.type = type
         self.table_id = table_id
@@ -349,7 +349,7 @@ class Table(object):
         # sample ids and observations are reversed becuase we trasposed
         return self.__class__(self._data.transpose(copy=True),
                               self.sample_ids[:], self.observation_ids[:],
-                              obs_md_copy, sample_md_copy, self.table_id)
+                              sample_md_copy, obs_md_copy, self.table_id)
 
     def index(self, id_, axis):
         """Return the index of the identified sample/observation.
@@ -621,8 +621,8 @@ class Table(object):
         """Returns a copy of the table"""
         # NEEDS TO BE A DEEP COPY, MIGHT NOT GET METADATA! NEED TEST!
         return self.__class__(self._data.copy(),  self.observation_ids[:],
-                              self.sample_ids[:], self.sample_metadata,
-                              self.observation_metadata, self.table_id)
+                              self.sample_ids[:], self.observation_metadata,
+                              self.sample_metadata, self.table_id)
 
     def iter_data(self, axis='sample'):
         """Yields axis values
@@ -715,8 +715,9 @@ class Table(object):
 
             return self.__class__(self._conv_to_self_type(vals,
                                                           transpose=True),
-                                  self.observation_ids[:], order[:], md,
-                                  self.observation_metadata, self.table_id)
+                                  self.observation_ids[:], order[:],
+                                  self.observation_metadata, md,
+                                  self.table_id)
         elif axis == 'observation':
             for id_ in order:
                 cur_idx = self.index(id_, 'observation')
@@ -730,7 +731,7 @@ class Table(object):
 
             return self.__class__(self._conv_to_self_type(vals),
                                   order[:], self.sample_ids[:],
-                                  self.sample_metadata, md, self.table_id)
+                                  md, self.sample_metadata, self.table_id)
         else:
             raise UnknownAxisError(axis)
 
@@ -856,7 +857,7 @@ class Table(object):
                 else:
                     samp_md = None
 
-            yield part, table_factory(data, obs_ids, samp_ids, samp_md, obs_md,
+            yield part, table_factory(data, obs_ids, samp_ids, obs_md, samp_md,
                                       self.table_id)
 
     def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
@@ -1067,7 +1068,7 @@ class Table(object):
 
         return table_factory(data, self.observation_id[:],
                              collapsed_sample_ids, self.observation_ids[:],
-                             collapsed_sample_md, self.observation_metadata,
+                             self.observation_metadata, collapsed_sample_md,
                              self.table_id, constructor=constructor)
 
     def collapse_observations_by_metadata(self, metadata_f, reduce_f=add,
@@ -1306,16 +1307,16 @@ class Table(object):
             return self.__class__(self._conv_to_self_type(new_m,
                                                           transpose=True),
                                   self.observation_ids[:], self.sample_ids[:],
-                                  self.sample_metadata,
-                                  self.observation_metadata, self.table_id)
+                                  self.observation_metadata,
+                                  self.sample_metadata, self.table_id)
         elif axis == 'observation':
             for obs_v, obs_id, obs_md in self.iter(axis='observation'):
                 new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
 
             return self.__class__(self._conv_to_self_type(new_m),
                                   self.observation_ids[:], self.sample_ids[:],
-                                  self.sample_metadata,
-                                  self.observation_metadata, self.table_id)
+                                  self.observation_metadata,
+                                  self.sample_metadata, self.table_id)
         else:
             raise UnknownAxisError(axis)
 
@@ -1595,7 +1596,7 @@ class Table(object):
             vals[new_obs_idx] = self._conv_to_self_type(new_vec)
 
         return self.__class__(self._conv_to_self_type(vals), obs_ids[:],
-                              sample_ids[:], sample_md, obs_md)
+                              sample_ids[:], obs_md, obs_md)
 
     @classmethod
     def from_hdf5(cls, h5grp, order='observation'):
@@ -1684,8 +1685,8 @@ class Table(object):
         else:
             matrix = csr_matrix(cs, shape=shape)
 
-        return table_factory(matrix, obs_ids, samp_ids,  samp_md or None,
-                             obs_md or None, type=type)
+        return table_factory(matrix, obs_ids, samp_ids,  obs_md or None,
+                             samp_md or None, type=type)
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
@@ -2066,8 +2067,8 @@ def list_dict_to_nparray(data, dtype=float):
     return mat
 
 
-def table_factory(data, observation_ids, sample_ids, sample_metadata=None,
-                  observation_metadata=None, table_id=None,
+def table_factory(data, observation_ids, sample_ids, observation_metadata=None,
+                  sample_metadata=None, table_id=None,
                   input_is_dense=False, transpose=False, **kwargs):
     """Construct a table
 
@@ -2105,8 +2106,8 @@ def table_factory(data, observation_ids, sample_ids, sample_metadata=None,
         t = table_factory(data,
                           observation_ids,
                           sample_ids,
-                          sample_md,
-                          observation_md)
+                          observation_md,
+                          sample_md)
     """
     if 'dtype' in kwargs:
         dtype = kwargs['dtype']
