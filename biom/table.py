@@ -27,11 +27,14 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
+from ._filter import filter_sparse_array
+
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
-               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka"]
+               "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
+               "Joshua Shorenstein", "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -203,35 +206,37 @@ class Table(object):
     def nnz(self):
         return self._data.nnz
 
-    def add_observation_metadata(self, md):
-        """Take a dict of metadata and add it to an observation.
-
-        ``md`` should be of the form ``{observation_id:{dict_of_metadata}}``
+    def add_metadata(self, md, axis='sample'):
+        """Take a dict of metadata and add it to an axis.
+        Parameters
+        ----------
+        md : dict of dict
+            ``md`` should be of the form ``{id:{dict_of_metadata}}``
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
-        if self.observation_metadata is not None:
-            for id_, md_entry in md.items():
-                if self.observation_exists(id_):
-                    idx = self.index(id_, 'observation')
-                    self.observation_metadata[idx].update(md_entry)
+        if axis == 'sample':
+            if self.sample_metadata is not None:
+                for id_, md_entry in md.iteritems():
+                    if self.exists(id_):
+                        idx = self.index(id_, 'sample')
+                        self.sample_metadata[idx].update(md_entry)
+            else:
+                self.sample_metadata = tuple([md[id_] if id_ in md else
+                                              None for id_ in self.sample_ids])
+        elif axis == 'observation':
+            if self.observation_metadata is not None:
+                for id_, md_entry in md.iteritems():
+                    if self.exists(id_, axis="observation"):
+                        idx = self.index(id_, 'observation')
+                        self.observation_metadata[idx].update(md_entry)
+            else:
+                self.observation_metadata = tuple([md[id_] if id_ in md else
+                                                   None for id_ in
+                                                   self.observation_ids])
         else:
-            self.observation_metadata = tuple([md[id_] if id_ in md else
-                                               None for id_ in
-                                               self.observation_ids])
-        self._cast_metadata()
+            raise UnknownAxisError(axis)
 
-    def add_sample_metadata(self, md):
-        """Take a dict of metadata and add it to a sample.
-
-        ``md`` should be of the form ``{sample_id:{dict_of_metadata}}``
-        """
-        if self.sample_metadata is not None:
-            for id_, md_entry in md.items():
-                if self.sample_exists(id_):
-                    idx = self.index(id_, 'sample')
-                    self.sample_metadata[idx].update(md_entry)
-        else:
-            self.sample_metadata = tuple([md[id_] if id_ in md else
-                                          None for id_ in self.sample_ids])
         self._cast_metadata()
 
     def __getitem__(self, args):
@@ -292,10 +297,10 @@ class Table(object):
         # np.apply_along_axis might reduce type conversions here and improve
         # speed. am opting for reduce right now as I think its more readable
         if axis == 'sample':
-            return asarray([reduce(f, v) for v in self.iter_sample_data()])
+            return asarray([reduce(f, v) for v in self.iter_data()])
         elif axis == 'observation':
             return asarray([reduce(f, v) for v in
-                            self.iter_observation_data()])
+                            self.iter_data(axis="observation")])
         else:
             raise TableException("Unknown reduction axis")
 
@@ -317,7 +322,7 @@ class Table(object):
         elif axis == 'observation':
             axis = 1
         else:
-            raise TableException("Unknown axis '%s'" % axis)
+            raise UnknownAxisError(axis)
 
         matrix_sum = np.squeeze(np.asarray(self._data.sum(axis=axis)))
 
@@ -414,13 +419,27 @@ class Table(object):
         """
         return self.delimited_self()
 
-    def sample_exists(self, id_):
-        """Returns True if sample ``id_`` exists, False otherwise"""
-        return id_ in self._sample_index
+    def exists(self, id_, axis="sample"):
+        """Returns whether id_ exists in axis
 
-    def observation_exists(self, id_):
-        """Returns True if observation ``id_`` exists, False otherwise"""
-        return id_ in self._obs_index
+        Parameters
+        ----------
+        id_: str
+            id to check if exists
+        axis : 'sample' or 'observation'
+            The axis to check
+
+        Returns
+        -------
+        bool
+            True if ``id_`` exists, False otherwise
+        """
+        if axis == "sample":
+            return id_ in self._sample_index
+        elif axis == "observation":
+            return id_ in self._obs_index
+        else:
+            raise UnknownAxisError(axis)
 
     def delimited_self(self, delim='\t', header_key=None, header_value=None,
                        metadata_formatter=str,
@@ -447,7 +466,6 @@ class Table(object):
             #OTU ID\tSample1\tSample2
             OTU1\t10\t2
             OTU2\t4\t8
-
         """
         if self.is_empty():
             raise TableException("Cannot delimit self if I don't have data...")
@@ -496,7 +514,7 @@ class Table(object):
 
     def __iter__(self):
         """Defined by subclass"""
-        return self.iter_samples()
+        return self.iter()
 
     def _iter_samp(self):
         """Return sample vectors of data matrix vectors"""
@@ -606,263 +624,240 @@ class Table(object):
                               self.sample_ids[:], self.sample_metadata,
                               self.observation_metadata, self.table_id)
 
-    def iter_sample_data(self):
-        """Yields sample values"""
-        for samp_v in self._iter_samp():
-            yield self._to_dense(samp_v)
+    def iter_data(self, axis='sample'):
+        """Yields axis values
 
-    def iter_observation_data(self):
-        """Yields observation values"""
-        for obs_v in self._iter_obs():
-            yield self._to_dense(obs_v)
+        Parameters
+        ----------
+        axis: 'sample' or 'observation'
+            axis to iterate over
 
-    def iter_samples(self, dense=True):
-        """Yields ``(sample_value, sample_id, sample_metadata)``
+        Returns
+        -------
+        generator
+            yields list of values for each value in 'axis'
 
-        NOTE: will return ``None`` in ``sample_metadata`` positions if
-        ``self.sample_metadata`` is set to ``None``
+        Raises
+        ------
+        UnknownAxisError
+            If axis other than 'sample' or 'observation' passed
         """
-        if self.sample_metadata is None:
-            samp_metadata = (None,) * len(self.sample_ids)
+        if axis == "sample":
+            for samp_v in self._iter_samp():
+                yield self._to_dense(samp_v)
+        elif axis == "observation":
+            for obs_v in self._iter_obs():
+                yield self._to_dense(obs_v)
         else:
-            samp_metadata = self.sample_metadata
+            raise UnknownAxisError(axis)
 
-        iterator = izip(self._iter_samp(), self.sample_ids, samp_metadata)
-        for samp_v, samp_id, samp_md in iterator:
-            if dense:
-                yield (self._to_dense(samp_v), samp_id, samp_md)
-            else:
-                yield (samp_v, samp_id, samp_md)
+    def iter(self, dense=True, axis='sample'):
+        """Yields ``(value, id, metadata)``
 
-    def iter_observations(self, dense=True):
-        """Yields ``(observation_value, observation_id, observation_metadata)``
+        NOTE: will return ``None`` in metadata positions if the corresponding
+        axis metadata metadata is set to ``None``
 
-        NOTE: will return ``None`` in ``observation_metadata`` positions if
-        ``self.observation_metadata`` is set to ``None``
+        Parameters
+        ----------
+        dense : bool
+            If True, yield values as a dense vector
+        axis : str, either 'sample' or 'observation'
+            The axis to iterate over
+
+        Returns
+        -------
+        GeneratorType
+            A generator that yields (values, id, metadata)
+
         """
-        if self.observation_metadata is None:
-            obs_metadata = (None,) * len(self.observation_ids)
+        if axis == 'sample':
+            ids = self.sample_ids
+            iter_ = self._iter_samp()
+            metadata = self.sample_metadata
+        elif axis == 'observation':
+            ids = self.observation_ids
+            iter_ = self._iter_obs()
+            metadata = self.observation_metadata
         else:
-            obs_metadata = self.observation_metadata
+            raise UnknownAxisError(axis)
 
-        iterator = izip(self._iter_obs(), self.observation_ids, obs_metadata)
-        for obs_v, obs_id, obs_md in iterator:
+        if metadata is None:
+            metadata = (None,) * len(ids)
+
+        for vals, id_, md in izip(iter_, ids, metadata):
             if dense:
-                yield (self._to_dense(obs_v), obs_id, obs_md)
-            else:
-                yield (obs_v, obs_id, obs_md)
+                vals = self._to_dense(vals)
 
-    def sort_sample_order(self, sample_order):
-        """Return a new table with samples in ``sample_order``"""
-        samp_md = []
+            yield (vals, id_, md)
+
+    def sort_order(self, order, axis='sample'):
+        """Return a new table with `axis` in `order`
+
+        Parameters
+        ----------
+        order : iterable
+            The desired order for axis
+        axis : 'sample' or 'observation'
+            The axis to operate on
+        """
+        md = []
         vals = []
+        if axis == 'sample':
+            for id_ in order:
+                cur_idx = self.index(id_, 'sample')
+                vals.append(self._to_dense(self[:, cur_idx]))
 
-        for id_ in sample_order:
-            cur_idx = self.index(id_, 'sample')
-            vals.append(self._to_dense(self[:, cur_idx]))
+                if self.sample_metadata is not None:
+                    md.append(self.sample_metadata[cur_idx])
 
-            if self.sample_metadata is not None:
-                samp_md.append(self.sample_metadata[cur_idx])
+            if not md:
+                md = None
 
-        if not samp_md:
-            samp_md = None
+            return self.__class__(self._conv_to_self_type(vals,
+                                                          transpose=True),
+                                  self.observation_ids[:], order[:], md,
+                                  self.observation_metadata, self.table_id)
+        elif axis == 'observation':
+            for id_ in order:
+                cur_idx = self.index(id_, 'observation')
+                vals.append(self[cur_idx, :])
 
-        return self.__class__(self._conv_to_self_type(vals, transpose=True),
-                              self.observation_ids[:], sample_order[:],
-                              samp_md,
-                              self.observation_metadata, self.table_id)
+                if self.observation_metadata is not None:
+                    md.append(self.observation_metadata[cur_idx])
 
-    def sort_observation_order(self, obs_order):
-        """Return a new table with observations in ``observation order``"""
-        obs_md = []
-        vals = []
+            if not md:
+                md = None
 
-        for id_ in obs_order:
-            cur_idx = self.index(id_, 'observation')
-            vals.append(self[cur_idx, :])
+            return self.__class__(self._conv_to_self_type(vals),
+                                  order[:], self.sample_ids[:],
+                                  self.sample_metadata, md, self.table_id)
+        else:
+            raise UnknownAxisError(axis)
 
-            if self.observation_metadata is not None:
-                obs_md.append(self.observation_metadata[cur_idx])
+    def sort(self, sort_f=natsort, axis='sample'):
+        """Return a table sorted along axis
 
-        if not obs_md:
-            obs_md = None
-
-        return self.__class__(self._conv_to_self_type(vals),
-                              obs_order[:], self.sample_ids[:],
-                              self.sample_metadata, obs_md,
-                              self.table_id)
-
-    def sort_by_sample_id(self, sort_f=natsort):
-        """Return a table where samples are sorted by ``sort_f``
-
-            ``sort_f`` must take a single parameter: the list of sample ids
+        Parameters
+        ----------
+        sort_f : function
+            A function that takes a list of values and sorts it
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
-        return self.sort_sample_order(sort_f(self.sample_ids))
+        if axis == 'sample':
+            return self.sort_order(sort_f(self.sample_ids))
+        elif axis == 'observation':
+            return self.sort_order(sort_f(self.observation_ids),
+                                   axis='observation')
+        else:
+            raise UnknownAxisError(axis)
 
-    def sort_by_observation_id(self, sort_f=natsort):
-        """Return a table where observations are sorted by ``sort_f``
+    def filter(self, ids_to_keep, axis, invert=False):
+        """Filter in place a table based on a function or iterable.
 
-            ``sort_f`` must take a single parameter: the list of observation
-            ids
+        Parameters
+        ----------
+        ids_to_keep : function or iterable
+            If a function, it will be called with the id (a string)
+            and the dictionary of metadata of each sample, and must
+            return a boolean.
+            If it's an iterable, it will be converted to an array of
+            bools.
+        axis : str
+            It controls whether to filter samples or observations. Can
+            be "sample" or "observation".
+        invert : bool
+            If set to True, discard samples or observations where
+            `ids_to_keep` returns True
         """
-        return self.sort_observation_order(sort_f(self.observation_ids))
+        if axis == 'sample':
+            axis = 1
+            ids = self.sample_ids
+            metadata = self.sample_metadata
+        elif axis == 'observation':
+            axis = 0
+            ids = self.observation_ids
+            metadata = self.observation_metadata
+        else:
+            raise ValueError("Unsupported axis")
 
-    # a good refactor in the future is a general filter() method and then
-    # specify the axis, like Table.reduce
+        arr = self._data
+        arr, ids, metadata = filter_sparse_array(arr,
+                                                 ids,
+                                                 metadata,
+                                                 ids_to_keep,
+                                                 axis,
+                                                 invert=invert)
 
-    # take() is tempting here as well...
-    def filter_samples(self, f, invert=False):
-        """Filter samples from self based on ``f``
+        self._data = arr
+        if axis == 1:
+            self.sample_ids = ids
+            self.sample_metadata = metadata
+        elif axis == 0:
+            self.observation_ids = ids
+            self.observation_metadata = metadata
 
-        ``f`` must accept three variables, the sample values, sample ID and
-        sample metadata. The function must only return ``True`` or ``False``,
-        where ``True`` indicates that a sample should be retained.
+    def partition(self, f, axis='sample'):
+        """Yields partitions
 
-        invert: if ``invert == True``, a return value of ``True`` from ``f``
-        indicates that a sample should be discarded
+        Parameters
+        ----------
+        f : function
+            ``f`` is given the ID and metadata of the vector and must return
+            what partition the vector is part of.
+        axis : str, either 'sample' or 'observation'
+            The axis to iterate over
+
+        Returns
+        -------
+        GeneratorType
+            A generator that yields `Table`
+
         """
-        samp_ids = []
-        samp_vals = []
-        samp_metadata = []
-
-        # builtin filter puts all of this into memory and then return to the
-        # for loop. This will impact memory substantially on large sparse
-        # matrices
-        for s_val, s_id, s_md in self.iter_samples():
-            if not xor(f(s_val, s_id, s_md), invert):
-                continue
-
-            # there is an implicit conversion to numpy types, want to make
-            # sure to convert back to underlying representation.
-            samp_vals.append(self._conv_to_self_type(s_val))
-            samp_metadata.append(s_md)
-            samp_ids.append(s_id)
-
-        # if we don't have any values to keep, throw an exception as we can
-        # create an inconsistancy in which there are observation ids but no
-        # matrix data in the resulting table
-        if not samp_ids:
-            raise TableException("All samples were filtered out!")
-
-        # the additional call to _conv_to_self_type is to convert a list of
-        # vectors to a matrix
-        # transpose is necessary as the underlying storage is sample == col
-        return self.__class__(
-            self._conv_to_self_type(samp_vals, transpose=True),
-            self.observation_ids[:], samp_ids[:], samp_metadata,
-            self.observation_metadata, self.table_id)
-
-    def filter_observations(self, f, invert=False):
-        """Filter observations from self based on ``f``
-
-        ``f`` must accept three variables, the observation values, observation
-        ID and observation metadata. The function must only return ``True`` or
-        ``False``, where ``True`` indicates that an observation should be
-        retained.
-
-        invert: if ``invert == True``, a return value of ``True`` from ``f``
-        indicates that an observation should be discarded
-        """
-        obs_ids = []
-        obs_vals = []
-        obs_metadata = []
-
-        # builtin filter puts all of this into memory and then return to the
-        # for loop. This will impact memory substantially on large sparse
-        # matrices
-        for o_val, o_id, o_md in self.iter_observations():
-            if not xor(f(o_val, o_id, o_md), invert):
-                continue
-
-            # there is an implicit converstion to numpy types, want to make
-            # sure to convert back to underlying representation.
-            obs_vals.append(self._conv_to_self_type(o_val))
-            obs_metadata.append(o_md)
-            obs_ids.append(o_id)
-
-        # if we don't have any values to keep, throw an exception as we can
-        # create an inconsistancy in which there are sample ids but no
-        # matrix data in the resulting table
-        if not obs_vals:
-            raise TableException("All observations were filtered out!")
-
-        return self.__class__(
-            self._conv_to_self_type(obs_vals), obs_ids[:], self.sample_ids[:],
-            self.sample_metadata, obs_metadata, self.table_id)
-
-    def bin_samples_by_metadata(self, f, constructor=None):
-        """Yields tables by metadata
-
-        ``f`` is given the sample metadata by row and must return what "bin"
-        the sample is part of.
-
-        ``constructor``: the type of binned tables to create, e.g.
-        SparseTaxonTable. If None, the binned tables will be the same type as
-        this table.
-        """
-        if constructor is None:
-            constructor = self.__class__
-
-        bins = {}
+        partitions = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for samp_v, samp_id, samp_md in self.iter_samples(dense=False):
-            bin = f(samp_md)
+        for vals, id_, md in self.iter(dense=False, axis=axis):
+            part = f(id_, md)
 
             # try to make it hashable...
-            if not isinstance(bin, Hashable):
-                bin = tuple(bin)
+            if not isinstance(part, Hashable):
+                part = tuple(part)
 
-            if bin not in bins:
-                bins[bin] = [[], [], []]
+            if part not in partitions:
+                partitions[part] = [[], [], []]
 
-            bins[bin][0].append(samp_id)
-            bins[bin][1].append(samp_v)
-            bins[bin][2].append(samp_md)
+            partitions[part][0].append(id_)
+            partitions[part][1].append(vals)
+            partitions[part][2].append(md)
 
-        for bin, (samp_ids, samp_values, samp_md) in bins.iteritems():
-            data = self._conv_to_self_type(samp_values, transpose=True)
-            yield bin, table_factory(data, self.observation_ids[:],
-                                     samp_ids[:], samp_md,
-                                     self.observation_metadata,
-                                     self.table_id,
-                                     constructor=constructor)
+        for part, (ids, values, metadata) in partitions.iteritems():
+            if axis == 'sample':
+                data = self._conv_to_self_type(values, transpose=True)
 
-    def bin_observations_by_metadata(self, f, constructor=None):
-        """Yields tables by metadata
+                samp_ids = ids
+                samp_md = metadata
+                obs_ids = self.observation_ids[:]
 
-        ``f`` is given the observation metadata by row and must return what
-        "bin" the observation is part of.
+                if self.observation_metadata is not None:
+                    obs_md = self.observation_metadata[:]
+                else:
+                    obs_md = None
 
-        ``constructor``: the type of binned tables to create, e.g.
-        SparseTaxonTable. If None, the binned tables will be the same type as
-        this table.
-        """
-        if constructor is None:
-            constructor = self.__class__
+            elif axis == 'observation':
+                data = self._conv_to_self_type(values, transpose=False)
 
-        bins = {}
-        # conversion of vector types is not necessary, vectors are not
-        # being passed to an arbitrary function
-        for obs_v, obs_id, obs_md in self.iter_observations(dense=False):
-            bin = f(obs_md)
+                obs_ids = ids
+                obs_md = metadata
+                samp_ids = self.sample_ids[:]
 
-            # try to make it hashable...
-            if not isinstance(bin, Hashable):
-                bin = tuple(bin)
+                if self.sample_metadata is not None:
+                    samp_md = self.sample_metadata[:]
+                else:
+                    samp_md = None
 
-            if bin not in bins:
-                bins[bin] = [[], [], []]
-
-            bins[bin][0].append(obs_id)
-            bins[bin][1].append(obs_v)
-            bins[bin][2].append(obs_md)
-
-        for bin, (obs_ids, obs_values, obs_md) in bins.iteritems():
-            yield bin, table_factory(self._conv_to_self_type(obs_values),
-                                     obs_ids[:], self.sample_ids[:],
-                                     self.sample_metadata, obs_md,
-                                     self.table_id, constructor=constructor)
+            yield part, table_factory(data, obs_ids, samp_ids, samp_md, obs_md,
+                                      self.table_id)
 
     def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
                                      min_group_size=2,
@@ -1004,7 +999,7 @@ class Table(object):
             # for each sample
             # for each bin in the metadata
             # for each value associated with the sample
-            for s_v, s_id, s_md in self.iter_samples():
+            for s_v, s_id, s_md in self.iter():
                 md_iter = metadata_f(s_md)
                 while True:
                     try:
@@ -1219,7 +1214,7 @@ class Table(object):
             # for each observation
             # for each bin in the metadata
             # for each value associated with the observation
-            for obs_v, obs_id, obs_md in self.iter_observations():
+            for obs_v, obs_id, obs_md in self.iter(axis='observation'):
                 md_iter = metadata_f(obs_md)
                 while True:
                     try:
@@ -1291,62 +1286,63 @@ class Table(object):
                              self.table_id,
                              constructor=constructor)
 
-    def transform_samples(self, f):
-        """Iterate over samples, applying a function ``f`` to each value
+    def transform(self, f, axis='sample'):
+        """Itearte over `axis`, applying a function `f` to each value
 
-        ``f`` must take three values: a sample value (int or float), a sample
-        id, and a sample metadata entry, and return a single value (int or
-        float) that replaces the provided sample value
+        Parameters
+        ----------
+        f : function
+            A function that takes three values: an observation/sample value
+            (int or float), an observation/sample id and a observation/sample
+            metadata entry, and return a single value (int or float) that
+            replaces the provided observation/sample value
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
         new_m = []
+        if axis == 'sample':
+            for s_v, s_id, s_md in self.iter():
+                new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
+            return self.__class__(self._conv_to_self_type(new_m,
+                                                          transpose=True),
+                                  self.sample_ids[:], self.observation_ids[:],
+                                  self.sample_metadata,
+                                  self.observation_metadata, self.table_id)
+        elif axis == 'observation':
+            for obs_v, obs_id, obs_md in self.iter(axis='observation'):
+                new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
 
-        for s_v, s_id, s_md in self.iter_samples():
-            new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
+            return self.__class__(self._conv_to_self_type(new_m),
+                                  self.observation_ids[:], self.sample_ids[:],
+                                  self.sample_metadata,
+                                  self.observation_metadata, self.table_id)
+        else:
+            raise UnknownAxisError(axis)
 
-        return self.__class__(self._conv_to_self_type(new_m, transpose=True),
-                              self.observation_ids[:], self.sample_ids[:],
-                              self.sample_metadata, self.observation_metadata,
-                              self.table_id)
+    def norm(self, axis='sample'):
+        """Normalize sample values by an observation, or vice versa
 
-    def transform_observations(self, f):
-        """Iterate over observations, applying a function ``f`` to each value
+        Parameters
+        ----------
+        axis : 'sample' or 'observation'
+            The axis to use for normalization
 
-        ``f`` must take three values: an observation value (int or float), an
-        observation id, and an observation metadata entry, and return a single
-        value (int or float) that replaces the provided observation value
-
+        Returns
+        -------
+        `Table`
+            A new table with values normalized over the specified axis
         """
-        new_m = []
+        def f(val, id_, _):
+            return val / float(val.sum())
 
-        for obs_v, obs_id, obs_md in self.iter_observations():
-            new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
-
-        return self.__class__(
-            self._conv_to_self_type(new_m), self.observation_ids[:],
-            self.sample_ids[:], self.sample_metadata,
-            self.observation_metadata, self.table_id)
-
-    def norm_observation_by_sample(self):
-        """Return new table with vals as relative abundances within each sample
-        """
-        def f(samp_v, samp_id, samp_md):
-            return samp_v / float(samp_v.sum())
-        return self.transform_samples(f)
-
-    def norm_sample_by_observation(self):
-        """Return new table with vals as relative abundances within each obs
-        """
-        def f(obs_v, obs_id, obs_md):
-            return obs_v / float(obs_v.sum())
-        # f = lambda x: x / float(x.sum())
-        return self.transform_observations(f)
+        return self.transform(f, axis=axis)
 
     def norm_observation_by_metadata(self, obs_metadata_id):
         """Return new table with vals divided by obs_metadata_id
         """
         def f(obs_v, obs_id, obs_md):
             return obs_v / obs_md[obs_metadata_id]
-        return self.transform_observations(f)
+        return self.transform(f, axis='observation')
 
     def nonzero(self):
         """Returns locations of nonzero elements within the data matrix
@@ -1355,7 +1351,7 @@ class Table(object):
         """
         # this is naively implemented. If performance is a concern, private
         # methods can be written to hit against the underlying types directly
-        for o_idx, samp_vals in enumerate(self.iter_observation_data()):
+        for o_idx, samp_vals in enumerate(self.iter_data(axis="observation")):
             for s_idx in samp_vals.nonzero()[0]:
                 yield (self.observation_ids[o_idx], self.sample_ids[s_idx])
 
@@ -1377,16 +1373,16 @@ class Table(object):
         if axis is 'sample':
             # can use np.bincount for CSMat or ScipySparse
             result = zeros(len(self.sample_ids), dtype=dtype)
-            for idx, vals in enumerate(self.iter_sample_data()):
+            for idx, vals in enumerate(self.iter_data()):
                 result[idx] = op(vals)
         elif axis is 'observation':
             # can use np.bincount for CSMat or ScipySparse
             result = zeros(len(self.observation_ids), dtype=dtype)
-            for idx, vals in enumerate(self.iter_observation_data()):
+            for idx, vals in enumerate(self.iter_data(axis="observation")):
                 result[idx] = op(vals)
         else:
             result = zeros(1, dtype=dtype)
-            for vals in self.iter_sample_data():
+            for vals in self.iter_data():
                 result[0] += op(vals)
 
         return result
@@ -1495,13 +1491,13 @@ class Table(object):
             sample_ids.append(id_)
 
             # if we have sample metadata, grab it
-            if self.sample_metadata is None or not self.sample_exists(id_):
+            if self.sample_metadata is None or not self.exists(id_):
                 self_md = None
             else:
                 self_md = self.sample_metadata[self_samp_idx[id_]]
 
             # if we have sample metadata, grab it
-            if other.sample_metadata is None or not other.sample_exists(id_):
+            if other.sample_metadata is None or not other.exists(id_):
                 other_md = None
             else:
                 other_md = other.sample_metadata[other_samp_idx[id_]]
@@ -1517,14 +1513,14 @@ class Table(object):
 
             # if we have observation metadata, grab it
             if self.observation_metadata is None or \
-               not self.observation_exists(id_):
+               not self.exists(id_, axis="observation"):
                 self_md = None
             else:
                 self_md = self.observation_metadata[self_obs_idx[id_]]
 
             # if we have observation metadata, grab it
             if other.observation_metadata is None or \
-                    not other.observation_exists(id_):
+                    not other.exists(id_, axis="observation"):
                 other_md = None
             else:
                 other_md = other.observation_metadata[other_obs_idx[id_]]
@@ -1545,14 +1541,14 @@ class Table(object):
 
             # see if the observation exists in other, if so, pull it out.
             # if not, set to the placeholder missing
-            if other.observation_exists(obs_id):
+            if other.exists(obs_id, axis="observation"):
                 other_vec = other.observation_data(obs_id)
             else:
                 other_vec = None
 
             # see if the observation exists in self, if so, pull it out.
             # if not, set to the placeholder missing
-            if self.observation_exists(obs_id):
+            if self.exists(obs_id, axis="observation"):
                 self_vec = self.observation_data(obs_id)
             else:
                 self_vec = None
@@ -1857,13 +1853,13 @@ class Table(object):
         # data.
         biom_format_obj["rows"] = []
         biom_format_obj["data"] = []
-        for obs_index, obs in enumerate(self.iter_observations()):
+        for obs_index, obs in enumerate(self.iter(axis='observation')):
             biom_format_obj["rows"].append(
                 {"id": "%s" % obs[1], "metadata": obs[2]})
             # If the matrix is dense, simply convert the numpy array to a list
             # of data values. If the matrix is sparse, we need to store the
             # data in sparse format, as it is given to us in a numpy array in
-            # dense format (i.e. includes zeroes) by iter_observations().
+            # dense format (i.e. includes zeroes) by iter().
             dense_values = list(obs[0])
             sparse_values = []
             for col_index, val in enumerate(dense_values):
@@ -1874,7 +1870,7 @@ class Table(object):
 
         # Fill in details about the columns in the table.
         biom_format_obj["columns"] = []
-        for samp in self.iter_samples():
+        for samp in self.iter():
             biom_format_obj["columns"].append(
                 {"id": "%s" % samp[1], "metadata": samp[2]})
 
@@ -1958,7 +1954,7 @@ class Table(object):
         max_col_idx = len(self.sample_ids) - 1
         rows = ['"rows": [']
         have_written = False
-        for obs_index, obs in enumerate(self.iter_observations()):
+        for obs_index, obs in enumerate(self.iter(axis='observation')):
             # i'm crying on the inside
             if obs_index != max_row_idx:
                 rows.append('{"id": "%s", "metadata": %s},' % (obs[1],
@@ -1998,7 +1994,7 @@ class Table(object):
 
         # Fill in details about the columns in the table.
         columns = ['"columns": [']
-        for samp_index, samp in enumerate(self.iter_samples()):
+        for samp_index, samp in enumerate(self.iter()):
             if samp_index != max_col_idx:
                 columns.append('{"id": "%s", "metadata": %s},' % (samp[1],
                                                                   dumps(
