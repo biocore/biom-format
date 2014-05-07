@@ -1330,23 +1330,27 @@ class SparseTableTests(TestCase):
                           lambda: self.st_rich.filter(lambda id_, md: False,
                                                       'observation'))
 
-    def test_transform_observations(self):
-        """Transform observations by arbitrary function"""
-        def transform_f(v, id, md):
+    def test_transform(self):
+        """Transform axis by arbitrary function"""
+        # Transform observations by arbitrary function
+        def obs_transform_f(v, id, md):
             return np.where(v >= 7, 1, 0)
         sp_sd = to_sparse({(0, 0): 0, (0, 1): 0, (1, 0): 1, (1, 1): 1})
         exp = Table(sp_sd, ['a', 'b'], ['1', '2'])
-        obs = self.st1.transform_observations(transform_f)
+        obs = self.st1.transform(obs_transform_f, axis='observation')
         self.assertEqual(obs, exp)
 
-    def test_transform_samples(self):
-        """Transform samples by arbitrary function"""
-        def transform_f(v, id, md):
+        # """Transform samples by arbitrary function"""
+        def sample_transform_f(v, id, md):
             return np.where(v >= 6, 1, 0)
         sp_sd = to_sparse({(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 1})
         exp = Table(sp_sd, ['a', 'b'], ['1', '2'])
-        obs = self.st1.transform_samples(transform_f)
+        obs = self.st1.transform(sample_transform_f)
         self.assertEqual(obs, exp)
+
+        # Raises UnknownAxisError if a invalid axis is passed
+        with self.assertRaises(UnknownAxisError):
+            self.st1.transform(sample_transform_f, axis='foo')
 
     def test_norm_observation_by_sample(self):
         """normalize observations by sample"""
