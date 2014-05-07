@@ -1287,7 +1287,7 @@ class Table(object):
                              constructor=constructor)
 
     def transform(self, f, axis='sample'):
-        """Itearte over `axis`, applying a function `f` to each value
+        """Iterate over `axis`, applying a function `f` to each value
 
         Parameters
         ----------
