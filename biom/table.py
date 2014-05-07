@@ -513,7 +513,7 @@ class Table(object):
 
     def __iter__(self):
         """Defined by subclass"""
-        return self.iter(axis='sample')
+        return self.iter()
 
     def _iter_samp(self):
         """Return sample vectors of data matrix vectors"""
@@ -796,7 +796,7 @@ class Table(object):
         bins = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
-        for samp_v, samp_id, samp_md in self.iter(dense=False, axis='sample'):
+        for samp_v, samp_id, samp_md in self.iter(dense=False):
             bin = f(samp_md)
 
             # try to make it hashable...
@@ -996,7 +996,7 @@ class Table(object):
             # for each sample
             # for each bin in the metadata
             # for each value associated with the sample
-            for s_v, s_id, s_md in self.iter(axis='sample'):
+            for s_v, s_id, s_md in self.iter():
                 md_iter = metadata_f(s_md)
                 while True:
                     try:
