@@ -1359,7 +1359,7 @@ class SparseTableTests(TestCase):
             {(0, 0): 0.25, (0, 1): 0.0, (1, 0): 0.75, (1, 1): 1.0})
         st = Table(data, ['a', 'b'], ['1', '2'])
         exp = Table(data_exp, ['a', 'b'], ['1', '2'])
-        obs = st.norm_observation_by_sample()
+        obs = st.norm()
         self.assertEqual(obs, exp)
 
     def test_norm_observation_by_metadata(self):
@@ -1381,7 +1381,7 @@ class SparseTableTests(TestCase):
             {(0, 0): 0.0, (0, 1): 1.0, (1, 0): 0.25, (1, 1): 0.75})
         st = Table(data, ['a', 'b'], ['1', '2'])
         exp = Table(data_exp, ['a', 'b'], ['1', '2'])
-        obs = st.norm_sample_by_observation()
+        obs = st.norm(axis='observation')
         self.assertEqual(obs, exp)
 
     def test_bin_samples_by_metadata(self):
