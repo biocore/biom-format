@@ -844,8 +844,10 @@ class SparseTableTests(TestCase):
 
         npt.assert_equal(obs.sample_ids, self.st1.observation_ids)
         npt.assert_equal(obs.observation_ids, self.st1.sample_ids)
-        npt.assert_equal(obs.sample_data('1'), self.st1.observation_data('1'))
-        npt.assert_equal(obs.sample_data('2'), self.st1.observation_data('2'))
+        npt.assert_equal(obs.data('1', 'sample'),
+                         self.st1.data('1', 'observation'))
+        npt.assert_equal(obs.data('2', 'sample'),
+                         self.st1.data('2', 'observation'))
         self.assertEqual(obs.transpose(), self.st1)
 
         obs = self.st_rich.transpose()
@@ -856,10 +858,10 @@ class SparseTableTests(TestCase):
                          self.st_rich.observation_metadata)
         self.assertEqual(obs.observation_metadata,
                          self.st_rich.sample_metadata)
-        npt.assert_equal(obs.sample_data('1'),
-                         self.st_rich.observation_data('1'))
-        npt.assert_equal(obs.sample_data('2'),
-                         self.st_rich.observation_data('2'))
+        npt.assert_equal(obs.data('1', 'sample'),
+                         self.st_rich.data('1', 'observation'))
+        npt.assert_equal(obs.data('2', 'sample'),
+                         self.st_rich.data('2', 'observation'))
         self.assertEqual(obs.transpose(), self.st_rich)
 
     def test_sort_order(self):
@@ -1042,19 +1044,25 @@ class SparseTableTests(TestCase):
         # test 12
         self.assertRaises(TableException, self.st1.merge, self.st4, u, i)
 
-    def test_sample_data(self):
-        """tested in derived class"""
+    def test_data(self):
+        """"""
+        # Returns observations for a given sample
         exp = np.array([5, 7])
-        obs = self.st1.sample_data('a')
+        obs = self.st1.data('a', 'sample')
         npt.assert_equal(obs, exp)
-        self.assertRaises(UnknownIDError, self.st1.sample_data, 'asdasd')
+        with self.assertRaises(UnknownIDError):
+            self.st1.data('asdasd', 'sample')
 
-    def test_observation_data(self):
-        """tested in derived class"""
+        # Returns samples for a given observation
         exp = np.array([5, 6])
-        obs = self.st1.observation_data('1')
+        obs = self.st1.data('1', 'observation')
         npt.assert_equal(obs, exp)
-        self.assertRaises(UnknownIDError, self.st1.observation_data, 'asdsad')
+        with self.assertRaises(UnknownIDError):
+            self.st1.data('asdsad', 'observation')
+
+        # Raises an error with unknown axis
+        with self.assertRaises(UnknownAxisError):
+            obs = self.st1.data('a', axis='foo')
 
     def test_delimited_self(self):
         """Print out self in a delimited form"""
@@ -1362,18 +1370,6 @@ class SparseTableTests(TestCase):
         st = Table(data, ['a', 'b'], ['1', '2'])
         exp = Table(data_exp, ['a', 'b'], ['1', '2'])
         st.norm()
-        self.assertEqual(st, exp)
-
-    def test_norm_observation_by_metadata(self):
-        """normalize observations by sample"""
-        data = to_sparse({(0, 0): 6, (0, 1): 0, (1, 0): 6, (1, 1): 1})
-        data_exp = to_sparse(
-            {(0, 0): 2., (0, 1): 0.0, (1, 0): 3.0, (1, 1): 0.5})
-        st = Table(data, ['a', 'b'], ['1', '2'],
-                   [{}, {}], [{'CopyNumber': 3}, {'CopyNumber': 2}])
-        exp = Table(data_exp, ['a', 'b'], ['1', '2'],
-                    [{}, {}], [{'CopyNumber': 3}, {'CopyNumber': 2}])
-        st.norm_observation_by_metadata('CopyNumber')
         self.assertEqual(st, exp)
 
     def test_norm_sample_by_observation(self):

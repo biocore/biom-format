@@ -609,13 +609,28 @@ class Table(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def sample_data(self, id_):
-        """Return observations associated with sample id ``id_``"""
-        return self._to_dense(self[:, self.index(id_, 'sample')])
+    def data(self, id_, axis):
+        """Returns observations associated with sample id `id_` or
+        samples associated with observation id `id_`
 
-    def observation_data(self, id_):
-        """Return samples associated with observation id ``id_``"""
-        return self._to_dense(self[self.index(id_, 'observation'), :])
+        Parameters
+        ----------
+        id_ : str
+            ID of the sample or observation whose index will be returned.
+        axis : {'sample', 'observation'}
+            Axis to search for `id_`.
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+        """
+        if axis == 'sample':
+            return self._to_dense(self[:, self.index(id_, 'sample')])
+        elif axis == 'observation':
+            return self._to_dense(self[self.index(id_, 'observation'), :])
+        else:
+            raise UnknownAxisError(axis)
 
     def copy(self):
         """Returns a copy of the table"""
@@ -1335,13 +1350,6 @@ class Table(object):
 
         self.transform(f, axis=axis)
 
-    def norm_observation_by_metadata(self, obs_metadata_id):
-        """Modify table in place with vals divided by obs_metadata_id.
-        """
-        def f(obs_v, obs_id, obs_md):
-            return obs_v / obs_md[obs_metadata_id]
-        self.transform(f, axis='observation')
-
     def nonzero(self):
         """Returns locations of nonzero elements within the data matrix
 
@@ -1540,14 +1548,14 @@ class Table(object):
             # see if the observation exists in other, if so, pull it out.
             # if not, set to the placeholder missing
             if other.exists(obs_id, axis="observation"):
-                other_vec = other.observation_data(obs_id)
+                other_vec = other.data(obs_id, 'observation')
             else:
                 other_vec = None
 
             # see if the observation exists in self, if so, pull it out.
             # if not, set to the placeholder missing
             if self.exists(obs_id, axis="observation"):
-                self_vec = self.observation_data(obs_id)
+                self_vec = self.data(obs_id, 'observation')
             else:
                 self_vec = None
 
