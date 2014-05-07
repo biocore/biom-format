@@ -1172,12 +1172,12 @@ class SparseTableTests(TestCase):
 
     def test_iter_samples(self):
         """Iterates samples"""
-        gen = self.st1.iter(axis='sample')
+        gen = self.st1.iter()
         exp = [(np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)]
         obs = list(gen)
         npt.assert_equal(obs, exp)
 
-        gen = self.st_rich.iter(axis='sample')
+        gen = self.st_rich.iter()
         exp = [(np.array([5, 7]), 'a', {'barcode': 'aatt'}),
                (np.array([6, 8]), 'b', {'barcode': 'ttgg'})]
         obs = list(gen)
@@ -1186,7 +1186,7 @@ class SparseTableTests(TestCase):
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
         vals = {(0, 0): 5, (0, 1): 6, (1, 1): 8}
         st = Table(to_sparse(vals), ['a', 'b'], ['1', '2'])
-        gen = st.iter(axis='sample')
+        gen = st.iter()
         exp = [(np.array([5, 0]), 'a', None), (np.array([6, 8]), 'b', None)]
         obs = list(gen)
         npt.assert_equal(obs, exp)
