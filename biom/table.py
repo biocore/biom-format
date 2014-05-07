@@ -963,6 +963,22 @@ class Table(object):
             raise ValueError("Unrecognized one-to-many mode '%s'. Must be "
                              "either 'add' or 'divide'." % one_to_many_mode)
 
+        # transpose is only necessary in the one-to-one case
+        # new_data_shape is only necessary in the one-to-many case
+        # axis_slice is only necessary in the one-to-many case
+        if axis == 'sample':
+            axis_ids_md = lambda t: (t.sample_ids, t.sample_metadata)
+            transpose = True
+            new_data_shape = lambda ids, collapsed: (len(ids), len(collapsed))
+            axis_slice = lambda lookup, key: (slice(None), lookup[key])
+        elif axis == 'observation':
+            axis_ids_md = lambda t: (t.observation_ids, t.observation_metadata)
+            transpose = False
+            new_data_shape = lambda ids, collapsed: (len(collapsed), len(ids))
+            axis_slice = lambda lookup, key: (lookup[key], slice(None))
+        else:
+            raise UnknownAxisError(axis)
+
         if one_to_many:
             if norm:
                 raise AttributeError(
@@ -973,14 +989,7 @@ class Table(object):
             new_md = {}
             md_count = {}
 
-            if axis == 'sample':
-                iter_ = izip(self.sample_ids, self.sample_metadata)
-            elif axis == 'observation':
-                iter_ = izip(self.observation_ids, self.observation_metadata)
-            else:
-                raise UnknownAxisError(axis)
-
-            for id_, md in iter_:
+            for id_, md in izip(*axis_ids_md(self)):
                 md_iter = f(id_, md)
                 num_md = 0
                 while True:
@@ -1004,9 +1013,7 @@ class Table(object):
 
                 md_count[id_] = num_md
 
-            n_md = len(new_md)
-            idx_lookup = dict([(partition, i) for i, partition in
-                               enumerate(sorted(new_md))])
+            idx_lookup = {part: i for i, part in enumerate(sorted(new_md))}
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
@@ -1015,15 +1022,12 @@ class Table(object):
             else:
                 dtype = self.dtype
 
-            if axis == 'sample':
-                new_data = zeros((len(self.observation_ids), n_md),
-                                 dtype=dtype)
-            else:
-                new_data = zeros((n_md, len(self.sample_ids)), dtype=dtype)
+            new_data = zeros(new_data_shape(axis_ids_md(self)[0], new_md),
+                             dtype=dtype)
 
-            # for each sample
+            # for each vector
             # for each bin in the metadata
-            # for each value associated with the sample
+            # for each partition associated with the vector
             for vals, id_, md in self.iter(axis=axis):
                 md_iter = f(id_, md)
 
@@ -1035,8 +1039,8 @@ class Table(object):
                         if strict:
                             # bail if strict, should never get here...
                             err = "Incomplete pathway, ID: %s, metadata: %s" %\
-                                  (id_,md)
-                            raise IndexError, err
+                                  (id_, md)
+                            raise IndexError(err)
                         else:
                             # otherwise ignore
                             continue
@@ -1044,18 +1048,10 @@ class Table(object):
                         break
 
                     if one_to_many_mode == 'add':
-                        if axis == 'sample':
-                            new_data[:, idx_lookup[part]] += vals
-                        else:
-                            new_data[idx_lookup[part], :] += vals
-
+                        new_data[axis_slice(idx_lookup, part)] += vals
                     elif one_to_many_mode == 'divide':
-                        if axis == 'sample':
-                            new_data[:, idx_lookup[part]] += \
-                                vals / md_count[id_]
-                        else:
-                            new_data[idx_lookup[part], :] += \
-                                vals / md_count[id_]
+                        new_data[axis_slice(idx_lookup, part)] += \
+                            vals / md_count[id_]
                     else:
                         # Should never get here.
                         raise ValueError("Unrecognized one-to-many mode '%s'. "
@@ -1065,8 +1061,7 @@ class Table(object):
             if include_collapsed_metadata:
                 # reassociate pathway information
                 for k, i in sorted(idx_lookup.items(), key=itemgetter(1)):
-                    collapsed_md.append(
-                        {one_to_many_md_key: new_md[k]})
+                    collapsed_md.append({one_to_many_md_key: new_md[k]})
 
             # get the new sample IDs
             collapsed_ids = [k for k, i in sorted(idx_lookup.items(),
@@ -1075,15 +1070,8 @@ class Table(object):
             # convert back to self type
             data = self._conv_to_self_type(new_data)
         else:
-            if axis == 'sample':
-                axis_f = lambda t: (t.sample_ids, t.sample_metadata)
-                transpose = True
-            else:
-                axis_f = lambda t: (t.observation_ids, t.observation_metadata)
-                transpose = False
-
             for part, table in self.partition(f, axis=axis):
-                axis_ids, axis_md = axis_f(table)
+                axis_ids, axis_md = axis_ids_md(table)
 
                 if len(axis_ids) < min_group_size:
                     continue
