@@ -21,11 +21,9 @@ from biom.util import unzip, HAVE_H5PY
 from biom.table import (Table, prefer_self, index_list, dict_to_nparray,
                         list_dict_to_nparray, table_factory,
                         list_list_to_nparray, to_sparse, nparray_to_sparse,
-                        list_nparray_to_sparse, to_sparse, list_dict_to_sparse,
+                        list_nparray_to_sparse, list_dict_to_sparse,
                         dict_to_sparse, coo_arrays_to_sparse,
-                        list_list_to_sparse, nparray_to_sparse,
-                        list_dict_to_sparse, dict_to_sparse, to_sparse,
-                        list_sparse_to_sparse, list_nparray_to_sparse)
+                        list_list_to_sparse, list_sparse_to_sparse)
 
 if HAVE_H5PY:
     import h5py
@@ -1006,7 +1004,7 @@ class SparseTableTests(TestCase):
         data = to_sparse(
             {(0, 0): 5, (0, 1): 6, (0, 2): 0, (1, 0): 7, (1, 1): 9, (1, 2): 2,
              (2, 0): 0, (2, 1): 3, (2, 2): 4})
-        exp = Table(data, ['1', '2', '3, '], ['a', 'b', 'c'])
+        exp = Table(data, ['1', '2', '3'], ['a', 'b', 'c'])
         obs = self.st1.merge(self.st3, sample=u, observation=u)
         self.assertEqual(obs, exp)
 

@@ -341,6 +341,7 @@ class Table(object):
             # the others do.
             self._data = self._data.tocsr()
 
+        # sample ids and observations are reversed becuase we trasposed
         return self.__class__(self._data.transpose(copy=True),
                               self.sample_ids[:], self.observation_ids[:],
                               obs_md_copy, sample_md_copy, self.table_id)
@@ -376,7 +377,7 @@ class Table(object):
         Create a 2x3 BIOM table:
 
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
-        >>> table = table_factory(data, ['S1', 'S2', 'S3'], ['O1', 'O2'])
+        >>> table = table_factory(data, ['01' '02'], ['S1', 'S2', 'S3'])
 
         Get the index of the observation with ID "O2":
 
