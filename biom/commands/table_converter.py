@@ -138,8 +138,8 @@ class TableConverter(Command):
             conv_table = table_factory(table._data,
                                        table.observation_ids,
                                        table.sample_ids,
-                                       table.sample_metadata,
                                        table.observation_metadata,
+                                       table.sample_metadata,
                                        table.TableId)
             result = conv_table.get_biom_format_json_string(generatedby())
         elif dense_biom_to_sparse_biom:
@@ -151,8 +151,8 @@ class TableConverter(Command):
             conv_table = table_factory(table._data,
                                        table.observation_ids,
                                        table.sample_ids,
-                                       table.sample_metadata,
                                        table.observation_metadata,
+                                       table.sample_metadata,
                                        table.table_id)
             result = conv_table.get_biom_format_json_string(generatedby())
         else:
