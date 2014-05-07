@@ -297,10 +297,10 @@ class Table(object):
         # np.apply_along_axis might reduce type conversions here and improve
         # speed. am opting for reduce right now as I think its more readable
         if axis == 'sample':
-            return asarray([reduce(f, v) for v in self.iter_sample_data()])
+            return asarray([reduce(f, v) for v in self.iter_data()])
         elif axis == 'observation':
             return asarray([reduce(f, v) for v in
-                            self.iter_observation_data()])
+                            self.iter_data(axis="observation")])
         else:
             raise TableException("Unknown reduction axis")
 
@@ -623,15 +623,32 @@ class Table(object):
                               self.observation_ids[:], self.sample_metadata,
                               self.observation_metadata, self.table_id)
 
-    def iter_sample_data(self):
-        """Yields sample values"""
-        for samp_v in self._iter_samp():
-            yield self._to_dense(samp_v)
+    def iter_data(self, axis='sample'):
+        """Yields axis values
 
-    def iter_observation_data(self):
-        """Yields observation values"""
-        for obs_v in self._iter_obs():
-            yield self._to_dense(obs_v)
+        Parameters
+        ----------
+        axis: 'sample' or 'observation'
+            axis to iterate over
+
+        Returns
+        -------
+        generator
+            yields list of values for each value in 'axis'
+
+        Raises
+        ------
+        UnknownAxisError
+            If axis other than 'sample' or 'observation' passed
+        """
+        if axis == "sample":
+            for samp_v in self._iter_samp():
+                yield self._to_dense(samp_v)
+        elif axis == "observation":
+            for obs_v in self._iter_obs():
+                yield self._to_dense(obs_v)
+        else:
+            raise UnknownAxisError(axis)
 
     def iter(self, dense=True, axis='sample'):
         """Yields ``(value, id, metadata)``
@@ -1283,47 +1300,45 @@ class Table(object):
                              self.table_id,
                              constructor=constructor)
 
-    def transform_samples(self, f):
-        """Iterate over samples, applying a function ``f`` to each value
+    def transform(self, f, axis='sample'):
+        """Itearte over `axis`, applying a function `f` to each value
 
-        ``f`` must take three values: a sample value (int or float), a sample
-        id, and a sample metadata entry, and return a single value (int or
-        float) that replaces the provided sample value
+        Parameters
+        ----------
+        f : function
+            A function that takes three values: an observation/sample value
+            (int or float), an observation/sample id and a observation/sample
+            metadata entry, and return a single value (int or float) that
+            replaces the provided observation/sample value
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
         new_m = []
+        if axis == 'sample':
+            for s_v, s_id, s_md in self.iter():
+                new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
+            return self.__class__(self._conv_to_self_type(new_m,
+                                                          transpose=True),
+                                  self.sample_ids[:], self.observation_ids[:],
+                                  self.sample_metadata,
+                                  self.observation_metadata, self.table_id)
+        elif axis == 'observation':
+            for obs_v, obs_id, obs_md in self.iter(axis='observation'):
+                new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
 
-        for s_v, s_id, s_md in self.iter(axis='sample'):
-            new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
-
-        return self.__class__(self._conv_to_self_type(new_m, transpose=True),
-                              self.sample_ids[:], self.observation_ids[
-                                  :], self.sample_metadata,
-                              self.observation_metadata, self.table_id)
-
-    def transform_observations(self, f):
-        """Iterate over observations, applying a function ``f`` to each value
-
-        ``f`` must take three values: an observation value (int or float), an
-        observation id, and an observation metadata entry, and return a single
-        value (int or float) that replaces the provided observation value
-
-        """
-        new_m = []
-
-        for obs_v, obs_id, obs_md in self.iter(axis='observation'):
-            new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
-
-        return self.__class__(
-            self._conv_to_self_type(new_m), self.sample_ids[:],
-            self.observation_ids[:], self.sample_metadata,
-            self.observation_metadata, self.table_id)
+            return self.__class__(self._conv_to_self_type(new_m),
+                                  self.sample_ids[:], self.observation_ids[:],
+                                  self.sample_metadata,
+                                  self.observation_metadata, self.table_id)
+        else:
+            raise UnknownAxisError(axis)
 
     def norm_observation_by_sample(self):
         """Return new table with vals as relative abundances within each sample
         """
         def f(samp_v, samp_id, samp_md):
             return samp_v / float(samp_v.sum())
-        return self.transform_samples(f)
+        return self.transform(f)
 
     def norm_sample_by_observation(self):
         """Return new table with vals as relative abundances within each obs
@@ -1331,14 +1346,14 @@ class Table(object):
         def f(obs_v, obs_id, obs_md):
             return obs_v / float(obs_v.sum())
         # f = lambda x: x / float(x.sum())
-        return self.transform_observations(f)
+        return self.transform(f, axis='observation')
 
     def norm_observation_by_metadata(self, obs_metadata_id):
         """Return new table with vals divided by obs_metadata_id
         """
         def f(obs_v, obs_id, obs_md):
             return obs_v / obs_md[obs_metadata_id]
-        return self.transform_observations(f)
+        return self.transform(f, axis='observation')
 
     def nonzero(self):
         """Returns locations of nonzero elements within the data matrix
@@ -1347,7 +1362,7 @@ class Table(object):
         """
         # this is naively implemented. If performance is a concern, private
         # methods can be written to hit against the underlying types directly
-        for o_idx, samp_vals in enumerate(self.iter_observation_data()):
+        for o_idx, samp_vals in enumerate(self.iter_data(axis="observation")):
             for s_idx in samp_vals.nonzero()[0]:
                 yield (self.observation_ids[o_idx], self.sample_ids[s_idx])
 
@@ -1369,16 +1384,16 @@ class Table(object):
         if axis is 'sample':
             # can use np.bincount for CSMat or ScipySparse
             result = zeros(len(self.sample_ids), dtype=dtype)
-            for idx, vals in enumerate(self.iter_sample_data()):
+            for idx, vals in enumerate(self.iter_data()):
                 result[idx] = op(vals)
         elif axis is 'observation':
             # can use np.bincount for CSMat or ScipySparse
             result = zeros(len(self.observation_ids), dtype=dtype)
-            for idx, vals in enumerate(self.iter_observation_data()):
+            for idx, vals in enumerate(self.iter_data(axis="observation")):
                 result[idx] = op(vals)
         else:
             result = zeros(1, dtype=dtype)
-            for vals in self.iter_sample_data():
+            for vals in self.iter_data():
                 result[0] += op(vals)
 
         return result
