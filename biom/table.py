@@ -1881,7 +1881,7 @@ class Table(object):
 
         # Fill in details about the columns in the table.
         biom_format_obj["columns"] = []
-        for samp in self.iter(axis='sample'):
+        for samp in self.iter():
             biom_format_obj["columns"].append(
                 {"id": "%s" % samp[1], "metadata": samp[2]})
 
@@ -2005,7 +2005,7 @@ class Table(object):
 
         # Fill in details about the columns in the table.
         columns = ['"columns": [']
-        for samp_index, samp in enumerate(self.iter(axis='sample')):
+        for samp_index, samp in enumerate(self.iter()):
             if samp_index != max_col_idx:
                 columns.append('{"id": "%s", "metadata": %s},' % (samp[1],
                                                                   dumps(
