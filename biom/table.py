@@ -832,66 +832,32 @@ class Table(object):
             partitions[part][2].append(md)
 
         for part, (ids, values, metadata) in partitions.iteritems():
-            data = self._conv_to_self_type(values, transpose=True)
-
             if axis == 'sample':
+                data = self._conv_to_self_type(values, transpose=True)
+
                 samp_ids = ids
                 samp_md = metadata
                 obs_ids = self.observation_ids[:]
+
                 if self.observation_metadata is not None:
                     obs_md = self.observation_metadata[:]
                 else:
                     obs_md = None
 
             elif axis == 'observation':
+                data = self._conv_to_self_type(values, transpose=False)
+
                 obs_ids = ids
                 obs_md = metadata
                 samp_ids = self.sample_ids[:]
+
                 if self.sample_metadata is not None:
                     samp_md = self.sample_metadata[:]
                 else:
                     samp_md = None
 
             yield part, table_factory(data, samp_ids, obs_ids, samp_md, obs_md,
-                                     self.table_id)
-
-    def bin_observations_by_metadata(self, f, constructor=None):
-        """Yields tables by metadata
-
-        ``f`` is given the observation metadata by row and must return what
-        "bin" the observation is part of.
-
-        ``constructor``: the type of binned tables to create, e.g.
-        SparseTaxonTable. If None, the binned tables will be the same type as
-        this table.
-        """
-        if constructor is None:
-            constructor = self.__class__
-
-        bins = {}
-        # conversion of vector types is not necessary, vectors are not
-        # being passed to an arbitrary function
-        for obs_v, obs_id, obs_md in self.iter(dense=False,
-                                               axis='observation'):
-            bin = f(obs_md)
-
-            # try to make it hashable...
-            if not isinstance(bin, Hashable):
-                bin = tuple(bin)
-
-            if bin not in bins:
-                bins[bin] = [[], [], []]
-
-            bins[bin][0].append(obs_id)
-            bins[bin][1].append(obs_v)
-            bins[bin][2].append(obs_md)
-
-        for bin, (obs_ids, obs_values, obs_md) in bins.iteritems():
-            yield bin, table_factory(self._conv_to_self_type(obs_values),
-                                     self.sample_ids[:], obs_ids[
-                                         :], self.sample_metadata,
-                                     obs_md, self.table_id,
-                                     constructor=constructor)
+                                      self.table_id)
 
     def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
                                      min_group_size=2,
