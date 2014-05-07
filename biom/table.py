@@ -1308,47 +1308,39 @@ class Table(object):
             axis = 1
             ids = self.sample_ids
             metadata = self.sample_metadata
-            arr = self._data.tocsc().copy()
+            arr = self._data.tocsc()
         elif axis == 'observation':
             axis = 0
             ids = self.observation_ids
             metadata = self.observation_metadata
-            arr = self._data.tocsr().copy()
+            arr = self._data.tocsr()
         else:
             raise UnknownAxisError(axis)
 
         _transform(arr, ids, metadata, f, axis)
         arr.eliminate_zeros()
 
-        return self.__class__(arr,
-                              self.sample_ids[:], self.observation_ids[:],
-                              self.sample_metadata,
-                              self.observation_metadata, self.table_id)
+        self._data = arr
 
     def norm(self, axis='sample'):
-        """Normalize in place sample values by an observation, or vice versa
+        """Normalize in place sample values by an observation, or vice versa.
 
         Parameters
         ----------
         axis : 'sample' or 'observation'
             The axis to use for normalization
-
-        Returns
-        -------
-        `Table`
-            A new table with values normalized over the specified axis
         """
         def f(val, id_, _):
             return val / float(val.sum())
 
-        return self.transform(f, axis=axis)
+        self.transform(f, axis=axis)
 
     def norm_observation_by_metadata(self, obs_metadata_id):
-        """Return new table with vals divided by obs_metadata_id
+        """Modify table in place with vals divided by obs_metadata_id.
         """
         def f(obs_v, obs_id, obs_md):
             return obs_v / obs_md[obs_metadata_id]
-        return self.transform(f, axis='observation')
+        self.transform(f, axis='observation')
 
     def nonzero(self):
         """Returns locations of nonzero elements within the data matrix
