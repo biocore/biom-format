@@ -63,7 +63,7 @@ class SupportTests(TestCase):
                    np.array([9, 10, 11, 12])]
         data = list_nparray_to_sparse(list_np)
         exp = Table(data, obs_ids, samp_ids)
-        obs = table_factory(list_np, samp_ids, obs_ids)
+        obs = table_factory(list_np, obs_ids, samp_ids)
         self.assertEqual(obs, exp)
 
     def test_table_factory_sparse_dict(self):
@@ -172,10 +172,8 @@ class TableTests(TestCase):
         self.simple_derived = Table(
             to_sparse(np.array([[5, 6], [7, 8]])), [3, 4], [1, 2])
         self.vals = {(0, 0): 5, (0, 1): 6, (1, 0): 7, (1, 1): 8}
-        self.st1 = Table(to_sparse(self.vals),
-                         ['1', '2'], ['a', 'b'])
-        self.st2 = Table(to_sparse(self.vals),
-                         ['1', '2'], ['a', 'b'])
+        self.st1 = Table(to_sparse(self.vals), ['1', '2'], ['a', 'b'])
+        self.st2 = Table(to_sparse(self.vals), ['1', '2'], ['a', 'b'])
         self.vals3 = to_sparse({(0, 0): 1, (0, 1): 2, (1, 0): 3, (1, 1): 4})
         self.vals4 = to_sparse({(0, 0): 1, (0, 1): 2, (1, 0): 3, (1, 1): 4})
         self.st3 = Table(self.vals3, ['2', '3'], ['b', 'c'])
@@ -870,14 +868,14 @@ class SparseTableTests(TestCase):
         """sorts tables by arbitrary order"""
         # sort by observations arbitrary order
         vals = {(0, 0): 7, (0, 1): 8, (1, 0): 5, (1, 1): 6}
-        exp = Table(to_sparse(vals),['2', '1'], ['a', 'b'])
-        obs = self.st1.sort_observation_order(['2', '1'], axis='observation')
+        exp = Table(to_sparse(vals), ['2', '1'], ['a', 'b'])
+        obs = self.st1.sort_order(['2', '1'], axis='observation')
         self.assertEqual(obs, exp)
         # sort by observations arbitrary order
         vals = {(0, 0): 6, (0, 1): 5,
                 (1, 0): 8, (1, 1): 7}
-        exp = Table(to_sparse(vals),['1', '2'], ['b', 'a'])
-        obs = self.st1.sort_sample_order(['b', 'a'])
+        exp = Table(to_sparse(vals), ['1', '2'], ['b', 'a'])
+        obs = self.st1.sort_order(['b', 'a'], axis='sample')
         self.assertEqual(obs, exp)
         # raises an error if a invalid axis is passed
         with self.assertRaises(UnknownAxisError):
@@ -903,7 +901,7 @@ class SparseTableTests(TestCase):
         exp_data = nparray_to_sparse(
             np.array([[4, 5, 6, 9], [1, 2, 3, 8], [7, 8, 9, 11]]), float)
         exp = Table(exp_data, [1, 2, 3], ['c', 'a', 'b', 'd'])
-        obs = t.sort(sort_f=sort_f)
+        obs = t.sort(sort_f=sort_f, axis='observation')
         self.assertEqual(obs, exp)
         # raises an error if a invalid axis is passed
         with self.assertRaises(UnknownAxisError):
@@ -1190,7 +1188,7 @@ class SparseTableTests(TestCase):
         # [[1,2,3],[1,0,2]] isn't yielding column 2 correctly
         vals = {(0, 0): 5, (0, 1): 6, (1, 1): 8}
         st = Table(to_sparse(vals), ['1', '2'], ['a', 'b'])
-        gen = st.iter_samples()
+        gen = st.iter(axis='sample')
         exp = [(np.array([5, 0]), 'a', None), (np.array([6, 8]), 'b', None)]
         obs = list(gen)
         npt.assert_equal(obs, exp)
@@ -1312,7 +1310,7 @@ class SparseTableTests(TestCase):
     def test_filter_observations_metadata(self):
         f = lambda id_, md: md['taxonomy'][1] == 'p__c'
         values = csr_matrix(np.array([[7., 8.]]))
-        exp_table = Table(values, ['2'], ['a', 'b']
+        exp_table = Table(values, ['2'], ['a', 'b'],
                           [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
                           [{'taxonomy': ['k__a', 'p__c']}])
         table = self.st_rich
@@ -1350,8 +1348,6 @@ class SparseTableTests(TestCase):
         sp_sd = to_sparse({(0, 0): 0, (0, 1): 1, (1, 0): 1, (1, 1): 1})
         exp = Table(sp_sd, ['1', '2'], ['a', 'b'])
         obs = self.st1.transform(sample_transform_f)
-        exp = Table(sp_sd, ['a', 'b'], ['1', '2'])
-        obs = self.st1.transform(sample_transform_f)
         self.assertEqual(obs, exp)
 
         # Raises UnknownAxisError if a invalid axis is passed
@@ -1365,7 +1361,7 @@ class SparseTableTests(TestCase):
             {(0, 0): 0.25, (0, 1): 0.0, (1, 0): 0.75, (1, 1): 1.0})
         st = Table(data, ['1', '2'], ['a', 'b'])
         exp = Table(data_exp, ['1', '2'], ['a', 'b'])
-        obs = st.norm()
+        obs = st.norm(axis='observation')
         self.assertEqual(obs, exp)
 
     def test_norm_observation_by_metadata(self):
