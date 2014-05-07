@@ -13,6 +13,20 @@ Changes:
 * Requires PyQi 0.3.1-dev
 * New HTML interface
 * No longer dependent on dateutil
+* `Table.bin_*_by_metadata` is now `Table.partition`
+* `Table.collapse_*_by_metadata` is now `Table.collapse`
+* `Table.filter_*` is now `Table.filter`
+* `Table.transform_*` is now `Table.transform`
+* `Table.norm_*_by_*` is now `Table.norm`
+* `Table.iter_*` is now `Table.iter`
+* `Table.iter_*_data` is now `Table.iter_data`
+* `Table.get_*_index` is now `Table.get_index`
+* `Table.add_*_metadata` is now `Table.add_metadata`
+* `Table.*_data` is now `Table.data`
+* `Table.*_exists` is now `Table.exists`
+* `Table.sort_by_*_id` is now `Table.sort`
+* `Table.sort_*_order` is now `Table.sort_order`
+* `Table.norm_*_by_metadata` has been removed
 
 biom 1.3.1
 ----------
