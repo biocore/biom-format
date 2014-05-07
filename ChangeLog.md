@@ -13,20 +13,35 @@ Changes:
 * Requires PyQi 0.3.1-dev
 * New HTML interface
 * No longer dependent on dateutil
-* `Table.bin_*_by_metadata` is now `Table.partition`
-* `Table.collapse_*_by_metadata` is now `Table.collapse`
-* `Table.filter_*` is now `Table.filter`
-* `Table.transform_*` is now `Table.transform`
-* `Table.norm_*_by_*` is now `Table.norm`
-* `Table.iter_*` is now `Table.iter`
-* `Table.iter_*_data` is now `Table.iter_data`
-* `Table.get_*_index` is now `Table.get_index`
-* `Table.add_*_metadata` is now `Table.add_metadata`
-* `Table.*_data` is now `Table.data`
-* `Table.*_exists` is now `Table.exists`
-* `Table.sort_by_*_id` is now `Table.sort`
-* `Table.sort_*_order` is now `Table.sort_order`
-* `Table.norm_*_by_metadata` has been removed
+* `Table.bin_samples_by_metadata` and `Table.bin_observations_by_metadata` have
+    been combined into `Table.partition`, which takes an axis argument
+* `Table.collapse_samples_by_metadata` and
+    `Table.collapse_observations_by_metadata` have been combined into
+    `Table.collapse`, which now takes an axis argument 
+* `Table.filter_samples` and `Table.filter_observations` have been combined 
+    into `Table.filter`, which now takes an axis argument 
+* `Table.transform_samples` and `Table.transform_observations` have been 
+    combined into `Table.transform`, which now takes an axis argument
+* `Table.norm_sample_by_observation` and `Table.norm_observation_by_sample`
+    have been combined into `Table.norm`, which now takes an axis argument
+* `Table.iter_samples` and `Table.iter_observations` have been combined into
+    `Table.iter`, which now takes an axis argument
+* `Table.iter_sample_data` and `Table.iter_observation_data` have been combined
+    into `Table.iter_data`, which now takes an axis argument
+* `Table.get_sample_index` and `Table.get_observation_index` have been combined
+    into `Table.get_index`, which now takes an axis argument
+* `Table.add_sample_metadata` and `Table.add_observation_metadata` have been
+    combined into `Table.add_metadata`, which now takes an axis argument
+* `Table.sample_data` and `Table.observation_data` have been combined into
+    `Table.data`, which now takes an axis argument
+* `Table.sample_exists` and `Table.observation_exists` have been combined into
+    `Table.exists`, which now takes an axis argument
+* `Table.sort_by_sample_ids` and `Table.sort_by_observation_ids` have been
+    combined into `Table.sort`, which now takes an axis argument
+* `Table.sort_sample_order` and `Table.sort_observation_order` have been
+    combined into `Table.sort_order`, which now takes an axis argument
+* `Table.norm_samples_by_metadata` and `Table.norm_observations_by_metadata`
+    have been removed
 
 biom 1.3.1
 ----------
