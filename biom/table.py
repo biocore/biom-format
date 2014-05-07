@@ -27,12 +27,14 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
+from ._filter import filter_sparse_array
+
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
-               "Jose Antonio Navas Molina"]
+               "Joshua Shorenstein", "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -204,35 +206,37 @@ class Table(object):
     def nnz(self):
         return self._data.nnz
 
-    def add_observation_metadata(self, md):
-        """Take a dict of metadata and add it to an observation.
-
-        ``md`` should be of the form ``{observation_id:{dict_of_metadata}}``
+    def add_metadata(self, md, axis='sample'):
+        """Take a dict of metadata and add it to an axis.
+        Parameters
+        ----------
+        md : dict of dict
+            ``md`` should be of the form ``{id:{dict_of_metadata}}``
+        axis : 'sample' or 'observation'
+            The axis to operate on
         """
-        if self.observation_metadata is not None:
-            for id_, md_entry in md.items():
-                if self.observation_exists(id_):
-                    idx = self.index(id_, 'observation')
-                    self.observation_metadata[idx].update(md_entry)
+        if axis == 'sample':
+            if self.sample_metadata is not None:
+                for id_, md_entry in md.iteritems():
+                    if self.exists(id_):
+                        idx = self.index(id_, 'sample')
+                        self.sample_metadata[idx].update(md_entry)
+            else:
+                self.sample_metadata = tuple([md[id_] if id_ in md else
+                                              None for id_ in self.sample_ids])
+        elif axis == 'observation':
+            if self.observation_metadata is not None:
+                for id_, md_entry in md.iteritems():
+                    if self.exists(id_, axis="observation"):
+                        idx = self.index(id_, 'observation')
+                        self.observation_metadata[idx].update(md_entry)
+            else:
+                self.observation_metadata = tuple([md[id_] if id_ in md else
+                                                   None for id_ in
+                                                   self.observation_ids])
         else:
-            self.observation_metadata = tuple([md[id_] if id_ in md else
-                                               None for id_ in
-                                               self.observation_ids])
-        self._cast_metadata()
+            raise UnknownAxisError("Unknown axis: %s" % axis)
 
-    def add_sample_metadata(self, md):
-        """Take a dict of metadata and add it to a sample.
-
-        ``md`` should be of the form ``{sample_id:{dict_of_metadata}}``
-        """
-        if self.sample_metadata is not None:
-            for id_, md_entry in md.items():
-                if self.sample_exists(id_):
-                    idx = self.index(id_, 'sample')
-                    self.sample_metadata[idx].update(md_entry)
-        else:
-            self.sample_metadata = tuple([md[id_] if id_ in md else
-                                          None for id_ in self.sample_ids])
         self._cast_metadata()
 
     def __getitem__(self, args):
@@ -414,13 +418,27 @@ class Table(object):
         """
         return self.delimited_self()
 
-    def sample_exists(self, id_):
-        """Returns True if sample ``id_`` exists, False otherwise"""
-        return id_ in self._sample_index
+    def exists(self, id_, axis="sample"):
+        """Returns whether id_ exists in axis
 
-    def observation_exists(self, id_):
-        """Returns True if observation ``id_`` exists, False otherwise"""
-        return id_ in self._obs_index
+        Parameters
+        ----------
+        id_: str
+            id to check if exists
+        axis : 'sample' or 'observation'
+            The axis to check
+
+        Returns
+        -------
+        bool
+            True if ``id_`` exists, False otherwise
+        """
+        if axis == "sample":
+            return id_ in self._sample_index
+        elif axis == "observation":
+            return id_ in self._obs_index
+        else:
+            raise UnknownAxisError(axis)
 
     def delimited_self(self, delim='\t', header_key=None, header_value=None,
                        metadata_formatter=str,
@@ -447,7 +465,6 @@ class Table(object):
             #OTU ID\tSample1\tSample2
             OTU1\t10\t2
             OTU2\t4\t8
-
         """
         if self.is_empty():
             raise TableException("Cannot delimit self if I don't have data...")
@@ -718,88 +735,50 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    # a good refactor in the future is a general filter() method and then
-    # specify the axis, like Table.reduce
+    def filter(self, ids_to_keep, axis, invert=False):
+        """Filter in place a table based on a function or iterable.
 
-    # take() is tempting here as well...
-    def filter_samples(self, f, invert=False):
-        """Filter samples from self based on ``f``
-
-        ``f`` must accept three variables, the sample values, sample ID and
-        sample metadata. The function must only return ``True`` or ``False``,
-        where ``True`` indicates that a sample should be retained.
-
-        invert: if ``invert == True``, a return value of ``True`` from ``f``
-        indicates that a sample should be discarded
+        Parameters
+        ----------
+        ids_to_keep : function or iterable
+            If a function, it will be called with the id (a string)
+            and the dictionary of metadata of each sample, and must
+            return a boolean.
+            If it's an iterable, it will be converted to an array of
+            bools.
+        axis : str
+            It controls whether to filter samples or observations. Can
+            be "sample" or "observation".
+        invert : bool
+            If set to True, discard samples or observations where
+            `ids_to_keep` returns True
         """
-        samp_ids = []
-        samp_vals = []
-        samp_metadata = []
+        if axis == 'sample':
+            axis = 1
+            ids = self.sample_ids
+            metadata = self.sample_metadata
+        elif axis == 'observation':
+            axis = 0
+            ids = self.observation_ids
+            metadata = self.observation_metadata
+        else:
+            raise ValueError("Unsupported axis")
 
-        # builtin filter puts all of this into memory and then return to the
-        # for loop. This will impact memory substantially on large sparse
-        # matrices
-        for s_val, s_id, s_md in self.iter(axis='sample'):
-            if not xor(f(s_val, s_id, s_md), invert):
-                continue
+        arr = self._data
+        arr, ids, metadata = filter_sparse_array(arr,
+                                                 ids,
+                                                 metadata,
+                                                 ids_to_keep,
+                                                 axis,
+                                                 invert=invert)
 
-            # there is an implicit conversion to numpy types, want to make
-            # sure to convert back to underlying representation.
-            samp_vals.append(self._conv_to_self_type(s_val))
-            samp_metadata.append(s_md)
-            samp_ids.append(s_id)
-
-        # if we don't have any values to keep, throw an exception as we can
-        # create an inconsistancy in which there are observation ids but no
-        # matrix data in the resulting table
-        if not samp_ids:
-            raise TableException("All samples were filtered out!")
-
-        # the additional call to _conv_to_self_type is to convert a list of
-        # vectors to a matrix
-        # transpose is necessary as the underlying storage is sample == col
-        return self.__class__(
-            self._conv_to_self_type(samp_vals, transpose=True),
-            samp_ids[:], self.observation_ids[:], samp_metadata,
-            self.observation_metadata, self.table_id)
-
-    def filter_observations(self, f, invert=False):
-        """Filter observations from self based on ``f``
-
-        ``f`` must accept three variables, the observation values, observation
-        ID and observation metadata. The function must only return ``True`` or
-        ``False``, where ``True`` indicates that an observation should be
-        retained.
-
-        invert: if ``invert == True``, a return value of ``True`` from ``f``
-        indicates that an observation should be discarded
-        """
-        obs_ids = []
-        obs_vals = []
-        obs_metadata = []
-
-        # builtin filter puts all of this into memory and then return to the
-        # for loop. This will impact memory substantially on large sparse
-        # matrices
-        for o_val, o_id, o_md in self.iter(axis='observation'):
-            if not xor(f(o_val, o_id, o_md), invert):
-                continue
-
-            # there is an implicit converstion to numpy types, want to make
-            # sure to convert back to underlying representation.
-            obs_vals.append(self._conv_to_self_type(o_val))
-            obs_metadata.append(o_md)
-            obs_ids.append(o_id)
-
-        # if we don't have any values to keep, throw an exception as we can
-        # create an inconsistancy in which there are sample ids but no
-        # matrix data in the resulting table
-        if not obs_vals:
-            raise TableException("All observations were filtered out!")
-
-        return self.__class__(
-            self._conv_to_self_type(obs_vals), self.sample_ids[:],
-            obs_ids[:], self.sample_metadata, obs_metadata, self.table_id)
+        self._data = arr
+        if axis == 1:
+            self.sample_ids = ids
+            self.sample_metadata = metadata
+        elif axis == 0:
+            self.observation_ids = ids
+            self.observation_metadata = metadata
 
     def bin_samples_by_metadata(self, f, constructor=None):
         """Yields tables by metadata
@@ -1508,13 +1487,13 @@ class Table(object):
             sample_ids.append(id_)
 
             # if we have sample metadata, grab it
-            if self.sample_metadata is None or not self.sample_exists(id_):
+            if self.sample_metadata is None or not self.exists(id_):
                 self_md = None
             else:
                 self_md = self.sample_metadata[self_samp_idx[id_]]
 
             # if we have sample metadata, grab it
-            if other.sample_metadata is None or not other.sample_exists(id_):
+            if other.sample_metadata is None or not other.exists(id_):
                 other_md = None
             else:
                 other_md = other.sample_metadata[other_samp_idx[id_]]
@@ -1530,14 +1509,14 @@ class Table(object):
 
             # if we have observation metadata, grab it
             if self.observation_metadata is None or \
-               not self.observation_exists(id_):
+               not self.exists(id_, axis="observation"):
                 self_md = None
             else:
                 self_md = self.observation_metadata[self_obs_idx[id_]]
 
             # if we have observation metadata, grab it
             if other.observation_metadata is None or \
-                    not other.observation_exists(id_):
+                    not other.exists(id_, axis="observation"):
                 other_md = None
             else:
                 other_md = other.observation_metadata[other_obs_idx[id_]]
@@ -1558,14 +1537,14 @@ class Table(object):
 
             # see if the observation exists in other, if so, pull it out.
             # if not, set to the placeholder missing
-            if other.observation_exists(obs_id):
+            if other.exists(obs_id, axis="observation"):
                 other_vec = other.observation_data(obs_id)
             else:
                 other_vec = None
 
             # see if the observation exists in self, if so, pull it out.
             # if not, set to the placeholder missing
-            if self.observation_exists(obs_id):
+            if self.exists(obs_id, axis="observation"):
                 self_vec = self.observation_data(obs_id)
             else:
                 self_vec = None
