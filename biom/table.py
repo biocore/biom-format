@@ -28,6 +28,7 @@ from biom.util import (get_biom_format_version_string,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
 from ._filter import filter_sparse_array
+from ._transform import _transform
 
 
 __author__ = "Daniel McDonald"
@@ -1303,62 +1304,52 @@ class Table(object):
                              constructor=constructor)
 
     def transform(self, f, axis='sample'):
-        """Itearte over `axis`, applying a function `f` to each value
+        """Iterate over `axis`, applying a function `f` to each vector.
+
+        Only non null values can be modified: the density of the table
+        can't increase. However, zeroing values is fine.
 
         Parameters
         ----------
         f : function
-            A function that takes three values: an observation/sample value
-            (int or float), an observation/sample id and a observation/sample
-            metadata entry, and return a single value (int or float) that
-            replaces the provided observation/sample value
+            A function that takes three values: an array of nonzero
+            values corresponding to each observation or sample, an
+            observation or sample id, and an observation or sample
+            metadata entry. It must return an array of transformed
+            values that replace the original values.
         axis : 'sample' or 'observation'
-            The axis to operate on
+            The axis to operate on.
         """
-        new_m = []
         if axis == 'sample':
-            for s_v, s_id, s_md in self.iter():
-                new_m.append(self._conv_to_self_type(f(s_v, s_id, s_md)))
-            return self.__class__(self._conv_to_self_type(new_m,
-                                                          transpose=True),
-                                  self.observation_ids[:], self.sample_ids[:],
-                                  self.observation_metadata,
-                                  self.sample_metadata, self.table_id)
+            axis = 1
+            ids = self.sample_ids
+            metadata = self.sample_metadata
+            arr = self._data.tocsc()
         elif axis == 'observation':
-            for obs_v, obs_id, obs_md in self.iter(axis='observation'):
-                new_m.append(self._conv_to_self_type(f(obs_v, obs_id, obs_md)))
-
-            return self.__class__(self._conv_to_self_type(new_m),
-                                  self.observation_ids[:], self.sample_ids[:],
-                                  self.observation_metadata,
-                                  self.sample_metadata, self.table_id)
+            axis = 0
+            ids = self.observation_ids
+            metadata = self.observation_metadata
+            arr = self._data.tocsr()
         else:
             raise UnknownAxisError(axis)
 
+        _transform(arr, ids, metadata, f, axis)
+        arr.eliminate_zeros()
+
+        self._data = arr
+
     def norm(self, axis='sample'):
-        """Normalize sample values by an observation, or vice versa
+        """Normalize in place sample values by an observation, or vice versa.
 
         Parameters
         ----------
         axis : 'sample' or 'observation'
             The axis to use for normalization
-
-        Returns
-        -------
-        `Table`
-            A new table with values normalized over the specified axis
         """
         def f(val, id_, _):
             return val / float(val.sum())
 
-        return self.transform(f, axis=axis)
-
-    def norm_observation_by_metadata(self, obs_metadata_id):
-        """Return new table with vals divided by obs_metadata_id
-        """
-        def f(obs_v, obs_id, obs_md):
-            return obs_v / obs_md[obs_metadata_id]
-        return self.transform(f, axis='observation')
+        self.transform(f, axis=axis)
 
     def nonzero(self):
         """Returns locations of nonzero elements within the data matrix
