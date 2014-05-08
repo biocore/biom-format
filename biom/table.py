@@ -50,9 +50,9 @@ class Table(object):
 
     """
 
-    def __init__(self, data, sample_ids, observation_ids, sample_metadata=None,
-                 observation_metadata=None, table_id=None,
-                 type=None, **kwargs):
+    def __init__(self, data, observation_ids, sample_ids,
+                 observation_metadata=None, sample_metadata=None,
+                 table_id=None, type=None, **kwargs):
 
         self.type = type
         self.table_id = table_id
@@ -347,9 +347,10 @@ class Table(object):
             # the others do.
             self._data = self._data.tocsr()
 
+        # sample ids and observations are reversed becuase we trasposed
         return self.__class__(self._data.transpose(copy=True),
-                              self.observation_ids[:], self.sample_ids[:],
-                              obs_md_copy, sample_md_copy, self.table_id)
+                              self.sample_ids[:], self.observation_ids[:],
+                              sample_md_copy, obs_md_copy, self.table_id)
 
     def index(self, id_, axis):
         """Return the index of the identified sample/observation.
@@ -382,7 +383,7 @@ class Table(object):
         Create a 2x3 BIOM table:
 
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
-        >>> table = table_factory(data, ['S1', 'S2', 'S3'], ['O1', 'O2'])
+        >>> table = table_factory(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
 
         Get the index of the observation with ID "O2":
 
@@ -635,9 +636,9 @@ class Table(object):
     def copy(self):
         """Returns a copy of the table"""
         # NEEDS TO BE A DEEP COPY, MIGHT NOT GET METADATA! NEED TEST!
-        return self.__class__(self._data.copy(), self.sample_ids[:],
-                              self.observation_ids[:], self.sample_metadata,
-                              self.observation_metadata, self.table_id)
+        return self.__class__(self._data.copy(),  self.observation_ids[:],
+                              self.sample_ids[:], self.observation_metadata,
+                              self.sample_metadata, self.table_id)
 
     def iter_data(self, axis='sample'):
         """Yields axis values
@@ -730,8 +731,9 @@ class Table(object):
 
             return self.__class__(self._conv_to_self_type(vals,
                                                           transpose=True),
-                                  order[:], self.observation_ids[:], md,
-                                  self.observation_metadata, self.table_id)
+                                  self.observation_ids[:], order[:],
+                                  self.observation_metadata, md,
+                                  self.table_id)
         elif axis == 'observation':
             for id_ in order:
                 cur_idx = self.index(id_, 'observation')
@@ -744,9 +746,8 @@ class Table(object):
                 md = None
 
             return self.__class__(self._conv_to_self_type(vals),
-                                  self.sample_ids[:],
-                                  order[:], self.sample_metadata, md,
-                                  self.table_id)
+                                  order[:], self.sample_ids[:],
+                                  md, self.sample_metadata, self.table_id)
         else:
             raise UnknownAxisError(axis)
 
@@ -872,7 +873,7 @@ class Table(object):
                 else:
                     samp_md = None
 
-            yield part, table_factory(data, samp_ids, obs_ids, samp_md, obs_md,
+            yield part, table_factory(data, obs_ids, samp_ids, obs_md, samp_md,
                                       self.table_id)
 
     def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
@@ -1081,10 +1082,10 @@ class Table(object):
         if 0 in data.shape:
             raise TableException("Collapsed table is empty!")
 
-        return table_factory(data, collapsed_sample_ids,
-                             self.observation_ids[:], collapsed_sample_md,
-                             self.observation_metadata, self.table_id,
-                             constructor=constructor)
+        return table_factory(data, self.observation_id[:],
+                             collapsed_sample_ids, self.observation_ids[:],
+                             self.observation_metadata, collapsed_sample_md,
+                             self.table_id, constructor=constructor)
 
     def collapse_observations_by_metadata(self, metadata_f, reduce_f=add,
                                           norm=True, min_group_size=2,
@@ -1297,7 +1298,7 @@ class Table(object):
         if 0 in data.shape:
             raise TableException("Collapsed table is empty!")
 
-        return table_factory(data, self.sample_ids[:], collapsed_obs_ids,
+        return table_factory(data, collapsed_obs_ids, self.sample_ids[:],
                              self.sample_metadata, collapsed_obs_md,
                              self.table_id,
                              constructor=constructor)
@@ -1600,8 +1601,8 @@ class Table(object):
             # accidently force a dense representation in memory
             vals[new_obs_idx] = self._conv_to_self_type(new_vec)
 
-        return self.__class__(self._conv_to_self_type(vals), sample_ids[:],
-                              obs_ids[:], sample_md, obs_md)
+        return self.__class__(self._conv_to_self_type(vals), obs_ids[:],
+                              sample_ids[:], obs_md, sample_md)
 
     @classmethod
     def from_hdf5(cls, h5grp, order='observation'):
@@ -1690,8 +1691,8 @@ class Table(object):
         else:
             matrix = csr_matrix(cs, shape=shape)
 
-        return table_factory(matrix, samp_ids, obs_ids, samp_md or None,
-                             obs_md or None, type=type)
+        return table_factory(matrix, obs_ids, samp_ids,  obs_md or None,
+                             samp_md or None, type=type)
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
@@ -2072,8 +2073,8 @@ def list_dict_to_nparray(data, dtype=float):
     return mat
 
 
-def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
-                  observation_metadata=None, table_id=None,
+def table_factory(data, observation_ids, sample_ids, observation_metadata=None,
+                  sample_metadata=None, table_id=None,
                   input_is_dense=False, transpose=False, **kwargs):
     """Construct a table
 
@@ -2109,10 +2110,10 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
                       [9,10,11,12]])
 
         t = table_factory(data,
-                          sample_ids,
                           observation_ids,
-                          sample_md,
-                          observation_md)
+                          sample_ids,
+                          observation_md,
+                          sample_md)
     """
     if 'dtype' in kwargs:
         dtype = kwargs['dtype']
@@ -2164,7 +2165,7 @@ def table_factory(data, sample_ids, observation_ids, sample_metadata=None,
     else:
         raise TableException("Cannot handle data!")
 
-    return Table(data, sample_ids, observation_ids,
+    return Table(data, observation_ids, sample_ids,
                  sample_metadata=sample_metadata,
                  observation_metadata=observation_metadata,
                  table_id=table_id, **kwargs)

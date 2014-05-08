@@ -58,7 +58,7 @@ if __name__ == '__main__':
     row_ids = map(str, range(n))
     col_ids = map(str, range(m))
 
-    obj = Table(n, m)
+    obj = Table(m, n)
 
     cur_row = -1
     cur_col = -1
