@@ -476,7 +476,6 @@ class TableTests(TestCase):
         self.assertEqual(t.observation_metadata[1]['non existent key'], None)
         self.assertEqual(t.observation_metadata[2]['non existent key'], None)
 
-
     def test_add_metadata_two_entries(self):
         """ add_metadata functions with more than one md entry """
         obs_ids = [1, 2, 3]
@@ -514,7 +513,7 @@ class TableTests(TestCase):
                    {'Treatment': 'Control'}]
         d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         t = Table(d, obs_ids, samp_ids, observation_metadata=obs_md,
-                 sample_metadata=samp_md)
+                  sample_metadata=samp_md)
         self.assertEqual(t.sample_metadata[0]['Treatment'], 'Control')
         self.assertEqual(t.sample_metadata[1]['Treatment'], 'Fasting')
         self.assertEqual(t.sample_metadata[2]['Treatment'], 'Fasting')
@@ -1405,8 +1404,8 @@ class SparseTableTests(TestCase):
                           {'Path': ['a', 'c']},
                           {'Path': ['a', 'd']}],
                          [{'barcode': 'aatt'},
-                         {'barcode': 'ttgg'},
-                         {'barcode': 'aatt'}])
+                          {'barcode': 'ttgg'},
+                          {'barcode': 'aatt'}])
 
         def bin_f(id_, x):
             for foo in x['pathways']:
@@ -1868,8 +1867,9 @@ class SparseTableTests(TestCase):
 
         # Test out constructor.
         obs = dt_rich.collapse(bin_f, norm=False, min_group_size=1,
-            one_to_many=True, include_collapsed_metadata=False,
-            axis='sample').sort(axis='observation')
+                               one_to_many=True,
+                               include_collapsed_metadata=False,
+                               axis='sample').sort(axis='observation')
         self.assertEqual(obs, exp)
         self.assertEqual(type(obs), Table)
 
