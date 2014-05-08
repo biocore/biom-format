@@ -1033,10 +1033,7 @@ class Table(object):
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
-            if one_to_many_mode == 'divide':
-                dtype = float
-            else:
-                dtype = self.dtype
+            dtype = float if one_to_many_mode == 'divide' else self.dtype
 
             new_data = zeros(new_data_shape(axis_ids_md(self)[0], new_md),
                              dtype=dtype)
@@ -1065,14 +1062,9 @@ class Table(object):
 
                     if one_to_many_mode == 'add':
                         new_data[axis_slice(idx_lookup, part)] += vals
-                    elif one_to_many_mode == 'divide':
+                    else:
                         new_data[axis_slice(idx_lookup, part)] += \
                             vals / md_count[id_]
-                    else:
-                        # Should never get here.
-                        raise ValueError("Unrecognized one-to-many mode '%s'. "
-                                         "Must be either 'add' or 'divide'." %
-                                         one_to_many_mode)
 
             if include_collapsed_metadata:
                 # reassociate pathway information
