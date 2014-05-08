@@ -213,9 +213,9 @@ class TableTests(TestCase):
         ids = lambda X: ['x%d' % e for e in range(0, X)]
         self.null1 = Table(to_sparse(np.zeros((0, 0))), [], [])
         self.null2 = Table(
-            to_sparse(np.zeros((0, 42), dtype=float)), ids(42), [])
+            to_sparse(np.zeros((0, 42), dtype=float)), [], ids(42))
         self.null3 = Table(
-            to_sparse(np.zeros((42, 0), dtype=float)), [], ids(42))
+            to_sparse(np.zeros((42, 0), dtype=float)), ids(42), [])
         self.nulls = [self.null1, self.null2, self.null3]
 
         # 0 0
@@ -581,9 +581,9 @@ class TableTests(TestCase):
 
     def test_get_value_by_ids(self):
         """Return the value located in the matrix by the ids"""
-        t1 = Table(to_sparse(np.array([[5, 6], [7, 8]])), [1, 2], [3, 4])
+        t1 = Table(to_sparse(np.array([[5, 6], [7, 8]])), [3, 4], [1, 2])
         t2 = Table(to_sparse(np.array([[5, 6], [7, 8]])),
-                   ['a', 'b'], ['c', 'd'])
+                   ['c', 'd'], ['a', 'b'])
 
         self.assertEqual(5, t1.get_value_by_ids(3, 1))
         self.assertEqual(6, t1.get_value_by_ids(3, 2))
@@ -1391,22 +1391,22 @@ class SparseTableTests(TestCase):
         """Collapse observations by arbitary metadata"""
         dt_rich = Table(to_sparse(np.array([[5, 6, 7], [8, 9, 10],
                                             [11, 12, 13]])),
-                        ['a', 'b', 'c'],
-                        ['1', '2', '3'], [{'barcode': 'aatt'},
-                                          {'barcode': 'ttgg'},
-                                          {'barcode': 'aatt'}],
+                        ['1', '2', '3'], ['a', 'b', 'c'],
                         [{'pathways': [['a', 'bx'], ['a', 'd']]},
                          {'pathways': [['a', 'bx'], ['a', 'c']]},
-                         {'pathways': [['a']]}])
+                         {'pathways': [['a']]}],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
         exp_cat2 = Table(to_sparse(np.array([[13, 15, 17], [8, 9, 10],
                                              [5, 6, 7]])),
-                         ['a', 'b', 'c'],
-                         ['bx', 'c', 'd'], [{'barcode': 'aatt'},
-                                            {'barcode': 'ttgg'},
-                                            {'barcode': 'aatt'}],
+                         ['bx', 'c', 'd'], ['a', 'b', 'c'],
                          [{'Path': ['a', 'bx']},
                           {'Path': ['a', 'c']},
-                          {'Path': ['a', 'd']}])
+                          {'Path': ['a', 'd']}],
+                         [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
 
         def bin_f(id_, x):
             for foo in x['pathways']:
@@ -1415,7 +1415,6 @@ class SparseTableTests(TestCase):
         obs_cat2 = dt_rich.collapse(
             bin_f, norm=False, min_group_size=1, one_to_many=True,
             strict=False, axis='observation').sort(axis='observation')
-
         self.assertEqual(obs_cat2, exp_cat2)
 
         with self.assertRaises(IndexError):
@@ -1427,22 +1426,22 @@ class SparseTableTests(TestCase):
         """Collapse observations by arbitary metadata"""
         dt_rich = Table(
             to_sparse(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]])),
-            ['a', 'b', 'c'],
-            ['1', '2', '3'], [{'barcode': 'aatt'},
-                              {'barcode': 'ttgg'},
-                              {'barcode': 'aatt'}],
+            ['1', '2', '3'], ['a', 'b', 'c'],
             [{'pathways': [['a', 'bx'], ['a', 'd']]},
              {'pathways': [['a', 'bx'], ['a', 'c']]},
-             {'pathways': [['a', 'c']]}])
+             {'pathways': [['a', 'c']]}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
         exp_cat2 = Table(to_sparse(np.array([[13, 15, 17], [19, 21, 23],
                                              [5, 6, 7]])),
-                         ['a', 'b', 'c'],
-                         ['bx', 'c', 'd'], [{'barcode': 'aatt'},
-                                            {'barcode': 'ttgg'},
-                                            {'barcode': 'aatt'}],
+                         ['bx', 'c', 'd'], ['a', 'b', 'c'],
                          [{'Path': ['a', 'bx']},
                           {'Path': ['a', 'c']},
-                          {'Path': ['a', 'd']}])
+                          {'Path': ['a', 'd']}],
+                         [{'barcode': 'aatt'},
+                          {'barcode': 'ttgg'},
+                          {'barcode': 'aatt'}])
 
         def bin_f(id_, x):
             for foo in x['pathways']:
@@ -1455,19 +1454,19 @@ class SparseTableTests(TestCase):
 
         dt_rich = Table(
             to_sparse(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]])),
-            ['a', 'b', 'c'],
-            ['1', '2', '3'], [{'barcode': 'aatt'},
-                              {'barcode': 'ttgg'},
-                              {'barcode': 'aatt'}],
+            ['1', '2', '3'], ['a', 'b', 'c'],
             [{'pathways': [['a', 'b'], ['a', 'd']]},
              {'pathways': [['a', 'b'], ['a', 'c']]},
-             {'pathways': [['a', 'c']]}])
+             {'pathways': [['a', 'c']]}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
         exp_cat1 = Table(to_sparse(np.array([[37, 42, 47]])),
-                         ['a', 'b', 'c'],
-                         ['a'], [{'barcode': 'aatt'},
-                                 {'barcode': 'ttgg'},
-                                 {'barcode': 'aatt'}],
-                         [{'Path': ['a']}])
+                         ['a'], ['a', 'b', 'c'],
+                         [{'Path': ['a']}],
+                         [{'barcode': 'aatt'},
+                          {'barcode': 'ttgg'},
+                          {'barcode': 'aatt'}])
 
         def bin_f(id_, x):
             for foo in x['pathways']:
@@ -1480,10 +1479,10 @@ class SparseTableTests(TestCase):
 
         # Test out include_collapsed_metadata=False.
         exp = Table(to_sparse(np.array([[37, 42, 47]])),
-                    ['a', 'b', 'c'],
-                    ['a'], [{'barcode': 'aatt'},
-                            {'barcode': 'ttgg'},
-                            {'barcode': 'aatt'}])
+                    ['a'], ['a', 'b', 'c'], None,
+                    [{'barcode': 'aatt'},
+                     {'barcode': 'ttgg'},
+                     {'barcode': 'aatt'}])
         obs = dt_rich.collapse(
             bin_f, norm=False, min_group_size=1, one_to_many=True,
             include_collapsed_metadata=False,
@@ -1502,24 +1501,24 @@ class SparseTableTests(TestCase):
         """Collapse observations by 1-M metadata using divide mode"""
         dt_rich = Table(to_sparse(np.array([[1, 6, 7], [8, 0, 10],
                                             [11, 12, 13]])),
-                        ['a', 'b', 'c'],
                         ['1', '2', '3'],
-                        [{'barcode': 'aatt'},
-                         {'barcode': 'ttgg'},
-                         {'barcode': 'aatt'}],
+                        ['a', 'b', 'c'],
                         [{'pathways': [['a', 'bx'], ['a', 'd']]},
                          {'pathways': [['a', 'bx'], ['a', 'c']]},
-                         {'pathways': [['a', 'c']]}])
+                         {'pathways': [['a', 'c']]}],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
         exp = Table(to_sparse(np.array([[4.5, 3, 8.5], [15, 12, 18],
                                         [0.5, 3, 3.5]])),
-                    ['a', 'b', 'c'],
                     ['bx', 'c', 'd'],
-                    [{'barcode': 'aatt'},
-                     {'barcode': 'ttgg'},
-                     {'barcode': 'aatt'}],
+                    ['a', 'b', 'c'],
                     [{'Path': ['a', 'bx']},
                      {'Path': ['a', 'c']},
-                     {'Path': ['a', 'd']}])
+                     {'Path': ['a', 'd']}],
+                    [{'barcode': 'aatt'},
+                     {'barcode': 'ttgg'},
+                     {'barcode': 'aatt'}])
 
         def bin_f(id_, x):
             for foo in x['pathways']:
@@ -1534,22 +1533,22 @@ class SparseTableTests(TestCase):
         # Test skipping some observation metadata (strict=False).
         dt_rich = Table(
             to_sparse(np.array([[5.0, 6.0, 7], [8, 9, 10], [11, 12, 13.0]])),
-            ['a', 'b', 'c'],
-            ['1', '2', '3'], [{'barcode': 'aatt'},
-                              {'barcode': 'ttgg'},
-                              {'barcode': 'aatt'}],
+            ['1', '2', '3'], ['a', 'b', 'c'],
             [{'pathways': [['a', 'bx'], ['a', 'd']]},
              {'pathways': [['a', 'bx'], ['a', 'c'], ['z']]},
-             {'pathways': [['a']]}])
+             {'pathways': [['a']]}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
         exp = Table(to_sparse(np.array([[6.5, 7.5, 8.5], [4, 4.5, 5],
                                         [2.5, 3, 3.5]])),
-                    ['a', 'b', 'c'],
-                    ['bx', 'c', 'd'], [{'barcode': 'aatt'},
-                                       {'barcode': 'ttgg'},
-                                       {'barcode': 'aatt'}],
+                    ['bx', 'c', 'd'], ['a', 'b', 'c'],
                     [{'Path': ['a', 'bx']},
                      {'Path': ['a', 'c']},
-                     {'Path': ['a', 'd']}])
+                     {'Path': ['a', 'd']}],
+                    [{'barcode': 'aatt'},
+                     {'barcode': 'ttgg'},
+                     {'barcode': 'aatt'}])
 
         def bin_f(id_, x):
             for foo in x['pathways']:
@@ -1576,21 +1575,21 @@ class SparseTableTests(TestCase):
         """Collapse observations by arbitrary metadata"""
         dt_rich = Table(
             to_sparse(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]])),
-            ['a', 'b', 'c'],
-            ['1', '2', '3'], [{'barcode': 'aatt'},
-                              {'barcode': 'ttgg'},
-                              {'barcode': 'aatt'}],
+            ['1', '2', '3'], ['a', 'b', 'c'],
             [{'taxonomy': ['k__a', 'p__b']},
              {'taxonomy': ['k__a', 'p__c']},
-             {'taxonomy': ['k__a', 'p__c']}])
+             {'taxonomy': ['k__a', 'p__c']}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
         exp_phy = Table(to_sparse(np.array([[5, 6, 7], [19, 21, 23]])),
-                        ['a', 'b', 'c'],
-                        ['p__b', 'p__c'], [{'barcode': 'aatt'},
-                                           {'barcode': 'ttgg'},
-                                           {'barcode': 'aatt'}],
+                        ['p__b', 'p__c'], ['a', 'b', 'c'],
                         [{'1': {'taxonomy': ['k__a', 'p__b']}},
                          {'2': {'taxonomy': ['k__a', 'p__c']},
-                          '3':{'taxonomy': ['k__a', 'p__c']}}])
+                          '3':{'taxonomy': ['k__a', 'p__c']}}],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
         bin_f = lambda id_, x: x['taxonomy'][1]
         obs_phy = dt_rich.collapse(
             bin_f, norm=False, min_group_size=1,
@@ -1598,13 +1597,13 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs_phy, exp_phy)
 
         exp_king = Table(to_sparse(np.array([[24, 27, 30]])),
-                         ['a', 'b', 'c'], ['k__a'],
+                         ['k__a'], ['a', 'b', 'c'],
+                         [{'1': {'taxonomy': ['k__a', 'p__b']},
+                           '2':{'taxonomy': ['k__a', 'p__c']},
+                           '3':{'taxonomy': ['k__a', 'p__c']}}],
                          [{'barcode': 'aatt'},
                           {'barcode': 'ttgg'},
-                          {'barcode': 'aatt'}],
-                         [{'1': {'taxonomy': ['k__a', 'p__b']},
-                          '2':{'taxonomy': ['k__a', 'p__c']},
-                           '3':{'taxonomy': ['k__a', 'p__c']}}])
+                          {'barcode': 'aatt'}])
         bin_f = lambda id_, x: x['taxonomy'][0]
         obs_king = dt_rich.collapse(bin_f, norm=False, axis='observation')
         self.assertEqual(obs_king, exp_king)
@@ -1615,18 +1614,20 @@ class SparseTableTests(TestCase):
 
         # Test out include_collapsed_metadata=False.
         exp = Table(to_sparse(np.array([[24, 27, 30]])),
-                    ['a', 'b', 'c'],
                     ['k__a'],
+                    ['a', 'b', 'c'], None,
                     [{'barcode': 'aatt'},
                      {'barcode': 'ttgg'},
                      {'barcode': 'aatt'}])
         obs = dt_rich.collapse(bin_f, norm=False,
-            include_collapsed_metadata=False, axis='observation')
+                               include_collapsed_metadata=False,
+                               axis='observation')
         self.assertEqual(obs, exp)
 
         # Test out constructor.
         obs = dt_rich.collapse(bin_f, norm=False,
-            include_collapsed_metadata=False, axis='observation')
+                               include_collapsed_metadata=False,
+                               axis='observation')
         self.assertEqual(obs, exp)
         self.assertEqual(type(obs), Table)
 
@@ -1634,22 +1635,22 @@ class SparseTableTests(TestCase):
         """Collapse samples by arbitrary metadata"""
         dt_rich = Table(
             to_sparse(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]])),
-            ['a', 'b', 'c'],
-            ['1', '2', '3'], [{'barcode': 'aatt'},
-                              {'barcode': 'ttgg'},
-                              {'barcode': 'aatt'}],
+            ['1', '2', '3'], ['a', 'b', 'c'],
             [{'taxonomy': ['k__a', 'p__b']},
              {'taxonomy': ['k__a', 'p__c']},
-             {'taxonomy': ['k__a', 'p__c']}])
+             {'taxonomy': ['k__a', 'p__c']}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
         exp_bc = Table(
             to_sparse(np.array([[12, 6], [18, 9], [24, 12]])),
-            ['aatt', 'ttgg'],
-            ['1', '2', '3'], [{'a': {'barcode': 'aatt'},
-                               'c': {'barcode': 'aatt'}},
-                              {'b': {'barcode': 'ttgg'}}],
+            ['1', '2', '3'], ['aatt', 'ttgg'],
             [{'taxonomy': ['k__a', 'p__b']},
              {'taxonomy': ['k__a', 'p__c']},
-             {'taxonomy': ['k__a', 'p__c']}])
+             {'taxonomy': ['k__a', 'p__c']}],
+            [{'a': {'barcode': 'aatt'},
+              'c': {'barcode': 'aatt'}},
+             {'b': {'barcode': 'ttgg'}}])
         bin_f = lambda id_, x: x['barcode']
         obs_bc = dt_rich.collapse(
             bin_f, norm=False, min_group_size=1,
@@ -1658,15 +1659,14 @@ class SparseTableTests(TestCase):
 
         self.assertRaises(TableException, dt_rich.collapse,
                           bin_f, min_group_size=10)
-
         # Test out include_collapsed_metadata=False.
         exp = Table(to_sparse(np.array([[12, 6], [18, 9], [24, 12]])),
-                    ['aatt', 'ttgg'],
                     ['1', '2', '3'],
-                    None,
+                    ['aatt', 'ttgg'],
                     [{'taxonomy': ['k__a', 'p__b']},
                      {'taxonomy': ['k__a', 'p__c']},
-                     {'taxonomy': ['k__a', 'p__c']}])
+                     {'taxonomy': ['k__a', 'p__c']}],
+                    None)
 
         obs = dt_rich.collapse(
             bin_f, norm=False, min_group_size=1,
@@ -1684,24 +1684,24 @@ class SparseTableTests(TestCase):
         """Collapse samples by arbitary metadata"""
         dt_rich = Table(to_sparse(np.array([[5, 6, 7], [8, 9, 10],
                                             [11, 12, 13]])),
-                        ['XXa', 'XXb', 'XXc'],
                         ['1', '2', '3'],
-                        [{'foo': [['a', 'b'], ['a', 'd']]},
-                         {'foo': [['a', 'b'], ['a', 'c']]},
-                         {'foo': [['a']]}],
+                        ['XXa', 'XXb', 'XXc'],
                         [{'other': 'aatt'},
                          {'other': 'ttgg'},
-                         {'other': 'aatt'}])
+                         {'other': 'aatt'}],
+                        [{'foo': [['a', 'b'], ['a', 'd']]},
+                         {'foo': [['a', 'b'], ['a', 'c']]},
+                         {'foo': [['a']]}])
         exp_cat2 = Table(to_sparse(np.array([[11, 17, 23], [6, 9, 12],
                                              [5, 8, 11]]).T),
-                         ['b', 'c', 'd'],
                          ['1', '2', '3'],
-                         [{'Path': ['a', 'b']},
-                          {'Path': ['a', 'c']},
-                          {'Path': ['a', 'd']}],
+                         ['b', 'c', 'd'],
                          [{'other': 'aatt'},
                           {'other': 'ttgg'},
-                          {'other': 'aatt'}])
+                          {'other': 'aatt'}],
+                         [{'Path': ['a', 'b']},
+                          {'Path': ['a', 'c']},
+                          {'Path': ['a', 'd']}])
 
         def bin_f(id_, x):
             for foo in x['foo']:
@@ -1720,24 +1720,24 @@ class SparseTableTests(TestCase):
         """Collapse samples by 1-M metadata using divide mode"""
         dt_rich = Table(to_sparse(np.array([[1, 8, 11], [6, 0, 12],
                                             [7, 10, 13]])),
-                        ['1', '2', '3'],
                         ['a', 'b', 'c'],
-                        [{'pathways': [['a', 'bx'], ['a', 'd']]},
-                         {'pathways': [['a', 'bx'], ['a', 'c']]},
-                         {'pathways': [['a', 'c']]}],
+                        ['1', '2', '3'],
                         [{'barcode': 'aatt'},
                          {'barcode': 'ttgg'},
-                         {'barcode': 'aatt'}])
+                         {'barcode': 'aatt'}],
+                        [{'pathways': [['a', 'bx'], ['a', 'd']]},
+                         {'pathways': [['a', 'bx'], ['a', 'c']]},
+                         {'pathways': [['a', 'c']]}])
         exp = Table(to_sparse(np.array([[4.5, 15, 0.5], [3, 12, 3],
                                         [8.5, 18, 3.5]])),
-                    ['bx', 'c', 'd'],
                     ['a', 'b', 'c'],
-                    [{'Path': ['a', 'bx']},
-                     {'Path': ['a', 'c']},
-                     {'Path': ['a', 'd']}],
+                    ['bx', 'c', 'd'],
                     [{'barcode': 'aatt'},
                      {'barcode': 'ttgg'},
-                     {'barcode': 'aatt'}])
+                     {'barcode': 'aatt'}],
+                    [{'Path': ['a', 'bx']},
+                     {'Path': ['a', 'c']},
+                     {'Path': ['a', 'd']}])
 
         def bin_f(id_, x):
             for foo in x['pathways']:
@@ -1752,24 +1752,24 @@ class SparseTableTests(TestCase):
         dt_rich = Table(
             to_sparse(np.array([[5.0, 8, 11], [6.0, 9, 12],
                                 [7, 10, 13.0]])),
-            ['1', '2', '3'],
             ['a', 'b', 'c'],
-            [{'pathways': [['a', 'bx'], ['a', 'd']]},
-             {'pathways': [['a', 'bx'], ['a', 'c'], ['z']]},
-             {'pathways': [['a']]}],
+            ['1', '2', '3'],
             [{'barcode': 'aatt'},
              {'barcode': 'ttgg'},
-             {'barcode': 'aatt'}])
+             {'barcode': 'aatt'}],
+            [{'pathways': [['a', 'bx'], ['a', 'd']]},
+             {'pathways': [['a', 'bx'], ['a', 'c'], ['z']]},
+             {'pathways': [['a']]}])
         exp = Table(to_sparse(np.array([[6.5, 4, 2.5], [7.5, 4.5, 3],
                                         [8.5, 5, 3.5]])),
-                    ['bx', 'c', 'd'],
                     ['a', 'b', 'c'],
-                    [{'Path': ['a', 'bx']},
-                     {'Path': ['a', 'c']},
-                     {'Path': ['a', 'd']}],
+                    ['bx', 'c', 'd'],
                     [{'barcode': 'aatt'},
                      {'barcode': 'ttgg'},
-                     {'barcode': 'aatt'}])
+                     {'barcode': 'aatt'}],
+                    [{'Path': ['a', 'bx']},
+                     {'Path': ['a', 'c']},
+                     {'Path': ['a', 'd']}])
 
         def bin_f(id_, x):
             for foo in x['pathways']:
@@ -1798,24 +1798,24 @@ class SparseTableTests(TestCase):
         dt_rich = Table(to_sparse(np.array([[5, 6, 7],
                                             [8, 9, 10],
                                             [11, 12, 13]])),
-                        ['XXa', 'XXb', 'XXc'],
                         ['1', '2', '3'],
-                        [{'foo': [['a', 'b'], ['a', 'd']]},
-                         {'foo': [['a', 'b'], ['a', 'c']]},
-                         {'foo': [['a', 'c']]}],
+                        ['XXa', 'XXb', 'XXc'],
                         [{'other': 'aatt'},
                          {'other': 'ttgg'},
-                         {'other': 'aatt'}])
+                         {'other': 'aatt'}],
+                        [{'foo': [['a', 'b'], ['a', 'd']]},
+                         {'foo': [['a', 'b'], ['a', 'c']]},
+                         {'foo': [['a', 'c']]}])
         exp_cat2 = Table(
             to_sparse(np.array([[11, 17, 23], [13, 19, 25], [5, 8, 11]]).T),
-            ['b', 'c', 'd'],
             ['1', '2', '3'],
-            [{'Path': ['a', 'b']},
-             {'Path': ['a', 'c']},
-             {'Path': ['a', 'd']}],
+            ['b', 'c', 'd'],
             [{'other': 'aatt'},
              {'other': 'ttgg'},
-             {'other': 'aatt'}])
+             {'other': 'aatt'}],
+            [{'Path': ['a', 'b']},
+             {'Path': ['a', 'c']},
+             {'Path': ['a', 'd']}])
 
         def bin_f(id_, x):
             for foo in x['foo']:
@@ -1829,19 +1829,19 @@ class SparseTableTests(TestCase):
 
         dt_rich = Table(
             to_sparse(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]])),
-            ['a', 'b', 'c'],
-            ['1', '2', '3'], [{'foo': [['a', 'b'], ['a', 'd']]},
-                              {'foo': [['a', 'b'], ['a', 'c']]},
-                              {'foo': [['a', 'c']]}],
+            ['1', '2', '3'], ['a', 'b', 'c'],
             [{'other': 'aatt'},
              {'other': 'ttgg'},
-             {'other': 'aatt'}])
+             {'other': 'aatt'}],
+            [{'foo': [['a', 'b'], ['a', 'd']]},
+             {'foo': [['a', 'b'], ['a', 'c']]},
+             {'foo': [['a', 'c']]}])
         exp_cat1 = Table(to_sparse(np.array([[29, 44, 59]]).T),
-                         ['a'],
-                         ['1', '2', '3'], [{'Path': ['a']}],
+                         ['1', '2', '3'], ['a'],
                          [{'other': 'aatt'},
                           {'other': 'ttgg'},
-                          {'other': 'aatt'}])
+                          {'other': 'aatt'}],
+                         [{'Path': ['a']}])
 
         def bin_f(id_, x):
             for foo in x['foo']:
@@ -1854,12 +1854,12 @@ class SparseTableTests(TestCase):
 
         # Test out include_collapsed_metadata=False.
         exp = Table(to_sparse(np.array([[29, 44, 59]]).T),
-                    ['a'],
                     ['1', '2', '3'],
-                    None,
+                    ['a'],
                     [{'other': 'aatt'},
                      {'other': 'ttgg'},
-                     {'other': 'aatt'}])
+                     {'other': 'aatt'}],
+                    None)
         obs = dt_rich.collapse(
             bin_f, norm=False, min_group_size=1, one_to_many=True,
             include_collapsed_metadata=False,

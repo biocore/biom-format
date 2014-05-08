@@ -1122,7 +1122,7 @@ class Table(object):
             else:
                 sample_md = None
 
-        return table_factory(data, sample_ids, obs_ids, sample_md, obs_md,
+        return table_factory(data, obs_ids, sample_ids, obs_md, sample_md,
                              self.table_id)
 
     def _invert_axis(self, axis):
