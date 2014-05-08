@@ -53,6 +53,9 @@ New Features:
 * ```Table.binObservationsByMetadata```, ```Table.binSamplesByMetadata```, ```Table.collapseObservationsByMetadata```, and ```Table.collapseSamplesByMetadata``` now have an additional argument, ```constructor```, which allows the user to choose the return type of the binned/collapsed table(s).
 * ```Table.delimitedSelf``` now has an additional argument, ```observation_column_name```, which allows the user to specify the name of the first column in the output table (e.g. 'OTU ID', 'Taxon', etc.).
 * Added new ```Table.transpose``` method.
+* ```Table.__init``` has change from ```__init__(self, data, sample_ids, observation_ids, sample_metadata=None,
+observation_metadata=None, table_id=None, type=None, **kwargs)``` to ```__init__(self, data, observation_ids, sample_ids, observation_metadata=None, sample_metadata=None, table_id=None, type=None, **kwargs)``` This is for clarity, the data is in the same order as the arguments to the constructor. 
+*```table_factory``` has changed from ```table_factory(data, sample_ids, observation_ids, sample_metadata=None, observation_metadata=None, table_id=None, input_is_dense=False, transpose=False, **kwargs)``` to ```table_factory(data, observation_ids, sample_ids, observation_metadata=None, sample_metadata=None, table_id=None, input_is_dense=False, transpose=False, **kwargs)``` This is for clarity, the data is in the same order as the arguments to the function. 
 
 Changes:
 
