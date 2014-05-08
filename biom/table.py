@@ -1068,11 +1068,11 @@ class Table(object):
 
             if include_collapsed_metadata:
                 # reassociate pathway information
-                for k, i in sorted(idx_lookup.items(), key=itemgetter(1)):
+                for k, i in sorted(idx_lookup.iteritems(), key=itemgetter(1)):
                     collapsed_md.append({one_to_many_md_key: new_md[k]})
 
             # get the new sample IDs
-            collapsed_ids = [k for k, i in sorted(idx_lookup.items(),
+            collapsed_ids = [k for k, i in sorted(idx_lookup.iteritems(),
                                                   key=itemgetter(1))]
 
             # convert back to self type
@@ -1094,7 +1094,7 @@ class Table(object):
                 if include_collapsed_metadata:
                     # retain metadata but store by original id
                     tmp_md = {}
-                    for id_, md in zip(axis_ids, axis_md):
+                    for id_, md in izip(axis_ids, axis_md):
                         tmp_md[id_] = md
                     collapsed_md.append(tmp_md)
 
