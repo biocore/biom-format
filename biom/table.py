@@ -876,27 +876,22 @@ class Table(object):
             yield part, table_factory(data, obs_ids, samp_ids, obs_md, samp_md,
                                       self.table_id)
 
-    def collapse_samples_by_metadata(self, metadata_f, reduce_f=add, norm=True,
-                                     min_group_size=2,
-                                     include_collapsed_metadata=True,
-                                     constructor=None, one_to_many=False,
-                                     one_to_many_mode='add',
-                                     one_to_many_md_key='Path', strict=False):
-        """Collapse samples in a table by sample metadata
+    def collapse(self, f, reduce_f=add, norm=True, min_group_size=2,
+                 include_collapsed_metadata=True, one_to_many=False,
+                 one_to_many_mode='add', one_to_many_md_key='Path',
+                 strict=False, axis='sample'):
+        """Collapse partitions in a table by metadata or by IDs
 
-        Bin samples by metadata then collapse each bin into a single sample.
+        Partition data by metadata or IDs and then collapse each partition into
+        a single vector.
 
         If ``include_collapsed_metadata`` is True, metadata for the collapsed
-        samples are retained and can be referred to by the ``SampleId`` from
-        each sample within the bin.
-
-        ``constructor``: the type of collapsed table to create, e.g.
-        SparseTaxonTable. If None, the collapsed table will be the same type as
-        this table.
+        partition are retained and can be referred to by the corresponding ID
+        from each vector within the partition.
 
         The remainder is only relevant to setting ``one_to_many`` to True.
 
-        If ``one_to_many`` is True, allow samples to collapse into multiple
+        If ``one_to_many`` is True, allow vectors to collapse into multiple
         bins if the metadata describe a one-many relationship. Supplied
         functions must allow for iteration support over the metadata key and
         must return a tuple of (path, bin) as to describe both the path in the
@@ -906,237 +901,24 @@ class Table(object):
 
         The metadata value for the corresponding collapsed column may include
         more (or less) information about the collapsed data. For example, if
-        collapsing "FOO", and there are samples that span three associations A,
-        B, and C, such that sample 1 spans A and B, sample 2 spans B and C and
-        sample 3 spans A and C, the resulting table will contain three
-        collapsed samples:
+        collapsing "FOO", and there are vectors that span three associations A,
+        B, and C, such that vector 1 spans A and B, vector 2 spans B and C and
+        vector 3 spans A and C, the resulting table will contain three
+        collapsed vectors:
 
-        - A, containing original sample 1 and 3
-        - B, containing original sample 1 and 2
-        - C, containing original sample 2 and 3
+        - A, containing original vectors 1 and 3
+        - B, containing original vectors 1 and 2
+        - C, containing original vectors 2 and 3
 
-        If a sample maps to the same bin multiple times, it will be
+        If a vector maps to the same partition multiple times, it will be
         counted multiple times.
 
         There are two supported modes for handling one-to-many relationships
         via ``one_to_many_mode``: ``add`` and ``divide``. ``add`` will add the
-        sample counts to each bin that the sample maps to, which may increase
-        the total number of counts in the output table. ``divide`` will divide
-        a sample's counts by the number of metadata that the sample has before
-        adding the counts to each bin. This will not increase the total number
-        of counts in the output table.
-
-        If ``one_to_many_md_key`` is specified, that becomes the metadata
-        key that describes the collapsed path. If a value is not specified,
-        then it defaults to 'Path'.
-
-        If ``strict`` is specified, then all metadata pathways operated on
-        must be indexable by ``metadata_f``.
-
-        ``one_to_many`` and ``norm`` are not supported together.
-
-        ``one_to_many`` and ``reduce_f`` are not supported together.
-
-        ``one_to_many`` and ``min_group_size`` are not supported together.
-
-        A final note on space consumption. At present, the ``one_to_many``
-        functionality requires a temporary dense matrix representation. This
-        was done so as it initially seems like true support requires rapid
-        ``__setitem__`` functionality on the ``SparseObj`` and at the time of
-        implementation, ``CSMat`` was O(N) to the number of nonzero elements.
-        This is a work around until either a better ``__setitem__``
-        implementation is in play on ``CSMat`` or a hybrid solution that allows
-        for multiple ``SparseObj`` types is used.
-        """
-        if constructor is None:
-            constructor = self.__class__
-
-        collapsed_data = []
-        collapsed_sample_ids = []
-
-        if include_collapsed_metadata:
-            collapsed_sample_md = []
-        else:
-            collapsed_sample_md = None
-
-        if one_to_many_mode not in ['add', 'divide']:
-            raise ValueError("Unrecognized one-to-many mode '%s'. Must be "
-                             "either 'add' or 'divide'." % one_to_many_mode)
-
-        if one_to_many:
-            if norm:
-                raise AttributeError(
-                    "norm and one_to_many are not supported together")
-
-            # determine the collapsed pathway
-            # we drop all other associated metadata
-            new_s_md = {}
-            s_md_count = {}
-            for id_, md in zip(self.sample_ids, self.sample_metadata):
-                md_iter = metadata_f(md)
-                num_md = 0
-                while True:
-                    try:
-                        pathway, bin = md_iter.next()
-                    except IndexError:
-                        # if a pathway is incomplete
-                        if strict:
-                            # bail if strict
-                            err = "Incomplete pathway, ID: %s, metadata: %s" %\
-                                  (id_, md)
-                            raise IndexError(err)
-                        else:
-                            # otherwise ignore
-                            continue
-                    except StopIteration:
-                        break
-
-                    new_s_md[bin] = pathway
-                    num_md += 1
-
-                s_md_count[id_] = num_md
-
-            n_s = len(new_s_md)
-            s_idx = dict([(bin_, i) for i, bin_ in
-                          enumerate(sorted(new_s_md))])
-
-            # We need to store floats, not ints, as things won't always divide
-            # evenly.
-            if one_to_many_mode == 'divide':
-                dtype = float
-            else:
-                dtype = self._dtype
-
-            # allocate new data. using a dense representation allows for a
-            # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
-            # of collapsed samples is reasonable, then this doesn't suck too
-            # much.
-            new_data = zeros((len(self.observation_ids), n_s), dtype=dtype)
-
-            # for each sample
-            # for each bin in the metadata
-            # for each value associated with the sample
-            for s_v, s_id, s_md in self.iter():
-                md_iter = metadata_f(s_md)
-                while True:
-                    try:
-                        pathway, bin = md_iter.next()
-                    except IndexError:
-                        # if a pathway is incomplete
-                        if strict:
-                            # bail if strict, should never get here...
-                            err = "Incomplete pathway, ID: %s, metadata: %s" %\
-                                  (id_, md)
-                            raise IndexError(err)
-                        else:
-                            # otherwise ignore
-                            continue
-                    except StopIteration:
-                        break
-
-                    if one_to_many_mode == 'add':
-                        new_data[:, s_idx[bin]] += s_v
-                    elif one_to_many_mode == 'divide':
-                        new_data[:, s_idx[bin]] += s_v / s_md_count[s_id]
-                    else:
-                        # Should never get here.
-                        raise ValueError("Unrecognized one-to-many mode '%s'. "
-                                         "Must be either 'add' or 'divide'." %
-                                         one_to_many_mode)
-
-            if include_collapsed_metadata:
-                # reassociate pathway information
-                for k, i in sorted(s_idx.items(), key=itemgetter(1)):
-                    collapsed_sample_md.append(
-                        {one_to_many_md_key: new_s_md[k]})
-
-            # get the new sample IDs
-            collapsed_sample_ids = [k for k, i in sorted(s_idx.items(),
-                                                         key=itemgetter(1))]
-
-            # convert back to self type
-            data = self._conv_to_self_type(new_data)
-        else:
-            for bin, table in self.bin_samples_by_metadata(metadata_f):
-                if len(table.sample_ids) < min_group_size:
-                    continue
-
-                redux_data = table.reduce(reduce_f, 'observation')
-                if norm:
-                    redux_data /= len(table.sample_ids)
-
-                collapsed_data.append(self._conv_to_self_type(redux_data))
-                collapsed_sample_ids.append(bin)
-
-                if include_collapsed_metadata:
-                    # retain metadata but store by original sample id
-                    tmp_md = {}
-                    for id_, md in zip(table.sample_ids,
-                                       table.sample_metadata):
-                        tmp_md[id_] = md
-                    collapsed_sample_md.append(tmp_md)
-
-            data = self._conv_to_self_type(collapsed_data, transpose=True)
-
-        # if the table is empty
-        if 0 in data.shape:
-            raise TableException("Collapsed table is empty!")
-
-        return table_factory(data, self.observation_id[:],
-                             collapsed_sample_ids, self.observation_ids[:],
-                             self.observation_metadata, collapsed_sample_md,
-                             self.table_id, constructor=constructor)
-
-    def collapse_observations_by_metadata(self, metadata_f, reduce_f=add,
-                                          norm=True, min_group_size=2,
-                                          include_collapsed_metadata=True,
-                                          constructor=None, one_to_many=False,
-                                          one_to_many_mode='add',
-                                          one_to_many_md_key='Path',
-                                          strict=False):
-        """Collapse observations in a table by observation metadata
-
-        Bin observations by metadata then collapse each bin into a single
-        observation.
-
-        If ``include_collapsed_metadata`` is True, metadata for the collapsed
-        observations are retained and can be referred to by the
-        ``ObservationId`` from each observation within the bin.
-
-        ``constructor``: the type of collapsed table to create, e.g.
-        SparseTaxonTable. If None, the collapsed table will be the same type as
-        this table.
-
-        The remainder is only relevant to setting ``one_to_many`` to True.
-
-        If ``one_to_many`` is True, allow observations to fall into multiple
-        bins if the metadata describe a one-many relationship. Supplied
-        functions must allow for iteration support over the metadata key and
-        must return a tuple of (path, bin) as to describe both the path in the
-        hierarchy represented and the specific bin being collapsed into. The
-        uniqueness of the bin is _not_ based on the path but by the name of the
-        bin.
-
-        The metadata value for the corresponding collapsed row may include more
-        (or less) information about the collapsed data. For example, if
-        collapsing "KEGG Pathways", and there are observations that span three
-        pathways A, B, and C, such that observation 1 spans A and B,
-        observation 2 spans B and C and observation 3 spans A and C, the
-        resulting table will contain three collapsed observations:
-
-        - A, containing original observation 1 and 3
-        - B, containing original observation 1 and 2
-        - C, containing original observation 2 and 3
-
-        If an observation maps to the same bin multiple times, it will be
-        counted multiple times.
-
-        There are two supported modes for handling one-to-many relationships
-        via ``one_to_many_mode``: ``add`` and ``divide``. ``add`` will add the
-        observation counts to each bin that the observation maps to, which may
+        vector counts to each partition that the vector maps to, which may
         increase the total number of counts in the output table. ``divide``
-        will divide an observation's counts by the number of metadata that the
-        observation has before adding the counts to each bin. This will not
+        will divide a vectors's counts by the number of metadata that the
+        vector has before adding the counts to each partition. This will not
         increase the total number of counts in the output table.
 
         If ``one_to_many_md_key`` is specified, that becomes the metadata
@@ -1153,28 +935,66 @@ class Table(object):
         ``one_to_many`` and ``min_group_size`` are not supported together.
 
         A final note on space consumption. At present, the ``one_to_many``
-        functionality requires a temporary dense matrix representation. This
-        was done so as it initially seems like true support requires rapid
-        ``__setitem__`` functionality on the ``SparseObj`` and at the time of
-        implementation, ``CSMat`` was O(N) to the number of nonzero elements.
-        This is a work around until either a better ``__setitem__``
-        implementation is in play on ``CSMat`` or a hybrid solution that allows
-        for multiple ``SparseObj`` types is used.
-        """
-        if constructor is None:
-            constructor = self.__class__
+        functionality requires a temporary dense matrix representation.
 
+        Parameters
+        ----------
+        f : function
+            Function that is used to determine what partition a vector belongs
+            to
+        reduce_f : function
+            Function that reduces two vectors in a one-to-one collapse
+        norm : bool
+            If `True`, normalize the resulting table
+        min_group_size : int
+            The minimum size of a partition of performing a one-to-many
+            collapse
+        include_collapsed_metadata : bool
+            If `True`, retain the collapsed metadata keyed by the original IDs
+            of the associated vectors
+        one_to_many : bool
+            Perform a one-to-many collapse
+        one_to_many_mode : str, 'add' or 'divide'
+            The way to reduce two vectors in a one-to-many collapse
+        one_to_many_md_key : str
+            The if `include_collapsed_metadata` is `True`, store the original
+            vector metadata under this key
+        strict : bool
+            Requires full pathway data within a one-to-many structure
+
+        Returns
+        -------
+        Table
+            The collapsed table
+
+        """
         collapsed_data = []
-        collapsed_obs_ids = []
+        collapsed_ids = []
 
         if include_collapsed_metadata:
-            collapsed_obs_md = []
+            collapsed_md = []
         else:
-            collapsed_obs_md = None
+            collapsed_md = None
 
         if one_to_many_mode not in ['add', 'divide']:
             raise ValueError("Unrecognized one-to-many mode '%s'. Must be "
                              "either 'add' or 'divide'." % one_to_many_mode)
+
+        # transpose is only necessary in the one-to-one case
+        # new_data_shape is only necessary in the one-to-many case
+        # axis_slice is only necessary in the one-to-many case
+        if axis == 'sample':
+            axis_ids_md = lambda t: (t.sample_ids, t.sample_metadata)
+            transpose = True
+            new_data_shape = lambda ids, collapsed: (len(ids), len(collapsed))
+            axis_slice = lambda lookup, key: (slice(None), lookup[key])
+        elif axis == 'observation':
+            axis_ids_md = lambda t: (t.observation_ids, t.observation_metadata)
+            transpose = False
+            new_data_shape = lambda ids, collapsed: (len(collapsed), len(ids))
+            axis_slice = lambda lookup, key: (lookup[key], slice(None))
+        else:
+            raise UnknownAxisError(axis)
 
         if one_to_many:
             if norm:
@@ -1183,15 +1003,15 @@ class Table(object):
 
             # determine the collapsed pathway
             # we drop all other associated metadata
-            new_obs_md = {}
-            obs_md_count = {}
-            for id_, md in zip(self.observation_ids,
-                               self.observation_metadata):
-                md_iter = metadata_f(md)
+            new_md = {}
+            md_count = {}
+
+            for id_, md in izip(*axis_ids_md(self)):
+                md_iter = f(id_, md)
                 num_md = 0
                 while True:
                     try:
-                        pathway, bin = md_iter.next()
+                        pathway, partition = md_iter.next()
                     except IndexError:
                         # if a pathway is incomplete
                         if strict:
@@ -1205,37 +1025,29 @@ class Table(object):
                     except StopIteration:
                         break
 
-                    # keyed by last field in hierarchy
-                    new_obs_md[bin] = pathway
+                    new_md[partition] = pathway
                     num_md += 1
 
-                obs_md_count[id_] = num_md
+                md_count[id_] = num_md
 
-            n_obs = len(new_obs_md)
-            obs_idx = dict([(bin_, i)
-                            for i, bin_ in enumerate(sorted(new_obs_md))])
+            idx_lookup = {part: i for i, part in enumerate(sorted(new_md))}
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
-            if one_to_many_mode == 'divide':
-                dtype = float
-            else:
-                dtype = self._dtype
+            dtype = float if one_to_many_mode == 'divide' else self.dtype
 
-            # allocate new data. using a dense representation allows for a
-            # workaround on CSMat.__setitem__ O(N) lookup. Assuming the number
-            # of collapsed observations is reasonable, then this doesn't suck
-            # too much.
-            new_data = zeros((n_obs, len(self.sample_ids)), dtype=dtype)
+            new_data = zeros(new_data_shape(axis_ids_md(self)[0], new_md),
+                             dtype=dtype)
 
-            # for each observation
+            # for each vector
             # for each bin in the metadata
-            # for each value associated with the observation
-            for obs_v, obs_id, obs_md in self.iter(axis='observation'):
-                md_iter = metadata_f(obs_md)
+            # for each partition associated with the vector
+            for vals, id_, md in self.iter(axis=axis):
+                md_iter = f(id_, md)
+
                 while True:
                     try:
-                        pathway, bin = md_iter.next()
+                        pathway, part = md_iter.next()
                     except IndexError:
                         # if a pathway is incomplete
                         if strict:
@@ -1250,58 +1062,77 @@ class Table(object):
                         break
 
                     if one_to_many_mode == 'add':
-                        new_data[obs_idx[bin], :] += obs_v
-                    elif one_to_many_mode == 'divide':
-                        new_data[obs_idx[bin], :] += \
-                            obs_v / obs_md_count[obs_id]
+                        new_data[axis_slice(idx_lookup, part)] += vals
                     else:
-                        # Should never get here.
-                        raise ValueError("Unrecognized one-to-many mode '%s'. "
-                                         "Must be either 'add' or 'divide'." %
-                                         one_to_many_mode)
+                        new_data[axis_slice(idx_lookup, part)] += \
+                            vals / md_count[id_]
 
             if include_collapsed_metadata:
-                # associate the pathways back
-                for k, i in sorted(obs_idx.items(), key=itemgetter(1)):
-                    collapsed_obs_md.append(
-                        {one_to_many_md_key: new_obs_md[k]})
+                # reassociate pathway information
+                for k, i in sorted(idx_lookup.iteritems(), key=itemgetter(1)):
+                    collapsed_md.append({one_to_many_md_key: new_md[k]})
 
-            # get the new observation IDs
-            collapsed_obs_ids = [k for k, i in sorted(obs_idx.items(),
-                                                      key=itemgetter(1))]
+            # get the new sample IDs
+            collapsed_ids = [k for k, i in sorted(idx_lookup.iteritems(),
+                                                  key=itemgetter(1))]
 
             # convert back to self type
             data = self._conv_to_self_type(new_data)
         else:
-            for bin, table in self.bin_observations_by_metadata(metadata_f):
-                if len(table.observation_ids) < min_group_size:
+            for part, table in self.partition(f, axis=axis):
+                axis_ids, axis_md = axis_ids_md(table)
+
+                if len(axis_ids) < min_group_size:
                     continue
 
-                redux_data = table.reduce(reduce_f, 'sample')
+                redux_data = table.reduce(reduce_f, self._invert_axis(axis))
                 if norm:
-                    redux_data /= len(table.observation_ids)
+                    redux_data /= len(axis_ids)
 
                 collapsed_data.append(self._conv_to_self_type(redux_data))
-                collapsed_obs_ids.append(bin)
+                collapsed_ids.append(part)
 
                 if include_collapsed_metadata:
-                    # retain metadata but store by original observation id
+                    # retain metadata but store by original id
                     tmp_md = {}
-                    for id_, md in zip(table.observation_ids,
-                                       table.observation_metadata):
+                    for id_, md in izip(axis_ids, axis_md):
                         tmp_md[id_] = md
-                    collapsed_obs_md.append(tmp_md)
+                    collapsed_md.append(tmp_md)
 
-            data = self._conv_to_self_type(collapsed_data)
+            data = self._conv_to_self_type(collapsed_data, transpose=transpose)
 
         # if the table is empty
         if 0 in data.shape:
             raise TableException("Collapsed table is empty!")
 
-        return table_factory(data, collapsed_obs_ids, self.sample_ids[:],
-                             self.sample_metadata, collapsed_obs_md,
-                             self.table_id,
-                             constructor=constructor)
+        if axis == 'sample':
+            sample_ids = collapsed_ids
+            sample_md = collapsed_md
+            obs_ids = self.observation_ids[:]
+            if self.observation_metadata is not None:
+                obs_md = self.observation_metadata[:]
+            else:
+                obs_md = None
+        else:
+            sample_ids = self.sample_ids[:]
+            obs_ids = collapsed_ids
+            obs_md = collapsed_md
+            if self.sample_metadata is not None:
+                sample_md = self.sample_metadata[:]
+            else:
+                sample_md = None
+
+        return table_factory(data, obs_ids, sample_ids, obs_md, sample_md,
+                             self.table_id)
+
+    def _invert_axis(self, axis):
+        """Invert an axis"""
+        if axis == 'sample':
+            return 'observation'
+        elif axis == 'observation':
+            return 'sample'
+        else:
+            return UnknownAxisError(axis)
 
     def transform(self, f, axis='sample'):
         """Iterate over `axis`, applying a function `f` to each vector.
@@ -2003,13 +1834,11 @@ class Table(object):
         columns = ['"columns": [']
         for samp_index, samp in enumerate(self.iter()):
             if samp_index != max_col_idx:
-                columns.append('{"id": "%s", "metadata": %s},' % (samp[1],
-                                                                  dumps(
-                                                                  samp[2])))
+                columns.append('{"id": "%s", "metadata": %s},' % (
+                    samp[1], dumps(samp[2])))
             else:
-                columns.append('{"id": "%s", "metadata": %s}]' % (samp[1],
-                                                                  dumps(
-                                                                  samp[2])))
+                columns.append('{"id": "%s", "metadata": %s}]' % (
+                    samp[1], dumps(samp[2])))
 
         rows = ''.join(rows)
         columns = ''.join(columns)

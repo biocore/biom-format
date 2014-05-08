@@ -212,10 +212,10 @@ class TableTests(TestCase):
         # Empty/null cases (i.e., 0x0, 0xn, nx0).
         ids = lambda X: ['x%d' % e for e in range(0, X)]
         self.null1 = Table(to_sparse(np.zeros((0, 0))), [], [])
-        self.null2 = Table(to_sparse(np.zeros((0, 42), dtype=float)),
-                           [], ids(42))
-        self.null3 = Table(to_sparse(np.zeros((42, 0), dtype=float)),
-                           ids(42), [])
+        self.null2 = Table(
+            to_sparse(np.zeros((0, 42), dtype=float)), [], ids(42))
+        self.null3 = Table(
+            to_sparse(np.zeros((42, 0), dtype=float)), ids(42), [])
         self.nulls = [self.null1, self.null2, self.null3]
 
         # 0 0
@@ -238,8 +238,8 @@ class TableTests(TestCase):
 
         # Explicit zeros.
         self.explicit_zeros = Table(to_sparse(np.array([[0, 0, 1], [1, 0, 0],
-                                                       [1, 0, 2]])),
-                                    ['x', 'y', 'z'], ['a', 'b', 'c'])
+                                                        [1, 0, 2]])),
+                                    ['a', 'b', 'c'], ['x', 'y', 'z'])
 
     def tearDown(self):
         if self.to_remove:
@@ -329,7 +329,6 @@ class TableTests(TestCase):
                np.array([2., 1., 1., 0., 0., 1.]),
                np.array([0., 1., 1., 0., 0., 0.])]
         npt.assert_equal(list(t.iter_data(axis="observation")), exp)
-
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5(self):
@@ -477,7 +476,6 @@ class TableTests(TestCase):
         self.assertEqual(t.observation_metadata[1]['non existent key'], None)
         self.assertEqual(t.observation_metadata[2]['non existent key'], None)
 
-
     def test_add_metadata_two_entries(self):
         """ add_metadata functions with more than one md entry """
         obs_ids = [1, 2, 3]
@@ -515,7 +513,7 @@ class TableTests(TestCase):
                    {'Treatment': 'Control'}]
         d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         t = Table(d, obs_ids, samp_ids, observation_metadata=obs_md,
-                 sample_metadata=samp_md)
+                  sample_metadata=samp_md)
         self.assertEqual(t.sample_metadata[0]['Treatment'], 'Control')
         self.assertEqual(t.sample_metadata[1]['Treatment'], 'Fasting')
         self.assertEqual(t.sample_metadata[2]['Treatment'], 'Fasting')
@@ -1387,6 +1385,493 @@ class SparseTableTests(TestCase):
         exp = Table(data_exp, ['1', '2'], ['a', 'b'])
         st.norm(axis='observation')
         self.assertEqual(st, exp)
+
+    def test_collapse_observations_by_metadata_one_to_many_strict(self):
+        """Collapse observations by arbitary metadata"""
+        dt_rich = Table(to_sparse(np.array([[5, 6, 7], [8, 9, 10],
+                                            [11, 12, 13]])),
+                        ['1', '2', '3'], ['a', 'b', 'c'],
+                        [{'pathways': [['a', 'bx'], ['a', 'd']]},
+                         {'pathways': [['a', 'bx'], ['a', 'c']]},
+                         {'pathways': [['a']]}],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
+        exp_cat2 = Table(to_sparse(np.array([[13, 15, 17], [8, 9, 10],
+                                             [5, 6, 7]])),
+                         ['bx', 'c', 'd'], ['a', 'b', 'c'],
+                         [{'Path': ['a', 'bx']},
+                          {'Path': ['a', 'c']},
+                          {'Path': ['a', 'd']}],
+                         [{'barcode': 'aatt'},
+                          {'barcode': 'ttgg'},
+                          {'barcode': 'aatt'}])
+
+        def bin_f(id_, x):
+            for foo in x['pathways']:
+                yield (foo, foo[1])
+
+        obs_cat2 = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1, one_to_many=True,
+            strict=False, axis='observation').sort(axis='observation')
+        self.assertEqual(obs_cat2, exp_cat2)
+
+        with self.assertRaises(IndexError):
+            dt_rich.collapse(
+                bin_f, norm=False, min_group_size=1, one_to_many=True,
+                strict=True, axis='observation')
+
+    def test_collapse_observations_by_metadata_one_to_many(self):
+        """Collapse observations by arbitary metadata"""
+        dt_rich = Table(
+            to_sparse(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]])),
+            ['1', '2', '3'], ['a', 'b', 'c'],
+            [{'pathways': [['a', 'bx'], ['a', 'd']]},
+             {'pathways': [['a', 'bx'], ['a', 'c']]},
+             {'pathways': [['a', 'c']]}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
+        exp_cat2 = Table(to_sparse(np.array([[13, 15, 17], [19, 21, 23],
+                                             [5, 6, 7]])),
+                         ['bx', 'c', 'd'], ['a', 'b', 'c'],
+                         [{'Path': ['a', 'bx']},
+                          {'Path': ['a', 'c']},
+                          {'Path': ['a', 'd']}],
+                         [{'barcode': 'aatt'},
+                          {'barcode': 'ttgg'},
+                          {'barcode': 'aatt'}])
+
+        def bin_f(id_, x):
+            for foo in x['pathways']:
+                yield (foo, foo[-1])
+
+        obs_cat2 = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1,
+            one_to_many=True, axis='observation').sort(axis='observation')
+        self.assertEqual(obs_cat2, exp_cat2)
+
+        dt_rich = Table(
+            to_sparse(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]])),
+            ['1', '2', '3'], ['a', 'b', 'c'],
+            [{'pathways': [['a', 'b'], ['a', 'd']]},
+             {'pathways': [['a', 'b'], ['a', 'c']]},
+             {'pathways': [['a', 'c']]}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
+        exp_cat1 = Table(to_sparse(np.array([[37, 42, 47]])),
+                         ['a'], ['a', 'b', 'c'],
+                         [{'Path': ['a']}],
+                         [{'barcode': 'aatt'},
+                          {'barcode': 'ttgg'},
+                          {'barcode': 'aatt'}])
+
+        def bin_f(id_, x):
+            for foo in x['pathways']:
+                yield (foo[:1], foo[0])
+
+        obs_cat1 = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1,
+            one_to_many=True, axis='observation').sort(axis='observation')
+        self.assertEqual(obs_cat1, exp_cat1)
+
+        # Test out include_collapsed_metadata=False.
+        exp = Table(to_sparse(np.array([[37, 42, 47]])),
+                    ['a'], ['a', 'b', 'c'], None,
+                    [{'barcode': 'aatt'},
+                     {'barcode': 'ttgg'},
+                     {'barcode': 'aatt'}])
+        obs = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1, one_to_many=True,
+            include_collapsed_metadata=False,
+            axis='observation').sort(axis='observation')
+        self.assertEqual(obs, exp)
+
+        # Test out constructor.
+        obs = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1, one_to_many=True,
+            include_collapsed_metadata=False,
+            axis='observation').sort(axis='observation')
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), Table)
+
+    def test_collapse_observations_by_metadata_one_to_many_divide(self):
+        """Collapse observations by 1-M metadata using divide mode"""
+        dt_rich = Table(to_sparse(np.array([[1, 6, 7], [8, 0, 10],
+                                            [11, 12, 13]])),
+                        ['1', '2', '3'],
+                        ['a', 'b', 'c'],
+                        [{'pathways': [['a', 'bx'], ['a', 'd']]},
+                         {'pathways': [['a', 'bx'], ['a', 'c']]},
+                         {'pathways': [['a', 'c']]}],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
+        exp = Table(to_sparse(np.array([[4.5, 3, 8.5], [15, 12, 18],
+                                        [0.5, 3, 3.5]])),
+                    ['bx', 'c', 'd'],
+                    ['a', 'b', 'c'],
+                    [{'Path': ['a', 'bx']},
+                     {'Path': ['a', 'c']},
+                     {'Path': ['a', 'd']}],
+                    [{'barcode': 'aatt'},
+                     {'barcode': 'ttgg'},
+                     {'barcode': 'aatt'}])
+
+        def bin_f(id_, x):
+            for foo in x['pathways']:
+                yield (foo, foo[-1])
+
+        obs = dt_rich.collapse(
+            bin_f, norm=False, one_to_many=True,
+            one_to_many_mode='divide',
+            axis='observation').sort(axis='observation')
+        self.assertEqual(obs, exp)
+
+        # Test skipping some observation metadata (strict=False).
+        dt_rich = Table(
+            to_sparse(np.array([[5.0, 6.0, 7], [8, 9, 10], [11, 12, 13.0]])),
+            ['1', '2', '3'], ['a', 'b', 'c'],
+            [{'pathways': [['a', 'bx'], ['a', 'd']]},
+             {'pathways': [['a', 'bx'], ['a', 'c'], ['z']]},
+             {'pathways': [['a']]}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
+        exp = Table(to_sparse(np.array([[6.5, 7.5, 8.5], [4, 4.5, 5],
+                                        [2.5, 3, 3.5]])),
+                    ['bx', 'c', 'd'], ['a', 'b', 'c'],
+                    [{'Path': ['a', 'bx']},
+                     {'Path': ['a', 'c']},
+                     {'Path': ['a', 'd']}],
+                    [{'barcode': 'aatt'},
+                     {'barcode': 'ttgg'},
+                     {'barcode': 'aatt'}])
+
+        def bin_f(id_, x):
+            for foo in x['pathways']:
+                yield (foo, foo[1])
+
+        obs = dt_rich.collapse(
+            bin_f, norm=False, one_to_many=True, one_to_many_mode='divide',
+            strict=False, axis='observation').sort(axis='observation')
+
+        self.assertEqual(obs, exp)
+
+        with self.assertRaises(IndexError):
+            dt_rich.collapse(
+                bin_f, norm=False, one_to_many=True, one_to_many_mode='divide',
+                strict=True, axis='observation')
+
+        # Invalid one_to_many_mode.
+        with self.assertRaises(ValueError):
+            dt_rich.collapse(
+                bin_f, norm=False, one_to_many=True, one_to_many_mode='foo',
+                axis='observation')
+
+    def test_collapse_observations_by_metadata(self):
+        """Collapse observations by arbitrary metadata"""
+        dt_rich = Table(
+            to_sparse(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]])),
+            ['1', '2', '3'], ['a', 'b', 'c'],
+            [{'taxonomy': ['k__a', 'p__b']},
+             {'taxonomy': ['k__a', 'p__c']},
+             {'taxonomy': ['k__a', 'p__c']}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
+        exp_phy = Table(to_sparse(np.array([[5, 6, 7], [19, 21, 23]])),
+                        ['p__b', 'p__c'], ['a', 'b', 'c'],
+                        [{'1': {'taxonomy': ['k__a', 'p__b']}},
+                         {'2': {'taxonomy': ['k__a', 'p__c']},
+                          '3':{'taxonomy': ['k__a', 'p__c']}}],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
+        bin_f = lambda id_, x: x['taxonomy'][1]
+        obs_phy = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1,
+            axis='observation').sort(axis='observation')
+        self.assertEqual(obs_phy, exp_phy)
+
+        exp_king = Table(to_sparse(np.array([[24, 27, 30]])),
+                         ['k__a'], ['a', 'b', 'c'],
+                         [{'1': {'taxonomy': ['k__a', 'p__b']},
+                           '2':{'taxonomy': ['k__a', 'p__c']},
+                           '3':{'taxonomy': ['k__a', 'p__c']}}],
+                         [{'barcode': 'aatt'},
+                          {'barcode': 'ttgg'},
+                          {'barcode': 'aatt'}])
+        bin_f = lambda id_, x: x['taxonomy'][0]
+        obs_king = dt_rich.collapse(bin_f, norm=False, axis='observation')
+        self.assertEqual(obs_king, exp_king)
+
+        self.assertRaises(
+            TableException, dt_rich.collapse, bin_f, min_group_size=10,
+            axis='observation')
+
+        # Test out include_collapsed_metadata=False.
+        exp = Table(to_sparse(np.array([[24, 27, 30]])),
+                    ['k__a'],
+                    ['a', 'b', 'c'], None,
+                    [{'barcode': 'aatt'},
+                     {'barcode': 'ttgg'},
+                     {'barcode': 'aatt'}])
+        obs = dt_rich.collapse(bin_f, norm=False,
+                               include_collapsed_metadata=False,
+                               axis='observation')
+        self.assertEqual(obs, exp)
+
+        # Test out constructor.
+        obs = dt_rich.collapse(bin_f, norm=False,
+                               include_collapsed_metadata=False,
+                               axis='observation')
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), Table)
+
+    def test_collapse_samples_by_metadata(self):
+        """Collapse samples by arbitrary metadata"""
+        dt_rich = Table(
+            to_sparse(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]])),
+            ['1', '2', '3'], ['a', 'b', 'c'],
+            [{'taxonomy': ['k__a', 'p__b']},
+             {'taxonomy': ['k__a', 'p__c']},
+             {'taxonomy': ['k__a', 'p__c']}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
+        exp_bc = Table(
+            to_sparse(np.array([[12, 6], [18, 9], [24, 12]])),
+            ['1', '2', '3'], ['aatt', 'ttgg'],
+            [{'taxonomy': ['k__a', 'p__b']},
+             {'taxonomy': ['k__a', 'p__c']},
+             {'taxonomy': ['k__a', 'p__c']}],
+            [{'a': {'barcode': 'aatt'},
+              'c': {'barcode': 'aatt'}},
+             {'b': {'barcode': 'ttgg'}}])
+        bin_f = lambda id_, x: x['barcode']
+        obs_bc = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1,
+            axis='sample').sort(axis='sample')
+        self.assertEqual(obs_bc, exp_bc)
+
+        self.assertRaises(TableException, dt_rich.collapse,
+                          bin_f, min_group_size=10)
+        # Test out include_collapsed_metadata=False.
+        exp = Table(to_sparse(np.array([[12, 6], [18, 9], [24, 12]])),
+                    ['1', '2', '3'],
+                    ['aatt', 'ttgg'],
+                    [{'taxonomy': ['k__a', 'p__b']},
+                     {'taxonomy': ['k__a', 'p__c']},
+                     {'taxonomy': ['k__a', 'p__c']}],
+                    None)
+
+        obs = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1,
+            include_collapsed_metadata=False).sort(axis='sample')
+        self.assertEqual(obs, exp)
+
+        # Test out constructor.
+        obs = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1,
+            include_collapsed_metadata=False).sort(axis='sample')
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), Table)
+
+    def test_collapse_samples_by_metadata_one_to_many_strict(self):
+        """Collapse samples by arbitary metadata"""
+        dt_rich = Table(to_sparse(np.array([[5, 6, 7], [8, 9, 10],
+                                            [11, 12, 13]])),
+                        ['1', '2', '3'],
+                        ['XXa', 'XXb', 'XXc'],
+                        [{'other': 'aatt'},
+                         {'other': 'ttgg'},
+                         {'other': 'aatt'}],
+                        [{'foo': [['a', 'b'], ['a', 'd']]},
+                         {'foo': [['a', 'b'], ['a', 'c']]},
+                         {'foo': [['a']]}])
+        exp_cat2 = Table(to_sparse(np.array([[11, 17, 23], [6, 9, 12],
+                                             [5, 8, 11]]).T),
+                         ['1', '2', '3'],
+                         ['b', 'c', 'd'],
+                         [{'other': 'aatt'},
+                          {'other': 'ttgg'},
+                          {'other': 'aatt'}],
+                         [{'Path': ['a', 'b']},
+                          {'Path': ['a', 'c']},
+                          {'Path': ['a', 'd']}])
+
+        def bin_f(id_, x):
+            for foo in x['foo']:
+                yield (foo, foo[1])
+
+        obs_cat2 = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1, one_to_many=True,
+            strict=False).sort(axis='observation')
+        self.assertEqual(obs_cat2, exp_cat2)
+
+        self.assertRaises(IndexError, dt_rich.collapse, bin_f,
+                          norm=False, min_group_size=1, one_to_many=True,
+                          strict=True)
+
+    def test_collapse_samples_by_metadata_one_to_many_divide(self):
+        """Collapse samples by 1-M metadata using divide mode"""
+        dt_rich = Table(to_sparse(np.array([[1, 8, 11], [6, 0, 12],
+                                            [7, 10, 13]])),
+                        ['a', 'b', 'c'],
+                        ['1', '2', '3'],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}],
+                        [{'pathways': [['a', 'bx'], ['a', 'd']]},
+                         {'pathways': [['a', 'bx'], ['a', 'c']]},
+                         {'pathways': [['a', 'c']]}])
+        exp = Table(to_sparse(np.array([[4.5, 15, 0.5], [3, 12, 3],
+                                        [8.5, 18, 3.5]])),
+                    ['a', 'b', 'c'],
+                    ['bx', 'c', 'd'],
+                    [{'barcode': 'aatt'},
+                     {'barcode': 'ttgg'},
+                     {'barcode': 'aatt'}],
+                    [{'Path': ['a', 'bx']},
+                     {'Path': ['a', 'c']},
+                     {'Path': ['a', 'd']}])
+
+        def bin_f(id_, x):
+            for foo in x['pathways']:
+                yield (foo, foo[-1])
+
+        obs = dt_rich.collapse(
+            bin_f, norm=False, one_to_many=True,
+            one_to_many_mode='divide').sort(axis='sample')
+        self.assertEqual(obs, exp)
+
+        # Test skipping some sample metadata (strict=False).
+        dt_rich = Table(
+            to_sparse(np.array([[5.0, 8, 11], [6.0, 9, 12],
+                                [7, 10, 13.0]])),
+            ['a', 'b', 'c'],
+            ['1', '2', '3'],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}],
+            [{'pathways': [['a', 'bx'], ['a', 'd']]},
+             {'pathways': [['a', 'bx'], ['a', 'c'], ['z']]},
+             {'pathways': [['a']]}])
+        exp = Table(to_sparse(np.array([[6.5, 4, 2.5], [7.5, 4.5, 3],
+                                        [8.5, 5, 3.5]])),
+                    ['a', 'b', 'c'],
+                    ['bx', 'c', 'd'],
+                    [{'barcode': 'aatt'},
+                     {'barcode': 'ttgg'},
+                     {'barcode': 'aatt'}],
+                    [{'Path': ['a', 'bx']},
+                     {'Path': ['a', 'c']},
+                     {'Path': ['a', 'd']}])
+
+        def bin_f(id_, x):
+            for foo in x['pathways']:
+                yield (foo, foo[1])
+
+        obs = dt_rich.collapse(
+            bin_f, norm=False, one_to_many=True, one_to_many_mode='divide',
+            strict=False).sort(axis='sample')
+
+        self.assertEqual(obs, exp)
+
+        with self.assertRaises(IndexError):
+            dt_rich.collapse(bin_f, norm=False,
+                             one_to_many=True,
+                             one_to_many_mode='divide',
+                             strict=True)
+
+        # Invalid one_to_many_mode.
+        with self.assertRaises(ValueError):
+            dt_rich.collapse(bin_f, norm=False,
+                             one_to_many=True,
+                             one_to_many_mode='foo')
+
+    def test_collapse_samples_by_metadata_one_to_many(self):
+        """Collapse samples by arbitary metadata"""
+        dt_rich = Table(to_sparse(np.array([[5, 6, 7],
+                                            [8, 9, 10],
+                                            [11, 12, 13]])),
+                        ['1', '2', '3'],
+                        ['XXa', 'XXb', 'XXc'],
+                        [{'other': 'aatt'},
+                         {'other': 'ttgg'},
+                         {'other': 'aatt'}],
+                        [{'foo': [['a', 'b'], ['a', 'd']]},
+                         {'foo': [['a', 'b'], ['a', 'c']]},
+                         {'foo': [['a', 'c']]}])
+        exp_cat2 = Table(
+            to_sparse(np.array([[11, 17, 23], [13, 19, 25], [5, 8, 11]]).T),
+            ['1', '2', '3'],
+            ['b', 'c', 'd'],
+            [{'other': 'aatt'},
+             {'other': 'ttgg'},
+             {'other': 'aatt'}],
+            [{'Path': ['a', 'b']},
+             {'Path': ['a', 'c']},
+             {'Path': ['a', 'd']}])
+
+        def bin_f(id_, x):
+            for foo in x['foo']:
+                yield (foo, foo[-1])
+
+        obs_cat2 = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1,
+            one_to_many=True, axis='sample').sort(axis='observation')
+
+        self.assertEqual(obs_cat2, exp_cat2)
+
+        dt_rich = Table(
+            to_sparse(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]])),
+            ['1', '2', '3'], ['a', 'b', 'c'],
+            [{'other': 'aatt'},
+             {'other': 'ttgg'},
+             {'other': 'aatt'}],
+            [{'foo': [['a', 'b'], ['a', 'd']]},
+             {'foo': [['a', 'b'], ['a', 'c']]},
+             {'foo': [['a', 'c']]}])
+        exp_cat1 = Table(to_sparse(np.array([[29, 44, 59]]).T),
+                         ['1', '2', '3'], ['a'],
+                         [{'other': 'aatt'},
+                          {'other': 'ttgg'},
+                          {'other': 'aatt'}],
+                         [{'Path': ['a']}])
+
+        def bin_f(id_, x):
+            for foo in x['foo']:
+                yield (foo[:1], foo[0])
+
+        obs_cat1 = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1,
+            one_to_many=True, axis='sample').sort(axis='observation')
+        self.assertEqual(obs_cat1, exp_cat1)
+
+        # Test out include_collapsed_metadata=False.
+        exp = Table(to_sparse(np.array([[29, 44, 59]]).T),
+                    ['1', '2', '3'],
+                    ['a'],
+                    [{'other': 'aatt'},
+                     {'other': 'ttgg'},
+                     {'other': 'aatt'}],
+                    None)
+        obs = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1, one_to_many=True,
+            include_collapsed_metadata=False,
+            axis='sample').sort(axis='observation')
+        self.assertEqual(obs, exp)
+
+        # Test out constructor.
+        obs = dt_rich.collapse(bin_f, norm=False, min_group_size=1,
+                               one_to_many=True,
+                               include_collapsed_metadata=False,
+                               axis='sample').sort(axis='observation')
+        self.assertEqual(obs, exp)
+        self.assertEqual(type(obs), Table)
 
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
