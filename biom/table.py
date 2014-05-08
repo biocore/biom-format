@@ -383,7 +383,7 @@ class Table(object):
         Create a 2x3 BIOM table:
 
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
-        >>> table = table_factory(data, ['01' '02'], ['S1', 'S2', 'S3'])
+        >>> table = table_factory(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
 
         Get the index of the observation with ID "O2":
 
