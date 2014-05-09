@@ -90,7 +90,7 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr.indices = indices[:nnz]
     arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
-    
+
 def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
                         remove=True):
     """Filter row/columns of a sparse matrix according to the output of a
@@ -121,6 +121,7 @@ def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
         fmt = 'csr'
 
     invert = bool(invert)
+    metadata_is_None = metadata is None
 
     cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools
 
@@ -128,6 +129,8 @@ def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
         bools = np.bitwise_xor(np.asarray(ids_to_keep, dtype=bool),
                                invert).view(np.uint8)
     elif isinstance(ids_to_keep, FunctionType):
+        if metadata_is_None:
+            metadata = (None,) * len(ids)
         bools = _make_filter_array(ids, metadata, ids_to_keep, invert)
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
@@ -161,4 +164,6 @@ def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
         ids = np.asarray(list(compress(ids, bools)), dtype=object)
         metadata = tuple(compress(metadata, bools))
 
+    if metadata_is_None:
+        metadata = None
     return arr, ids, metadata
