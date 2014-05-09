@@ -769,7 +769,7 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    def filter(self, ids_to_keep, axis, invert=False):
+    def filter(self, ids_to_keep, axis='sample', invert=False, inplace=True):
         """Filter in place a table based on a function or iterable.
 
         Parameters
@@ -780,25 +780,34 @@ class Table(object):
             return a boolean.
             If it's an iterable, it will be converted to an array of
             bools.
-        axis : str
+        axis : str, defaults to "sample"
             It controls whether to filter samples or observations. Can
             be "sample" or "observation".
         invert : bool
             If set to True, discard samples or observations where
             `ids_to_keep` returns True
+        inplace : bool, defaults to True
+            Whether to return a new table or modify itself.
+
+        Returns
+        -------
+        biom.Table
+            Returns itself if `inplace`, else returns a new filtered table.
         """
+        table = self if inplace else self.copy()
+
         if axis == 'sample':
             axis = 1
-            ids = self.sample_ids
-            metadata = self.sample_metadata
+            ids = table.sample_ids
+            metadata = table.sample_metadata
         elif axis == 'observation':
             axis = 0
-            ids = self.observation_ids
-            metadata = self.observation_metadata
+            ids = table.observation_ids
+            metadata = table.observation_metadata
         else:
             raise ValueError("Unsupported axis")
 
-        arr = self._data
+        arr = table._data
         arr, ids, metadata = filter_sparse_array(arr,
                                                  ids,
                                                  metadata,
@@ -806,13 +815,15 @@ class Table(object):
                                                  axis,
                                                  invert=invert)
 
-        self._data = arr
+        table._data = arr
         if axis == 1:
-            self.sample_ids = ids
-            self.sample_metadata = metadata
+            table.sample_ids = ids
+            table.sample_metadata = metadata
         elif axis == 0:
-            self.observation_ids = ids
-            self.observation_metadata = metadata
+            table.observation_ids = ids
+            table.observation_metadata = metadata
+
+        return table
 
     def partition(self, f, axis='sample'):
         """Yields partitions
