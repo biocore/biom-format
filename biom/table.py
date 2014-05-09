@@ -874,7 +874,7 @@ class Table(object):
                     samp_md = None
 
             yield part, table_factory(data, obs_ids, samp_ids, obs_md, samp_md,
-                                      self.table_id)
+                                      self.table_id, type=self.type)
 
     def collapse(self, f, reduce_f=add, norm=True, min_group_size=2,
                  include_collapsed_metadata=True, one_to_many=False,
@@ -1123,7 +1123,7 @@ class Table(object):
                 sample_md = None
 
         return table_factory(data, obs_ids, sample_ids, obs_md, sample_md,
-                             self.table_id)
+                             self.table_id, type=self.type)
 
     def _invert_axis(self, axis):
         """Invert an axis"""
