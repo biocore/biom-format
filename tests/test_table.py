@@ -1263,6 +1263,29 @@ class SparseTableTests(TestCase):
         for o, e in zip(obs, exp):
             self.assertEqual(o, e)
 
+    def test_copy_metadata(self):
+        self.st_rich.sample_metadata[0]['foo'] = ['bar']
+        copied_table = self.st_rich.copy()
+        copied_table.sample_metadata[0]['foo'].append('bar2')
+        self.assertNotEqual(copied_table, self.st_rich)
+        self.st_rich.observation_metadata[0]['foo'] = ['bar']
+        copied_table = self.st_rich.copy()
+        copied_table.observation_metadata[0]['foo'].append('bar2')
+        self.assertNotEqual(copied_table, self.st_rich)
+
+    def test_copy_ids(self):
+        copied_table = self.st_rich.copy()
+        self.st_rich.sample_ids[0] = 'a different id'
+        self.assertNotEqual(copied_table, self.st_rich)
+        copied_table = self.st_rich.copy()
+        self.st_rich.observation_ids[0] = 'a different id'
+        self.assertNotEqual(copied_table, self.st_rich)
+
+    def test_copy_data(self):
+        copied_table = self.st_rich.copy()
+        self.st_rich._data *= 2
+        self.assertNotEqual(copied_table, self.st_rich)
+
     def test_filter_return_type(self):
         f = lambda id_, md: id_[0] == 'b'
         filtered_table = self.st3.filter(f, inplace=False)
