@@ -709,8 +709,6 @@ class TableTests(TestCase):
                      ['o1', 'o2'], ['s1', 's2', 's3'])
         self.assertTrue(self.mat1 == mat2)
 
-        # Sparse format shouldn't matter; can someone help me assess that this
-        # is not needed anymore i. e. it was deprecated
         mat2._data = mat2._data.tolil()
         self.assertNotEqual(self.mat1._data.format, mat2._data.format)
         self.assertTrue(self.mat1 == mat2)
