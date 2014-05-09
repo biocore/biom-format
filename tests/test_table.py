@@ -1348,6 +1348,13 @@ class SparseTableTests(TestCase):
                           lambda: self.st_rich.filter(lambda id_, md: False,
                                                       'observation'))
 
+    def test_transform_return_type(self):
+        f = lambda data, id_, md: data / 2.
+        filtered_table = self.st3.transform(f, inplace=False)
+        filtered_table_2 = self.st3.transform(f, inplace=True)
+        self.assertEqual(filtered_table, filtered_table_2)
+        self.assertTrue(filtered_table_2 is self.st3)
+
     def test_transform_observation(self):
         """Transform axis by arbitrary function"""
         # Transform observations by arbitrary function
