@@ -242,7 +242,43 @@ class Table(object):
         self._cast_metadata()
 
     def __getitem__(self, args):
-        """Handles row or column slices."""
+        """Handles row or column slices
+
+        Slicing over an individual axis is supported, but slicing over both
+        axes at the same time is not supported. Partial slices, such as
+        `foo[0, 5:10]` are not supported, however full slices are supported,
+        such as `foo[0, :]`.
+
+        Parameters
+        ----------
+        args : tuple or slice
+            The specific element (by index position) to return or an entire
+            row or column of the data.
+
+        Returns
+        -------
+        float or spmatrix
+            A float is return if a specific element is specified, otherwise a
+            spmatrix object representing a vector of sparse data is returned.
+
+        Raises
+        ------
+        IndexError
+            - If the matrix is empty
+            - If the arguments do not appear to be a tuple
+            - If a slice on row and column is specified
+            - If a partial slice is specified
+
+        Notes
+        -----
+        Switching between slicing rows and columns is inefficient.  Slicing of
+        rows requires a CSR representation, while slicing of columns requires a
+        CSC representation, and transforms are performed on the data if the
+        data are not in the required representation. These transforms can be
+        expensive if done frequently.
+
+        .. shownumpydoc
+        """
         if self.is_empty():
             raise IndexError("Cannot retrieve an element from an empty/null "
                              "table.")
@@ -275,6 +311,15 @@ class Table(object):
         """Return the row at ``row_idx``.
 
         A row vector will be returned as a scipy.sparse matrix in csr format.
+
+        Notes
+        -----
+        Switching between slicing rows and columns is inefficient.  Slicing of
+        rows requires a CSR representation, while slicing of columns requires a
+        CSC representation, and transforms are performed on the data if the
+        data are not in the required representation. These transforms can be
+        expensive if done frequently.
+
         """
         self._data = self._data.tocsr()
         return self._data.getrow(row_idx)
@@ -284,6 +329,15 @@ class Table(object):
 
         A column vector will be returned as a scipy.sparse matrix in csc
         format.
+
+        Notes
+        -----
+        Switching between slicing rows and columns is inefficient.  Slicing of
+        rows requires a CSR representation, while slicing of columns requires a
+        CSC representation, and transforms are performed on the data if the
+        data are not in the required representation. These transforms can be
+        expensive if done frequently.
+
         """
         self._data = self._data.tocsc()
         return self._data.getcol(col_idx)
