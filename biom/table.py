@@ -1145,7 +1145,7 @@ class Table(object):
         else:
             return UnknownAxisError(axis)
 
-    def transform(self, f, axis='sample'):
+    def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
         Only non null values can be modified: the density of the table
@@ -1153,7 +1153,7 @@ class Table(object):
 
         Parameters
         ----------
-        f : function
+        f : function(data, id, metadata) -> new data
             A function that takes three values: an array of nonzero
             values corresponding to each observation or sample, an
             observation or sample id, and an observation or sample
@@ -1161,24 +1161,35 @@ class Table(object):
             values that replace the original values.
         axis : 'sample' or 'observation'
             The axis to operate on.
+        inplace : bool, defaults to True
+            Whether to return a new table or modify itself.
+
+        Returns
+        -------
+        biom.Table
+            Returns itself if `inplace`, else returns a new transformed table.
+
         """
+        table = self if inplace else self.copy()
         if axis == 'sample':
             axis = 1
-            ids = self.sample_ids
-            metadata = self.sample_metadata
-            arr = self._data.tocsc()
+            ids = table.sample_ids
+            metadata = table.sample_metadata
+            arr = table._data.tocsc()
         elif axis == 'observation':
             axis = 0
-            ids = self.observation_ids
-            metadata = self.observation_metadata
-            arr = self._data.tocsr()
+            ids = table.observation_ids
+            metadata = table.observation_metadata
+            arr = table._data.tocsr()
         else:
             raise UnknownAxisError(axis)
 
         _transform(arr, ids, metadata, f, axis)
         arr.eliminate_zeros()
 
-        self._data = arr
+        table._data = arr
+
+        return table
 
     def norm(self, axis='sample'):
         """Normalize in place sample values by an observation, or vice versa.
