@@ -2110,7 +2110,7 @@ def nparray_to_sparse(data, dtype=float):
         # csr_matrix([], shape=(0, 0), dtype=dtype) will result in a matrix
         # has a shape of (1, 0).
         return csr_matrix((0, 0), dtype=dtype)
-    elif data.shape == (1, 0) and data.size == 0:
+    elif data.shape in ((1, 0), (0, 1)) and data.size == 0:
         # an empty matrix. This short circuit is necessary for the same reason
         # as the empty vector. While a (1, 0) matrix is _empty_, this does
         # confound code that assumes that (1, 0) means there might be metadata
