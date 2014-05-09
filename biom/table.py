@@ -1159,8 +1159,8 @@ class Table(object):
             observation or sample id, and an observation or sample
             metadata entry. It must return an array of transformed
             values that replace the original values.
-        axis : 'sample' or 'observation'
-            The axis to operate on.
+        axis : str, defaults to "sample"
+            The axis to operate on. Can be "sample" or "observation".
         inplace : bool, defaults to True
             Whether to return a new table or modify itself.
 
@@ -1171,6 +1171,7 @@ class Table(object):
 
         """
         table = self if inplace else self.copy()
+
         if axis == 'sample':
             axis = 1
             ids = table.sample_ids
