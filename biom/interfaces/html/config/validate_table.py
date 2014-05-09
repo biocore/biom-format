@@ -46,7 +46,7 @@ inputs = [
 
     HTMLInputOption(Parameter=cmd_in_lookup('format_version')),
 
-    HTMLInputOption(Parameter=cmd_in_lookup('detailed_report'), Type=bool)
+    HTMLInputOption(Parameter=cmd_in_lookup('detailed_report'), Type=bool),
 
     HTMLInputOption(Parameter=cmd_in_lookup('is_json'), Type=bool)
 ]
