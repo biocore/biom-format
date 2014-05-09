@@ -1273,6 +1273,36 @@ class SparseTableTests(TestCase):
         for o, e in zip(obs, exp):
             self.assertEqual(o, e)
 
+    def test_copy_metadata(self):
+        self.st_rich.sample_metadata[0]['foo'] = ['bar']
+        copied_table = self.st_rich.copy()
+        copied_table.sample_metadata[0]['foo'].append('bar2')
+        self.assertNotEqual(copied_table, self.st_rich)
+        self.st_rich.observation_metadata[0]['foo'] = ['bar']
+        copied_table = self.st_rich.copy()
+        copied_table.observation_metadata[0]['foo'].append('bar2')
+        self.assertNotEqual(copied_table, self.st_rich)
+
+    def test_copy_ids(self):
+        copied_table = self.st_rich.copy()
+        self.st_rich.sample_ids[0] = 'a different id'
+        self.assertNotEqual(copied_table, self.st_rich)
+        copied_table = self.st_rich.copy()
+        self.st_rich.observation_ids[0] = 'a different id'
+        self.assertNotEqual(copied_table, self.st_rich)
+
+    def test_copy_data(self):
+        copied_table = self.st_rich.copy()
+        self.st_rich._data *= 2
+        self.assertNotEqual(copied_table, self.st_rich)
+
+    def test_filter_return_type(self):
+        f = lambda id_, md: id_[0] == 'b'
+        filtered_table = self.st3.filter(f, inplace=False)
+        filtered_table_2 = self.st3.filter(f, inplace=True)
+        self.assertEqual(filtered_table, filtered_table_2)
+        self.assertTrue(filtered_table_2 is self.st3)
+
     def test_filter_sample_id(self):
         f = lambda id_, md: id_ == 'a'
 
@@ -1350,6 +1380,13 @@ class SparseTableTests(TestCase):
         self.assertRaises(TableException,
                           lambda: self.st_rich.filter(lambda id_, md: False,
                                                       'observation'))
+
+    def test_transform_return_type(self):
+        f = lambda data, id_, md: data / 2.
+        filtered_table = self.st3.transform(f, inplace=False)
+        filtered_table_2 = self.st3.transform(f, inplace=True)
+        self.assertEqual(filtered_table, filtered_table_2)
+        self.assertTrue(filtered_table_2 is self.st3)
 
     def test_transform_observation(self):
         """Transform axis by arbitrary function"""

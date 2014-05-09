@@ -690,10 +690,12 @@ class Table(object):
 
     def copy(self):
         """Returns a copy of the table"""
-        # NEEDS TO BE A DEEP COPY, MIGHT NOT GET METADATA! NEED TEST!
-        return self.__class__(self._data.copy(),  self.observation_ids[:],
-                              self.sample_ids[:], self.observation_metadata,
-                              self.sample_metadata, self.table_id)
+        return self.__class__(self._data.copy(),
+                              self.observation_ids.copy(),
+                              self.sample_ids.copy(),
+                              deepcopy(self.observation_metadata),
+                              deepcopy(self.sample_metadata),
+                              self.table_id)
 
     def iter_data(self, axis='sample'):
         """Yields axis values
@@ -824,8 +826,8 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    def filter(self, ids_to_keep, axis, invert=False):
-        """Filter in place a table based on a function or iterable.
+    def filter(self, ids_to_keep, axis='sample', invert=False, inplace=True):
+        """Filter a table based on a function or iterable.
 
         Parameters
         ----------
@@ -835,25 +837,39 @@ class Table(object):
             return a boolean.
             If it's an iterable, it will be converted to an array of
             bools.
-        axis : str
+        axis : str, defaults to "sample"
             It controls whether to filter samples or observations. Can
             be "sample" or "observation".
         invert : bool
             If set to True, discard samples or observations where
             `ids_to_keep` returns True
+        inplace : bool, defaults to True
+            Whether to return a new table or modify itself.
+
+        Returns
+        -------
+        biom.Table
+            Returns itself if `inplace`, else returns a new filtered table.
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
         """
+        table = self if inplace else self.copy()
+
         if axis == 'sample':
             axis = 1
-            ids = self.sample_ids
-            metadata = self.sample_metadata
+            ids = table.sample_ids
+            metadata = table.sample_metadata
         elif axis == 'observation':
             axis = 0
-            ids = self.observation_ids
-            metadata = self.observation_metadata
+            ids = table.observation_ids
+            metadata = table.observation_metadata
         else:
-            raise ValueError("Unsupported axis")
+            raise UnknownAxisError(axis)
 
-        arr = self._data
+        arr = table._data
         arr, ids, metadata = filter_sparse_array(arr,
                                                  ids,
                                                  metadata,
@@ -861,13 +877,15 @@ class Table(object):
                                                  axis,
                                                  invert=invert)
 
-        self._data = arr
+        table._data = arr
         if axis == 1:
-            self.sample_ids = ids
-            self.sample_metadata = metadata
+            table.sample_ids = ids
+            table.sample_metadata = metadata
         elif axis == 0:
-            self.observation_ids = ids
-            self.observation_metadata = metadata
+            table.observation_ids = ids
+            table.observation_metadata = metadata
+
+        return table
 
     def partition(self, f, axis='sample'):
         """Yields partitions
@@ -1189,7 +1207,7 @@ class Table(object):
         else:
             return UnknownAxisError(axis)
 
-    def transform(self, f, axis='sample'):
+    def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
         Only non null values can be modified: the density of the table
@@ -1197,32 +1215,48 @@ class Table(object):
 
         Parameters
         ----------
-        f : function
+        f : function(data, id, metadata) -> new data
             A function that takes three values: an array of nonzero
             values corresponding to each observation or sample, an
             observation or sample id, and an observation or sample
             metadata entry. It must return an array of transformed
             values that replace the original values.
-        axis : 'sample' or 'observation'
-            The axis to operate on.
+        axis : str, defaults to "sample"
+            The axis to operate on. Can be "sample" or "observation".
+        inplace : bool, defaults to True
+            Whether to return a new table or modify itself.
+
+        Returns
+        -------
+        biom.Table
+            Returns itself if `inplace`, else returns a new transformed table.
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
         """
+        table = self if inplace else self.copy()
+
         if axis == 'sample':
             axis = 1
-            ids = self.sample_ids
-            metadata = self.sample_metadata
-            arr = self._data.tocsc()
+            ids = table.sample_ids
+            metadata = table.sample_metadata
+            arr = table._data.tocsc()
         elif axis == 'observation':
             axis = 0
-            ids = self.observation_ids
-            metadata = self.observation_metadata
-            arr = self._data.tocsr()
+            ids = table.observation_ids
+            metadata = table.observation_metadata
+            arr = table._data.tocsr()
         else:
             raise UnknownAxisError(axis)
 
         _transform(arr, ids, metadata, f, axis)
         arr.eliminate_zeros()
 
-        self._data = arr
+        table._data = arr
+
+        return table
 
     def norm(self, axis='sample'):
         """Normalize in place sample values by an observation, or vice versa.
