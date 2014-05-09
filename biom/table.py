@@ -793,6 +793,11 @@ class Table(object):
         -------
         biom.Table
             Returns itself if `inplace`, else returns a new filtered table.
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
         """
         table = self if inplace else self.copy()
 
@@ -805,7 +810,7 @@ class Table(object):
             ids = table.observation_ids
             metadata = table.observation_metadata
         else:
-            raise ValueError("Unsupported axis")
+            raise UnknownAxisError(axis)
 
         arr = table._data
         arr, ids, metadata = filter_sparse_array(arr,
@@ -1169,6 +1174,10 @@ class Table(object):
         biom.Table
             Returns itself if `inplace`, else returns a new transformed table.
 
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
         """
         table = self if inplace else self.copy()
 
