@@ -246,6 +246,15 @@ class TableTests(TestCase):
             for f in self.to_remove:
                 os.remove(f)
 
+    def test_init_with_nparray(self):
+        """to_sparse in constructor should be triggered"""
+        data = np.array([[1, 2], [3, 4]])
+        samp_ids = ['a', 'b']
+        obs_ids = ['1', '2']
+        exp = Table(to_sparse(data), obs_ids, samp_ids)
+        obs = Table(data, obs_ids, samp_ids)
+        self.assertEqual(obs, exp)
+
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
