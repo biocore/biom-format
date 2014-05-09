@@ -98,7 +98,8 @@ class Table(object):
         else:
             return to_sparse(vals, transpose, dtype)
 
-    def _to_dense(self, vec):
+    @staticmethod
+    def _to_dense(vec):
         """Converts a row/col vector to a dense numpy array.
 
         Always returns a 1-D row vector for consistency with numpy iteration
