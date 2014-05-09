@@ -617,6 +617,7 @@ class TableTests(TestCase):
         """returns true if empty"""
         self.assertTrue(Table(np.array([]), [], []).is_empty())
         self.assertFalse(self.simple_derived.is_empty())
+        self.assertTrue(Table(np.array([[]]), [], []).is_empty())
 
     def test_convert_vector_to_dense(self):
         """Properly converts ScipySparseMat vectors to dense numpy repr."""
