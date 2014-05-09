@@ -395,7 +395,7 @@ class Table(object):
 
         Get the metadata of the sample with ID "S1":
 
-        >>> table.metadata('S1', 'sample') == None
+        >>> table.metadata('S1', 'sample') is None
         True
 
         """
