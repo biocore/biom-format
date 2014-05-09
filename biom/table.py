@@ -770,7 +770,7 @@ class Table(object):
             raise UnknownAxisError(axis)
 
     def filter(self, ids_to_keep, axis='sample', invert=False, inplace=True):
-        """Filter in place a table based on a function or iterable.
+        """Filter a table based on a function or iterable.
 
         Parameters
         ----------
