@@ -400,18 +400,15 @@ class Table(object):
 
         """
         if axis == 'sample':
-            idx_lookup = self._sample_index
             md = self.sample_metadata
         elif axis == 'observation':
-            idx_lookup = self._obs_index
             md = self.observation_metadata
         else:
             raise UnknownAxisError(axis)
 
-        if id_ not in idx_lookup:
-            raise UnknownIDError(id_, axis)
+        idx = self.index(id_, axis=axis)
 
-        return md[idx_lookup[id_]] if md is not None else None
+        return md[idx] if md is not None else None
 
     def index(self, id_, axis):
         """Return the index of the identified sample/observation.
