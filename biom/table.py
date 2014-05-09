@@ -364,9 +364,9 @@ class Table(object):
 
         Returns
         -------
-        dict or None
-            The corresponding metadata `dict` or None of that axis does not
-            have metadata.
+        defaultdict or None
+            The corresponding metadata `defaultdict` or None of that axis does
+            not have metadata.
 
         Raises
         ------
@@ -389,12 +389,13 @@ class Table(object):
 
         Get the metadata of the observation with ID "O2":
 
-        >>> table.metadata('O2', 'observation')
-        {'foo': 'bar'}
+        >>> # casting to `dict` as the return is `defaultdict`
+        >>> dict(table.metadata('O2', 'observation'))
+        {'x': 'y'}
 
         Get the metadata of the sample with ID "S1":
 
-        >>> table.index('S1', 'sample') == None
+        >>> table.metadata('S1', 'sample') == None
         True
 
         """
