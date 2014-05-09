@@ -711,10 +711,10 @@ class TableTests(TestCase):
 
         mat2._data = mat2._data.tolil()
         self.assertNotEqual(self.mat1._data.format, mat2._data.format)
-        self.assertTrue(self.mat1 == mat2)
+        self.assertEqual(self.mat1, mat2)
 
         # Equality works in both directions.
-        self.assertTrue(mat2 == self.mat1)
+        self.assertEqual(mat2, self.mat1)
 
     def test_ne(self):
         """Test whether two matrices are not equal."""
