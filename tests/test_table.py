@@ -41,6 +41,16 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 class SupportTests(TestCase):
+    def test_table_factory_metadata(self):
+        """Make sure metadata are passed to a Table properly"""
+        data = nparray_to_sparse(np.array([[1, 2, 3, 4], [5, 6, 7, 8]]))
+        samp_ids = ['1', '2', '3', '4']
+        obs_ids = ['a', 'b']
+        samp_md = [{i: i+1} for i in range(4)]
+        obs_md = [{i: i+1} for i in range(4, 6)]
+        exp = Table(data, obs_ids, samp_ids, obs_md, samp_md)
+        obs = table_factory(data, obs_ids, samp_ids, obs_md, samp_md)
+        self.assertEqual(obs, exp)
 
     def test_table_factory_sparse_nparray(self):
         """beat the table_factory sparsely to death"""
