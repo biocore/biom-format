@@ -12,13 +12,17 @@ import os
 from StringIO import StringIO
 import json
 from biom import __version__
-import h5py
+
 from numpy import array
 import numpy.testing as npt
 from unittest import TestCase, main
 from biom.parse import (parse_biom_table_json, parse_classic_table,
                         generatedby, MetadataMap)
 from biom.table import Table
+from biom.util import HAVE_H5PY
+
+if HAVE_H5PY:
+    import h5py
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -152,6 +156,7 @@ class ParseTests(TestCase):
         self.assertEqual(tab.sample_metadata, None)
         self.assertEqual(tab.observation_metadata, None)
 
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_parse_biom_table_hdf5(self):
         """Make sure we can parse a HDF5 table through the same loader"""
         cwd = os.getcwd()
