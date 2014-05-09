@@ -1263,6 +1263,13 @@ class SparseTableTests(TestCase):
         for o, e in zip(obs, exp):
             self.assertEqual(o, e)
 
+    def test_filter_return_type(self):
+        f = lambda id_, md: id_[0] == 'b'
+        filtered_table = self.st3.filter(f, inplace=False)
+        filtered_table_2 = self.st3.filter(f, inplace=True)
+        self.assertEqual(filtered_table, filtered_table_2)
+        self.assertTrue(filtered_table_2 is self.st3)
+
     def test_filter_sample_id(self):
         f = lambda id_, md: id_ == 'a'
 
