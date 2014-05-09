@@ -600,9 +600,7 @@ class Table(object):
         self._data = self._data.tocsr()
         other = other.tocsr()
 
-        # From:
-        # http://mail.scipy.org/pipermail/scipy-user/2008-April/016276.html
-        if abs(self._data - other).nnz > 0:
+        if (self._data != other).nnz > 0:
             return False
 
         return True
