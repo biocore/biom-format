@@ -352,6 +352,31 @@ class TableTests(TestCase):
         obs = Table.from_hdf5(h5)
         self.assertEqual(obs, self.st_rich)
 
+    def test_metadata_invalid_input(self):
+        """Correctly handles invalid input."""
+        with self.assertRaises(UnknownAxisError):
+            self.simple_derived.metadata(1, 'brofist')
+
+    def test_metadata_sample(self):
+        """returns the sample metadata"""
+        self.assertEqual({'barcode': 'aatt'},
+                         self.st_rich.metadata('a', 'sample'))
+        self.assertEqual({'barcode': 'ttgg'},
+                         self.st_rich.metadata('b', 'sample'))
+
+        with self.assertRaises(UnknownIDError):
+            self.st_rich.metadata(3, 'sample')
+
+    def test_metadata_observation(self):
+        """returns the observation metadata"""
+        self.assertEqual({'taxonomy': ['k__a', 'p__b']},
+                         self.st_rich.metadata('1', 'observation'))
+        self.assertEqual({'taxonomy': ['k__a', 'p__c']},
+                         self.st_rich.metadata('2', 'observation'))
+
+        with self.assertRaises(UnknownIDError):
+            self.simple_derived.metadata('3', 'observation')
+
     def test_index_invalid_input(self):
         """Correctly handles invalid input."""
         with self.assertRaises(UnknownAxisError):
