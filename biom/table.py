@@ -270,7 +270,6 @@ class Table(object):
 
         Notes
         -----
-
         Switching between slicing rows and columns is inefficient.  Slicing of
         rows requires a CSR representation, while slicing of columns requires a
         CSC representation, and transforms are performed on the data if the
