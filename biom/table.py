@@ -254,6 +254,27 @@ class Table(object):
         if the data are not in the required representation. These transforms
         can be expensive if done frequently.
 
+        Parameters
+        ----------
+        args : tuple or slice
+            The specific element (by index position) to return or an entire
+            row or column of the data.
+
+        Returns
+        -------
+        float or spmatrix
+            A float is return if a specific element is specified, otherwise a
+            spmatrix object representing a vector of sparse data is returned.
+
+        Raises
+        ------
+        IndexError
+            - If the matrix is empty
+            - If the arguments do not appear to be a tuple
+            - If a slice on row and column is specified
+            - If a partial slice is specified
+
+        .. shownumpydoc
         """
         if self.is_empty():
             raise IndexError("Cannot retrieve an element from an empty/null "
