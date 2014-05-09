@@ -243,11 +243,17 @@ class Table(object):
     def __getitem__(self, args):
         """Handles row or column slices
 
+        Slicing over an individual axis is supported, but slicing over both
+        axes at the same time is not supported. Partial slices, such as
+        `foo[0, 5:10]` are not supported, however full slices are supported,
+        such as `foo[0, :]`.
+
         Note, switching between slicing rows and columns is inefficient.
         Slicing of rows requires a CSR representation, while slicing of columns
         requires a CSC representation, and transforms are performed on the data
         if the data are not in the required representation. These transforms
         can be expensive if done frequently.
+
         """
         if self.is_empty():
             raise IndexError("Cannot retrieve an element from an empty/null "
