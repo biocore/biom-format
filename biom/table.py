@@ -1796,10 +1796,10 @@ class Table(object):
             # i'm crying on the inside
             if obs_index != max_row_idx:
                 rows.append('{"id": %s, "metadata": %s},' % (dumps(obs[1]),
-                                                               dumps(obs[2])))
+                                                             dumps(obs[2])))
             else:
                 rows.append('{"id": %s, "metadata": %s}],' % (dumps(obs[1]),
-                                                                dumps(obs[2])))
+                                                              dumps(obs[2])))
 
             # turns out its a pain to figure out when to place commas. the
             # simple work around, at the expense of a little memory
