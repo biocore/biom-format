@@ -636,8 +636,8 @@ class Table(object):
     def copy(self):
         """Returns a copy of the table"""
         # NEEDS TO BE A DEEP COPY, MIGHT NOT GET METADATA! NEED TEST!
-        return self.__class__(self._data.copy(),  self.observation_ids[:],
-                              self.sample_ids[:], self.observation_metadata,
+        return self.__class__(self._data.copy(),  self.observation_ids.copy(),
+                              self.sample_ids.copy(), self.observation_metadata,
                               self.sample_metadata, self.table_id)
 
     def iter_data(self, axis='sample'):
