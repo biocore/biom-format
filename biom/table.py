@@ -1795,11 +1795,11 @@ class Table(object):
         for obs_index, obs in enumerate(self.iter(axis='observation')):
             # i'm crying on the inside
             if obs_index != max_row_idx:
-                rows.append('{"id": "%s", "metadata": %s},' % (obs[1],
-                                                               dumps(obs[2])))
+                rows.append('{"id": %s, "metadata": %s},' % (dumps(obs[1]),
+                                                             dumps(obs[2])))
             else:
-                rows.append('{"id": "%s", "metadata": %s}],' % (obs[1],
-                                                                dumps(obs[2])))
+                rows.append('{"id": %s, "metadata": %s}],' % (dumps(obs[1]),
+                                                              dumps(obs[2])))
 
             # turns out its a pain to figure out when to place commas. the
             # simple work around, at the expense of a little memory
@@ -1834,11 +1834,11 @@ class Table(object):
         columns = ['"columns": [']
         for samp_index, samp in enumerate(self.iter()):
             if samp_index != max_col_idx:
-                columns.append('{"id": "%s", "metadata": %s},' % (
-                    samp[1], dumps(samp[2])))
+                columns.append('{"id": %s, "metadata": %s},' % (
+                    dumps(samp[1]), dumps(samp[2])))
             else:
-                columns.append('{"id": "%s", "metadata": %s}]' % (
-                    samp[1], dumps(samp[2])))
+                columns.append('{"id": %s, "metadata": %s}]' % (
+                    dumps(samp[1]), dumps(samp[2])))
 
         rows = ''.join(rows)
         columns = ''.join(columns)
