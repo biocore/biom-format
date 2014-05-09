@@ -557,7 +557,9 @@ class Table(object):
 
     def __eq__(self, other):
         """Equality is determined by the data matrix, metadata, and IDs"""
-        if isinstance(other, self.__class__) is False:
+        if not isinstance(other, self.__class__):
+            return False
+        if self.type != other.type:
             return False
         if np.any(self.observation_ids != other.observation_ids):
             return False
@@ -566,8 +568,6 @@ class Table(object):
         if self.observation_metadata != other.observation_metadata:
             return False
         if self.sample_metadata != other.sample_metadata:
-            return False
-        if self.type != other.type:
             return False
         if not self._data_equality(other._data):
             return False
