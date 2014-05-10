@@ -411,6 +411,64 @@ class Table(object):
                               self.sample_ids[:], self.observation_ids[:],
                               sample_md_copy, obs_md_copy, self.table_id)
 
+    def metadata(self, id_, axis):
+        """Return the metadata of the identified sample/observation.
+
+        Parameters
+        ----------
+        id_ : str
+            ID of the sample or observation whose index will be returned.
+        axis : {'sample', 'observation'}
+            Axis to search for `id_`.
+
+        Returns
+        -------
+        defaultdict or None
+            The corresponding metadata `defaultdict` or None of that axis does
+            not have metadata.
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+        UnknownIDError
+            If provided an unrecognized sample/observation ID.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import table_factory
+
+        Create a 2x3 BIOM table, with observation metadata and no sample
+        metadata:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = table_factory(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...                       [{'foo': 'bar'}, {'x': 'y'}], None)
+
+        Get the metadata of the observation with ID "O2":
+
+        >>> # casting to `dict` as the return is `defaultdict`
+        >>> dict(table.metadata('O2', 'observation'))
+        {'x': 'y'}
+
+        Get the metadata of the sample with ID "S1":
+
+        >>> table.metadata('S1', 'sample') is None
+        True
+
+        """
+        if axis == 'sample':
+            md = self.sample_metadata
+        elif axis == 'observation':
+            md = self.observation_metadata
+        else:
+            raise UnknownAxisError(axis)
+
+        idx = self.index(id_, axis=axis)
+
+        return md[idx] if md is not None else None
+
     def index(self, id_, axis):
         """Return the index of the identified sample/observation.
 

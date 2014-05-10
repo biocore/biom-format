@@ -42,6 +42,8 @@ Changes:
     combined into `Table.sort_order`, which now takes an axis argument
 * `Table.norm_samples_by_metadata` and `Table.norm_observations_by_metadata`
     have been removed
+* Added `Table.metadata` to allow fetching of metadata by an ID instead of just
+    by index
 
 biom 1.3.1
 ----------
