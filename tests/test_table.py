@@ -719,14 +719,12 @@ class TableTests(TestCase):
                      ['o1', 'o2'], ['s1', 's2', 's3'])
         self.assertTrue(self.mat1 == mat2)
 
-        # Sparse format shouldn't matter; can someone help me assess that this
-        # is not needed anymore i. e. it was deprecated
-        # mat2.convert('lil')
-        # self.assertNotEqual(self.mat1.fmt, mat2.fmt)
-        # self.assertTrue(self.mat1 == mat2)
+        mat2._data = mat2._data.tolil()
+        self.assertNotEqual(self.mat1._data.format, mat2._data.format)
+        self.assertEqual(self.mat1, mat2)
 
         # Equality works in both directions.
-        self.assertTrue(mat2 == self.mat1)
+        self.assertEqual(mat2, self.mat1)
 
     def test_ne(self):
         """Test whether two matrices are not equal."""
