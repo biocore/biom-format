@@ -56,7 +56,11 @@ class Table(object):
 
         self.type = type
         self.table_id = table_id
-        self._data = data
+
+        if not isspmatrix(data):
+            self._data = to_sparse(data)
+        else:
+            self._data = data
 
         # using object to allow for variable length strings
         self.sample_ids = np.asarray(sample_ids, dtype=object)
@@ -2188,7 +2192,19 @@ def list_list_to_sparse(data, dtype=float, shape=None):
 
 def nparray_to_sparse(data, dtype=float):
     """Convert a numpy array to a scipy.sparse matrix."""
-    if len(data.shape) == 1:
+    if data.shape == (0,):
+        # an empty vector. Note, this short circuit is necessary as calling
+        # csr_matrix([], shape=(0, 0), dtype=dtype) will result in a matrix
+        # has a shape of (1, 0).
+        return csr_matrix((0, 0), dtype=dtype)
+    elif data.shape in ((1, 0), (0, 1)) and data.size == 0:
+        # an empty matrix. This short circuit is necessary for the same reason
+        # as the empty vector. While a (1, 0) matrix is _empty_, this does
+        # confound code that assumes that (1, 0) means there might be metadata
+        # or IDs associated with that singular row
+        return csr_matrix((0, 0), dtype=dtype)
+    elif len(data.shape) == 1:
+        # a vector
         shape = (1, data.shape[0])
     else:
         shape = data.shape
