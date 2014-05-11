@@ -28,7 +28,7 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
-from ._filter import filter_sparse_array
+from ._filter import _filter
 from ._transform import _transform
 
 

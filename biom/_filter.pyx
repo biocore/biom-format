@@ -91,8 +91,8 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
 
-def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
                         remove=True):
+def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
     """Filter row/columns of a sparse matrix according to the output of a
     boolean function.
 
