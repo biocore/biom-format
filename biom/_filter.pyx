@@ -114,8 +114,8 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
 
-                        remove=True):
 def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
+            remove=True, general=False):
     """Filter row/columns of a sparse matrix according to the output of a
     boolean function.
 
@@ -131,6 +131,8 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
         Whether to "compact" or not the filtered matrix (i.e., keep
         the original size if ``False``, else reduce the shape of the
         returned matrix.
+    general : bool
+        Accept function that also accepts values.
 
     Returns
     -------
@@ -159,7 +161,12 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
     elif isinstance(ids_to_keep, FunctionType):
         if metadata_is_None:
             metadata = (None,) * len(ids)
-        bools = _make_filter_array(ids, metadata, ids_to_keep, invert)
+
+        if general:
+            bools = _make_filter_array_general(arr, ids, metadata, ids_to_keep,
+                                               invert)
+        else:
+            bools = _make_filter_array(ids, metadata, ids_to_keep, invert)
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
 
