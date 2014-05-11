@@ -893,9 +893,10 @@ class Table(object):
 
         Parameters
         ----------
-        ids_to_keep : function or iterable
+        ids_to_keep : function(id, metadata) -> bool, or iterable
             If a function, it will be called with the id (a string)
-            and the dictionary of metadata of each sample, and must
+            and the dictionary of metadata of each sample/observation,
+            and must return a boolean.
             return a boolean.
             If it's an iterable, it will be converted to an array of
             bools.
