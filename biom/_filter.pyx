@@ -63,6 +63,28 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
         bools[i] = bool(func(ids[i], metadata[i])) ^ invert
     return bools
 
+cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
+    _make_filter_array_general(arr,
+                               ids,
+                               metadata,
+                               func,
+                               cnp.uint8_t invert):
+    """Faster version of
+    [func(id_i, md_i, vals_i) ^ invert for
+    (id_i, md_i, vals_i) in zip(ids, metadata, rows/cols)]
+    """
+    cdef:
+        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
+        cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
+        cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
+            np.empty(len(ids), dtype=np.uint8)
+        cnp.int32_t start, end
+        Py_ssize_t i
+    for i in range(len(ids)):
+        start, end = indptr[i], indptr[i+1]
+        bools[i] = bool(func(ids[i], metadata[i], data[start:end])) ^ invert
+    return bools
+
 cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     """Sparse equivalent of arr[booleans] for a dense array.
     """
