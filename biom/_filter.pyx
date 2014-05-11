@@ -49,10 +49,11 @@ cdef _zero_columns_CSR_or_rows_CSC(arr,
         data[i] = 0
     arr.eliminate_zeros()
 
-cdef cnp.ndarray[cnp.uint8_t, ndim=1] _make_filter_array(ids,
-                                                         metadata,
-                                                         func,
-                                                         cnp.uint8_t invert):
+cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
+    _make_filter_array(ids,
+                       metadata,
+                       func,
+                       cnp.uint8_t invert):
     """Faster version of
     [func(id_i, md_i) ^ invert for (id_i, md_i) in zip(ids, metadata)]
     """
