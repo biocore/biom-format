@@ -138,13 +138,18 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
     ids : 1D ndarray of dtype object
     metadata : tuple
     """
-    fmt = arr.getformat()
-    if fmt not in ('csc', 'csr'):
-        arr = arr.tocsr()
-        fmt = 'csr'
-
     invert = bool(invert)
     metadata_is_None = metadata is None
+
+    if remove or general or arr.getformat() not in ('csc', 'csr'):
+        # Not compacting can work with CSC and CSR.  Compacting
+        # requires CSR for axis 0 and CSC for axis 1. General version
+        # requires CSR for axis 0 and CSC for axis 1.
+        if axis == 0:
+            arr = arr.tocsr()
+        elif axis == 1:
+            arr = arr.tocsc()
+    fmt = arr.getformat()
 
     cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools
 
@@ -158,12 +163,11 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
 
-    if bools.sum() == 0:
+    if np.all(bools == 0):
         raise TableException("All data was filtered out!")
 
     if axis == 0:
         if remove:
-            arr = arr.tocsr()
             _remove_rows_csr(arr, bools)
         else:
             if fmt == 'csr':
@@ -172,7 +176,7 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
                 _zero_columns_CSR_or_rows_CSC(arr, bools)
     elif axis == 1:
         if remove:
-            arr = arr.tocsc().T  # arr is CSR after transposing
+            arr = arr.T  # arr was CSC, CSR after transposing
             _remove_rows_csr(arr, bools)
             arr = arr.T  # Back to CSC
         else:
@@ -180,8 +184,6 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
                 _zero_columns_CSR_or_rows_CSC(arr, bools)
             elif fmt == 'csc':
                  _zero_rows_CSR_or_columns_CSC(arr, bools, axis)
-    else:
-        raise ValueError("Unsupported axis")
 
     if remove:
         ids = np.asarray(list(compress(ids, bools)), dtype=object)
