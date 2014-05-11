@@ -60,7 +60,7 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
     cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
         np.empty(len(ids), dtype=np.uint8)
     for i in range(len(ids)):
-        bools[i] = func(ids[i], metadata[i]) ^ invert
+        bools[i] = bool(func(ids[i], metadata[i])) ^ invert
     return bools
 
 cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
