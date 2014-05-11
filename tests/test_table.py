@@ -1338,6 +1338,38 @@ class SparseTableTests(TestCase):
         self.assertEqual(filtered_table, filtered_table_2)
         self.assertTrue(filtered_table_2 is self.st3)
 
+    def test_filter_general_sample(self):
+        f = lambda id_, md, vals: id_ == 'a'
+
+        values = csr_matrix(np.array([[5.],
+                                      [7.]]))
+        exp_table = Table(values, ['1', '2'], ['a'],
+                          [{'taxonomy': ['k__a', 'p__b']},
+                           {'taxonomy': ['k__a', 'p__c']}],
+                          [{'barcode': 'aatt'}])
+
+        table = self.st_rich
+        obs_table = table.filter_general(f, 'sample', inplace=False)
+        self.assertEqual(obs_table, exp_table)
+
+        f_2 = lambda id_, md, vals: np.all(vals == np.array([5, 7]))
+        obs_table_2 = table.filter_general(f_2, 'sample', inplace=False)
+        self.assertEqual(obs_table_2, exp_table)
+
+    def test_filter_general_observation(self):
+        f = lambda id_, md, vals: md['taxonomy'][1] == 'p__c'
+        values = csr_matrix(np.array([[7., 8.]]))
+        exp_table = Table(values, ['2'], ['a', 'b'],
+                          [{'taxonomy': ['k__a', 'p__c']}],
+                          [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+        table = self.st_rich
+        obs_table = table.filter_general(f, 'observation', inplace=False)
+        self.assertEqual(obs_table, exp_table)
+
+        f_2 = lambda id_, md, vals: np.all(vals == np.array([7, 8]))
+        obs_table_2 = table.filter_general(f_2, 'observation', inplace=False)
+        self.assertEqual(obs_table_2, exp_table)
+
     def test_filter_sample_id(self):
         f = lambda id_, md: id_ == 'a'
 
