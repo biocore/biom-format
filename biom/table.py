@@ -897,6 +897,68 @@ class Table(object):
             If a function, it will be called with the id (a string)
             and the dictionary of metadata of each sample/observation,
             and must return a boolean.
+            If it's an iterable, it will be converted to an array of
+            bools.
+        axis : str, defaults to "sample"
+            It controls whether to filter samples or observations. Can
+            be "sample" or "observation".
+        invert : bool
+            If set to True, discard samples or observations where
+            `ids_to_keep` returns True
+        inplace : bool, defaults to True
+            Whether to return a new table or modify itself.
+
+        Returns
+        -------
+        biom.Table
+            Returns itself if `inplace`, else returns a new filtered table.
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        """
+        table = self if inplace else self.copy()
+
+        if axis == 'sample':
+            axis = 1
+            ids = table.sample_ids
+            metadata = table.sample_metadata
+        elif axis == 'observation':
+            axis = 0
+            ids = table.observation_ids
+            metadata = table.observation_metadata
+        else:
+            raise UnknownAxisError(axis)
+
+        arr = table._data
+        arr, ids, metadata = _filter(arr,
+                                     ids,
+                                     metadata,
+                                     ids_to_keep,
+                                     axis,
+                                     invert=invert)
+
+        table._data = arr
+        if axis == 1:
+            table.sample_ids = ids
+            table.sample_metadata = metadata
+        elif axis == 0:
+            table.observation_ids = ids
+            table.observation_metadata = metadata
+
+        return table
+
+    def filter_general(self, ids_to_keep, axis='sample', invert=False, inplace=True):
+        """Filter a table based on a function or iterable.
+
+        Parameters
+        ----------
+        ids_to_keep : function(id, metadata, values) -> bool, or iterable
+            If a function, it will be called with the id (a string),
+            the dictionary of metadata of each sample/observation and
+            the nonzero values of the sample/observation, and must
             return a boolean.
             If it's an iterable, it will be converted to an array of
             bools.
@@ -918,6 +980,7 @@ class Table(object):
         ------
         UnknownAxisError
             If provided an unrecognized axis.
+
         """
         table = self if inplace else self.copy()
 
@@ -933,12 +996,13 @@ class Table(object):
             raise UnknownAxisError(axis)
 
         arr = table._data
-        arr, ids, metadata = filter_sparse_array(arr,
-                                                 ids,
-                                                 metadata,
-                                                 ids_to_keep,
-                                                 axis,
-                                                 invert=invert)
+        arr, ids, metadata = _filter(arr,
+                                     ids,
+                                     metadata,
+                                     ids_to_keep,
+                                     axis,
+                                     invert=invert,
+                                     general=True)
 
         table._data = arr
         if axis == 1:
