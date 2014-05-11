@@ -950,7 +950,8 @@ class Table(object):
 
         return table
 
-    def filter_general(self, ids_to_keep, axis='sample', invert=False, inplace=True):
+    def filter_general(self, ids_to_keep, axis='sample', invert=False,
+                       inplace=True):
         """Filter a table based on a function or iterable.
 
         Parameters
