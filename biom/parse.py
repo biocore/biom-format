@@ -555,7 +555,7 @@ def convert_table_to_biom(table_f, sample_mapping, obs_mapping,
     otu_table = parse_classic_table_to_rich_table(table_f, sample_mapping,
                                                   obs_mapping, process_func,
                                                   **kwargs)
-    return otu_table.get_biom_format_json_string(generatedby())
+    return otu_table.to_json(generatedby())
 
 
 def biom_meta_to_string(metadata, replace_str=':'):

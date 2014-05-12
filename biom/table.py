@@ -1863,7 +1863,7 @@ class Table(object):
 
         return biom_format_obj
 
-    def get_biom_format_json_string(self, generated_by, direct_io=None):
+    def to_json(self, generated_by, direct_io=None):
         """Returns a JSON string representing the table in BIOM format.
 
         ``generated_by``: a string describing the software used to build the
