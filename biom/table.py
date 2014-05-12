@@ -58,7 +58,10 @@ class Table(object):
         self.table_id = table_id
 
         if not isspmatrix(data):
-            self._data = to_sparse(data)
+            shape = (len(observation_ids), len(sample_ids))
+            input_is_dense = kwargs.get('input_is_dense', False)
+            self._data = Table._to_sparse(data, input_is_dense=input_is_dense,
+                                          shape=shape)
         else:
             self._data = data
 
@@ -100,7 +103,7 @@ class Table(object):
         if isspmatrix(vals):
             return vals
         else:
-            return to_sparse(vals, transpose, dtype)
+            return Table._to_sparse(vals, transpose, dtype)
 
     @staticmethod
     def _to_dense(vec):
@@ -118,6 +121,70 @@ class Table(object):
             return dense_vec.reshape(1)
         else:
             return np.squeeze(dense_vec)
+
+
+    @staticmethod
+    def _to_sparse(values, transpose=False, dtype=float, input_is_dense=False,
+                   shape=None):
+        """Try to return a populated scipy.sparse matrix.
+
+        NOTE: assumes the max value observed in row and col defines the size of
+        the matrix.
+        """
+        # if it is a vector
+        if isinstance(values, ndarray) and len(values.shape) == 1:
+            if transpose:
+                mat = nparray_to_sparse(values[:, newaxis], dtype)
+            else:
+                mat = nparray_to_sparse(values, dtype)
+            return mat
+        if isinstance(values, ndarray):
+            if transpose:
+                mat = nparray_to_sparse(values.T, dtype)
+            else:
+                mat = nparray_to_sparse(values, dtype)
+            return mat
+        # the empty list
+        elif isinstance(values, list) and len(values) == 0:
+            return coo_matrix((0, 0))
+        # list of np vectors
+        elif isinstance(values, list) and isinstance(values[0], ndarray):
+            mat = list_nparray_to_sparse(values, dtype)
+            if transpose:
+                mat = mat.T
+            return mat
+        # list of dicts, each representing a row in row order
+        elif isinstance(values, list) and isinstance(values[0], dict):
+            mat = list_dict_to_sparse(values, dtype)
+            if transpose:
+                mat = mat.T
+            return mat
+        # list of scipy.sparse matrices, each representing a row in row order
+        elif isinstance(values, list) and isspmatrix(values[0]):
+            mat = list_sparse_to_sparse(values, dtype)
+            if transpose:
+                mat = mat.T
+            return mat
+        elif isinstance(values, dict):
+            mat = dict_to_sparse(values, dtype)
+            if transpose:
+                mat = mat.T
+            return mat
+        elif isinstance(values, list) and isinstance(values[0], list):
+            if input_is_dense:
+                d = coo_matrix(values)
+                mat = coo_arrays_to_sparse((d.data, (d.row, d.col)),
+                                           dtype=dtype)
+            else:
+                mat = list_list_to_sparse(values, dtype, shape=shape)
+            return mat
+        elif isspmatrix(values):
+            mat = values
+            if transpose:
+                mat = mat.transpose()
+            return mat
+        else:
+            raise TableException("Unknown input type")
 
     def _verify_metadata(self):
         """Obtain some notion of sanity on object construction with inputs"""
@@ -437,14 +504,14 @@ class Table(object):
         Examples
         --------
         >>> import numpy as np
-        >>> from biom.table import table_factory
+        >>> from biom.table import Table
 
         Create a 2x3 BIOM table, with observation metadata and no sample
         metadata:
 
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
-        >>> table = table_factory(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
-        ...                       [{'foo': 'bar'}, {'x': 'y'}], None)
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'foo': 'bar'}, {'x': 'y'}], None)
 
         Get the metadata of the observation with ID "O2":
 
@@ -495,12 +562,12 @@ class Table(object):
         --------
 
         >>> import numpy as np
-        >>> from biom.table import table_factory
+        >>> from biom.table import Table
 
         Create a 2x3 BIOM table:
 
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
-        >>> table = table_factory(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
 
         Get the index of the observation with ID "O2":
 
@@ -1006,8 +1073,8 @@ class Table(object):
                 else:
                     samp_md = None
 
-            yield part, table_factory(data, obs_ids, samp_ids, obs_md, samp_md,
-                                      self.table_id, type=self.type)
+            yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
+                              self.table_id, type=self.type)
 
     def collapse(self, f, reduce_f=add, norm=True, min_group_size=2,
                  include_collapsed_metadata=True, one_to_many=False,
@@ -1255,8 +1322,8 @@ class Table(object):
             else:
                 sample_md = None
 
-        return table_factory(data, obs_ids, sample_ids, obs_md, sample_md,
-                             self.table_id, type=self.type)
+        return Table(data, obs_ids, sample_ids, obs_md, sample_md,
+                     self.table_id, type=self.type)
 
     def _invert_axis(self, axis):
         """Invert an axis"""
@@ -1671,8 +1738,8 @@ class Table(object):
         else:
             matrix = csr_matrix(cs, shape=shape)
 
-        return table_factory(matrix, obs_ids, samp_ids,  obs_md or None,
-                             samp_md or None, type=type)
+        return Table(matrix, obs_ids, samp_ids,  obs_md or None,
+                     samp_md or None, type=type)
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
@@ -2049,158 +2116,6 @@ def list_dict_to_nparray(data, dtype=float):
             mat[row_idx, col_idx] = val
 
     return mat
-
-
-def table_factory(data, observation_ids, sample_ids, observation_metadata=None,
-                  sample_metadata=None, table_id=None,
-                  input_is_dense=False, transpose=False, **kwargs):
-    """Construct a table
-
-    Attempts to make 'data' through various means of juggling. Data can be:
-
-        - numpy.array
-        - list of numpy.array vectors
-        - SparseObj representation
-        - dict representation
-        - list of SparseObj representation vectors
-        - list of lists of sparse values [[row, col, value], ...]
-        - list of lists of dense values [[value, value, ...], ...]
-        - Scipy COO data (values, (rows, cols))
-
-    Example usage to create a Table object::
-
-        from biom.table import table_factory
-        from numpy import array
-
-        sample_ids = ['s1','s2','s3','s4']
-        sample_md = [{'pH':4.2,'country':'Peru'},
-                     {'pH':5.2,'country':'Peru'},
-                     {'pH':5.0,'country':'Peru'},
-                     {'pH':4.9,'country':'Peru'}]
-
-        observation_ids = ['o1','o2','o3']
-        observation_md = [{'domain':'Archaea'},
-                          {'domain':'Bacteria'},
-                          {'domain':'Bacteria'}]
-
-        data = array([[1,2,3,4],
-                      [-1,6,7,8],
-                      [9,10,11,12]])
-
-        t = table_factory(data,
-                          observation_ids,
-                          sample_ids,
-                          observation_md,
-                          sample_md)
-    """
-    if 'dtype' in kwargs:
-        dtype = kwargs['dtype']
-    else:
-        dtype = float
-
-    if 'shape' in kwargs:
-        shape = kwargs['shape']
-    else:
-        shape = None
-
-    # if we have a numpy array
-    if isinstance(data, ndarray):
-        data = nparray_to_sparse(data, dtype)
-
-    # if we have a list of things
-    elif isinstance(data, list):
-        if not data:
-            raise TableException("No data was supplied. Cannot create "
-                                 "an empty table.")
-
-        elif isinstance(data[0], ndarray):
-            data = list_nparray_to_sparse(data, dtype)
-
-        elif isinstance(data[0], dict):
-            data = list_dict_to_sparse(data, dtype)
-
-        elif isinstance(data[0], list):
-            if input_is_dense:
-                d = coo_matrix(data)
-                data = coo_arrays_to_sparse((d.data, (d.row, d.col)),
-                                            dtype=dtype)
-            else:
-                data = list_list_to_sparse(data, dtype, shape=shape)
-
-        else:
-            raise TableException("Unknown nested list type")
-
-    # if we have a dict representation
-    elif isinstance(data, dict):
-        data = dict_to_sparse(data, dtype)
-
-    elif isinstance(data, tuple) and isinstance(data[0], ndarray):
-        data = coo_arrays_to_sparse(data)
-
-    elif isspmatrix(data):
-        pass
-
-    else:
-        raise TableException("Cannot handle data!")
-
-    return Table(data, observation_ids, sample_ids,
-                 sample_metadata=sample_metadata,
-                 observation_metadata=observation_metadata,
-                 table_id=table_id, **kwargs)
-
-
-def to_sparse(values, transpose=False, dtype=float):
-    """Try to return a populated scipy.sparse matrix.
-
-    NOTE: assumes the max value observed in row and col defines the size of the
-    matrix.
-    """
-    # if it is a vector
-    if isinstance(values, ndarray) and len(values.shape) == 1:
-        if transpose:
-            mat = nparray_to_sparse(values[:, newaxis], dtype)
-        else:
-            mat = nparray_to_sparse(values, dtype)
-        return mat
-    if isinstance(values, ndarray):
-        if transpose:
-            mat = nparray_to_sparse(values.T, dtype)
-        else:
-            mat = nparray_to_sparse(values, dtype)
-        return mat
-    # the empty list
-    elif isinstance(values, list) and len(values) == 0:
-        return coo_matrix((0, 0))
-    # list of np vectors
-    elif isinstance(values, list) and isinstance(values[0], ndarray):
-        mat = list_nparray_to_sparse(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    # list of dicts, each representing a row in row order
-    elif isinstance(values, list) and isinstance(values[0], dict):
-        mat = list_dict_to_sparse(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    # list of scipy.sparse matrices, each representing a row in row order
-    elif isinstance(values, list) and isspmatrix(values[0]):
-        mat = list_sparse_to_sparse(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    elif isinstance(values, dict):
-        mat = dict_to_sparse(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    elif isspmatrix(values):
-        mat = values
-        if transpose:
-            mat = mat.transpose()
-        return mat
-    else:
-        raise TableException("Unknown input type")
 
 
 def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):

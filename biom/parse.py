@@ -9,16 +9,12 @@
 # ----------------------------------------------------------------------------
 
 from __future__ import division
-import os
 from string import maketrans
-import numpy as np
 from biom import __version__
 from biom.exception import BiomParseException
-from biom.table import table_factory, nparray_to_sparse, Table
-from functools import partial
+from biom.table import nparray_to_sparse, Table
 import json
 from numpy import asarray
-from scipy.sparse import csr_matrix, csc_matrix
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -272,15 +268,15 @@ def parse_biom_table_json(json_table, data_pump=None, input_is_dense=False):
     dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
     if data_pump is None:
-        table_obj = table_factory(json_table['data'], obs_ids, sample_ids,
-                                  obs_metadata, sample_metadata,
-                                  shape=json_table['shape'],
-                                  dtype=dtype, input_is_dense=input_is_dense)
+        table_obj = Table(json_table['data'], obs_ids, sample_ids,
+                          obs_metadata, sample_metadata,
+                          shape=json_table['shape'],
+                          dtype=dtype, input_is_dense=input_is_dense)
     else:
-        table_obj = table_factory(data_pump, obs_ids, sample_ids,
-                                  obs_metadata, sample_metadata,
-                                  shape=json_table['shape'],
-                                  dtype=dtype, input_is_dense=input_is_dense)
+        table_obj = Table(data_pump, obs_ids, sample_ids,
+                          obs_metadata, sample_metadata,
+                          shape=json_table['shape'],
+                          dtype=dtype, input_is_dense=input_is_dense)
 
     return table_obj
 
@@ -323,8 +319,7 @@ def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
 
     data = nparray_to_sparse(data)
 
-    return table_factory(data, obs_ids, sample_ids, obs_metadata,
-                         sample_metadata)
+    return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata)
 
 
 def parse_classic_table(lines, delim='\t', dtype=float, header_mark=None,
