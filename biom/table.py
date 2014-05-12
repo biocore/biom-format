@@ -42,6 +42,10 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
 
+MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': unicode,
+                       u'int': int, u'float': float, u'unicode': unicode}
+
+
 class Table(object):
 
     """The (canonically pronounced 'teh') Table.
@@ -1862,6 +1866,31 @@ class Table(object):
                 {"id": "%s" % samp[1], "metadata": samp[2]})
 
         return biom_format_obj
+
+    @classmethod
+    def from_json(self, json_table, data_pump=None,
+                  input_is_dense=False):
+        """Parse a biom otu table type"""
+        sample_ids = [col['id'] for col in json_table['columns']]
+        sample_metadata = [col['metadata'] for col in json_table['columns']]
+        obs_ids = [row['id'] for row in json_table['rows']]
+        obs_metadata = [row['metadata'] for row in json_table['rows']]
+        dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
+
+        if data_pump is None:
+            table_obj = table_factory(json_table['data'], obs_ids, sample_ids,
+                                      obs_metadata, sample_metadata,
+                                      shape=json_table['shape'],
+                                      dtype=dtype,
+                                      input_is_dense=input_is_dense)
+        else:
+            table_obj = table_factory(data_pump, obs_ids, sample_ids,
+                                      obs_metadata, sample_metadata,
+                                      shape=json_table['shape'],
+                                      dtype=dtype,
+                                      input_is_dense=input_is_dense)
+
+        return table_obj
 
     def to_json(self, generated_by, direct_io=None):
         """Returns a JSON string representing the table in BIOM format.

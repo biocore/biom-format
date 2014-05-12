@@ -253,36 +253,12 @@ def parse_biom_table(fp, input_is_dense=False):
         pass
 
     if hasattr(fp, 'read'):
-        return parse_biom_table_json(json.load(fp),
-                                     input_is_dense=input_is_dense)
+        return Table.from_json(json.load(fp), input_is_dense=input_is_dense)
     elif isinstance(fp, list):
-        return parse_biom_table_json(json.loads(''.join(fp)),
-                                     input_is_dense=input_is_dense)
+        return Table.from_json(json.loads(''.join(fp)),
+                               input_is_dense=input_is_dense)
     else:
-        return parse_biom_table_json(json.loads(fp),
-                                     input_is_dense=input_is_dense)
-
-
-def parse_biom_table_json(json_table, data_pump=None, input_is_dense=False):
-    """Parse a biom otu table type"""
-    sample_ids = [col['id'] for col in json_table['columns']]
-    sample_metadata = [col['metadata'] for col in json_table['columns']]
-    obs_ids = [row['id'] for row in json_table['rows']]
-    obs_metadata = [row['metadata'] for row in json_table['rows']]
-    dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
-
-    if data_pump is None:
-        table_obj = table_factory(json_table['data'], obs_ids, sample_ids,
-                                  obs_metadata, sample_metadata,
-                                  shape=json_table['shape'],
-                                  dtype=dtype, input_is_dense=input_is_dense)
-    else:
-        table_obj = table_factory(data_pump, obs_ids, sample_ids,
-                                  obs_metadata, sample_metadata,
-                                  shape=json_table['shape'],
-                                  dtype=dtype, input_is_dense=input_is_dense)
-
-    return table_obj
+        return Table.from_json(json.loads(fp), input_is_dense=input_is_dense)
 
 
 def sc_pipe_separated(x):
