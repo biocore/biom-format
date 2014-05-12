@@ -1785,88 +1785,6 @@ class Table(object):
         axis_dump(h5grp.create_group('sample'), self.sample_ids,
                   self.sample_metadata, 'csc', compression)
 
-    def get_biom_format_object(self, generated_by):
-        """Returns a dictionary representing the table in BIOM format.
-
-        This dictionary can then be easily converted into a JSON string for
-        serialization.
-
-        ``generated_by``: a string describing the software used to build the
-        table
-
-        TODO: This method may be very inefficient in terms of memory usage, so
-        it needs to be tested with several large tables to determine if
-        optimizations are necessary or not (i.e. subclassing JSONEncoder, using
-        generators, etc...).
-        """
-        if (not isinstance(generated_by, str) and
-                not isinstance(generated_by, unicode)):
-            raise TableException("Must specify a generated_by string")
-
-        # Fill in top-level metadata.
-        biom_format_obj = {}
-        biom_format_obj["id"] = self.table_id
-        biom_format_obj["format"] = get_biom_format_version_string()
-        biom_format_obj["format_url"] =\
-            get_biom_format_url_string()
-        biom_format_obj["generated_by"] = generated_by
-        biom_format_obj["date"] = "%s" % datetime.now().isoformat()
-
-        # Determine if we have any data in the matrix, and what the shape of
-        # the matrix is.
-        try:
-            num_rows, num_cols = self.shape
-        except:
-            num_rows = num_cols = 0
-        has_data = True if num_rows > 0 and num_cols > 0 else False
-
-        # Default the matrix element type to test to be an integer in case we
-        # don't have any data in the matrix to test.
-        test_element = 0
-        if has_data:
-            test_element = self[0, 0]
-
-        # Determine the type of elements the matrix is storing.
-        if isinstance(test_element, int):
-            dtype, matrix_element_type = int, "int"
-        elif isinstance(test_element, float):
-            dtype, matrix_element_type = float, "float"
-        elif isinstance(test_element, unicode):
-            dtype, matrix_element_type = unicode, "unicode"
-        else:
-            raise TableException("Unsupported matrix data type.")
-
-        # Fill in details about the matrix.
-        biom_format_obj["matrix_element_type"] = "%s" % matrix_element_type
-        biom_format_obj["shape"] = [num_rows, num_cols]
-
-        # Fill in details about the rows in the table and fill in the matrix's
-        # data.
-        biom_format_obj["rows"] = []
-        biom_format_obj["data"] = []
-        for obs_index, obs in enumerate(self.iter(axis='observation')):
-            biom_format_obj["rows"].append(
-                {"id": "%s" % obs[1], "metadata": obs[2]})
-            # If the matrix is dense, simply convert the numpy array to a list
-            # of data values. If the matrix is sparse, we need to store the
-            # data in sparse format, as it is given to us in a numpy array in
-            # dense format (i.e. includes zeroes) by iter().
-            dense_values = list(obs[0])
-            sparse_values = []
-            for col_index, val in enumerate(dense_values):
-                if float(val) != 0.0:
-                    sparse_values.append([obs_index, col_index,
-                                          dtype(val)])
-            biom_format_obj["data"].extend(sparse_values)
-
-        # Fill in details about the columns in the table.
-        biom_format_obj["columns"] = []
-        for samp in self.iter():
-            biom_format_obj["columns"].append(
-                {"id": "%s" % samp[1], "metadata": samp[2]})
-
-        return biom_format_obj
-
     @classmethod
     def from_json(self, json_table, data_pump=None,
                   input_is_dense=False):
@@ -2030,18 +1948,6 @@ class Table(object):
                                      generated_by, date,
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
-
-    def get_biom_format_pretty_print(self, generated_by):
-        """Returns a 'pretty print' format of a BIOM file
-
-        ``generated_by``: a string describing the software used to build the
-        table
-
-        WARNING: This method displays data values in a columnar format and
-        can be misleading.
-        """
-        return dumps(self.get_biom_format_object(generated_by), sort_keys=True,
-                     indent=4)
 
 
 def list_list_to_nparray(data, dtype=float):
