@@ -14,8 +14,7 @@ from pyqi.core.command import (Command, CommandIn, CommandOut,
 
 from numpy import std
 from operator import itemgetter
-from biom.util import (compute_counts_per_sample_stats,
-                       safe_md5)
+from biom.util import compute_counts_per_sample_stats
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -56,12 +55,6 @@ class TableSummarizer(Command):
                                'observation ids per sample, rather than '
                                'counts of observations per sample.'),
                   Required=False,
-                  Default=False),
-        CommandIn(Name='suppress_md5',
-                  DataType=bool,
-                  Description=('Do not compute md5sum of table. '
-                               'Useful if you\'re concerned about runtime.'),
-                  Required=False,
                   Default=False)
     ])
 
@@ -79,8 +72,6 @@ class TableSummarizer(Command):
         min_counts, max_counts, median_counts, mean_counts, counts_per_sample =\
             compute_counts_per_sample_stats(table, qualitative)
         num_observations = len(table.observation_ids)
-
-        suppress_md5 = (table_lines is None) or kwargs['suppress_md5']
 
         counts_per_sample_values = counts_per_sample.values()
 
@@ -106,8 +97,6 @@ class TableSummarizer(Command):
             lines.append('Table density (fraction of non-zero values): %1.3f' %
                          table.get_table_density())
 
-        if not suppress_md5:
-            lines.append('Table md5 (unzipped): %s' % safe_md5(table_lines))
         lines.append('')
 
         if qualitative:
