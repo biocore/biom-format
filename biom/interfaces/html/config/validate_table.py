@@ -37,7 +37,7 @@ def display_table_validity(result_key, data, option_value=None):
 
 
 inputs = [
-    HTMLInputOption(Parameter=cmd_in_lookup('table_json'),
+    HTMLInputOption(Parameter=cmd_in_lookup('table'),
                     Type='upload_file',
                     Handler=load_json_document,
                     Name='input-fp',
@@ -46,7 +46,9 @@ inputs = [
 
     HTMLInputOption(Parameter=cmd_in_lookup('format_version')),
 
-    HTMLInputOption(Parameter=cmd_in_lookup('detailed_report'), Type=bool)
+    HTMLInputOption(Parameter=cmd_in_lookup('detailed_report'), Type=bool),
+
+    HTMLInputOption(Parameter=cmd_in_lookup('is_json'), Type=bool)
 ]
 
 outputs = [

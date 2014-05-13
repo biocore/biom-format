@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """The BIOM Table API"""
 
 # -----------------------------------------------------------------------------
@@ -27,7 +28,7 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
-from ._filter import filter_sparse_array
+from ._filter import _filter
 from ._transform import _transform
 
 
@@ -35,11 +36,16 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
-               "Joshua Shorenstein", "Jose Antonio Navas Molina"]
+               "Joshua Shorenstein", "Jose Antonio Navas Molina",
+               "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
+
+
+MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': unicode,
+                       u'int': int, u'float': float, u'unicode': unicode}
 
 
 class Table(object):
@@ -957,9 +963,10 @@ class Table(object):
 
         Parameters
         ----------
-        ids_to_keep : function or iterable
-            If a function, it will be called with the id (a string)
-            and the dictionary of metadata of each sample, and must
+        ids_to_keep : function(id, metadata, values) -> bool, or iterable
+            If a function, it will be called with the id (a string),
+            the dictionary of metadata of each sample/observation and
+            the nonzero values of the sample/observation, and must
             return a boolean.
             If it's an iterable, it will be converted to an array of
             bools.
@@ -981,6 +988,7 @@ class Table(object):
         ------
         UnknownAxisError
             If provided an unrecognized axis.
+
         """
         table = self if inplace else self.copy()
 
@@ -996,12 +1004,12 @@ class Table(object):
             raise UnknownAxisError(axis)
 
         arr = table._data
-        arr, ids, metadata = filter_sparse_array(arr,
-                                                 ids,
-                                                 metadata,
-                                                 ids_to_keep,
-                                                 axis,
-                                                 invert=invert)
+        arr, ids, metadata = _filter(arr,
+                                     ids,
+                                     metadata,
+                                     ids_to_keep,
+                                     axis,
+                                     invert=invert)
 
         table._data = arr
         if axis == 1:
@@ -1665,26 +1673,31 @@ class Table(object):
         ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
         ###     THOUGH
         ### METADATA ARE NOT REPRESENTED HERE YET
-        ./id                     : str, an arbitrary ID
-        ./type                   : str, the table type (e.g, OTU table)
-        ./format-url             : str, a URL that describes the format
-        ./format-version         : two element tuple of int32, major and minor
-        ./generated-by           : str, what generated this file
-        ./creation-date          : str, ISO format
-        ./shape                  : two element tuple of int32, N by M
-        ./nnz                    : int32 or int64, number of non zero elements
-        ./observation            : Group
-        ./observation/ids        : (N,) dataset of str or vlen str
-        ./observation/data       : (N,) dataset of float64
-        ./observation/indices    : (N,) dataset of int32
-        ./observation/indptr     : (M+1,) dataset of int32
-        [./observation/metadata] : Optional, JSON str, in index order with ids
-        ./sample                 : Group
-        ./sample/ids             : (M,) dataset of str or vlen str
-        ./sample/data            : (M,) dataset of float64
-        ./sample/indices         : (M,) dataset of int32
-        ./sample/indptr          : (N+1,) dataset of int32
-        [./sample/metadata]      : Optional, JSON str, in index order with ids
+        ./id                         : str, an arbitrary ID
+        ./type                       : str, the table type (e.g, OTU table)
+        ./format-url                 : str, a URL that describes the format
+        ./format-version             : two element tuple of int32,
+                                       major and minor
+        ./generated-by               : str, what generated this file
+        ./creation-date              : str, ISO format
+        ./shape                      : two element tuple of int32, N by M
+        ./nnz                        : int32 or int64, number of non zero elems
+        ./observation                : Group
+        ./observation/ids            : (N,) dataset of str or vlen str
+        ./observation/matrix         : Group
+        ./observation/matrix/data    : (N,) dataset of float64
+        ./observation/matrix/indices : (N,) dataset of int32
+        ./observation/matrix/indptr  : (M+1,) dataset of int32
+        [./observation/metadata]     : Optional, JSON str, in index order
+                                       with ids
+        ./sample                     : Group
+        ./sample/ids                 : (M,) dataset of str or vlen str
+        ./sample/matrix              : Group
+        ./sample/matrix/data         : (M,) dataset of float64
+        ./sample/matrix/indices      : (M,) dataset of int32
+        ./sample/matrix/indptr       : (N+1,) dataset of int32
+        [./sample/metadata]          : Optional, JSON str, in index order
+                                       with ids
 
         Paramters
         ---------
@@ -1726,10 +1739,10 @@ class Table(object):
         samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
 
         # load the data
-        data_path = partial(os.path.join, order)
-        data = h5grp[data_path("data")]
-        indices = h5grp[data_path("indices")]
-        indptr = h5grp[data_path("indptr")]
+        data_grp = h5grp[order]['matrix']
+        data = data_grp["data"]
+        indices = data_grp["indices"]
+        indptr = data_grp["indptr"]
         cs = (data, indices, indptr)
 
         if order == 'sample':
@@ -1754,26 +1767,31 @@ class Table(object):
         ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
         ###     THOUGH
         ### METADATA ARE NOT REPRESENTED HERE YET
-        ./id                     : str, an arbitrary ID
-        ./type                   : str, the table type (e.g, OTU table)
-        ./format-url             : str, a URL that describes the format
-        ./format-version         : two element tuple of int32, major and minor
-        ./generated-by           : str, what generated this file
-        ./creation-date          : str, ISO format
-        ./shape                  : two element tuple of int32, N by M
-        ./nnz                    : int32 or int64, number of non zero elements
-        ./observation            : Group
-        ./observation/ids        : (N,) dataset of str or vlen str
-        ./observation/data       : (N,) dataset of float64
-        ./observation/indices    : (N,) dataset of int32
-        ./observation/indptr     : (M+1,) dataset of int32
-        [./observation/metadata] : Optional, JSON str, in index order with ids
-        ./sample                 : Group
-        ./sample/ids             : (M,) dataset of str or vlen str
-        ./sample/data            : (M,) dataset of float64
-        ./sample/indices         : (M,) dataset of int32
-        ./sample/indptr          : (N+1,) dataset of int32
-        [./sample/metadata]      : Optional, JSON str, in index order with ids
+        ./id                         : str, an arbitrary ID
+        ./type                       : str, the table type (e.g, OTU table)
+        ./format-url                 : str, a URL that describes the format
+        ./format-version             : two element tuple of int32,
+                                       major and minor
+        ./generated-by               : str, what generated this file
+        ./creation-date              : str, ISO format
+        ./shape                      : two element tuple of int32, N by M
+        ./nnz                        : int32 or int64, number of non zero elems
+        ./observation                : Group
+        ./observation/ids            : (N,) dataset of str or vlen str
+        ./observation/matrix         : Group
+        ./observation/matrix/data    : (N,) dataset of float64
+        ./observation/matrix/indices : (N,) dataset of int32
+        ./observation/matrix/indptr  : (M+1,) dataset of int32
+        [./observation/metadata]     : Optional, JSON str, in index order
+                                       with ids
+        ./sample                     : Group
+        ./sample/ids                 : (M,) dataset of str or vlen str
+        ./sample/matrix              : Group
+        ./sample/matrix/data         : (M,) dataset of float64
+        ./sample/matrix/indices      : (M,) dataset of int32
+        ./sample/matrix/indptr       : (N+1,) dataset of int32
+        [./sample/metadata]          : Optional, JSON str, in index order
+                                       with ids
 
         Paramters
         ---------
@@ -1803,15 +1821,17 @@ class Table(object):
             len_indptr = len(self._data.indptr)
             len_data = self.nnz
 
-            grp.create_dataset('data', shape=(len_data,),
+            grp.create_group('matrix')
+
+            grp.create_dataset('matrix/data', shape=(len_data,),
                                dtype=np.float64,
                                data=self._data.data,
                                compression=compression)
-            grp.create_dataset('indices', shape=(len_data,),
+            grp.create_dataset('matrix/indices', shape=(len_data,),
                                dtype=np.int32,
                                data=self._data.indices,
                                compression=compression)
-            grp.create_dataset('indptr', shape=(len_indptr,),
+            grp.create_dataset('matrix/indptr', shape=(len_indptr,),
                                dtype=np.int32,
                                data=self._data.indptr,
                                compression=compression)
@@ -1847,89 +1867,32 @@ class Table(object):
         axis_dump(h5grp.create_group('sample'), self.sample_ids,
                   self.sample_metadata, 'csc', compression)
 
-    def get_biom_format_object(self, generated_by):
-        """Returns a dictionary representing the table in BIOM format.
+    @classmethod
+    def from_json(self, json_table, data_pump=None,
+                  input_is_dense=False):
+        """Parse a biom otu table type"""
+        sample_ids = [col['id'] for col in json_table['columns']]
+        sample_metadata = [col['metadata'] for col in json_table['columns']]
+        obs_ids = [row['id'] for row in json_table['rows']]
+        obs_metadata = [row['metadata'] for row in json_table['rows']]
+        dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
-        This dictionary can then be easily converted into a JSON string for
-        serialization.
-
-        ``generated_by``: a string describing the software used to build the
-        table
-
-        TODO: This method may be very inefficient in terms of memory usage, so
-        it needs to be tested with several large tables to determine if
-        optimizations are necessary or not (i.e. subclassing JSONEncoder, using
-        generators, etc...).
-        """
-        if (not isinstance(generated_by, str) and
-                not isinstance(generated_by, unicode)):
-            raise TableException("Must specify a generated_by string")
-
-        # Fill in top-level metadata.
-        biom_format_obj = {}
-        biom_format_obj["id"] = self.table_id
-        biom_format_obj["format"] = get_biom_format_version_string()
-        biom_format_obj["format_url"] =\
-            get_biom_format_url_string()
-        biom_format_obj["generated_by"] = generated_by
-        biom_format_obj["date"] = "%s" % datetime.now().isoformat()
-
-        # Determine if we have any data in the matrix, and what the shape of
-        # the matrix is.
-        try:
-            num_rows, num_cols = self.shape
-        except:
-            num_rows = num_cols = 0
-        has_data = True if num_rows > 0 and num_cols > 0 else False
-
-        # Default the matrix element type to test to be an integer in case we
-        # don't have any data in the matrix to test.
-        test_element = 0
-        if has_data:
-            test_element = self[0, 0]
-
-        # Determine the type of elements the matrix is storing.
-        if isinstance(test_element, int):
-            dtype, matrix_element_type = int, "int"
-        elif isinstance(test_element, float):
-            dtype, matrix_element_type = float, "float"
-        elif isinstance(test_element, unicode):
-            dtype, matrix_element_type = unicode, "unicode"
+        if data_pump is None:
+            table_obj = table_factory(json_table['data'], obs_ids, sample_ids,
+                                      obs_metadata, sample_metadata,
+                                      shape=json_table['shape'],
+                                      dtype=dtype,
+                                      input_is_dense=input_is_dense)
         else:
-            raise TableException("Unsupported matrix data type.")
+            table_obj = table_factory(data_pump, obs_ids, sample_ids,
+                                      obs_metadata, sample_metadata,
+                                      shape=json_table['shape'],
+                                      dtype=dtype,
+                                      input_is_dense=input_is_dense)
 
-        # Fill in details about the matrix.
-        biom_format_obj["matrix_element_type"] = "%s" % matrix_element_type
-        biom_format_obj["shape"] = [num_rows, num_cols]
+        return table_obj
 
-        # Fill in details about the rows in the table and fill in the matrix's
-        # data.
-        biom_format_obj["rows"] = []
-        biom_format_obj["data"] = []
-        for obs_index, obs in enumerate(self.iter(axis='observation')):
-            biom_format_obj["rows"].append(
-                {"id": "%s" % obs[1], "metadata": obs[2]})
-            # If the matrix is dense, simply convert the numpy array to a list
-            # of data values. If the matrix is sparse, we need to store the
-            # data in sparse format, as it is given to us in a numpy array in
-            # dense format (i.e. includes zeroes) by iter().
-            dense_values = list(obs[0])
-            sparse_values = []
-            for col_index, val in enumerate(dense_values):
-                if float(val) != 0.0:
-                    sparse_values.append([obs_index, col_index,
-                                          dtype(val)])
-            biom_format_obj["data"].extend(sparse_values)
-
-        # Fill in details about the columns in the table.
-        biom_format_obj["columns"] = []
-        for samp in self.iter():
-            biom_format_obj["columns"].append(
-                {"id": "%s" % samp[1], "metadata": samp[2]})
-
-        return biom_format_obj
-
-    def get_biom_format_json_string(self, generated_by, direct_io=None):
+    def to_json(self, generated_by, direct_io=None):
         """Returns a JSON string representing the table in BIOM format.
 
         ``generated_by``: a string describing the software used to build the
@@ -2067,18 +2030,6 @@ class Table(object):
                                      generated_by, date,
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
-
-    def get_biom_format_pretty_print(self, generated_by):
-        """Returns a 'pretty print' format of a BIOM file
-
-        ``generated_by``: a string describing the software used to build the
-        table
-
-        WARNING: This method displays data values in a columnar format and
-        can be misleading.
-        """
-        return dumps(self.get_biom_format_object(generated_by), sort_keys=True,
-                     indent=4)
 
 
 def list_list_to_nparray(data, dtype=float):
