@@ -27,46 +27,17 @@ class TableSummarizerTests(TestCase):
         """ initialize objects for use in tests """
         self.biom1_lines = biom1
         self.summary_default_lines = summary_default.split('\n')
-        self.summary_suppress_md5_lines = summary_suppress_md5.split('\n')
         self.summary_qualitative_lines = summary_qualitative.split('\n')
 
     def test_default(self):
-        """ TableSummarizer functions as expected with md5 suppression
+        """ TableSummarizer functions as expected
 
         """
         t = TableSummarizer()
         actual = t(table=(parse_biom_table(self.biom1_lines),
                           self.biom1_lines.split('\n')),
-                   qualitative=False,
-                   suppress_md5=False)
+                   qualitative=False)
         self.assertEqual(actual['biom_summary'], self.summary_default_lines)
-
-    def test_suppress_md5(self):
-        """ TableSummarizer functions as expected with md5 suppression
-
-        """
-        t = TableSummarizer()
-        # suppress md5 by passing suppress_md5=True
-        actual = t(table=(parse_biom_table(self.biom1_lines),
-                          self.biom1_lines),
-                   qualitative=False,
-                   suppress_md5=True)
-
-        self.assertEqual(actual['biom_summary'],
-                         self.summary_suppress_md5_lines)
-        # suppress md5 by passing None as the second value in table
-        actual = t(table=(parse_biom_table(self.biom1_lines), None),
-                   qualitative=False,
-                   suppress_md5=False)
-        self.assertEqual(actual['biom_summary'],
-                         self.summary_suppress_md5_lines)
-        # suppress md5 by passing None as the second value in table
-        # and suppress_md5=True
-        actual = t(table=(parse_biom_table(self.biom1_lines), None),
-                   qualitative=False,
-                   suppress_md5=True)
-        self.assertEqual(actual['biom_summary'],
-                         self.summary_suppress_md5_lines)
 
     def test_qualitative(self):
         """ TableSummarizer functions as expected with qualitative=True
@@ -75,8 +46,7 @@ class TableSummarizerTests(TestCase):
         t = TableSummarizer()
         actual = t(table=(parse_biom_table(self.biom1_lines),
                           self.biom1_lines.split('\n')),
-                   qualitative=True,
-                   suppress_md5=False)
+                   qualitative=True)
         self.assertEqual(
             actual['biom_summary'],
             self.summary_qualitative_lines)
@@ -114,32 +84,6 @@ summary_default = """Num samples: 9
 Num observations: 14
 Total count: 200
 Table density (fraction of non-zero values): 0.238
-Table md5 (unzipped): 27c6ffe253527068c82cc1835adeda8f
-
-Counts/sample summary:
- Min: 22.0
- Max: 23.0
- Median: 22.000
- Mean: 22.222
- Std. dev.: 0.416
- Sample Metadata Categories: None provided
- Observation Metadata Categories: taxonomy
-
-Counts/sample detail:
- p2: 22.0
- f1: 22.0
- f2: 22.0
- f3: 22.0
- f4: 22.0
- t2: 22.0
- not16S.1: 22.0
- t1: 23.0
- p1: 23.0"""
-
-summary_suppress_md5 = """Num samples: 9
-Num observations: 14
-Total count: 200
-Table density (fraction of non-zero values): 0.238
 
 Counts/sample summary:
  Min: 22.0
@@ -163,7 +107,6 @@ Counts/sample detail:
 
 summary_qualitative = """Num samples: 9
 Num observations: 14
-Table md5 (unzipped): 27c6ffe253527068c82cc1835adeda8f
 
 Observations/sample summary:
  Min: 1
