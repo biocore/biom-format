@@ -83,9 +83,17 @@ class InstallationInformer(Command):
         except ImportError:
             scipy_lib_version = not_installed_msg
 
+        try:
+            from h5py import __version__ as h5py_lib_version
+        except ImportError:
+            h5py_lib_version = ("WARNING: Not installed - this is an optional "
+                                "dependency. It is strongly recommended for "
+                                "large datasets.")
+
         return (("pyqi version", pyqi_lib_version),
                 ("NumPy version", numpy_lib_version),
-                ("SciPy version", scipy_lib_version))
+                ("SciPy version", scipy_lib_version),
+                ("h5py version", h5py_lib_version))
 
     def get_package_info(self):
         import_error_msg = ("ERROR: Can't find the BIOM library code (or "
@@ -96,17 +104,7 @@ class InstallationInformer(Command):
         except ImportError:
             biom_lib_version = import_error_msg
 
-        try:
-            from biom.exception import InvalidSparseBackendException
-            from biom.table import SparseObj
-            backend_name = SparseObj(0, 0).__class__.__name__
-        except ImportError:
-            backend_name = import_error_msg
-        except InvalidSparseBackendException as e:
-            backend_name = "ERROR: %s" % e
-
-        return (("biom-format version", biom_lib_version),
-                ("SparseObj type", backend_name))
+        return (("biom-format version", biom_lib_version),)
 
     def _format_info(self, info, title):
         max_len = self._get_max_length(info)
