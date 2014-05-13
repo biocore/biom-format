@@ -50,20 +50,6 @@ cdef _zero_columns_CSR_or_rows_CSC(arr,
     arr.eliminate_zeros()
 
 cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
-    _make_filter_array(ids,
-                       metadata,
-                       func,
-                       cnp.uint8_t invert):
-    """Faster version of
-    [func(id_i, md_i) ^ invert for (id_i, md_i) in zip(ids, metadata)]
-    """
-    cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
-        np.empty(len(ids), dtype=np.uint8)
-    for i in range(len(ids)):
-        bools[i] = bool(func(ids[i], metadata[i])) ^ invert
-    return bools
-
-cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
     _make_filter_array_general(arr,
                                ids,
                                metadata,
