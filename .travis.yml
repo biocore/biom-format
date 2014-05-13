@@ -18,9 +18,9 @@ before_install:
 install:
   - conda create --yes -n env_name python=$TRAVIS_PYTHON_VERSION pip numpy=$NUMPY_VERSION scipy nose pep8 Sphinx
   - if [ ${USE_CYTHON} ]; then conda install --yes -n env_name cython; fi
+  - if [ ${USE_H5PY} ]; then conda install --yes -n env_name h5py>=2.2.0; fi
   - source activate env_name
   - pip install -r requirements.txt -e .
-  - if [ ${USE_H5PY} ]; then conda install --yes -n env_name h5py>=2.2.0; fi
 script:
   - nosetests --with-doctest
   - pep8 biom setup.py
