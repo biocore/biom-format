@@ -69,11 +69,11 @@ class TableSummarizer(Command):
         qualitative = kwargs['qualitative']
         table, table_lines = kwargs['table']
 
-        min_counts, max_counts, median_counts, mean_counts, counts_per_sample =\
+        min_counts, max_counts, median_counts, mean_counts, counts_per_samp =\
             compute_counts_per_sample_stats(table, qualitative)
         num_observations = len(table.observation_ids)
 
-        counts_per_sample_values = counts_per_sample.values()
+        counts_per_sample_values = counts_per_samp.values()
 
         if table.sample_metadata is None:
             sample_md_keys = ["None provided"]
@@ -122,7 +122,7 @@ class TableSummarizer(Command):
         else:
             lines.append('Counts/sample detail:')
 
-        for k, v in sorted(counts_per_sample.items(), key=itemgetter(1)):
+        for k, v in sorted(counts_per_samp.items(), key=itemgetter(1)):
             lines.append(' %s: %r' % (k, v))
 
         result['biom_summary'] = lines
