@@ -939,8 +939,7 @@ class Table(object):
                                      metadata,
                                      ids_to_keep,
                                      axis,
-                                     invert=invert,
-                                     general=True)
+                                     invert=invert)
 
         table._data = arr
         if axis == 1:

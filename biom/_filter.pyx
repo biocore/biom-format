@@ -115,7 +115,7 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
 
 def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
-            remove=True, general=False):
+            remove=True):
     """Filter row/columns of a sparse matrix according to the output of a
     boolean function.
 
@@ -131,8 +131,6 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
         Whether to "compact" or not the filtered matrix (i.e., keep
         the original size if ``False``, else reduce the shape of the
         returned matrix.
-    general : bool
-        Accept function that also accepts values.
 
     Returns
     -------
@@ -143,14 +141,12 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
     invert = bool(invert)
     metadata_is_None = metadata is None
 
-    if remove or general or arr.getformat() not in ('csc', 'csr'):
-        # Not compacting can work with CSC and CSR.  Compacting
-        # requires CSR for axis 0 and CSC for axis 1. General version
-        # requires CSR for axis 0 and CSC for axis 1.
-        if axis == 0:
-            arr = arr.tocsr()
-        elif axis == 1:
-            arr = arr.tocsc()
+    # General version (i.e., filter functions accepts ids, metadata
+    # and values) requires CSR for axis 0 and CSC for axis 1.
+    if axis == 0:
+        arr = arr.tocsr()
+    elif axis == 1:
+        arr = arr.tocsc()
     fmt = arr.getformat()
 
     cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools
@@ -162,11 +158,8 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
         if metadata_is_None:
             metadata = (None,) * len(ids)
 
-        if general:
-            bools = _make_filter_array_general(arr, ids, metadata, ids_to_keep,
-                                               invert)
-        else:
-            bools = _make_filter_array(ids, metadata, ids_to_keep, invert)
+        bools = _make_filter_array_general(arr, ids, metadata, ids_to_keep,
+                                           invert)
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
 
