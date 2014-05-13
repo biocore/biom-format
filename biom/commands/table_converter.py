@@ -141,7 +141,7 @@ class TableConverter(Command):
                                table.observation_metadata,
                                table.sample_metadata,
                                table.TableId)
-            result = conv_table.get_biom_format_json_string(generatedby())
+            result = conv_table.to_json(generatedby())
         elif dense_biom_to_sparse_biom:
             try:
                 table = parse_biom_table(table_file)
@@ -154,7 +154,7 @@ class TableConverter(Command):
                                table.observation_metadata,
                                table.sample_metadata,
                                table.table_id)
-            result = conv_table.get_biom_format_json_string(generatedby())
+            result = conv_table.to_json(generatedby())
         else:
             if process_obs_metadata not in \
                     self.ObservationMetadataTypes.keys():
