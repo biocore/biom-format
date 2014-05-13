@@ -44,8 +44,8 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 class SupportTests(TestCase):
-    def test_table_factory_sparse_nparray(self):
-        """beat the table_factory sparsely to death"""
+    def test_table_sparse_nparray(self):
+        """beat the table sparsely to death"""
         # nparray test
         samp_ids = ['1', '2', '3', '4']
         obs_ids = ['a', 'b', 'c']
@@ -56,8 +56,8 @@ class SupportTests(TestCase):
         obs = Table(nparray, obs_ids, samp_ids)
         self.assertEqual(obs, exp)
 
-    def test_table_factory_sparse_list_nparray(self):
-        """beat the table_factory sparsely to death"""
+    def test_table_sparse_list_nparray(self):
+        """beat the table sparsely to death"""
         # list of nparray test
         samp_ids = ['1', '2', '3', '4']
         obs_ids = ['a', 'b', 'c']
@@ -68,8 +68,8 @@ class SupportTests(TestCase):
         obs = Table(list_np, obs_ids, samp_ids)
         self.assertEqual(obs, exp)
 
-    def test_table_factory_sparse_dict(self):
-        """beat the table_factory sparsely to death"""
+    def test_table_sparse_dict(self):
+        """beat the table sparsely to death"""
         # dict test
         samp_ids = range(24)
         obs_ids = range(101)
@@ -83,8 +83,8 @@ class SupportTests(TestCase):
         obs = Table(dict_input, obs_ids, samp_ids)
         self.assertEqual(obs, exp)
 
-    def test_table_factory_sparse_list_dict(self):
-        """beat the table_factory sparsely to death"""
+    def test_table_sparse_list_dict(self):
+        """beat the table sparsely to death"""
         # list of dict test
         samp_ids = range(11)
         obs_ids = range(3)
@@ -99,8 +99,8 @@ class SupportTests(TestCase):
         obs = Table(list_dict, obs_ids, samp_ids)
         self.assertEqual(obs, exp)
 
-    def test_table_factory_sparse_list_list(self):
-        """beat the table_factory sparsely to death"""
+    def test_table_sparse_list_list(self):
+        """beat the table sparsely to death"""
         # list list test
         samp_ids = range(3)
         obs_ids = range(2)
