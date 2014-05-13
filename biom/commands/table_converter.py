@@ -12,7 +12,7 @@ from __future__ import division
 from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
 from pyqi.core.exception import CommandError
-from biom.table import (table_factory)
+from biom.table import Table
 from biom.parse import (parse_biom_table, MetadataMap, convert_biom_to_table,
                         convert_table_to_biom, generatedby)
 
@@ -135,26 +135,26 @@ class TableConverter(Command):
             except (ValueError, TypeError):
                 raise CommandError(convert_error_msg)
 
-            conv_table = table_factory(table._data,
-                                       table.observation_ids,
-                                       table.sample_ids,
-                                       table.observation_metadata,
-                                       table.sample_metadata,
-                                       table.TableId)
-            result = conv_table.get_biom_format_json_string(generatedby())
+            conv_table = Table(table._data,
+                               table.observation_ids,
+                               table.sample_ids,
+                               table.observation_metadata,
+                               table.sample_metadata,
+                               table.TableId)
+            result = conv_table.to_json(generatedby())
         elif dense_biom_to_sparse_biom:
             try:
                 table = parse_biom_table(table_file)
             except (ValueError, TypeError):
                 raise CommandError(convert_error_msg)
 
-            conv_table = table_factory(table._data,
-                                       table.observation_ids,
-                                       table.sample_ids,
-                                       table.observation_metadata,
-                                       table.sample_metadata,
-                                       table.table_id)
-            result = conv_table.get_biom_format_json_string(generatedby())
+            conv_table = Table(table._data,
+                               table.observation_ids,
+                               table.sample_ids,
+                               table.observation_metadata,
+                               table.sample_metadata,
+                               table.table_id)
+            result = conv_table.to_json(generatedby())
         else:
             if process_obs_metadata not in \
                     self.ObservationMetadataTypes.keys():

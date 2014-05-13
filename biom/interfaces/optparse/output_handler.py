@@ -30,4 +30,4 @@ def write_biom_table(result_key, data, option_value=None):
         raise IOError("Output path '%s' already exists." % option_value)
 
     with open(option_value, 'w') as f:
-        f.write(data.get_biom_format_json_string(generatedby()))
+        f.write(data.to_json(generatedby()))

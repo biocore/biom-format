@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """The BIOM Table API"""
 
 # -----------------------------------------------------------------------------
@@ -27,7 +28,7 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
-from ._filter import filter_sparse_array
+from ._filter import _filter
 from ._transform import _transform
 
 
@@ -35,11 +36,16 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
-               "Joshua Shorenstein", "Jose Antonio Navas Molina"]
+               "Joshua Shorenstein", "Jose Antonio Navas Molina",
+               "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
+
+
+MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': unicode,
+                       u'int': int, u'float': float, u'unicode': unicode}
 
 
 class Table(object):
@@ -61,7 +67,10 @@ class Table(object):
         self.generated_by = generated_by
 
         if not isspmatrix(data):
-            self._data = to_sparse(data)
+            shape = (len(observation_ids), len(sample_ids))
+            input_is_dense = kwargs.get('input_is_dense', False)
+            self._data = Table._to_sparse(data, input_is_dense=input_is_dense,
+                                          shape=shape)
         else:
             self._data = data
 
@@ -103,7 +112,7 @@ class Table(object):
         if isspmatrix(vals):
             return vals
         else:
-            return to_sparse(vals, transpose, dtype)
+            return Table._to_sparse(vals, transpose, dtype)
 
     @staticmethod
     def _to_dense(vec):
@@ -121,6 +130,69 @@ class Table(object):
             return dense_vec.reshape(1)
         else:
             return np.squeeze(dense_vec)
+
+    @staticmethod
+    def _to_sparse(values, transpose=False, dtype=float, input_is_dense=False,
+                   shape=None):
+        """Try to return a populated scipy.sparse matrix.
+
+        NOTE: assumes the max value observed in row and col defines the size of
+        the matrix.
+        """
+        # if it is a vector
+        if isinstance(values, ndarray) and len(values.shape) == 1:
+            if transpose:
+                mat = nparray_to_sparse(values[:, newaxis], dtype)
+            else:
+                mat = nparray_to_sparse(values, dtype)
+            return mat
+        if isinstance(values, ndarray):
+            if transpose:
+                mat = nparray_to_sparse(values.T, dtype)
+            else:
+                mat = nparray_to_sparse(values, dtype)
+            return mat
+        # the empty list
+        elif isinstance(values, list) and len(values) == 0:
+            return coo_matrix((0, 0))
+        # list of np vectors
+        elif isinstance(values, list) and isinstance(values[0], ndarray):
+            mat = list_nparray_to_sparse(values, dtype)
+            if transpose:
+                mat = mat.T
+            return mat
+        # list of dicts, each representing a row in row order
+        elif isinstance(values, list) and isinstance(values[0], dict):
+            mat = list_dict_to_sparse(values, dtype)
+            if transpose:
+                mat = mat.T
+            return mat
+        # list of scipy.sparse matrices, each representing a row in row order
+        elif isinstance(values, list) and isspmatrix(values[0]):
+            mat = list_sparse_to_sparse(values, dtype)
+            if transpose:
+                mat = mat.T
+            return mat
+        elif isinstance(values, dict):
+            mat = dict_to_sparse(values, dtype)
+            if transpose:
+                mat = mat.T
+            return mat
+        elif isinstance(values, list) and isinstance(values[0], list):
+            if input_is_dense:
+                d = coo_matrix(values)
+                mat = coo_arrays_to_sparse((d.data, (d.row, d.col)),
+                                           dtype=dtype)
+            else:
+                mat = list_list_to_sparse(values, dtype, shape=shape)
+            return mat
+        elif isspmatrix(values):
+            mat = values
+            if transpose:
+                mat = mat.transpose()
+            return mat
+        else:
+            raise TableException("Unknown input type")
 
     def _verify_metadata(self):
         """Obtain some notion of sanity on object construction with inputs"""
@@ -440,14 +512,14 @@ class Table(object):
         Examples
         --------
         >>> import numpy as np
-        >>> from biom.table import table_factory
+        >>> from biom.table import Table
 
         Create a 2x3 BIOM table, with observation metadata and no sample
         metadata:
 
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
-        >>> table = table_factory(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
-        ...                       [{'foo': 'bar'}, {'x': 'y'}], None)
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'foo': 'bar'}, {'x': 'y'}], None)
 
         Get the metadata of the observation with ID "O2":
 
@@ -498,12 +570,12 @@ class Table(object):
         --------
 
         >>> import numpy as np
-        >>> from biom.table import table_factory
+        >>> from biom.table import Table
 
         Create a 2x3 BIOM table:
 
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
-        >>> table = table_factory(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
 
         Get the index of the observation with ID "O2":
 
@@ -894,9 +966,10 @@ class Table(object):
 
         Parameters
         ----------
-        ids_to_keep : function or iterable
-            If a function, it will be called with the id (a string)
-            and the dictionary of metadata of each sample, and must
+        ids_to_keep : function(id, metadata, values) -> bool, or iterable
+            If a function, it will be called with the id (a string),
+            the dictionary of metadata of each sample/observation and
+            the nonzero values of the sample/observation, and must
             return a boolean.
             If it's an iterable, it will be converted to an array of
             bools.
@@ -918,6 +991,7 @@ class Table(object):
         ------
         UnknownAxisError
             If provided an unrecognized axis.
+
         """
         table = self if inplace else self.copy()
 
@@ -933,12 +1007,12 @@ class Table(object):
             raise UnknownAxisError(axis)
 
         arr = table._data
-        arr, ids, metadata = filter_sparse_array(arr,
-                                                 ids,
-                                                 metadata,
-                                                 ids_to_keep,
-                                                 axis,
-                                                 invert=invert)
+        arr, ids, metadata = _filter(arr,
+                                     ids,
+                                     metadata,
+                                     ids_to_keep,
+                                     axis,
+                                     invert=invert)
 
         table._data = arr
         if axis == 1:
@@ -1009,8 +1083,8 @@ class Table(object):
                 else:
                     samp_md = None
 
-            yield part, table_factory(data, obs_ids, samp_ids, obs_md, samp_md,
-                                      self.table_id, type=self.type)
+            yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
+                              self.table_id, type=self.type)
 
     def collapse(self, f, reduce_f=add, norm=True, min_group_size=2,
                  include_collapsed_metadata=True, one_to_many=False,
@@ -1258,8 +1332,8 @@ class Table(object):
             else:
                 sample_md = None
 
-        return table_factory(data, obs_ids, sample_ids, obs_md, sample_md,
-                             self.table_id, type=self.type)
+        return Table(data, obs_ids, sample_ids, obs_md, sample_md,
+                     self.table_id, type=self.type)
 
     def _invert_axis(self, axis):
         """Invert an axis"""
@@ -1602,26 +1676,31 @@ class Table(object):
         ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
         ###     THOUGH
         ### METADATA ARE NOT REPRESENTED HERE YET
-        ./id                     : str, an arbitrary ID
-        ./type                   : str, the table type (e.g, OTU table)
-        ./format-url             : str, a URL that describes the format
-        ./format-version         : two element tuple of int32, major and minor
-        ./generated-by           : str, what generated this file
-        ./creation-date          : str, ISO format
-        ./shape                  : two element tuple of int32, N by M
-        ./nnz                    : int32 or int64, number of non zero elements
-        ./observation            : Group
-        ./observation/ids        : (N,) dataset of str or vlen str
-        ./observation/data       : (N,) dataset of float64
-        ./observation/indices    : (N,) dataset of int32
-        ./observation/indptr     : (M+1,) dataset of int32
-        [./observation/metadata] : Optional, JSON str, in index order with ids
-        ./sample                 : Group
-        ./sample/ids             : (M,) dataset of str or vlen str
-        ./sample/data            : (M,) dataset of float64
-        ./sample/indices         : (M,) dataset of int32
-        ./sample/indptr          : (N+1,) dataset of int32
-        [./sample/metadata]      : Optional, JSON str, in index order with ids
+        ./id                         : str, an arbitrary ID
+        ./type                       : str, the table type (e.g, OTU table)
+        ./format-url                 : str, a URL that describes the format
+        ./format-version             : two element tuple of int32,
+                                       major and minor
+        ./generated-by               : str, what generated this file
+        ./creation-date              : str, ISO format
+        ./shape                      : two element tuple of int32, N by M
+        ./nnz                        : int32 or int64, number of non zero elems
+        ./observation                : Group
+        ./observation/ids            : (N,) dataset of str or vlen str
+        ./observation/matrix         : Group
+        ./observation/matrix/data    : (N,) dataset of float64
+        ./observation/matrix/indices : (N,) dataset of int32
+        ./observation/matrix/indptr  : (M+1,) dataset of int32
+        [./observation/metadata]     : Optional, JSON str, in index order
+                                       with ids
+        ./sample                     : Group
+        ./sample/ids                 : (M,) dataset of str or vlen str
+        ./sample/matrix              : Group
+        ./sample/matrix/data         : (M,) dataset of float64
+        ./sample/matrix/indices      : (M,) dataset of int32
+        ./sample/matrix/indptr       : (N+1,) dataset of int32
+        [./sample/metadata]          : Optional, JSON str, in index order
+                                       with ids
 
         Paramters
         ---------
@@ -1666,10 +1745,10 @@ class Table(object):
         samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
 
         # load the data
-        data_path = partial(os.path.join, order)
-        data = h5grp[data_path("data")]
-        indices = h5grp[data_path("indices")]
-        indptr = h5grp[data_path("indptr")]
+        data_grp = h5grp[order]['matrix']
+        data = data_grp["data"]
+        indices = data_grp["indices"]
+        indptr = data_grp["indptr"]
         cs = (data, indices, indptr)
 
         if order == 'sample':
@@ -1677,10 +1756,9 @@ class Table(object):
         else:
             matrix = csr_matrix(cs, shape=shape)
 
-        return table_factory(matrix, obs_ids, samp_ids,  obs_md or None,
-                             samp_md or None, type=type,
-                             create_date=create_date,
-                             generated_by=generated_by)
+        return Table(matrix, obs_ids, samp_ids,  obs_md or None,
+                     samp_md or None, type=type, create_date=create_date,
+                     generated_by=generated_by)
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
@@ -1696,26 +1774,31 @@ class Table(object):
         ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
         ###     THOUGH
         ### METADATA ARE NOT REPRESENTED HERE YET
-        ./id                     : str, an arbitrary ID
-        ./type                   : str, the table type (e.g, OTU table)
-        ./format-url             : str, a URL that describes the format
-        ./format-version         : two element tuple of int32, major and minor
-        ./generated-by           : str, what generated this file
-        ./creation-date          : str, ISO format
-        ./shape                  : two element tuple of int32, N by M
-        ./nnz                    : int32 or int64, number of non zero elements
-        ./observation            : Group
-        ./observation/ids        : (N,) dataset of str or vlen str
-        ./observation/data       : (N,) dataset of float64
-        ./observation/indices    : (N,) dataset of int32
-        ./observation/indptr     : (M+1,) dataset of int32
-        [./observation/metadata] : Optional, JSON str, in index order with ids
-        ./sample                 : Group
-        ./sample/ids             : (M,) dataset of str or vlen str
-        ./sample/data            : (M,) dataset of float64
-        ./sample/indices         : (M,) dataset of int32
-        ./sample/indptr          : (N+1,) dataset of int32
-        [./sample/metadata]      : Optional, JSON str, in index order with ids
+        ./id                         : str, an arbitrary ID
+        ./type                       : str, the table type (e.g, OTU table)
+        ./format-url                 : str, a URL that describes the format
+        ./format-version             : two element tuple of int32,
+                                       major and minor
+        ./generated-by               : str, what generated this file
+        ./creation-date              : str, ISO format
+        ./shape                      : two element tuple of int32, N by M
+        ./nnz                        : int32 or int64, number of non zero elems
+        ./observation                : Group
+        ./observation/ids            : (N,) dataset of str or vlen str
+        ./observation/matrix         : Group
+        ./observation/matrix/data    : (N,) dataset of float64
+        ./observation/matrix/indices : (N,) dataset of int32
+        ./observation/matrix/indptr  : (M+1,) dataset of int32
+        [./observation/metadata]     : Optional, JSON str, in index order
+                                       with ids
+        ./sample                     : Group
+        ./sample/ids                 : (M,) dataset of str or vlen str
+        ./sample/matrix              : Group
+        ./sample/matrix/data         : (M,) dataset of float64
+        ./sample/matrix/indices      : (M,) dataset of int32
+        ./sample/matrix/indptr       : (N+1,) dataset of int32
+        [./sample/metadata]          : Optional, JSON str, in index order
+                                       with ids
 
         Paramters
         ---------
@@ -1745,15 +1828,17 @@ class Table(object):
             len_indptr = len(self._data.indptr)
             len_data = self.nnz
 
-            grp.create_dataset('data', shape=(len_data,),
+            grp.create_group('matrix')
+
+            grp.create_dataset('matrix/data', shape=(len_data,),
                                dtype=np.float64,
                                data=self._data.data,
                                compression=compression)
-            grp.create_dataset('indices', shape=(len_data,),
+            grp.create_dataset('matrix/indices', shape=(len_data,),
                                dtype=np.int32,
                                data=self._data.indices,
                                compression=compression)
-            grp.create_dataset('indptr', shape=(len_indptr,),
+            grp.create_dataset('matrix/indptr', shape=(len_indptr,),
                                dtype=np.int32,
                                data=self._data.indptr,
                                compression=compression)
@@ -1789,89 +1874,32 @@ class Table(object):
         axis_dump(h5grp.create_group('sample'), self.sample_ids,
                   self.sample_metadata, 'csc', compression)
 
-    def get_biom_format_object(self, generated_by):
-        """Returns a dictionary representing the table in BIOM format.
+    @classmethod
+    def from_json(self, json_table, data_pump=None,
+                  input_is_dense=False):
+        """Parse a biom otu table type"""
+        sample_ids = [col['id'] for col in json_table['columns']]
+        sample_metadata = [col['metadata'] for col in json_table['columns']]
+        obs_ids = [row['id'] for row in json_table['rows']]
+        obs_metadata = [row['metadata'] for row in json_table['rows']]
+        dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
-        This dictionary can then be easily converted into a JSON string for
-        serialization.
-
-        ``generated_by``: a string describing the software used to build the
-        table
-
-        TODO: This method may be very inefficient in terms of memory usage, so
-        it needs to be tested with several large tables to determine if
-        optimizations are necessary or not (i.e. subclassing JSONEncoder, using
-        generators, etc...).
-        """
-        if (not isinstance(generated_by, str) and
-                not isinstance(generated_by, unicode)):
-            raise TableException("Must specify a generated_by string")
-
-        # Fill in top-level metadata.
-        biom_format_obj = {}
-        biom_format_obj["id"] = self.table_id
-        biom_format_obj["format"] = get_biom_format_version_string()
-        biom_format_obj["format_url"] =\
-            get_biom_format_url_string()
-        biom_format_obj["generated_by"] = generated_by
-        biom_format_obj["date"] = "%s" % datetime.now().isoformat()
-
-        # Determine if we have any data in the matrix, and what the shape of
-        # the matrix is.
-        try:
-            num_rows, num_cols = self.shape
-        except:
-            num_rows = num_cols = 0
-        has_data = True if num_rows > 0 and num_cols > 0 else False
-
-        # Default the matrix element type to test to be an integer in case we
-        # don't have any data in the matrix to test.
-        test_element = 0
-        if has_data:
-            test_element = self[0, 0]
-
-        # Determine the type of elements the matrix is storing.
-        if isinstance(test_element, int):
-            dtype, matrix_element_type = int, "int"
-        elif isinstance(test_element, float):
-            dtype, matrix_element_type = float, "float"
-        elif isinstance(test_element, unicode):
-            dtype, matrix_element_type = unicode, "unicode"
+        if data_pump is None:
+            table_obj = Table(json_table['data'], obs_ids, sample_ids,
+                              obs_metadata, sample_metadata,
+                              shape=json_table['shape'],
+                              dtype=dtype,
+                              input_is_dense=input_is_dense)
         else:
-            raise TableException("Unsupported matrix data type.")
+            table_obj = Table(data_pump, obs_ids, sample_ids,
+                              obs_metadata, sample_metadata,
+                              shape=json_table['shape'],
+                              dtype=dtype,
+                              input_is_dense=input_is_dense)
 
-        # Fill in details about the matrix.
-        biom_format_obj["matrix_element_type"] = "%s" % matrix_element_type
-        biom_format_obj["shape"] = [num_rows, num_cols]
+        return table_obj
 
-        # Fill in details about the rows in the table and fill in the matrix's
-        # data.
-        biom_format_obj["rows"] = []
-        biom_format_obj["data"] = []
-        for obs_index, obs in enumerate(self.iter(axis='observation')):
-            biom_format_obj["rows"].append(
-                {"id": "%s" % obs[1], "metadata": obs[2]})
-            # If the matrix is dense, simply convert the numpy array to a list
-            # of data values. If the matrix is sparse, we need to store the
-            # data in sparse format, as it is given to us in a numpy array in
-            # dense format (i.e. includes zeroes) by iter().
-            dense_values = list(obs[0])
-            sparse_values = []
-            for col_index, val in enumerate(dense_values):
-                if float(val) != 0.0:
-                    sparse_values.append([obs_index, col_index,
-                                          dtype(val)])
-            biom_format_obj["data"].extend(sparse_values)
-
-        # Fill in details about the columns in the table.
-        biom_format_obj["columns"] = []
-        for samp in self.iter():
-            biom_format_obj["columns"].append(
-                {"id": "%s" % samp[1], "metadata": samp[2]})
-
-        return biom_format_obj
-
-    def get_biom_format_json_string(self, generated_by, direct_io=None):
+    def to_json(self, generated_by, direct_io=None):
         """Returns a JSON string representing the table in BIOM format.
 
         ``generated_by``: a string describing the software used to build the
@@ -2010,18 +2038,6 @@ class Table(object):
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
 
-    def get_biom_format_pretty_print(self, generated_by):
-        """Returns a 'pretty print' format of a BIOM file
-
-        ``generated_by``: a string describing the software used to build the
-        table
-
-        WARNING: This method displays data values in a columnar format and
-        can be misleading.
-        """
-        return dumps(self.get_biom_format_object(generated_by), sort_keys=True,
-                     indent=4)
-
 
 def list_list_to_nparray(data, dtype=float):
     """Convert a list of lists into a nparray
@@ -2057,158 +2073,6 @@ def list_dict_to_nparray(data, dtype=float):
             mat[row_idx, col_idx] = val
 
     return mat
-
-
-def table_factory(data, observation_ids, sample_ids, observation_metadata=None,
-                  sample_metadata=None, table_id=None,
-                  input_is_dense=False, transpose=False, **kwargs):
-    """Construct a table
-
-    Attempts to make 'data' through various means of juggling. Data can be:
-
-        - numpy.array
-        - list of numpy.array vectors
-        - SparseObj representation
-        - dict representation
-        - list of SparseObj representation vectors
-        - list of lists of sparse values [[row, col, value], ...]
-        - list of lists of dense values [[value, value, ...], ...]
-        - Scipy COO data (values, (rows, cols))
-
-    Example usage to create a Table object::
-
-        from biom.table import table_factory
-        from numpy import array
-
-        sample_ids = ['s1','s2','s3','s4']
-        sample_md = [{'pH':4.2,'country':'Peru'},
-                     {'pH':5.2,'country':'Peru'},
-                     {'pH':5.0,'country':'Peru'},
-                     {'pH':4.9,'country':'Peru'}]
-
-        observation_ids = ['o1','o2','o3']
-        observation_md = [{'domain':'Archaea'},
-                          {'domain':'Bacteria'},
-                          {'domain':'Bacteria'}]
-
-        data = array([[1,2,3,4],
-                      [-1,6,7,8],
-                      [9,10,11,12]])
-
-        t = table_factory(data,
-                          observation_ids,
-                          sample_ids,
-                          observation_md,
-                          sample_md)
-    """
-    if 'dtype' in kwargs:
-        dtype = kwargs['dtype']
-    else:
-        dtype = float
-
-    if 'shape' in kwargs:
-        shape = kwargs['shape']
-    else:
-        shape = None
-
-    # if we have a numpy array
-    if isinstance(data, ndarray):
-        data = nparray_to_sparse(data, dtype)
-
-    # if we have a list of things
-    elif isinstance(data, list):
-        if not data:
-            raise TableException("No data was supplied. Cannot create "
-                                 "an empty table.")
-
-        elif isinstance(data[0], ndarray):
-            data = list_nparray_to_sparse(data, dtype)
-
-        elif isinstance(data[0], dict):
-            data = list_dict_to_sparse(data, dtype)
-
-        elif isinstance(data[0], list):
-            if input_is_dense:
-                d = coo_matrix(data)
-                data = coo_arrays_to_sparse((d.data, (d.row, d.col)),
-                                            dtype=dtype)
-            else:
-                data = list_list_to_sparse(data, dtype, shape=shape)
-
-        else:
-            raise TableException("Unknown nested list type")
-
-    # if we have a dict representation
-    elif isinstance(data, dict):
-        data = dict_to_sparse(data, dtype)
-
-    elif isinstance(data, tuple) and isinstance(data[0], ndarray):
-        data = coo_arrays_to_sparse(data)
-
-    elif isspmatrix(data):
-        pass
-
-    else:
-        raise TableException("Cannot handle data!")
-
-    return Table(data, observation_ids, sample_ids,
-                 sample_metadata=sample_metadata,
-                 observation_metadata=observation_metadata,
-                 table_id=table_id, **kwargs)
-
-
-def to_sparse(values, transpose=False, dtype=float):
-    """Try to return a populated scipy.sparse matrix.
-
-    NOTE: assumes the max value observed in row and col defines the size of the
-    matrix.
-    """
-    # if it is a vector
-    if isinstance(values, ndarray) and len(values.shape) == 1:
-        if transpose:
-            mat = nparray_to_sparse(values[:, newaxis], dtype)
-        else:
-            mat = nparray_to_sparse(values, dtype)
-        return mat
-    if isinstance(values, ndarray):
-        if transpose:
-            mat = nparray_to_sparse(values.T, dtype)
-        else:
-            mat = nparray_to_sparse(values, dtype)
-        return mat
-    # the empty list
-    elif isinstance(values, list) and len(values) == 0:
-        return coo_matrix((0, 0))
-    # list of np vectors
-    elif isinstance(values, list) and isinstance(values[0], ndarray):
-        mat = list_nparray_to_sparse(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    # list of dicts, each representing a row in row order
-    elif isinstance(values, list) and isinstance(values[0], dict):
-        mat = list_dict_to_sparse(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    # list of scipy.sparse matrices, each representing a row in row order
-    elif isinstance(values, list) and isspmatrix(values[0]):
-        mat = list_sparse_to_sparse(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    elif isinstance(values, dict):
-        mat = dict_to_sparse(values, dtype)
-        if transpose:
-            mat = mat.T
-        return mat
-    elif isspmatrix(values):
-        mat = values
-        if transpose:
-            mat = mat.transpose()
-        return mat
-    else:
-        raise TableException("Unknown input type")
 
 
 def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):

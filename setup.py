@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
@@ -18,7 +19,7 @@ import numpy as np
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente",
-               "Jai Ram Rideout"]
+               "Jai Ram Rideout", "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __version__ = "1.3.1-dev"
 __maintainer__ = "Daniel McDonald"
