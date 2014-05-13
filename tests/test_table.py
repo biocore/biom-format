@@ -1332,7 +1332,7 @@ class SparseTableTests(TestCase):
         self.assertNotEqual(copied_table, self.st_rich)
 
     def test_filter_return_type(self):
-        f = lambda id_, md: id_[0] == 'b'
+        f = lambda id_, md, vals: id_[0] == 'b'
         filtered_table = self.st3.filter(f, inplace=False)
         filtered_table_2 = self.st3.filter(f, inplace=True)
         self.assertEqual(filtered_table, filtered_table_2)
@@ -1349,11 +1349,11 @@ class SparseTableTests(TestCase):
                           [{'barcode': 'aatt'}])
 
         table = self.st_rich
-        obs_table = table.filter_general(f, 'sample', inplace=False)
+        obs_table = table.filter(f, 'sample', inplace=False)
         self.assertEqual(obs_table, exp_table)
 
         f_2 = lambda id_, md, vals: np.all(vals == np.array([5, 7]))
-        obs_table_2 = table.filter_general(f_2, 'sample', inplace=False)
+        obs_table_2 = table.filter(f_2, 'sample', inplace=False)
         self.assertEqual(obs_table_2, exp_table)
 
     def test_filter_general_observation(self):
@@ -1363,15 +1363,15 @@ class SparseTableTests(TestCase):
                           [{'taxonomy': ['k__a', 'p__c']}],
                           [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
         table = self.st_rich
-        obs_table = table.filter_general(f, 'observation', inplace=False)
+        obs_table = table.filter(f, 'observation', inplace=False)
         self.assertEqual(obs_table, exp_table)
 
         f_2 = lambda id_, md, vals: np.all(vals == np.array([7, 8]))
-        obs_table_2 = table.filter_general(f_2, 'observation', inplace=False)
+        obs_table_2 = table.filter(f_2, 'observation', inplace=False)
         self.assertEqual(obs_table_2, exp_table)
 
     def test_filter_sample_id(self):
-        f = lambda id_, md: id_ == 'a'
+        f = lambda id_, md, vals: id_ == 'a'
 
         values = csr_matrix(np.array([[5.],
                                       [7.]]))
@@ -1385,7 +1385,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_sample_metadata(self):
-        f = lambda id_, md: md['barcode'] == 'ttgg'
+        f = lambda id_, md, vals: md['barcode'] == 'ttgg'
         values = csr_matrix(np.array([[6.],
                                       [8.]]))
         exp_table = Table(values, ['1', '2'], ['b'],
@@ -1397,7 +1397,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_sample_invert(self):
-        f = lambda id_, md: md['barcode'] == 'aatt'
+        f = lambda id_, md, vals: md['barcode'] == 'aatt'
         values = csr_matrix(np.array([[6.],
                                       [8.]]))
         exp_table = Table(values, ['1', '2'], ['b'],
@@ -1409,12 +1409,11 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_sample_remove_everything(self):
-        self.assertRaises(TableException,
-                          lambda: self.st_rich.filter(lambda id_, md: False,
-                                                      'sample'))
+        with self.assertRaises(TableException):
+            self.st_rich.filter(lambda id_, md, vals: False, 'sample')
 
     def test_filter_observations_id(self):
-        f = lambda id_, md: id_ == '1'
+        f = lambda id_, md, vals: id_ == '1'
         values = csr_matrix(np.array([[5., 6.]]))
         exp_table = Table(values, ['1'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__b']}],
@@ -1424,7 +1423,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_observations_metadata(self):
-        f = lambda id_, md: md['taxonomy'][1] == 'p__c'
+        f = lambda id_, md, vals: md['taxonomy'][1] == 'p__c'
         values = csr_matrix(np.array([[7., 8.]]))
         exp_table = Table(values, ['2'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__c']}],
@@ -1434,7 +1433,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_observations_invert(self):
-        f = lambda id_, md: md['taxonomy'][1] == 'p__c'
+        f = lambda id_, md, vals: md['taxonomy'][1] == 'p__c'
         values = csr_matrix(np.array([[5., 6.]]))
         exp_table = Table(values, ['1'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__b']}],
@@ -1444,9 +1443,8 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_observations_remove_everything(self):
-        self.assertRaises(TableException,
-                          lambda: self.st_rich.filter(lambda id_, md: False,
-                                                      'observation'))
+        with self.assertRaises(TableException):
+            self.st_rich.filter(lambda id_, md, vals: False, 'observation')
 
     def test_transform_return_type(self):
         f = lambda data, id_, md: data / 2.
