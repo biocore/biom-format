@@ -3,9 +3,11 @@ language: python
 python:
   - "2.7"
 env:
-  - NUMPY_VERSION=1.8
-  - NUMPY_VERSION=1.8 USE_CYTHON=True
   - NUMPY_VERSION=1.7
+  - NUMPY_VERSION=1.8
+  - NUMPY_VERSION=1.8 USE_H5PY=True
+  - NUMPY_VERSION=1.8 USE_CYTHON=True
+  - NUMPY_VERSION=1.7 USE_H5PY=True
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda-2.2.2-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -14,7 +16,9 @@ before_install:
   # Update conda itself
   - conda update --yes conda
 install:
-  - conda create --yes -n env_name python=$TRAVIS_PYTHON_VERSION pip numpy=$NUMPY_VERSION scipy nose pep8 Sphinx h5py>=2.2.0 Cython
+  - conda create --yes -n env_name python=$TRAVIS_PYTHON_VERSION pip numpy=$NUMPY_VERSION scipy nose pep8 Sphinx
+  - if [ ${USE_CYTHON} ]; then conda install --yes -n env_name cython; fi
+  - if [ ${USE_H5PY} ]; then conda install --yes -n env_name h5py>=2.2.0; fi
   - source activate env_name
   - pip install -r requirements.txt -e .
 script:
