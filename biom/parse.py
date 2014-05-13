@@ -12,9 +12,9 @@ from __future__ import division
 from string import maketrans
 from biom import __version__
 from biom.exception import BiomParseException
-from biom.table import Table
+from biom.table import nparray_to_sparse, Table
 import json
-
+from numpy import asarray
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -395,8 +395,8 @@ def convert_table_to_biom(table_f, sample_mapping, obs_mapping,
     process_func: a function to transform observation metadata
     dtype : type of table data
     """
-    otu_table = Table.from_tsv(table_f, process_func, obs_mapping,
-                               sample_mapping)
+    otu_table = Table.from_tsv(table_f, obs_mapping, sample_mapping,
+                               process_func, **kwargs)
     return otu_table.to_json(generatedby())
 
 

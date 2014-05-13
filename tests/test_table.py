@@ -2115,7 +2115,7 @@ class SparseTableTests(TestCase):
         # verify that the tables are the same
         self.assertEqual(t, t2)
 
-    def from_tsv(self):
+    def test_extract_data_from_tsv(self):
         """Parses a classic table
 
         This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
@@ -2144,7 +2144,7 @@ class SparseTableTests(TestCase):
                         [589, 2074, 34]])
 
         exp = (samp_ids, obs_ids, data, metadata, md_name)
-        obs = Table.from_tsv(input, None, dtype=int)
+        obs = Table.extract_data_from_tsv(input, dtype=int)
         npt.assert_equal(obs, exp)
 
     def test_bin_samples_by_metadata(self):
@@ -2452,19 +2452,18 @@ class SupportTests2(TestCase):
         obs = list_sparse_to_sparse(ins)
         self.assertEqual((obs != exp).sum(), 0)
 
-
 legacy_otu_table1 = """# some comment goes here
-#OTU ID Fing  Key NA  Consensus Lineage
-0 19111 44536 42  Bacteria; Actinobacteria; Actinobacteridae; Propioniba\
+#OTU id\tFing\tKey\tNA\tConsensus Lineage
+0\t19111\t44536\t42 \tBacteria; Actinobacteria; Actinobacteridae; Propioniba\
 cterineae; Propionibacterium
 
-1 1216  3500  6 Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; La\
+1\t1216\t3500\t6\tBacteria; Firmicutes; Alicyclobacillaceae; Bacilli; La\
 ctobacillales; Lactobacillales; Streptococcaceae; Streptococcus
-7 1803  1184  2 Bacteria; Actinobacteria; Actinobacteridae; Gordoniace\
+7\t1803\t1184\t2\tBacteria; Actinobacteria; Actinobacteridae; Gordoniace\
 ae; Corynebacteriaceae
-3 1722  4903  17  Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; St\
+3\t1722\t4903\t17\tBacteria; Firmicutes; Alicyclobacillaceae; Bacilli; St\
 aphylococcaceae
-4 589 2074  34  Bacteria; Cyanobacteria; Chloroplasts; vectors
+4\t589\t2074\t34\tBacteria; Cyanobacteria; Chloroplasts; vectors
 """
 
 if __name__ == '__main__':

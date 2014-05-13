@@ -2038,21 +2038,42 @@ class Table(object):
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
 
-    def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
-                                          process_func, **kwargs):
+    @classmethod
+    def from_tsv(self, lines, obs_mapping, sample_mapping,
+                 process_func, **kwargs):
         """Parses an table (tab delimited) (observation x sample)
 
         sample_mapping : can be None or {'sample_id':something}
         obs_mapping : can be none or {'observation_id':something}
         """
-        pass
+        (sample_ids, obs_ids, data, t_md,
+            t_md_name) = self.extract_data_from_tsv(lines, **kwargs)
+
+        # if we have it, keep it
+        if t_md is None:
+            obs_metadata = None
+        else:
+            obs_metadata = [{t_md_name: process_func(v)} for v in t_md]
+
+        if sample_mapping is None:
+            sample_metadata = None
+        else:
+            sample_metadata = [sample_mapping[sample_id]
+                               for sample_id in sample_ids]
+
+        # will override any metadata from parsed table
+        if obs_mapping is not None:
+            obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
+
+        data = nparray_to_sparse(data)
+
+        return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata)
 
     @classmethod
-    def from_tsv(self, lines, process_func, delim='\t', dtype=float,
-                 header_mark=None, md_parse=None, obs_mapping=None,
-                 sample_mapping=None):
-        """Parse a classic table into (sample_ids, obs_ids, data,
-                                       metadata, name)
+    def extract_data_from_tsv(self, lines, delim='\t', dtype=float,
+                              header_mark=None, md_parse=None):
+        """Parse a classic table into (sample_ids, obs_ids, data, metadata,
+                                       name)
 
         If the last column does not appear to be numeric, interpret it as
         observation metadata, otherwise None.
@@ -2063,9 +2084,11 @@ class Table(object):
         parsed with the exception of the additional md_name field
 
         This function is ported from QIIME (http://www.qiime.org), previously
-        named parse_classic_otu_table. QIIME is a GPL project, but we obtained
-        permission from the authors of this function to port it to the BIOM
-        Format project(and keep it under BIOM's BSD license).
+        named
+        parse_classic_otu_table. QIIME is a GPL project, but we obtained
+        permission
+        from the authors of this function to port it to the BIOM Format project
+        (and keep it under BIOM's BSD license).
         """
         if not isinstance(lines, list):
             try:
@@ -2074,8 +2097,8 @@ class Table(object):
                 raise RuntimeError(
                     "Input needs to support readlines or be indexable")
 
-        # find header, the first line that is not empty and
-        # does not start with a #
+        # find header, the first line that is not empty and does not start
+        # with a #
         for idx, l in enumerate(lines):
             if not l.strip():
                 continue
@@ -2145,25 +2168,7 @@ class Table(object):
 
             data.append(values)
 
-        # if we have it, keep it
-        if metadata is None:
-            obs_metadata = None
-        else:
-            obs_metadata = [{md_name: process_func(v)} for v in metadata]
-
-        if sample_mapping is None:
-            sample_metadata = None
-        else:
-            sample_metadata = [sample_mapping[sample_id]
-                               for sample_id in samp_ids]
-
-        # will override any metadata from parsed table
-        if obs_mapping is not None:
-            obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
-
-        data = nparray_to_sparse(data)
-
-        return Table(data, obs_ids, samp_ids, obs_metadata, sample_metadata)
+        return samp_ids, obs_ids, asarray(data), metadata, md_name
 
 
 def list_list_to_nparray(data, dtype=float):
