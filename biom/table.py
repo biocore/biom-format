@@ -58,10 +58,13 @@ class Table(object):
 
     def __init__(self, data, observation_ids, sample_ids,
                  observation_metadata=None, sample_metadata=None,
-                 table_id=None, type=None, **kwargs):
+                 table_id=None, type=None, create_date=None, generated_by=None,
+                 **kwargs):
 
         self.type = type
         self.table_id = table_id
+        self.create_date = create_date
+        self.generated_by = generated_by
 
         if not isspmatrix(data):
             shape = (len(observation_ids), len(sample_ids))
@@ -1726,6 +1729,9 @@ class Table(object):
         if order not in ('observation', 'sample'):
             raise ValueError("Unknown order %s!" % order)
 
+        create_date = h5grp.attrs['creation-date']
+        generated_by = h5grp.attrs['generated-by']
+
         shape = h5grp.attrs['shape']
         type = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
@@ -1751,7 +1757,8 @@ class Table(object):
             matrix = csr_matrix(cs, shape=shape)
 
         return Table(matrix, obs_ids, samp_ids,  obs_md or None,
-                     samp_md or None, type=type)
+                     samp_md or None, type=type, create_date=create_date,
+                     generated_by=generated_by)
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
