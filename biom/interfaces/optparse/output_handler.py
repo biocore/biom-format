@@ -37,7 +37,7 @@ def write_biom_table(result_key, data, option_value=None):
 
     if fmt == 'json':
         with open(option_value, 'w') as f:
-            f.write(data.to_json(generatedby()))
+            f.write(table.to_json(generatedby()))
     else:
         if HAVE_H5PY:
             import h5py
@@ -45,4 +45,4 @@ def write_biom_table(result_key, data, option_value=None):
             raise ImportError("h5py is not available, cannot write HDF5!")
 
         with h5py.File(option_value, 'w') as f:
-            data.to_hdf5(f, generatedby())
+            table.to_hdf5(f, generatedby())

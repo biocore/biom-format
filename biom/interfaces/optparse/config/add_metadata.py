@@ -100,7 +100,7 @@ inputs = [
                    Type=None,
                    Action='store_true'),
 
-    OptparseOption(Parameter=None, Type='new_filepath',
+    OptparseOption(Parameter=None, Type='new_filepath', ShortName='o',
                    Name='output-fp', Required=True,
                    Help='the output BIOM table')
 ]
