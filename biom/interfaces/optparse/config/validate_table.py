@@ -16,7 +16,7 @@ from pyqi.core.command import (make_command_in_collection_lookup_f,
                                make_command_out_collection_lookup_f)
 from pyqi.core.interfaces.optparse.output_handler import print_list_of_strings
 from biom.commands.table_validator import CommandConstructor
-from biom.interfaces.optparse.input_handler import load_json_document
+from biom.interfaces.optparse.input_handler import load_hdf5_or_json
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -46,13 +46,15 @@ usage_examples = [
 ]
 
 inputs = [
-    OptparseOption(Parameter=cmd_in_lookup('table_json'),
+    OptparseOption(Parameter=cmd_in_lookup('table'),
                    Type='existing_filepath',
-                   Handler=load_json_document, ShortName='i',
+                   Handler=None, ShortName='i',
                    Name='input-fp',
                    Help='the input filepath to validate against the BIOM '
                    'format specification'),
-
+    OptparseOption(Parameter=cmd_in_lookup('is_json'),
+                   Type=None,
+                   Action='store_true'),
     OptparseOption(Parameter=cmd_in_lookup('format_version'), ShortName='f'),
 
     OptparseOption(Parameter=cmd_in_lookup('detailed_report'), Type=None,
