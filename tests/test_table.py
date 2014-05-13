@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
@@ -11,6 +12,7 @@
 import os
 from tempfile import mktemp
 from unittest import TestCase, main
+from StringIO import StringIO
 
 import numpy.testing as npt
 import numpy as np
@@ -25,6 +27,7 @@ from biom.table import (Table, prefer_self, index_list, dict_to_nparray,
                         dict_to_sparse, coo_arrays_to_sparse,
                         list_list_to_sparse, nparray_to_sparse,
                         list_sparse_to_sparse)
+from biom.parse import parse_biom_table
 
 if HAVE_H5PY:
     import h5py
@@ -33,7 +36,8 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
                "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka",
-               "Joshua Shorenstein", "Jose Antonio Navas Molina"]
+               "Joshua Shorenstein", "Jose Antonio Navas Molina",
+               "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -1330,14 +1334,46 @@ class SparseTableTests(TestCase):
         self.assertNotEqual(copied_table, self.st_rich)
 
     def test_filter_return_type(self):
-        f = lambda id_, md: id_[0] == 'b'
+        f = lambda id_, md, vals: id_[0] == 'b'
         filtered_table = self.st3.filter(f, inplace=False)
         filtered_table_2 = self.st3.filter(f, inplace=True)
         self.assertEqual(filtered_table, filtered_table_2)
         self.assertTrue(filtered_table_2 is self.st3)
 
+    def test_filter_general_sample(self):
+        f = lambda id_, md, vals: id_ == 'a'
+
+        values = csr_matrix(np.array([[5.],
+                                      [7.]]))
+        exp_table = Table(values, ['1', '2'], ['a'],
+                          [{'taxonomy': ['k__a', 'p__b']},
+                           {'taxonomy': ['k__a', 'p__c']}],
+                          [{'barcode': 'aatt'}])
+
+        table = self.st_rich
+        obs_table = table.filter(f, 'sample', inplace=False)
+        self.assertEqual(obs_table, exp_table)
+
+        f_2 = lambda id_, md, vals: np.all(vals == np.array([5, 7]))
+        obs_table_2 = table.filter(f_2, 'sample', inplace=False)
+        self.assertEqual(obs_table_2, exp_table)
+
+    def test_filter_general_observation(self):
+        f = lambda id_, md, vals: md['taxonomy'][1] == 'p__c'
+        values = csr_matrix(np.array([[7., 8.]]))
+        exp_table = Table(values, ['2'], ['a', 'b'],
+                          [{'taxonomy': ['k__a', 'p__c']}],
+                          [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+        table = self.st_rich
+        obs_table = table.filter(f, 'observation', inplace=False)
+        self.assertEqual(obs_table, exp_table)
+
+        f_2 = lambda id_, md, vals: np.all(vals == np.array([7, 8]))
+        obs_table_2 = table.filter(f_2, 'observation', inplace=False)
+        self.assertEqual(obs_table_2, exp_table)
+
     def test_filter_sample_id(self):
-        f = lambda id_, md: id_ == 'a'
+        f = lambda id_, md, vals: id_ == 'a'
 
         values = csr_matrix(np.array([[5.],
                                       [7.]]))
@@ -1351,7 +1387,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_sample_metadata(self):
-        f = lambda id_, md: md['barcode'] == 'ttgg'
+        f = lambda id_, md, vals: md['barcode'] == 'ttgg'
         values = csr_matrix(np.array([[6.],
                                       [8.]]))
         exp_table = Table(values, ['1', '2'], ['b'],
@@ -1363,7 +1399,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_sample_invert(self):
-        f = lambda id_, md: md['barcode'] == 'aatt'
+        f = lambda id_, md, vals: md['barcode'] == 'aatt'
         values = csr_matrix(np.array([[6.],
                                       [8.]]))
         exp_table = Table(values, ['1', '2'], ['b'],
@@ -1375,12 +1411,11 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_sample_remove_everything(self):
-        self.assertRaises(TableException,
-                          lambda: self.st_rich.filter(lambda id_, md: False,
-                                                      'sample'))
+        with self.assertRaises(TableException):
+            self.st_rich.filter(lambda id_, md, vals: False, 'sample')
 
     def test_filter_observations_id(self):
-        f = lambda id_, md: id_ == '1'
+        f = lambda id_, md, vals: id_ == '1'
         values = csr_matrix(np.array([[5., 6.]]))
         exp_table = Table(values, ['1'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__b']}],
@@ -1390,7 +1425,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_observations_metadata(self):
-        f = lambda id_, md: md['taxonomy'][1] == 'p__c'
+        f = lambda id_, md, vals: md['taxonomy'][1] == 'p__c'
         values = csr_matrix(np.array([[7., 8.]]))
         exp_table = Table(values, ['2'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__c']}],
@@ -1400,7 +1435,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_observations_invert(self):
-        f = lambda id_, md: md['taxonomy'][1] == 'p__c'
+        f = lambda id_, md, vals: md['taxonomy'][1] == 'p__c'
         values = csr_matrix(np.array([[5., 6.]]))
         exp_table = Table(values, ['1'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__b']}],
@@ -1410,9 +1445,8 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_observations_remove_everything(self):
-        self.assertRaises(TableException,
-                          lambda: self.st_rich.filter(lambda id_, md: False,
-                                                      'observation'))
+        with self.assertRaises(TableException):
+            self.st_rich.filter(lambda id_, md, vals: False, 'observation')
 
     def test_transform_return_type(self):
         f = lambda data, id_, md: data / 2.
@@ -1953,6 +1987,164 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
         self.assertEqual(type(obs), Table)
 
+    def test_to_json_dense_int(self):
+        """Get a BIOM format string for a dense table of integers"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo': i} for i in range(5)]
+        samp_md = [{'bar': i} for i in range(10)]
+        data = np.reshape(np.arange(50), (5, 10))
+
+        # using Table type to support parsing round trip
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.to_json('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_dense_float(self):
+        """Get a BIOM format string for a dense table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo': i} for i in range(2)]
+        samp_md = [{'bar': i} for i in range(2)]
+        data = np.array([[0.01, 1.5], [0.0, 0.79]])
+
+        # using OTUTable type to support parsing round trip
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.to_json('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_dense_int_directio(self):
+        """Get a BIOM format string for a dense table of integers"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo': i} for i in range(5)]
+        samp_md = [{'bar': i} for i in range(10)]
+        data = np.reshape(np.arange(50), (5, 10))
+
+        # using OTUTable type to support parsing round trip
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.to_json('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_dense_float_directio(self):
+        """Get a BIOM format string for a dense table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo': i} for i in range(2)]
+        samp_md = [{'bar': i} for i in range(2)]
+        data = np.array([[0.01, 1.5], [0.0, 0.79]])
+
+        # using OTUTable type to support parsing round trip
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.to_json('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_sparse_int(self):
+        """Get a BIOM format string for a sparse table of integers"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo': i} for i in range(5)]
+        samp_md = [{'bar': i} for i in range(10)]
+        data = [[0, 0, 10], [1, 1, 11], [2, 2, 12], [3, 3, 13], [4, 4, 14],
+                [3, 5, 15], [2, 6, 16], [1, 7, 18], [0, 8, 19], [1, 9, 20]]
+
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.to_json('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_sparse_float(self):
+        """Get a BIOM format string for a sparse table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo': i} for i in range(2)]
+        samp_md = [{'bar': i} for i in range(2)]
+        data = [[0, 0, 0.01], [0, 1, 1.5], [1, 0, 0.0], [1, 1, 0.79]]
+
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.to_json('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_sparse_int_directio(self):
+        """Get a BIOM format string for a sparse table of integers"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo': i} for i in range(5)]
+        samp_md = [{'bar': i} for i in range(10)]
+        data = [[0, 0, 10], [1, 1, 11], [2, 2, 12], [3, 3, 13], [4, 4, 14],
+                [3, 5, 15], [2, 6, 16], [1, 7, 18], [0, 8, 19], [1, 9, 20]]
+
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.to_json('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_sparse_float_directio(self):
+        """Get a BIOM format string for a sparse table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo': i} for i in range(2)]
+        samp_md = [{'bar': i} for i in range(2)]
+        data = [[0, 0, 0.01], [0, 1, 1.5], [1, 0, 0.0], [1, 1, 0.79]]
+
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.to_json('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
         f = lambda id_, md: md['age']
@@ -2098,89 +2290,6 @@ class SparseTableTests(TestCase):
 
         # Tables with some zeros explicitly defined.
         npt.assert_almost_equal(self.st7.get_table_density(), 0.75)
-
-
-class SparseOTUTableTests(TestCase):
-
-    def setUp(self):
-        self.vals = {(0, 0): 5, (1, 0): 7, (1, 1): 8}
-        self.sot_min = Table(
-            to_sparse(self.vals, dtype=int), ['1', '2'], ['a', 'b'])
-        self.sot_rich = Table(to_sparse(self.vals, dtype=int),
-                              ['1', '2'], ['a', 'b'],
-                              [{'taxonomy': ['k__a', 'p__b']},
-                               {'taxonomy': ['k__a', 'p__c']}],
-                              [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
-        self.float_table = Table(to_sparse({(0, 1): 2.5, (0, 2): 3.4,
-                                            (1, 0): 9.3, (1, 1): 10.23,
-                                            (1, 2): 2.2}),
-                                 ['1', '2'], ['a', 'b', 'c'])
-
-    def test_get_biom_format_object_no_generated_by(self):
-        """Should raise without a generated_by string"""
-        self.assertRaises(
-            TableException,
-            self.sot_min.get_biom_format_object,
-            None)
-        self.assertRaises(TableException,
-                          self.sot_min.get_biom_format_object, 10)
-
-    def test_get_biom_format_object_minimal(self):
-        """Should return a dictionary of the minimal table in Biom format."""
-        exp = {'rows': [{'id': '1', 'metadata': None},
-                        {'id': '2', 'metadata': None}],
-               'format': 'Biological Observation Matrix 1.0.0',
-               'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
-               'columns': [{'id': 'a', 'metadata': None},
-                           {'id': 'b', 'metadata': None}],
-               'shape': [2, 2],
-               'format_url': __url__,
-               'id': None,
-               'generated_by': 'foo',
-               'matrix_element_type': 'int'}
-        obs = self.sot_min.get_biom_format_object('foo')
-        del obs['date']
-        self.assertEqual(obs, exp)
-
-    def test_get_biom_format_object_rich(self):
-        """Should return a dictionary of the rich table in Biom format."""
-        exp = {
-            'rows': [{'id': '1', 'metadata': {'taxonomy': ['k__a', 'p__b']}},
-                     {'id': '2', 'metadata': {'taxonomy': ['k__a', 'p__c']}}],
-            'format': 'Biological Observation Matrix 1.0.0',
-            'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
-            'columns': [{'id': 'a', 'metadata': {'barcode': 'aatt'}},
-                        {'id': 'b', 'metadata': {'barcode': 'ttgg'}}],
-            'shape': [2, 2],
-            'format_url': __url__,
-            'id': None,
-            'generated_by': 'foo',
-            'matrix_element_type': 'int'}
-        obs = self.sot_rich.get_biom_format_object('foo')
-        del obs['date']
-        self.assertEqual(obs, exp)
-
-    def test_get_biom_format_object_float(self):
-        """Should return a dictionary of the table with float values."""
-        exp = {'rows': [{'id': '1', 'metadata': None},
-                        {'id': '2', 'metadata': None}],
-               'format': 'Biological Observation Matrix 1.0.0',
-               'data': [[0, 1, 2.5],
-                        [0, 2, 3.3999999999999999],
-                        [1, 0, 9.3000000000000007],
-                        [1, 1, 10.23],
-                        [1, 2, 2.2000000000000002]],
-               'columns': [{'id': 'a', 'metadata': None},
-                           {'id': 'b', 'metadata': None},
-                           {'id': 'c', 'metadata': None}],
-               'shape': [2, 3],
-               'format_url': __url__,
-               'generated_by': 'foo',
-               'id': None,
-               'matrix_element_type': 'float'}
-        obs = self.float_table.get_biom_format_object('foo')
-        del obs['date']
-        self.assertEqual(obs, exp)
 
 
 class SupportTests2(TestCase):
