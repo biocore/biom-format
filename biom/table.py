@@ -1599,26 +1599,31 @@ class Table(object):
         ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
         ###     THOUGH
         ### METADATA ARE NOT REPRESENTED HERE YET
-        ./id                     : str, an arbitrary ID
-        ./type                   : str, the table type (e.g, OTU table)
-        ./format-url             : str, a URL that describes the format
-        ./format-version         : two element tuple of int32, major and minor
-        ./generated-by           : str, what generated this file
-        ./creation-date          : str, ISO format
-        ./shape                  : two element tuple of int32, N by M
-        ./nnz                    : int32 or int64, number of non zero elements
-        ./observation            : Group
-        ./observation/ids        : (N,) dataset of str or vlen str
-        ./observation/data       : (N,) dataset of float64
-        ./observation/indices    : (N,) dataset of int32
-        ./observation/indptr     : (M+1,) dataset of int32
-        [./observation/metadata] : Optional, JSON str, in index order with ids
-        ./sample                 : Group
-        ./sample/ids             : (M,) dataset of str or vlen str
-        ./sample/data            : (M,) dataset of float64
-        ./sample/indices         : (M,) dataset of int32
-        ./sample/indptr          : (N+1,) dataset of int32
-        [./sample/metadata]      : Optional, JSON str, in index order with ids
+        ./id                         : str, an arbitrary ID
+        ./type                       : str, the table type (e.g, OTU table)
+        ./format-url                 : str, a URL that describes the format
+        ./format-version             : two element tuple of int32,
+                                       major and minor
+        ./generated-by               : str, what generated this file
+        ./creation-date              : str, ISO format
+        ./shape                      : two element tuple of int32, N by M
+        ./nnz                        : int32 or int64, number of non zero elems
+        ./observation                : Group
+        ./observation/ids            : (N,) dataset of str or vlen str
+        ./observation/matrix         : Group
+        ./observation/matrix/data    : (N,) dataset of float64
+        ./observation/matrix/indices : (N,) dataset of int32
+        ./observation/matrix/indptr  : (M+1,) dataset of int32
+        [./observation/metadata]     : Optional, JSON str, in index order
+                                       with ids
+        ./sample                     : Group
+        ./sample/ids                 : (M,) dataset of str or vlen str
+        ./sample/matrix              : Group
+        ./sample/matrix/data         : (M,) dataset of float64
+        ./sample/matrix/indices      : (M,) dataset of int32
+        ./sample/matrix/indptr       : (N+1,) dataset of int32
+        [./sample/metadata]          : Optional, JSON str, in index order
+                                       with ids
 
         Paramters
         ---------
@@ -1660,10 +1665,10 @@ class Table(object):
         samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
 
         # load the data
-        data_path = partial(os.path.join, order)
-        data = h5grp[data_path("data")]
-        indices = h5grp[data_path("indices")]
-        indptr = h5grp[data_path("indptr")]
+        data_grp = h5grp[order]['matrix']
+        data = data_grp["data"]
+        indices = data_grp["indices"]
+        indptr = data_grp["indptr"]
         cs = (data, indices, indptr)
 
         if order == 'sample':
@@ -1688,26 +1693,31 @@ class Table(object):
         ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
         ###     THOUGH
         ### METADATA ARE NOT REPRESENTED HERE YET
-        ./id                     : str, an arbitrary ID
-        ./type                   : str, the table type (e.g, OTU table)
-        ./format-url             : str, a URL that describes the format
-        ./format-version         : two element tuple of int32, major and minor
-        ./generated-by           : str, what generated this file
-        ./creation-date          : str, ISO format
-        ./shape                  : two element tuple of int32, N by M
-        ./nnz                    : int32 or int64, number of non zero elements
-        ./observation            : Group
-        ./observation/ids        : (N,) dataset of str or vlen str
-        ./observation/data       : (N,) dataset of float64
-        ./observation/indices    : (N,) dataset of int32
-        ./observation/indptr     : (M+1,) dataset of int32
-        [./observation/metadata] : Optional, JSON str, in index order with ids
-        ./sample                 : Group
-        ./sample/ids             : (M,) dataset of str or vlen str
-        ./sample/data            : (M,) dataset of float64
-        ./sample/indices         : (M,) dataset of int32
-        ./sample/indptr          : (N+1,) dataset of int32
-        [./sample/metadata]      : Optional, JSON str, in index order with ids
+        ./id                         : str, an arbitrary ID
+        ./type                       : str, the table type (e.g, OTU table)
+        ./format-url                 : str, a URL that describes the format
+        ./format-version             : two element tuple of int32,
+                                       major and minor
+        ./generated-by               : str, what generated this file
+        ./creation-date              : str, ISO format
+        ./shape                      : two element tuple of int32, N by M
+        ./nnz                        : int32 or int64, number of non zero elems
+        ./observation                : Group
+        ./observation/ids            : (N,) dataset of str or vlen str
+        ./observation/matrix         : Group
+        ./observation/matrix/data    : (N,) dataset of float64
+        ./observation/matrix/indices : (N,) dataset of int32
+        ./observation/matrix/indptr  : (M+1,) dataset of int32
+        [./observation/metadata]     : Optional, JSON str, in index order
+                                       with ids
+        ./sample                     : Group
+        ./sample/ids                 : (M,) dataset of str or vlen str
+        ./sample/matrix              : Group
+        ./sample/matrix/data         : (M,) dataset of float64
+        ./sample/matrix/indices      : (M,) dataset of int32
+        ./sample/matrix/indptr       : (N+1,) dataset of int32
+        [./sample/metadata]          : Optional, JSON str, in index order
+                                       with ids
 
         Paramters
         ---------
@@ -1737,15 +1747,17 @@ class Table(object):
             len_indptr = len(self._data.indptr)
             len_data = self.nnz
 
-            grp.create_dataset('data', shape=(len_data,),
+            grp.create_group('matrix')
+
+            grp.create_dataset('matrix/data', shape=(len_data,),
                                dtype=np.float64,
                                data=self._data.data,
                                compression=compression)
-            grp.create_dataset('indices', shape=(len_data,),
+            grp.create_dataset('matrix/indices', shape=(len_data,),
                                dtype=np.int32,
                                data=self._data.indices,
                                compression=compression)
-            grp.create_dataset('indptr', shape=(len_indptr,),
+            grp.create_dataset('matrix/indptr', shape=(len_indptr,),
                                dtype=np.int32,
                                data=self._data.indptr,
                                compression=compression)
