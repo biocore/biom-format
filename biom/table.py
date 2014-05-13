@@ -11,12 +11,11 @@
 # -----------------------------------------------------------------------------
 
 from __future__ import division
-import os
 import numpy as np
 from copy import deepcopy
 from datetime import datetime
 from json import dumps, loads
-from functools import reduce, partial
+from functools import reduce
 from operator import itemgetter, add
 from itertools import izip
 from collections import defaultdict, Hashable
