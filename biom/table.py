@@ -1878,17 +1878,17 @@ class Table(object):
         dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
 
         if data_pump is None:
-            table_obj = table_factory(json_table['data'], obs_ids, sample_ids,
-                                      obs_metadata, sample_metadata,
-                                      shape=json_table['shape'],
-                                      dtype=dtype,
-                                      input_is_dense=input_is_dense)
+            table_obj = Table(json_table['data'], obs_ids, sample_ids,
+                              obs_metadata, sample_metadata,
+                              shape=json_table['shape'],
+                              dtype=dtype,
+                              input_is_dense=input_is_dense)
         else:
-            table_obj = table_factory(data_pump, obs_ids, sample_ids,
-                                      obs_metadata, sample_metadata,
-                                      shape=json_table['shape'],
-                                      dtype=dtype,
-                                      input_is_dense=input_is_dense)
+            table_obj = Table(data_pump, obs_ids, sample_ids,
+                              obs_metadata, sample_metadata,
+                              shape=json_table['shape'],
+                              dtype=dtype,
+                              input_is_dense=input_is_dense)
 
         return table_obj
 

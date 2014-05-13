@@ -2046,7 +2046,7 @@ class SparseTableTests(TestCase):
                 [3, 5, 15], [2, 6, 16], [1, 7, 18], [0, 8, 19], [1, 9, 20]]
 
         # using OTUTable type to support parsing round trip
-        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
 
         # verify that we can parse still
         t2 = parse_biom_table(StringIO(t.to_json('asd')))
@@ -2064,7 +2064,7 @@ class SparseTableTests(TestCase):
         data = [[0, 0, 0.01], [0, 1, 1.5], [1, 0, 0.0], [1, 1, 0.79]]
 
         # using OTUTable type to support parsing round trip
-        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
 
         # verify that we can parse still
         t2 = parse_biom_table(StringIO(t.to_json('asd')))
@@ -2083,7 +2083,7 @@ class SparseTableTests(TestCase):
                 [3, 5, 15], [2, 6, 16], [1, 7, 18], [0, 8, 19], [1, 9, 20]]
 
         # using OTUTable type to support parsing round trip
-        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
 
         # verify that we can parse still
         io = StringIO()
@@ -2104,7 +2104,7 @@ class SparseTableTests(TestCase):
         data = [[0, 0, 0.01], [0, 1, 1.5], [1, 0, 0.0], [1, 1, 0.79]]
 
         # using OTUTable type to support parsing round trip
-        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md)
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md)
 
         # verify that we can parse still
         io = StringIO()
