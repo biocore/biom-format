@@ -49,17 +49,26 @@ cdef _zero_columns_CSR_or_rows_CSC(arr,
         data[i] = 0
     arr.eliminate_zeros()
 
-cdef cnp.ndarray[cnp.uint8_t, ndim=1] _make_filter_array(ids,
-                                                         metadata,
-                                                         func,
-                                                         cnp.uint8_t invert):
+cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
+    _make_filter_array_general(arr,
+                               ids,
+                               metadata,
+                               func,
+                               cnp.uint8_t invert):
     """Faster version of
-    [func(id_i, md_i) ^ invert for (id_i, md_i) in zip(ids, metadata)]
+    [func(id_i, md_i, vals_i) ^ invert for
+    (id_i, md_i, vals_i) in zip(ids, metadata, rows/cols)]
     """
-    cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
-        np.empty(len(ids), dtype=np.uint8)
+    cdef:
+        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
+        cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
+        cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
+            np.empty(len(ids), dtype=np.uint8)
+        cnp.int32_t start, end
+        Py_ssize_t i
     for i in range(len(ids)):
-        bools[i] = func(ids[i], metadata[i]) ^ invert
+        start, end = indptr[i], indptr[i+1]
+        bools[i] = bool(func(ids[i], metadata[i], data[start:end])) ^ invert
     return bools
 
 cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
@@ -91,8 +100,8 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
 
-def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
-                        remove=True):
+def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
+            remove=True):
     """Filter row/columns of a sparse matrix according to the output of a
     boolean function.
 
@@ -115,13 +124,16 @@ def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
     ids : 1D ndarray of dtype object
     metadata : tuple
     """
-    fmt = arr.getformat()
-    if fmt not in ('csc', 'csr'):
-        arr = arr.tocsr()
-        fmt = 'csr'
-
     invert = bool(invert)
     metadata_is_None = metadata is None
+
+    # General version (i.e., filter functions accepts ids, metadata
+    # and values) requires CSR for axis 0 and CSC for axis 1.
+    if axis == 0:
+        arr = arr.tocsr()
+    elif axis == 1:
+        arr = arr.tocsc()
+    fmt = arr.getformat()
 
     cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools
 
@@ -131,16 +143,17 @@ def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
     elif isinstance(ids_to_keep, FunctionType):
         if metadata_is_None:
             metadata = (None,) * len(ids)
-        bools = _make_filter_array(ids, metadata, ids_to_keep, invert)
+
+        bools = _make_filter_array_general(arr, ids, metadata, ids_to_keep,
+                                           invert)
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
 
-    if bools.sum() == 0:
+    if np.all(bools == 0):
         raise TableException("All data was filtered out!")
 
     if axis == 0:
         if remove:
-            arr = arr.tocsr()
             _remove_rows_csr(arr, bools)
         else:
             if fmt == 'csr':
@@ -149,7 +162,7 @@ def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
                 _zero_columns_CSR_or_rows_CSC(arr, bools)
     elif axis == 1:
         if remove:
-            arr = arr.tocsc().T  # arr is CSR after transposing
+            arr = arr.T  # arr was CSC, CSR after transposing
             _remove_rows_csr(arr, bools)
             arr = arr.T  # Back to CSC
         else:
@@ -157,8 +170,6 @@ def filter_sparse_array(arr, ids, metadata, ids_to_keep, axis, invert,
                 _zero_columns_CSR_or_rows_CSC(arr, bools)
             elif fmt == 'csc':
                  _zero_rows_CSR_or_columns_CSC(arr, bools, axis)
-    else:
-        raise ValueError("Unsupported axis")
 
     if remove:
         ids = np.asarray(list(compress(ids, bools)), dtype=object)

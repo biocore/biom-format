@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 """The BIOM Table API"""
 
 # -----------------------------------------------------------------------------
@@ -27,7 +28,7 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
 
-from ._filter import filter_sparse_array
+from ._filter import _filter
 from ._transform import _transform
 
 
@@ -35,7 +36,8 @@ __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
-               "Joshua Shorenstein", "Jose Antonio Navas Molina"]
+               "Joshua Shorenstein", "Jose Antonio Navas Molina",
+               "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -891,9 +893,10 @@ class Table(object):
 
         Parameters
         ----------
-        ids_to_keep : function or iterable
-            If a function, it will be called with the id (a string)
-            and the dictionary of metadata of each sample, and must
+        ids_to_keep : function(id, metadata, values) -> bool, or iterable
+            If a function, it will be called with the id (a string),
+            the dictionary of metadata of each sample/observation and
+            the nonzero values of the sample/observation, and must
             return a boolean.
             If it's an iterable, it will be converted to an array of
             bools.
@@ -915,6 +918,7 @@ class Table(object):
         ------
         UnknownAxisError
             If provided an unrecognized axis.
+
         """
         table = self if inplace else self.copy()
 
@@ -930,12 +934,12 @@ class Table(object):
             raise UnknownAxisError(axis)
 
         arr = table._data
-        arr, ids, metadata = filter_sparse_array(arr,
-                                                 ids,
-                                                 metadata,
-                                                 ids_to_keep,
-                                                 axis,
-                                                 invert=invert)
+        arr, ids, metadata = _filter(arr,
+                                     ids,
+                                     metadata,
+                                     ids_to_keep,
+                                     axis,
+                                     invert=invert)
 
         table._data = arr
         if axis == 1:
