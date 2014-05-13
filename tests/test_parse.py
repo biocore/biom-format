@@ -16,7 +16,7 @@ from biom import __version__
 from numpy import array
 import numpy.testing as npt
 from unittest import TestCase, main
-from biom.parse import (parse_biom_table_json, parse_classic_table,
+from biom.parse import (parse_classic_table,
                         generatedby, MetadataMap)
 from biom.table import Table
 from biom.util import HAVE_H5PY
@@ -146,7 +146,7 @@ class ParseTests(TestCase):
         # light test. this code is used thoroughly within the other
         # parse_biom_table methods
         tab1_fh = json.load(StringIO(self.biom_minimal_sparse))
-        tab = parse_biom_table_json(tab1_fh)
+        tab = Table.from_json(tab1_fh)
         npt.assert_equal((tab.sample_ids), ('Sample1', 'Sample2',
                                             'Sample3', 'Sample4', 'Sample5',
                                             'Sample6',))

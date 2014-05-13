@@ -12,6 +12,7 @@
 import os
 from tempfile import mktemp
 from unittest import TestCase, main
+from StringIO import StringIO
 
 import numpy.testing as npt
 import numpy as np
@@ -26,6 +27,7 @@ from biom.table import (Table, prefer_self, index_list, dict_to_nparray,
                         dict_to_sparse, coo_arrays_to_sparse,
                         list_list_to_sparse, nparray_to_sparse,
                         list_sparse_to_sparse)
+from biom.parse import parse_biom_table
 
 if HAVE_H5PY:
     import h5py
@@ -1985,6 +1987,164 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
         self.assertEqual(type(obs), Table)
 
+    def test_to_json_dense_int(self):
+        """Get a BIOM format string for a dense table of integers"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo': i} for i in range(5)]
+        samp_md = [{'bar': i} for i in range(10)]
+        data = np.reshape(np.arange(50), (5, 10))
+
+        # using Table type to support parsing round trip
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.to_json('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_dense_float(self):
+        """Get a BIOM format string for a dense table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo': i} for i in range(2)]
+        samp_md = [{'bar': i} for i in range(2)]
+        data = np.array([[0.01, 1.5], [0.0, 0.79]])
+
+        # using OTUTable type to support parsing round trip
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.to_json('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_dense_int_directio(self):
+        """Get a BIOM format string for a dense table of integers"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo': i} for i in range(5)]
+        samp_md = [{'bar': i} for i in range(10)]
+        data = np.reshape(np.arange(50), (5, 10))
+
+        # using OTUTable type to support parsing round trip
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.to_json('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_dense_float_directio(self):
+        """Get a BIOM format string for a dense table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo': i} for i in range(2)]
+        samp_md = [{'bar': i} for i in range(2)]
+        data = np.array([[0.01, 1.5], [0.0, 0.79]])
+
+        # using OTUTable type to support parsing round trip
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.to_json('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_sparse_int(self):
+        """Get a BIOM format string for a sparse table of integers"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo': i} for i in range(5)]
+        samp_md = [{'bar': i} for i in range(10)]
+        data = [[0, 0, 10], [1, 1, 11], [2, 2, 12], [3, 3, 13], [4, 4, 14],
+                [3, 5, 15], [2, 6, 16], [1, 7, 18], [0, 8, 19], [1, 9, 20]]
+
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.to_json('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_sparse_float(self):
+        """Get a BIOM format string for a sparse table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo': i} for i in range(2)]
+        samp_md = [{'bar': i} for i in range(2)]
+        data = [[0, 0, 0.01], [0, 1, 1.5], [1, 0, 0.0], [1, 1, 0.79]]
+
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.to_json('asd')))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_sparse_int_directio(self):
+        """Get a BIOM format string for a sparse table of integers"""
+        # check by round trip
+        obs_ids = map(str, range(5))
+        samp_ids = map(str, range(10))
+        obs_md = [{'foo': i} for i in range(5)]
+        samp_md = [{'bar': i} for i in range(10)]
+        data = [[0, 0, 10], [1, 1, 11], [2, 2, 12], [3, 3, 13], [4, 4, 14],
+                [3, 5, 15], [2, 6, 16], [1, 7, 18], [0, 8, 19], [1, 9, 20]]
+
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.to_json('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
+    def test_to_json_sparse_float_directio(self):
+        """Get a BIOM format string for a sparse table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo': i} for i in range(2)]
+        samp_md = [{'bar': i} for i in range(2)]
+        data = [[0, 0, 0.01], [0, 1, 1.5], [1, 0, 0.0], [1, 1, 0.79]]
+
+        # using OTUTable type to support parsing round trip
+        t = table_factory(data, obs_ids, samp_ids, obs_md, samp_md)
+
+        # verify that we can parse still
+        io = StringIO()
+        t.to_json('asd', direct_io=io)
+        io.seek(0)
+        t2 = parse_biom_table(io)
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
         f = lambda id_, md: md['age']
@@ -2130,89 +2290,6 @@ class SparseTableTests(TestCase):
 
         # Tables with some zeros explicitly defined.
         npt.assert_almost_equal(self.st7.get_table_density(), 0.75)
-
-
-class SparseOTUTableTests(TestCase):
-
-    def setUp(self):
-        self.vals = {(0, 0): 5, (1, 0): 7, (1, 1): 8}
-        self.sot_min = Table(
-            to_sparse(self.vals, dtype=int), ['1', '2'], ['a', 'b'])
-        self.sot_rich = Table(to_sparse(self.vals, dtype=int),
-                              ['1', '2'], ['a', 'b'],
-                              [{'taxonomy': ['k__a', 'p__b']},
-                               {'taxonomy': ['k__a', 'p__c']}],
-                              [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
-        self.float_table = Table(to_sparse({(0, 1): 2.5, (0, 2): 3.4,
-                                            (1, 0): 9.3, (1, 1): 10.23,
-                                            (1, 2): 2.2}),
-                                 ['1', '2'], ['a', 'b', 'c'])
-
-    def test_get_biom_format_object_no_generated_by(self):
-        """Should raise without a generated_by string"""
-        self.assertRaises(
-            TableException,
-            self.sot_min.get_biom_format_object,
-            None)
-        self.assertRaises(TableException,
-                          self.sot_min.get_biom_format_object, 10)
-
-    def test_get_biom_format_object_minimal(self):
-        """Should return a dictionary of the minimal table in Biom format."""
-        exp = {'rows': [{'id': '1', 'metadata': None},
-                        {'id': '2', 'metadata': None}],
-               'format': 'Biological Observation Matrix 1.0.0',
-               'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
-               'columns': [{'id': 'a', 'metadata': None},
-                           {'id': 'b', 'metadata': None}],
-               'shape': [2, 2],
-               'format_url': __url__,
-               'id': None,
-               'generated_by': 'foo',
-               'matrix_element_type': 'int'}
-        obs = self.sot_min.get_biom_format_object('foo')
-        del obs['date']
-        self.assertEqual(obs, exp)
-
-    def test_get_biom_format_object_rich(self):
-        """Should return a dictionary of the rich table in Biom format."""
-        exp = {
-            'rows': [{'id': '1', 'metadata': {'taxonomy': ['k__a', 'p__b']}},
-                     {'id': '2', 'metadata': {'taxonomy': ['k__a', 'p__c']}}],
-            'format': 'Biological Observation Matrix 1.0.0',
-            'data': [[0, 0, 5.0], [1, 0, 7.0], [1, 1, 8.0]],
-            'columns': [{'id': 'a', 'metadata': {'barcode': 'aatt'}},
-                        {'id': 'b', 'metadata': {'barcode': 'ttgg'}}],
-            'shape': [2, 2],
-            'format_url': __url__,
-            'id': None,
-            'generated_by': 'foo',
-            'matrix_element_type': 'int'}
-        obs = self.sot_rich.get_biom_format_object('foo')
-        del obs['date']
-        self.assertEqual(obs, exp)
-
-    def test_get_biom_format_object_float(self):
-        """Should return a dictionary of the table with float values."""
-        exp = {'rows': [{'id': '1', 'metadata': None},
-                        {'id': '2', 'metadata': None}],
-               'format': 'Biological Observation Matrix 1.0.0',
-               'data': [[0, 1, 2.5],
-                        [0, 2, 3.3999999999999999],
-                        [1, 0, 9.3000000000000007],
-                        [1, 1, 10.23],
-                        [1, 2, 2.2000000000000002]],
-               'columns': [{'id': 'a', 'metadata': None},
-                           {'id': 'b', 'metadata': None},
-                           {'id': 'c', 'metadata': None}],
-               'shape': [2, 3],
-               'format_url': __url__,
-               'generated_by': 'foo',
-               'id': None,
-               'matrix_element_type': 'float'}
-        obs = self.float_table.get_biom_format_object('foo')
-        del obs['date']
-        self.assertEqual(obs, exp)
 
 
 class SupportTests2(TestCase):
