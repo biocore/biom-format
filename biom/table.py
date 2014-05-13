@@ -122,7 +122,6 @@ class Table(object):
         else:
             return np.squeeze(dense_vec)
 
-
     @staticmethod
     def _to_sparse(values, transpose=False, dtype=float, input_is_dense=False,
                    shape=None):
