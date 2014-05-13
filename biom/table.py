@@ -2031,6 +2031,133 @@ class Table(object):
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
 
+    def parse_classic_table_to_rich_table(lines, sample_mapping, obs_mapping,
+                                          process_func, **kwargs):
+        """Parses an table (tab delimited) (observation x sample)
+
+        sample_mapping : can be None or {'sample_id':something}
+        obs_mapping : can be none or {'observation_id':something}
+        """
+        pass
+
+    @classmethod
+    def from_tsv(self, lines, process_func, delim='\t', dtype=float,
+                 header_mark=None, md_parse=None, obs_mapping=None,
+                 sample_mapping=None):
+        """Parse a classic table into (sample_ids, obs_ids, data,
+                                       metadata, name)
+
+        If the last column does not appear to be numeric, interpret it as
+        observation metadata, otherwise None.
+
+        md_name is the column name for the last column if non-numeric
+
+        NOTE: this is intended to be close to how QIIME classic OTU tables are
+        parsed with the exception of the additional md_name field
+
+        This function is ported from QIIME (http://www.qiime.org), previously
+        named parse_classic_otu_table. QIIME is a GPL project, but we obtained
+        permission from the authors of this function to port it to the BIOM
+        Format project(and keep it under BIOM's BSD license).
+        """
+        if not isinstance(lines, list):
+            try:
+                lines = lines.readlines()
+            except AttributeError:
+                raise RuntimeError(
+                    "Input needs to support readlines or be indexable")
+
+        # find header, the first line that is not empty and
+        # does not start with a #
+        for idx, l in enumerate(lines):
+            if not l.strip():
+                continue
+            if not l.startswith('#'):
+                break
+            if header_mark and l.startswith(header_mark):
+                break
+
+        if idx == 0:
+            data_start = 1
+            header = lines[0].strip().split(delim)[1:]
+        else:
+            if header_mark is not None:
+                data_start = idx + 1
+                header = lines[idx].strip().split(delim)[1:]
+            else:
+                data_start = idx
+                header = lines[idx - 1].strip().split(delim)[1:]
+
+        # attempt to determine if the last column is non-numeric, ie, metadata
+        first_values = lines[data_start].strip().split(delim)
+        last_value = first_values[-1]
+        last_column_is_numeric = True
+
+        if '.' in last_value:
+            try:
+                float(last_value)
+            except ValueError:
+                last_column_is_numeric = False
+        else:
+            try:
+                int(last_value)
+            except ValueError:
+                last_column_is_numeric = False
+
+        # determine sample ids
+        if last_column_is_numeric:
+            md_name = None
+            metadata = None
+            samp_ids = header[:]
+        else:
+            md_name = header[-1]
+            metadata = []
+            samp_ids = header[:-1]
+
+        data = []
+        obs_ids = []
+        for line in lines[data_start:]:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith('#'):
+                continue
+
+            fields = line.strip().split(delim)
+            obs_ids.append(fields[0])
+
+            if last_column_is_numeric:
+                values = map(dtype, fields[1:])
+            else:
+                values = map(dtype, fields[1:-1])
+
+                if md_parse is not None:
+                    metadata.append(md_parse(fields[-1]))
+                else:
+                    metadata.append(fields[-1])
+
+            data.append(values)
+
+        # if we have it, keep it
+        if metadata is None:
+            obs_metadata = None
+        else:
+            obs_metadata = [{md_name: process_func(v)} for v in metadata]
+
+        if sample_mapping is None:
+            sample_metadata = None
+        else:
+            sample_metadata = [sample_mapping[sample_id]
+                               for sample_id in samp_ids]
+
+        # will override any metadata from parsed table
+        if obs_mapping is not None:
+            obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
+
+        data = nparray_to_sparse(data)
+
+        return Table(data, obs_ids, samp_ids, obs_metadata, sample_metadata)
+
 
 def list_list_to_nparray(data, dtype=float):
     """Convert a list of lists into a nparray

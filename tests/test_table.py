@@ -2115,6 +2115,38 @@ class SparseTableTests(TestCase):
         # verify that the tables are the same
         self.assertEqual(t, t2)
 
+    def from_tsv(self):
+        """Parses a classic table
+
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
+        """
+        input = legacy_otu_table1.splitlines()
+        samp_ids = ['Fing', 'Key', 'NA']
+        obs_ids = ['0', '1', '7', '3', '4']
+        metadata = [
+            'Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; '
+            'Propionibacterium',
+            'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillal'
+            'es; Lactobacillales; Streptococcaceae; Streptococcus',
+            'Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Coryneb'
+            'acteriaceae',
+            'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Staphylococca'
+            'ceae',
+            'Bacteria; Cyanobacteria; Chloroplasts; vectors']
+        md_name = 'Consensus Lineage'
+        data = np.array([[19111, 44536, 42],
+                        [1216, 3500, 6],
+                        [1803, 1184, 2],
+                        [1722, 4903, 17],
+                        [589, 2074, 34]])
+
+        exp = (samp_ids, obs_ids, data, metadata, md_name)
+        obs = Table.from_tsv(input, None, dtype=int)
+        npt.assert_equal(obs, exp)
+
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
         f = lambda id_, md: md['age']
@@ -2419,6 +2451,21 @@ class SupportTests2(TestCase):
         exp[1, 3] = 2
         obs = list_sparse_to_sparse(ins)
         self.assertEqual((obs != exp).sum(), 0)
+
+
+legacy_otu_table1 = """# some comment goes here
+#OTU ID Fing  Key NA  Consensus Lineage
+0 19111 44536 42  Bacteria; Actinobacteria; Actinobacteridae; Propioniba\
+cterineae; Propionibacterium
+
+1 1216  3500  6 Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; La\
+ctobacillales; Lactobacillales; Streptococcaceae; Streptococcus
+7 1803  1184  2 Bacteria; Actinobacteria; Actinobacteridae; Gordoniace\
+ae; Corynebacteriaceae
+3 1722  4903  17  Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; St\
+aphylococcaceae
+4 589 2074  34  Bacteria; Cyanobacteria; Chloroplasts; vectors
+"""
 
 if __name__ == '__main__':
     main()
