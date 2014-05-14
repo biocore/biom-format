@@ -2042,14 +2042,16 @@ class Table(object):
                  process_func, **kwargs):
         """Parse an tab separated (observation x sample) formatted BIOM table
 
-        Paramters
-        ---------
-        lines : an indexable object or an object that supports ``readlines()``
-        obs_mapping : ``{'observation_id': metadata}`` or None
-        sample_mapping :``{'sample_id' : metadata}`` or None
-        process_func : a function to transform observation metadata
-
-
+        Parameters
+        ----------
+        lines : list, or file-like object
+            The tab delimited data to parse
+        obs_mapping : dict or None
+            The corresponding observation metadata
+        sample_mapping : dict or None
+            The corresponding sample metadata
+        process_func : function
+            A function to transform the observation metadata
 
         Returns
         -------
@@ -2058,7 +2060,6 @@ class Table(object):
 
         Examples
         --------
-
         >>> from biom.table import Table
         >>> from StringIO import StringIO
         >>> tsv = 'a\\tb\\tc\\n1\\t2\\t3\\n4\\t5\\t6'
@@ -2086,7 +2087,7 @@ class Table(object):
         if obs_mapping is not None:
             obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
 
-        data = nparray_to_sparse(data)
+        #data = nparray_to_sparse(data)
 
         return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata)
 
@@ -2095,13 +2096,34 @@ class Table(object):
                                header_mark=None, md_parse=None):
         """Parse a classic table into (sample_ids, obs_ids, data, metadata,
                                        name)
+        Returns
+        -------
+        list
+            sample_ids
+        list
+            observation_ids
+        array
+            data
+        list
+            metadata
+        string
+            column name if last column is non-numeric
 
-        If the last column does not appear to be numeric, interpret it as
-        observation metadata, otherwise None.
+        Parameters
+        ----------
+        lines: list or file-like object
+            delimted data to parse
+        delim: string
+            delimeter in file lines
+        dtype: type
+        header_mark:  string or None
+            string that indicates start of header line
+        md_parse:  function or None
+            funtion used to parse metdata
 
-        md_name is the column name for the last column if non-numeric
-
-        NOTE: this is intended to be close to how QIIME classic OTU tables are
+        Notes
+        ------
+        This is intended to be close to how QIIME classic OTU tables are
         parsed with the exception of the additional md_name field
 
         This function is ported from QIIME (http://www.qiime.org), previously
@@ -2195,17 +2217,19 @@ class Table(object):
                metadata_formatter=str, observation_column_name='#OTU ID'):
         """Return self as a string in tab delimited form
 
-        Default str output for the Table is just row/col ids and table data
-        without any metadata
+        Default ``str`` output for the ``Table`` is just row/col ids and table
+        data without any metadata
 
         Parameters
         ----------
-        header_key : name observation metadata to include or None
-        header_value : Column header in the output or None
-        metadata_formatter : a function which takes a metadata entry and
-        returns a formatted version that should be written to file
-        observation_column_name : the name of the first column in the output
-        table, corresponding to the observation IDs.
+        header_key : string or None
+        header_value : string or None
+        metadata_formatter : function
+            a function which takes a metadata entry and
+            returns a formatted version that should be written to file
+        observation_column_name : string
+            the name of the first column in the output
+            table, corresponding to the observation IDs.
 
         Returns
         -------
