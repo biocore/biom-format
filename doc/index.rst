@@ -19,7 +19,6 @@ Projects using the BIOM format
 * `QIIME <http://www.qiime.org>`_
 * `MG-RAST <http://metagenomics.anl.gov>`_
 * `PICRUSt <http://picrust.github.io/picrust>`_
-* `EMPeror <http://emperor.colorado.edu>`_
 * `Mothur <http://www.mothur.org/wiki/Make.biom>`_
 * `phyloseq <http://www.bioconductor.org/packages/release/bioc/html/phyloseq.html>`_
 * `MEGAN <http://ab.inf.uni-tuebingen.de/software/megan5/>`_
