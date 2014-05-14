@@ -625,6 +625,32 @@ class Table(object):
         -------
         bool
             True if ``id_`` exists, False otherwise
+
+        Examples
+        --------
+
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Check whether sample ID is in the table:
+
+        >>> table.exists('S1')
+        True
+        >>> table.exists('S4')
+        False
+
+        Check whether an observation ID is in the table:
+
+        >>> table.exists('O1', 'observation')
+        True
+        >>> table.exists('O3', 'observation')
+        False
+
         """
         if axis == "sample":
             return id_ in self._sample_index
