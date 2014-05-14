@@ -11,12 +11,11 @@
 # -----------------------------------------------------------------------------
 
 from __future__ import division
-import os
 import numpy as np
 from copy import deepcopy
 from datetime import datetime
 from json import dumps, loads
-from functools import reduce, partial
+from functools import reduce
 from operator import itemgetter, add
 from itertools import izip
 from collections import defaultdict, Hashable
@@ -58,10 +57,13 @@ class Table(object):
 
     def __init__(self, data, observation_ids, sample_ids,
                  observation_metadata=None, sample_metadata=None,
-                 table_id=None, type=None, **kwargs):
+                 table_id=None, type=None, create_date=None, generated_by=None,
+                 **kwargs):
 
         self.type = type
         self.table_id = table_id
+        self.create_date = create_date
+        self.generated_by = generated_by
 
         if not isspmatrix(data):
             shape = (len(observation_ids), len(sample_ids))
@@ -171,7 +173,7 @@ class Table(object):
                 mat = mat.T
             return mat
         elif isinstance(values, dict):
-            mat = dict_to_sparse(values, dtype)
+            mat = dict_to_sparse(values, dtype, shape)
             if transpose:
                 mat = mat.T
             return mat
@@ -179,7 +181,7 @@ class Table(object):
             if input_is_dense:
                 d = coo_matrix(values)
                 mat = coo_arrays_to_sparse((d.data, (d.row, d.col)),
-                                           dtype=dtype)
+                                           dtype=dtype, shape=shape)
             else:
                 mat = list_list_to_sparse(values, dtype, shape=shape)
             return mat
@@ -1799,6 +1801,9 @@ class Table(object):
         if order not in ('observation', 'sample'):
             raise ValueError("Unknown order %s!" % order)
 
+        create_date = h5grp.attrs['creation-date']
+        generated_by = h5grp.attrs['generated-by']
+
         shape = h5grp.attrs['shape']
         type = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
@@ -1824,7 +1829,8 @@ class Table(object):
             matrix = csr_matrix(cs, shape=shape)
 
         return Table(matrix, obs_ids, samp_ids,  obs_md or None,
-                     samp_md or None, type=type)
+                     samp_md or None, type=type, create_date=create_date,
+                     generated_by=generated_by)
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
@@ -2105,42 +2111,6 @@ class Table(object):
                                      ''.join(data), rows, columns])
 
 
-def list_list_to_nparray(data, dtype=float):
-    """Convert a list of lists into a nparray
-
-    [[value, value, ..., value], ...]
-    """
-    return asarray(data, dtype=dtype)
-
-
-def dict_to_nparray(data, dtype=float):
-    """Takes a dict {(row,col):val} and creates a numpy matrix"""
-    rows, cols = zip(*data)  # unzip
-    mat = zeros((max(rows) + 1, max(cols) + 1), dtype=dtype)
-
-    for (row, col), val in data.iteritems():
-        mat[row, col] = val
-
-    return mat
-
-
-def list_dict_to_nparray(data, dtype=float):
-    """Takes a list of dicts {(0,col):val} and creates an numpy matrix
-
-    Expects each dict to represent a row vector
-    """
-    n_rows = len(data)
-    n_cols = max(flatten([d.keys() for d in data]), key=itemgetter(1))[1] + 1
-
-    mat = zeros((n_rows, n_cols), dtype=dtype)
-
-    for row_idx, row in enumerate(data):
-        for (_, col_idx), val in row.iteritems():
-            mat[row_idx, col_idx] = val
-
-    return mat
-
-
 def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
     """Map directly on to the coo_matrix constructor
 
@@ -2293,10 +2263,13 @@ def list_dict_to_sparse(data, dtype=float):
     return matrix
 
 
-def dict_to_sparse(data, dtype=float):
+def dict_to_sparse(data, dtype=float, shape=None):
     """Takes a dict {(row,col):val} and creates a scipy.sparse matrix."""
-    n_rows = max(data.keys(), key=itemgetter(0))[0] + 1
-    n_cols = max(data.keys(), key=itemgetter(1))[1] + 1
+    if shape is None:
+        n_rows = max(data.keys(), key=itemgetter(0))[0] + 1
+        n_cols = max(data.keys(), key=itemgetter(1))[1] + 1
+    else:
+        n_rows, n_cols = shape
 
     rows = []
     cols = []

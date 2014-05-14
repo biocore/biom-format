@@ -20,12 +20,10 @@ from scipy.sparse import lil_matrix, csr_matrix
 
 from biom.exception import UnknownAxisError, UnknownIDError, TableException
 from biom.util import unzip, HAVE_H5PY
-from biom.table import (Table, prefer_self, index_list, dict_to_nparray,
-                        list_dict_to_nparray, list_list_to_nparray,
-                        list_nparray_to_sparse, list_dict_to_sparse,
-                        dict_to_sparse, coo_arrays_to_sparse,
-                        list_list_to_sparse, nparray_to_sparse,
-                        list_sparse_to_sparse)
+from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
+                        list_dict_to_sparse, dict_to_sparse,
+                        coo_arrays_to_sparse, list_list_to_sparse,
+                        nparray_to_sparse, list_sparse_to_sparse)
 from biom.parse import parse_biom_table
 
 if HAVE_H5PY:
@@ -117,35 +115,6 @@ class SupportTests(TestCase):
         def f():
             raise TableException
         self.assertRaises(TableException, f)
-
-    def test_list_list_to_nparray(self):
-        """Convert [[value, value, ... value], ...] to nparray"""
-        input_ = [[1, 2, 3, 4, 5], [6, 7, 8, 9, 0], [7, 6, 5, 4, 3]]
-        exp = np.array(
-            [[1, 2, 3, 4, 5], [6, 7, 8, 9, 0], [7, 6, 5, 4, 3]], dtype=float)
-        obs = list_list_to_nparray(input_)
-        npt.assert_equal(obs, exp)
-
-    def test_dict_to_nparray(self):
-        """Take a dict -> array"""
-        input_ = {(0, 0): 1, (0, 10): 5, (100, 23): -3}
-        exp = np.zeros((101, 24), dtype=float)
-        exp[0, 0] = 1
-        exp[0, 10] = 5
-        exp[100, 23] = -3
-        obs = dict_to_nparray(input_)
-        npt.assert_equal(obs, exp)
-
-    def test_list_dict_to_nparray(self):
-        """List of dict -> nparray"""
-        input_ = [{(0, 5): 10, (10, 10): 2}, {(0, 1): 15}, {(0, 3): 7}]
-        exp = np.zeros((3, 11), dtype=float)
-        exp[0, 5] = 10
-        exp[0, 10] = 2
-        exp[1, 1] = 15
-        exp[2, 3] = 7
-        obs = list_dict_to_nparray(input_)
-        npt.assert_equal(obs, exp)
 
     def test_prefer_self(self):
         """prefer x"""
