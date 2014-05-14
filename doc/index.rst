@@ -5,7 +5,7 @@
 The Biological Observation Matrix (BIOM) format
 ===============================================
 
-The `BIOM file format <http://www.biom-format.org>`_ (canonically pronounced `biome`) is designed to be a general-use format for representing biological sample by observation contingency tables. BIOM is a recognized standard for the `Earth Microbiome Project <http://www.earthmicrobiome.org>`_ and is a `Genomics Standards Consortium <http://gensc.org/>`_ candidate project.
+The `BIOM file format <http://www.biom-format.org>`_ (canonically pronounced `biome`) is designed to be a general-use format for representing biological sample by observation contingency tables. BIOM is a recognized standard for the `Earth Microbiome Project <http://www.earthmicrobiome.org>`_ and is a `Genomics Standards Consortium <http://gensc.org/>`_ supported project.
 
 The `BIOM format <http://www.biom-format.org>`_ is designed for general use in broad areas of comparative -omics. For example, in marker-gene surveys, the primary use of this format is to represent OTU tables: the observations in this case are OTUs and the matrix contains counts corresponding to the number of times each OTU is observed in each sample. With respect to metagenome data, this format would be used to represent metagenome tables: the observations in this case might correspond to SEED subsystems, and the matrix would contain counts corresponding to the number of times each subsystem is observed in each metagenome. Similarly, with respect to genome data, this format may be used to represent a set of genomes: the observations in this case again might correspond to SEED subsystems, and the counts would correspond to the number of times each subsystem is observed in each genome.
 
@@ -38,7 +38,7 @@ Contents
 BIOM version
 ============
 
-The latest official version of the biom-format project is |release| and of the BIOM file format is 1.0. Details on the file format can be found `here <./documentation/biom_format.html>`_.
+The latest official version of the biom-format project is |release| and of the BIOM file format is 2.0. Details on the file format can be found `here <./documentation/biom_format.html>`_.
 
 Installing the biom-format project
 ==================================
@@ -48,8 +48,9 @@ To install the ``biom-format`` project, you can download the latest version `her
 The biom-format project has the following dependencies:
 	* `Python <http://www.python.org/>`_ >= 2.7 and < 3.0
 	* `numpy <http://www.numpy.org/>`_ >= 1.3.0
-	* `pyqi <http://bipy.github.io/pyqi>`_ 0.3.1-dev
-	* `scipy <http://www.scipy.org/>`_ (optional; must be installed if using the ``ScipySparseMat`` sparse matrix backend)
+	* `pyqi <http://pyqi.readthedocs.org/>`_ 0.3.2
+	* `scipy <http://www.scipy.org/>`_ >= 0.13.0
+    * `h5py <http://www.h5py.org/>`_ >= 2.2.0 (optional, but highly recommended when working with large tables)
 
 The easiest way to install the latest version of the biom-format project and its required dependencies is via pip::
 
@@ -68,7 +69,7 @@ Download the latest release, which can be found `here <https://pypi.python.org/p
 
 Alternatively, to install the development version, pull it from GitHub, and change to the resulting directory::
 
-	git clone git://github.com/biom-format/biom-format.git
+	git clone git://github.com/biocore/biom-format.git
 	cd $HOME/code/biom-format
 
 To install (either the development or release version), follow these steps::
