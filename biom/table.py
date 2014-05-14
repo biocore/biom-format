@@ -1664,17 +1664,17 @@ class Table(object):
     def from_hdf5(cls, h5grp, order='observation'):
         """Parse an HDF5 formatted BIOM table
 
-        The expected structure of this group is below. A few basic definitions,
-        N is the number of observations and M is the number of samples. Data
-        are stored in both compressed sparse row (for observation oriented
-        operations) and compressed sparse column (for sample oriented
-        operations).
+        The expected structure of this group is below. A few basic
+        definitions, N is the number of observations and M is the number of
+        samples. Data are stored in both compressed sparse row [1]_ (CSR, for
+        observation oriented operations) and compressed sparse column [2]_
+        (CSC, for sample oriented operations).
 
-        ### ADD IN SCIPY SPARSE CSC/CSR URLS
-        ### ADD IN WIKIPEDIA PAGE LINK TO CSR
-        ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
-        ###     THOUGH
-        ### METADATA ARE NOT REPRESENTED HERE YET
+        Notes
+        -----
+        The expected HDF5 group structure is below. An example of an HDF5 file
+        in DDL can be found here [3]_.
+
         ./id                         : str, an arbitrary ID
         ./type                       : str, the table type (e.g, OTU table)
         ./format-url                 : str, a URL that describes the format
@@ -1691,7 +1691,7 @@ class Table(object):
         ./observation/matrix/indices : (N,) dataset of int32
         ./observation/matrix/indptr  : (M+1,) dataset of int32
         [./observation/metadata]     : Optional, JSON str, in index order
-                                       with ids
+                                       with ids. See below for added detail.
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
@@ -1699,26 +1699,47 @@ class Table(object):
         ./sample/matrix/indices      : (M,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
         [./sample/metadata]          : Optional, JSON str, in index order
-                                       with ids
+                                       with ids. See below for added detail.
+
+        The expected structure (in JSON) for the optional metadata is a list of
+        objects, where the index order of the list corresponds to the index
+        order of the relevant axis IDs. The metadata are parsed directly by
+        JSON, and there are no constraints on the contained metadata with the
+        exception of the outer list, and that the order of the list matters.
+        Below is an example of observational metadata for two observations:
+
+        [{"taxonomy": ["foo", "bar"]}, {"taxonomy": ["foo", "foobar"]}]
 
         Paramters
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
-        order : 'observation' or 'sample' to indicate which data ordering to
-            load the table as
-
-        Returns
-        -------
-        Table
-            A BIOM ``Table`` object
+        generated_by : str
+        compress : Boolean  'True' means fiels will be compressed with
+            gzip, 'False' means no compression
 
         See Also
         --------
         Table.format_hdf5
 
+        References
+        ----------
+        .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
+                py.sparse.csr_matrix.html
+        .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
+                py.sparse.csc_matrix.html
+        .. [3] http://biom-format.org/documentation/format_versions/biom-2.0.\
+                html
+
+        See Also
+        --------
+        Table.to_hdf5
+
         Examples
         --------
-        ### is it okay to actually create files in doctest?
+        >>> from h5py import File # doctest: +SKIP
+        >>> from biom.table import Table
+        >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
+        >>> t = Table.from_hdf5(f) # doctest: +SKIP
 
         """
         if not HAVE_H5PY:
@@ -1762,17 +1783,17 @@ class Table(object):
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
 
-        The expected structure of this group is below. A few basic definitions,
-        N is the number of observations and M is the number of samples. Data
-        are stored in both compressed sparse row (for observation oriented
-        operations) and compressed sparse column (for sample oriented
-        operations).
+        The resulting structure of this group is below. A few basic
+        definitions, N is the number of observations and M is the number of
+        samples. Data are stored in both compressed sparse row [1]_ (CSR, for
+        observation oriented operations) and compressed sparse column [2]_
+        (CSC, for sample oriented operations).
 
-        ### ADD IN SCIPY SPARSE CSC/CSR URLS
-        ### ADD IN WIKIPEDIA PAGE LINK TO CSR
-        ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
-        ###     THOUGH
-        ### METADATA ARE NOT REPRESENTED HERE YET
+        Notes
+        -----
+        The expected HDF5 group structure is below. An example of an HDF5 file
+        in DDL can be found here [3]_.
+
         ./id                         : str, an arbitrary ID
         ./type                       : str, the table type (e.g, OTU table)
         ./format-url                 : str, a URL that describes the format
@@ -1789,7 +1810,7 @@ class Table(object):
         ./observation/matrix/indices : (N,) dataset of int32
         ./observation/matrix/indptr  : (M+1,) dataset of int32
         [./observation/metadata]     : Optional, JSON str, in index order
-                                       with ids
+                                       with ids. See below for added detail.
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
@@ -1797,7 +1818,16 @@ class Table(object):
         ./sample/matrix/indices      : (M,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
         [./sample/metadata]          : Optional, JSON str, in index order
-                                       with ids
+                                       with ids. See below for added detail.
+
+        The expected structure (in JSON) for the optional metadata is a list of
+        objects, where the index order of the list corresponds to the index
+        order of the relevant axis IDs. The metadata are parsed directly by
+        JSON, and there are no constraints on the contained metadata with the
+        exception of the outer list, and that the order of the list matters.
+        Below is an example of observational metadata for two observations:
+
+        [{"taxonomy": ["foo", "bar"]}, {"taxonomy": ["foo", "foobar"]}]
 
         Paramters
         ---------
@@ -1810,9 +1840,23 @@ class Table(object):
         --------
         Table.format_hdf5
 
+        References
+        ----------
+        .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
+                py.sparse.csr_matrix.html
+        .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
+                py.sparse.csc_matrix.html
+        .. [3] http://biom-format.org/documentation/format_versions/biom-2.0.\
+                html
+
         Examples
         --------
-        ### is it okay to actually create files in doctest?
+        >>> from h5py import File  # doctest: +SKIP
+        >>> from biom.table import Table
+        >>> from numpy import array
+        >>> t = Table(array([[1, 2], [3, 4]]), ['a', 'b'], ['x', 'y'])
+        >>> with File('foo.biom', 'w') as f:  # doctest: +SKIP
+        ...     t.to_hdf5(f, "example")
 
         """
         if not HAVE_H5PY:
