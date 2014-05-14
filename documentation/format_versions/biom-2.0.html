@@ -1,0 +1,334 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The biom file format: Version 1.0 &mdash; biom-format.org</title>
+    
+    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/print.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/theme_extras.js"></script>
+    <link rel="top" title="biom-format.org" href="../../index.html" />
+    <link rel="up" title="The biom file format" href="../biom_format.html" />
+    <link rel="next" title="biom-format Table objects" href="../table_objects.html" />
+    <link rel="prev" title="The biom file format" href="../biom_format.html" /> 
+  </head>
+  <body>
+      <div class="header"><h1 class="heading"><a href="../../index.html">
+          <span>biom-format.org</span></a></h1>
+        <h2 class="heading"><span>The biom file format: Version 2.0</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="../biom_format.html">The biom file format</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../table_objects.html">biom-format <tt class="docutils literal"><span class="pre">Table</span></tt> objects</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="the-biom-file-format-version-2-0">
+<span id="biom-2-0"></span><h1>The biom file format: Version 2.0<a class="headerlink" href="#the-biom-file-format-version-2-0" title="Permalink to this headline">¶</a></h1>
+<p>The <tt class="docutils literal"><span class="pre">biom</span></tt> 2.0 format is based on <a class="reference external" href="http://www.hdfgroup.org/HDF5/">HDF5</a> to provide the overall support and structure for the format. HDF5 is a widely supported format with native parsers available within many programming languages.</p>
+<p>Required top-level attributes:</p>
+<div class="highlight-python"><pre>id                         : &lt;string&gt; or &lt;null&gt; a field that can be used to id a table (or null)
+format-url                 : &lt;url&gt; A string with a static URL providing format details
+format-version             : &lt;tuple&gt; A two element tuple of int, storing the major and minor version
+type                       : &lt;string&gt; Table type (a controlled vocabulary)
+                             Acceptable values:
+                              "OTU table"
+                              "Pathway table"
+                              "Function table"
+                              "Ortholog table"
+                              "Gene table"
+                              "Metabolite table"
+                              "Taxon table"
+generated-by               : &lt;string&gt; Package and revision that built the table
+creation-date              : &lt;datetime&gt; Date the table was built (ISO 8601 format)
+shape                      : &lt;tuple&gt; A two element tuple of int (N, M), describing the number of observations and number of samples
+nnz                        : &lt;int&gt; The number of non-zero elements in the table</pre>
+</div>
+<p>Required groups:</p>
+<div class="highlight-python"><pre>observation/               : The HDF5 group that contains observation specific information and an observation oriented view of the data
+observation/matrix         : The HDF5 group that contains matrix data oriented for observation-wise operations (e.g., in compressed sparse row format)
+sample/                    : The HDF5 group that contains sample specific information and a sample oriented data oriented view of the data
+sample/matrix              : The HDF5 group that contains matrix data oriented for sample-wise operations (e.g., in compressed sparse column format)</pre>
+</div>
+<p>Required datasets:</p>
+<div class="highlight-python"><pre>observation/ids            : &lt;string&gt; or &lt;variable length string&gt; A (N,) dataset of the observation IDs, where N is the total number of IDs
+observation/matrix/data    : &lt;float64&gt; A (nnz,) dataset containing the actual matrix data
+observation/matrix/indices : &lt;int32&gt; A (nnz,) dataset containing the column indices (e.g., maps into samples/ids)
+observation/matrix/indptr  : &lt;int32&gt; A (M+1,) dataset containing the compressed row offsets
+sample/ids                 : &lt;string&gt; or &lt;variable length string&gt; A (M,) dataset of the sample IDs, where M is the total number of IDs
+sample/matrix/data         : &lt;float64&gt; A (nnz,) dataset containing the actual matrix data
+sample/matrix/indices      : &lt;int32&gt; A (nnz,) dataset containing the row indices (e.g., maps into observation/ids)
+sample/matrix/indptr       : &lt;int32&gt; A (N+1,) dataset containing the compressed column offsets</pre>
+</div>
+<p>Optional datasets:</p>
+<div class="highlight-python"><pre>observation/metadata       : &lt;variable length string or null&gt; If specified, a (1,) dataset containing a JSON-string representation of the metadata
+sample/metadata            : &lt;variable length string or null&gt; If specified, a (1,) dataset containing a JSON-string representation of the metadata</pre>
+</div>
+<div class="section" id="metadata-description">
+<h2>Metadata description</h2>
+<p>The metadata for each axis (observation and sample) are described with JSON. The required structure, if the metadata are specified, is a list of objects, where the list is in index order with respect to the axis (e.g, the object at element 0 corresponds to ID 0 for the given axis). Any metadata that corresponds to the ID, such as taxonomy, can be represented in the object. For instance, the following JSON string describes taxonomy for three IDs:
+<div class="highlight-python"><pre>[
+    {"taxonomy": ["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}},
+    {"taxonomy": ["k__Bacteria", "p__Cyanobacteria", "c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichospermum", "s__"]}},
+    {"taxonomy": ["k__Archaea", "p__Euryarchaeota", "c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae", "g__Methanosarcina", "s__"]}}
+]</pre>
+</div>
+<div class="section" id="example-biom-files">
+<h2>Example biom files<a class="headerlink" href="#example-biom-files" title="Permalink to this headline">¶</a></h2>
+<p>Below is an example of a HDF5 DDL for a BIOM file:</p>
+<div class="section" id="minimal-sparse-otu-table">
+<h3>HDF5 OTU table<a class="headerlink" href="#hdf5-otu-table" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-python"><pre>
+HDF5 "/Users/mcdonadt/Downloads/rich_sparse_otu_table_hdf5.biom" {
+GROUP "/" {
+   ATTRIBUTE "creation-date" {
+      DATATYPE  H5T_STRING {
+         STRSIZE H5T_VARIABLE;
+         STRPAD H5T_STR_NULLTERM;
+         CSET H5T_CSET_ASCII;
+         CTYPE H5T_C_S1;
+      }
+      DATASPACE  SCALAR
+      DATA {
+      (0): "2014-05-13T14:50:32.052446"
+      }
+   }
+   ATTRIBUTE "format-url" {
+      DATATYPE  H5T_STRING {
+         STRSIZE H5T_VARIABLE;
+         STRPAD H5T_STR_NULLTERM;
+         CSET H5T_CSET_ASCII;
+         CTYPE H5T_C_S1;
+      }
+      DATASPACE  SCALAR
+      DATA {
+      (0): "http://biom-format.org"
+      }
+   }
+   ATTRIBUTE "format-version" {
+      DATATYPE  H5T_STD_I64LE
+      DATASPACE  SIMPLE { ( 2 ) / ( 2 ) }
+      DATA {
+      (0): 2, 0
+      }
+   }
+   ATTRIBUTE "generated-by" {
+      DATATYPE  H5T_STRING {
+         STRSIZE H5T_VARIABLE;
+         STRPAD H5T_STR_NULLTERM;
+         CSET H5T_CSET_ASCII;
+         CTYPE H5T_C_S1;
+      }
+      DATASPACE  SCALAR
+      DATA {
+      (0): "example"
+      }
+   }
+   ATTRIBUTE "id" {
+      DATATYPE  H5T_STRING {
+         STRSIZE H5T_VARIABLE;
+         STRPAD H5T_STR_NULLTERM;
+         CSET H5T_CSET_ASCII;
+         CTYPE H5T_C_S1;
+      }
+      DATASPACE  SCALAR
+      DATA {
+      (0): "No Table ID"
+      }
+   }
+   ATTRIBUTE "nnz" {
+      DATATYPE  H5T_STD_I64LE
+      DATASPACE  SCALAR
+      DATA {
+      (0): 15
+      }
+   }
+   ATTRIBUTE "shape" {
+      DATATYPE  H5T_STD_I64LE
+      DATASPACE  SIMPLE { ( 2 ) / ( 2 ) }
+      DATA {
+      (0): 5, 6
+      }
+   }
+   ATTRIBUTE "type" {
+      DATATYPE  H5T_STRING {
+         STRSIZE H5T_VARIABLE;
+         STRPAD H5T_STR_NULLTERM;
+         CSET H5T_CSET_ASCII;
+         CTYPE H5T_C_S1;
+      }
+      DATASPACE  SCALAR
+      DATA {
+      (0): "otu table"
+      }
+   }
+   GROUP "observation" {
+      DATASET "ids" {
+         DATATYPE  H5T_STRING {
+            STRSIZE H5T_VARIABLE;
+            STRPAD H5T_STR_NULLTERM;
+            CSET H5T_CSET_ASCII;
+            CTYPE H5T_C_S1;
+         }
+         DATASPACE  SIMPLE { ( 5 ) / ( 5 ) }
+         DATA {
+         (0): "GG_OTU_1", "GG_OTU_2", "GG_OTU_3", "GG_OTU_4", "GG_OTU_5"
+         }
+      }
+      GROUP "matrix" {
+         DATASET "data" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 15 ) / ( 15 ) }
+            DATA {
+            (0): 1, 5, 1, 2, 3, 1, 1, 4, 2, 2, 1, 1, 1, 1, 1
+            }
+         }
+         DATASET "indices" {
+            DATATYPE  H5T_STD_I32LE
+            DATASPACE  SIMPLE { ( 15 ) / ( 15 ) }
+            DATA {
+            (0): 2, 0, 1, 3, 4, 5, 2, 3, 5, 0, 1, 2, 5, 1, 2
+            }
+         }
+         DATASET "indptr" {
+            DATATYPE  H5T_STD_I32LE
+            DATASPACE  SIMPLE { ( 6 ) / ( 6 ) }
+            DATA {
+            (0): 0, 1, 6, 9, 13, 15
+            }
+         }
+      }
+      DATASET "metadata" {
+         DATATYPE  H5T_STRING {
+            STRSIZE H5T_VARIABLE;
+            STRPAD H5T_STR_NULLTERM;
+            CSET H5T_CSET_ASCII;
+            CTYPE H5T_C_S1;
+         }
+         DATASPACE  SIMPLE { ( 1 ) / ( 1 ) }
+         DATA {
+         (0): "[{"taxonomy": ["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}, {"taxonomy": ["k__Bacteria", "p__Cyanobacteria", "c__Nostocophycideae", "o__Nostocales", "f__Nostocaceae", "g__Dolichospermum", "s__"]}, {"taxonomy": ["k__Archaea", "p__Euryarchaeota", "c__Methanomicrobia", "o__Methanosarcinales", "f__Methanosarcinaceae", "g__Methanosarcina", "s__"]}, {"taxonomy": ["k__Bacteria", "p__Firmicutes", "c__Clostridia", "o__Halanaerobiales", "f__Halanaerobiaceae", "g__Halanaerobium", "s__Halanaerobiumsaccharolyticum"]}, {"taxonomy": ["k__Bacteria", "p__Proteobacteria", "c__Gammaproteobacteria", "o__Enterobacteriales", "f__Enterobacteriaceae", "g__Escherichia", "s__"]}]"
+         }
+      }
+   }
+   GROUP "sample" {
+      DATASET "ids" {
+         DATATYPE  H5T_STRING {
+            STRSIZE H5T_VARIABLE;
+            STRPAD H5T_STR_NULLTERM;
+            CSET H5T_CSET_ASCII;
+            CTYPE H5T_C_S1;
+         }
+         DATASPACE  SIMPLE { ( 6 ) / ( 6 ) }
+         DATA {
+         (0): "Sample1", "Sample2", "Sample3", "Sample4", "Sample5",
+         (5): "Sample6"
+         }
+      }
+      GROUP "matrix" {
+         DATASET "data" {
+            DATATYPE  H5T_IEEE_F64LE
+            DATASPACE  SIMPLE { ( 15 ) / ( 15 ) }
+            DATA {
+            (0): 5, 2, 1, 1, 1, 1, 1, 1, 1, 2, 4, 3, 1, 2, 1
+            }
+         }
+         DATASET "indices" {
+            DATATYPE  H5T_STD_I32LE
+            DATASPACE  SIMPLE { ( 15 ) / ( 15 ) }
+            DATA {
+            (0): 1, 3, 1, 3, 4, 0, 2, 3, 4, 1, 2, 1, 1, 2, 3
+            }
+         }
+         DATASET "indptr" {
+            DATATYPE  H5T_STD_I32LE
+            DATASPACE  SIMPLE { ( 7 ) / ( 7 ) }
+            DATA {
+            (0): 0, 2, 5, 9, 11, 12, 15
+            }
+         }
+      }
+      DATASET "metadata" {
+         DATATYPE  H5T_STRING {
+            STRSIZE H5T_VARIABLE;
+            STRPAD H5T_STR_NULLTERM;
+            CSET H5T_CSET_ASCII;
+            CTYPE H5T_C_S1;
+         }
+         DATASPACE  SIMPLE { ( 1 ) / ( 1 ) }
+         DATA {
+         (0): "[{"LinkerPrimerSequence": "CATGCTGCCTCCCGTAGGAGT", "BarcodeSequence": "CGCTTATCGAGA", "Description": "human gut", "BODY_SITE": "gut"}, {"LinkerPrimerSequence": "CATGCTGCCTCCCGTAGGAGT", "BarcodeSequence": "CATACCAGTAGC", "Description": "human gut", "BODY_SITE": "gut"}, {"LinkerPrimerSequence": "CATGCTGCCTCCCGTAGGAGT", "BarcodeSequence": "CTCTCTACCTGT", "Description": "human gut", "BODY_SITE": "gut"}, {"LinkerPrimerSequence": "CATGCTGCCTCCCGTAGGAGT", "BarcodeSequence": "CTCTCGGCCTGT", "Description": "human skin", "BODY_SITE": "skin"}, {"LinkerPrimerSequence": "CATGCTGCCTCCCGTAGGAGT", "BarcodeSequence": "CTCTCTACCAAT", "Description": "human skin", "BODY_SITE": "skin"}, {"LinkerPrimerSequence": "CATGCTGCCTCCCGTAGGAGT", "BarcodeSequence": "CTAACTACCAAT", "Description": "human skin", "BODY_SITE": "skin"}]"
+         }
+      }
+   }
+}
+}
+</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="../biom_format.html">The biom file format</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="../table_objects.html">biom-format <tt class="docutils literal"><span class="pre">Table</span></tt> objects</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+
+    <div class="footer">
+        &copy; Copyright 2011-2013, The BIOM Format Development Team.
+      Last updated on Dec 04, 2013.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+    </div>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-6636235-6']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>
