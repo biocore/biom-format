@@ -334,9 +334,6 @@ class TableTests(TestCase):
 
     def test_from_tsv(self):
         tab1_fh = StringIO(otu_table1)
-        #md_parse = lambda x: x.split('; ')
-        #sparse_rich = parse_classic_table_to_rich_table(tab1_fh, None, None,\
-        #        DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
         sparse_rich = Table.from_tsv(tab1_fh, None, None,
                                      OBS_META_TYPES['naive'])
         self.assertEqual(sorted(sparse_rich.sample_ids),
@@ -376,9 +373,8 @@ class TableTests(TestCase):
                     # should test some abundance data
                     self.assertEqual(True, True)
 
-    def test_parse_classic_table_to_rich_table_dense(self):
+    def test_from_tsv_dense(self):
         tab1_fh = StringIO(otu_table1)
-        #md_parse = lambda x: x.split('; ')
         sparse_rich = Table.from_tsv(tab1_fh.readlines(), None, None,
                                      OBS_META_TYPES['naive'])
         self.assertEqual(sorted(sparse_rich.sample_ids),
@@ -417,6 +413,25 @@ class TableTests(TestCase):
                 if obs_id == '1' and sample_id == 'Key':
                     self.assertEqual(True, True)
                     # should test some abundance data
+
+    def test_to_tsv(self):
+        """Print out self in a delimited form"""
+        exp = '\n'.join(
+            ["# Constructed from biom file",
+             "#OTU ID\ta\tb",
+             "1\t5.0\t6.0",
+             "2\t7.0\t8.0"])
+        obs = self.st1.delimited_self()
+        self.assertEqual(obs, exp)
+
+        # Test observation_column_name.
+        exp = '\n'.join(
+            ["# Constructed from biom file",
+             "Taxon\ta\tb",
+             "1\t5.0\t6.0",
+             "2\t7.0\t8.0"])
+        obs = self.st1.to_tsv(observation_column_name='Taxon')
+        self.assertEqual(obs, exp)
 
     def test_metadata_invalid_input(self):
         """Correctly handles invalid input."""

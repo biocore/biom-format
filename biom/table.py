@@ -2191,6 +2191,36 @@ class Table(object):
 
         return samp_ids, obs_ids, asarray(data), metadata, md_name
 
+    def to_tsv(self, header_key=None, header_value=None,
+               metadata_formatter=str, observation_column_name='#OTU ID'):
+        """Return self as a string in tab delimited form
+
+        Default str output for the Table is just row/col ids and table data
+        without any metadata
+
+        Parameters
+        ----------
+        header_key : name observation metadata to include or None
+        header_value : Column header in the output or None
+        metadata_formatter : a function which takes a metadata entry and
+        returns a formatted version that should be written to file
+        observation_column_name : the name of the first column in the output
+        table, corresponding to the observation IDs.
+
+        Returns
+        -------
+        string
+            tab delimited represtation of the Table
+            For example, the default will look something like:
+                #OTU ID\tSample1\tSample2
+                OTU1\t10\t2
+                OTU2\t4\t8
+
+        """
+        return self.delimited_self('\t', header_key, header_value,
+                                   metadata_formatter,
+                                   observation_column_name)
+
 
 def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
     """Map directly on to the coo_matrix constructor
