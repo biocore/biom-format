@@ -1,5 +1,7 @@
 .. BIOM documentation master file
 
+.. image:: _static/biom-format.png
+
 The Biological Observation Matrix (BIOM) format
 ===============================================
 
@@ -10,6 +12,19 @@ The `BIOM format <http://www.biom-format.org>`_ is designed for general use in b
 There are two components to the BIOM project: first is the `definition of the BIOM format <./documentation/biom_format.html>`_, and second is `development of support objects <./documentation/table_objects.html>`_ in multiple programming languages to support the use of BIOM in diverse bioinformatics applications. The version of the BIOM file format is independent of the version of the `biom-format` software.
 
 There are official implementations of BIOM format support objects (APIs) in the Python and R programming languages. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python ``biom-format`` API. For more details about the R API, please see the `CRAN biom package <http://cran.r-project.org/web/packages/biom/index.html>`_.
+
+Projects using the BIOM format
+==============================
+
+* `QIIME <http://www.qiime.org>`_
+* `MG-RAST <http://metagenomics.anl.gov>`_
+* `PICRUSt <http://picrust.github.io/picrust>`_
+* `EMPeror <http://emperor.colorado.edu>`_
+* `Mothur <http://www.mothur.org/wiki/Make.biom>`_
+* `phyloseq <http://www.bioconductor.org/packages/release/bioc/html/phyloseq.html>`_
+* `MEGAN <http://ab.inf.uni-tuebingen.de/software/megan5/>`_
+
+If you are using BIOM in your project, and would like your project to be listed, please submit a `pull request <https://github.com/biocore/biom-format/pulls>`_ to the BIOM project. More information on submitting pull requests can be found `here <https://help.github.com/articles/using-pull-requests>`_.
 
 Contents
 ========
