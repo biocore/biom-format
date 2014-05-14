@@ -1664,6 +1664,9 @@ class Table(object):
     def from_hdf5(cls, h5grp, samples=None, observations=None):
         """Parse an HDF5 formatted BIOM table
 
+        If samples or observations are provided, only those samples or
+        observations ids present in these lists are loaded.
+
         The expected structure of this group is below. A few basic definitions,
         N is the number of observations and M is the number of samples. Data
         are stored in both compressed sparse row (for observation oriented
@@ -1704,11 +1707,24 @@ class Table(object):
         Paramters
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
+        samples: iterable, optional
+            The sample ids of the samples that we need to retrieve from the
+            hdf5 biom table
+        observations: iterable, optional
+            The observation ids of the observations that we need to retrieve
+            from the hdf5 biom table
 
         Returns
         -------
         Table
             A BIOM ``Table`` object
+
+        Raises
+        ------
+        ValueError
+            If `samples` and `observations` are provided
+            If `samples` or `observations` are not a subset of the samples or
+            observations ids present in the hdf5 biom table
 
         See Also
         --------
@@ -1753,7 +1769,10 @@ class Table(object):
         # Check if we need to subset the biom table
         if subset:
             def _get_ids(source_ids, desired_ids):
-                """"""
+                """If desired_ids is not None, makes sure that it is a subset
+                of source_ids and returns the desired_ids array-like and a
+                boolean array indicating where the desired_ids can be found in
+                source_ids"""
                 if desired_ids is None:
                     ids = source_ids[:]
                     idx = np.ones(source_ids.shape, dtype=bool)
@@ -1769,30 +1788,39 @@ class Table(object):
                                          "found in the biom table: %s" %
                                          (set(desired_ids) - set(ids)))
                 return ids, idx
+
             # Get the observation and sample ids that we are interested in
             obs_ids, obs_idx = _get_ids(obs_ids, observations)
             samp_ids, samp_idx = _get_ids(samp_ids, samples)
+
             # Get the new matrix shape
             shape = (len(obs_ids), len(samp_ids))
+
             # Fetch the metadata that we are interested in
-            if obs_md:
-                obs_md = np.asarray(obs_md)
-                obs_md = list(obs_md[np.where(obs_idx)])
-            if samp_md:
-                samp_md = np.asarray(samp_md)
-                samp_md = list(samp_md[np.where(samp_idx)])
-            # load the data
+            def _subset_metadata(md, idx):
+                """If md has data, returns the subset indicated by idx, a
+                boolean array"""
+                if md:
+                    md = list(np.asarray(md)[np.where(idx)])
+                return md
+
+            obs_md = _subset_metadata(obs_md, obs_idx)
+            samp_md = _subset_metadata(samp_md, samp_idx)
+
+            # load the subset of the data
             idx = samp_idx if order == 'sample' else obs_idx
             keep = np.where(idx)[0]
             data = np.hstack([h5_data[h5_indptr[i]:h5_indptr[i+1]]
                               for i in keep])
             indices = np.hstack([h5_indices[h5_indptr[i]:h5_indptr[i+1]]
                                  for i in keep])
+            # Create the new indptr
             indptr = np.empty(len(keep) + 1, dtype=np.int32)
             indptr[0] = 0
             for i, j in enumerate(keep):
                 indptr[i+1] = indptr[i] + (h5_indptr[j+1] - h5_indptr[j])
         else:
+            # no subset need, just pass all data to scipy
             data = h5_data
             indices = h5_indices
             indptr = h5_indptr
@@ -1804,7 +1832,7 @@ class Table(object):
         else:
             matrix = csr_matrix(cs, shape=shape)
 
-        return Table(matrix, obs_ids, samp_ids,  obs_md or None,
+        return Table(matrix, obs_ids, samp_ids, obs_md or None,
                      samp_md or None, type=type_, create_date=create_date,
                      generated_by=generated_by)
 
