@@ -240,7 +240,7 @@ class TableTests(TestCase):
 
         # Explicit zeros.
         self.explicit_zeros = Table(np.array([[0, 0, 1], [1, 0, 0],
-                                                        [1, 0, 2]]),
+                                              [1, 0, 2]]),
                                     ['a', 'b', 'c'], ['x', 'y', 'z'])
 
     def tearDown(self):
@@ -362,6 +362,92 @@ class TableTests(TestCase):
 
         obs = Table.from_hdf5(h5)
         self.assertEqual(obs, self.st_rich)
+
+    def test_from_tsv(self):
+        tab1_fh = StringIO(otu_table1)
+        #md_parse = lambda x: x.split('; ')
+        #sparse_rich = parse_classic_table_to_rich_table(tab1_fh, None, None,\
+        #        DenseOTUTable, header_mark='OTU ID', md_parse=md_parse)
+        sparse_rich = Table.from_tsv(tab1_fh, None, None,
+                                     OBS_META_TYPES['naive'])
+        self.assertEqual(sorted(sparse_rich.sample_ids),
+                         sorted(['Fing', 'Key', 'NA']))
+        self.assertEqual(sorted(sparse_rich.observation_ids),
+                         map(str, [0, 1, 3, 4, 7]))
+        for i, obs_id in enumerate(sparse_rich.observation_ids):
+            if obs_id == '0':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; '
+                                  'Actinobacteria; Actinobacteridae; '
+                                  'Propionibacterineae; '
+                                  'Propionibacterium'})
+            elif obs_id == '1':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; Firmicutes; '
+                                  'Alicyclobacillaceae; Bacilli; '
+                                  'Lactobacillales; Lactobacillales; '
+                                  'Streptococcaceae; '
+                                  'Streptococcus'})
+            elif obs_id == '7':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; '
+                                  'Actinobacteria; Actinobacteridae; '
+                                  'Gordoniaceae; '
+                                  'Corynebacteriaceae'})
+            elif obs_id in ['3', '4']:
+                pass  # got lazy
+            else:
+                raise RuntimeError('obs_id incorrect?')
+
+        self.assertEquals(sparse_rich.sample_metadata, None)
+
+        for i, obs_id in enumerate(sparse_rich.observation_ids):
+            for j, sample_id in enumerate(sparse_rich.sample_ids):
+                if obs_id == '1' and sample_id == 'Key':
+                    # should test some abundance data
+                    self.assertEqual(True, True)
+
+    def test_parse_classic_table_to_rich_table_dense(self):
+        tab1_fh = StringIO(otu_table1)
+        #md_parse = lambda x: x.split('; ')
+        sparse_rich = Table.from_tsv(tab1_fh.readlines(), None, None,
+                                     OBS_META_TYPES['naive'])
+        self.assertEqual(sorted(sparse_rich.sample_ids),
+                         sorted(['Fing', 'Key', 'NA']))
+        self.assertEqual(sorted(sparse_rich.observation_ids),
+                         map(str, [0, 1, 3, 4, 7]))
+        for i, obs_id in enumerate(sparse_rich.observation_ids):
+            if obs_id == '0':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; '
+                                  'Actinobacteria; Actinobacteridae; '
+                                  'Propionibacterineae; '
+                                  'Propionibacterium'})
+            elif obs_id == '1':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; Firmicutes; '
+                                  'Alicyclobacillaceae; Bacilli; '
+                                  'Lactobacillales; Lactobacillales; '
+                                  'Streptococcaceae; '
+                                  'Streptococcus'})
+            elif obs_id == '7':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; '
+                                  'Actinobacteria; Actinobacteridae; '
+                                  'Gordoniaceae; '
+                                  'Corynebacteriaceae'})
+            elif obs_id in ['3', '4']:
+                pass  # got lazy
+            else:
+                raise RuntimeError('obs_id incorrect?')
+
+        self.assertEquals(sparse_rich.sample_metadata, None)
+
+        for i, obs_id in enumerate(sparse_rich.observation_ids):
+            for j, sample_id in enumerate(sparse_rich.sample_ids):
+                if obs_id == '1' and sample_id == 'Key':
+                    self.assertEqual(True, True)
+                    # should test some abundance data
 
     def test_metadata_invalid_input(self):
         """Correctly handles invalid input."""
@@ -2144,7 +2230,7 @@ class SparseTableTests(TestCase):
                         [589, 2074, 34]])
 
         exp = (samp_ids, obs_ids, data, metadata, md_name)
-        obs = Table.extract_data_from_tsv(input, dtype=int)
+        obs = Table._extract_data_from_tsv(input, dtype=int)
         npt.assert_equal(obs, exp)
 
     def test_bin_samples_by_metadata(self):
@@ -2465,6 +2551,26 @@ ae; Corynebacteriaceae
 aphylococcaceae
 4\t589\t2074\t34\tBacteria; Cyanobacteria; Chloroplasts; vectors
 """
+otu_table1 = """# Some comment
+#OTU ID\tFing\tKey\tNA\tConsensus Lineage
+0\t19111\t44536\t42\tBacteria; Actinobacteria; Actinobacteridae; \
+Propionibacterineae; Propionibacterium
+# some other comment
+1\t1216\t3500\t6\tBacteria; Firmicutes; Alicyclobacillaceae; Bacilli; \
+Lactobacillales; Lactobacillales; Streptococcaceae; Streptococcus
+7\t1803\t1184\t2\tBacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; \
+Corynebacteriaceae
+# comments
+#    everywhere!
+3\t1722\t4903\t17\tBacteria; Firmicutes; Alicyclobacillaceae; \
+Bacilli; Staphylococcaceae
+4\t589\t2074\t34\tBacteria; Cyanobacteria; Chloroplasts; vectors
+"""
+
+OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
+                  'naive': lambda x: x
+                  }
+OBS_META_TYPES['taxonomy'] = OBS_META_TYPES['sc_separated']
 
 if __name__ == '__main__':
     main()

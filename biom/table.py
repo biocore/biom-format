@@ -2038,16 +2038,38 @@ class Table(object):
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
 
-    @classmethod
-    def from_tsv(self, lines, obs_mapping, sample_mapping,
+    @staticmethod
+    def from_tsv(lines, obs_mapping, sample_mapping,
                  process_func, **kwargs):
-        """Parses an table (tab delimited) (observation x sample)
+        """Parse an tab separated (observation x sample) formatted BIOM table
 
-        sample_mapping : can be None or {'sample_id':something}
-        obs_mapping : can be none or {'observation_id':something}
+        Paramters
+        ---------
+        lines : an indexable object or an object that supports ``readlines()``
+        obs_mapping : ``{'observation_id': metadata}`` or None
+        sample_mapping :``{'sample_id' : metadata}`` or None
+        process_func : a function to transform observation metadata
+
+
+
+        Returns
+        -------
+        Table
+            A BIOM ``Table`` object
+
+        Examples
+        --------
+
+        >>> from biom.table import Table
+        >>> from StringIO import StringIO
+        >>> tsv = 'a\\tb\\tc\\n1\\t2\\t3\\n4\\t5\\t6'
+        >>> tsv_fh = StringIO(tsv)
+        >>> func = lambda x : x
+        >>> test_table = Table.from_tsv(tsv_fh, None, None, func)
         """
+
         (sample_ids, obs_ids, data, t_md,
-            t_md_name) = self.extract_data_from_tsv(lines, **kwargs)
+            t_md_name) = Table._extract_data_from_tsv(lines, **kwargs)
 
         # if we have it, keep it
         if t_md is None:
@@ -2069,9 +2091,9 @@ class Table(object):
 
         return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata)
 
-    @classmethod
-    def extract_data_from_tsv(self, lines, delim='\t', dtype=float,
-                              header_mark=None, md_parse=None):
+    @staticmethod
+    def _extract_data_from_tsv(lines, delim='\t', dtype=float,
+                               header_mark=None, md_parse=None):
         """Parse a classic table into (sample_ids, obs_ids, data, metadata,
                                        name)
 
