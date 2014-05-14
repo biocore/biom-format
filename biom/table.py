@@ -292,7 +292,7 @@ class Table(object):
         ----------
         md : dict of dict
             ``md`` should be of the form ``{id:{dict_of_metadata}}``
-        axis : 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
         if axis == 'sample':
@@ -618,7 +618,7 @@ class Table(object):
         ----------
         id_: str
             id to check if exists
-        axis : 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to check
 
         Returns
@@ -868,7 +868,7 @@ class Table(object):
         ----------
         dense : bool
             If True, yield values as a dense vector
-        axis : str, either 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to iterate over
 
         Returns
@@ -904,7 +904,7 @@ class Table(object):
         ----------
         order : iterable
             The desired order for axis
-        axis : 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
         md = []
@@ -949,7 +949,7 @@ class Table(object):
         ----------
         sort_f : function
             A function that takes a list of values and sorts it
-        axis : 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
         if axis == 'sample':
@@ -972,7 +972,7 @@ class Table(object):
             return a boolean.
             If it's an iterable, it will be converted to an array of
             bools.
-        axis : str, defaults to "sample"
+        axis : {'sample', 'observation'}, optional
             It controls whether to filter samples or observations. Can
             be "sample" or "observation".
         invert : bool
@@ -1031,7 +1031,7 @@ class Table(object):
         f : function
             ``f`` is given the ID and metadata of the vector and must return
             what partition the vector is part of.
-        axis : str, either 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to iterate over
 
         Returns
@@ -1357,7 +1357,7 @@ class Table(object):
             observation or sample id, and an observation or sample
             metadata entry. It must return an array of transformed
             values that replace the original values.
-        axis : str, defaults to "sample"
+        axis : {'sample', 'observation'}, optional
             The axis to operate on. Can be "sample" or "observation".
         inplace : bool, defaults to True
             Whether to return a new table or modify itself.
@@ -1399,7 +1399,7 @@ class Table(object):
 
         Parameters
         ----------
-        axis : 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to use for normalization
         """
         def f(val, id_, _):
