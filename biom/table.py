@@ -1687,16 +1687,16 @@ class Table(object):
         ./observation                : Group
         ./observation/ids            : (N,) dataset of str or vlen str
         ./observation/matrix         : Group
-        ./observation/matrix/data    : (N,) dataset of float64
-        ./observation/matrix/indices : (N,) dataset of int32
+        ./observation/matrix/data    : (nnz,) dataset of float64
+        ./observation/matrix/indices : (nnz,) dataset of int32
         ./observation/matrix/indptr  : (M+1,) dataset of int32
         [./observation/metadata]     : Optional, JSON str, in index order
                                        with ids. See below for added detail.
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
-        ./sample/matrix/data         : (M,) dataset of float64
-        ./sample/matrix/indices      : (M,) dataset of int32
+        ./sample/matrix/data         : (nnz,) dataset of float64
+        ./sample/matrix/indices      : (nnz,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
         [./sample/metadata]          : Optional, JSON str, in index order
                                        with ids. See below for added detail.
@@ -1806,16 +1806,16 @@ class Table(object):
         ./observation                : Group
         ./observation/ids            : (N,) dataset of str or vlen str
         ./observation/matrix         : Group
-        ./observation/matrix/data    : (N,) dataset of float64
-        ./observation/matrix/indices : (N,) dataset of int32
+        ./observation/matrix/data    : (nnz,) dataset of float64
+        ./observation/matrix/indices : (nnz,) dataset of int32
         ./observation/matrix/indptr  : (M+1,) dataset of int32
         [./observation/metadata]     : Optional, JSON str, in index order
                                        with ids. See below for added detail.
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
-        ./sample/matrix/data         : (M,) dataset of float64
-        ./sample/matrix/indices      : (M,) dataset of int32
+        ./sample/matrix/data         : (nnz,) dataset of float64
+        ./sample/matrix/indices      : (nnz,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
         [./sample/metadata]          : Optional, JSON str, in index order
                                        with ids. See below for added detail.
