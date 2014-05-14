@@ -1659,6 +1659,79 @@ class Table(object):
                               sample_ids[:], obs_md, sample_md)
 
     @classmethod
+    def from_hdf5_subset(cls, h5grp, samples=None, observations=None):
+        """"""
+        type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
+
+        if samples is not None and observations is not None:
+            raise ValueError("Not supported")
+
+        order = 'sample' if samples is not None else 'observation'
+
+        def _get_ids(source_ids, desired_ids):
+            if desired_ids is None:
+                ids = source_ids[:]
+                idx = np.ones(source_ids.shape, dtype=bool)
+            else:
+                desired_ids = np.asarray(desired_ids)
+                # Get the index of the source ids to include
+                idx = np.in1d(source_ids, desired_ids)
+                # Retrieve only the ids that we are interested on
+                ids = source_ids[idx]
+                # Check that all desired ids have been found on source ids
+                if ids.shape != desired_ids.shape:
+                    raise ValueError("The following ids could not be found in "
+                                     "the biom table: %s" %
+                                     (set(desired_ids) - set(ids)))
+            return ids, idx
+
+        obs_ids, obs_idx = _get_ids(h5grp['observation/ids'], observations)
+        samp_ids, samp_idx = _get_ids(h5grp['sample/ids'], samples)
+
+        shape = (len(obs_ids), len(samp_ids))
+
+        # fetch the metadata
+        no_md = np.array(["[]"])
+        obs_md = loads(h5grp['observation'].get('metadata', no_md)[0])
+        if obs_md:
+            obs_md = np.asarray(obs_md)
+            obs_md = list(obs_md[np.where(obs_idx)])
+
+        samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
+        if samp_md:
+            samp_md = np.asarray(samp_md)
+            samp_md = list(samp_md[np.where(samp_idx)])
+
+        # load the data
+        idx = samp_idx if order == 'sample' else obs_idx
+
+        data_grp = h5grp[order]['matrix']
+
+        h5_data = data_grp["data"]
+        h5_indices = data_grp["indices"]
+        h5_indptr = data_grp["indptr"]
+
+        keep = np.where(idx)[0]
+        data = np.hstack([h5_data[h5_indptr[i]:h5_indptr[i+1]]
+                          for i in keep])
+        indices = np.hstack([h5_indices[h5_indptr[i]:h5_indptr[i+1]]
+                             for i in keep])
+        indptr = np.empty(len(keep) + 1, dtype=np.int32)
+        indptr[0] = 0
+        for i, j in enumerate(keep):
+            indptr[i+1] = indptr[i] + (h5_indptr[j+1] - h5_indptr[j])
+
+        cs = (data, indices, indptr)
+
+        if order == 'sample':
+            matrix = csc_matrix(cs, shape=shape)
+        else:
+            matrix = csr_matrix(cs, shape=shape)
+
+        return Table(matrix, obs_ids, samp_ids,  obs_md or None,
+                     samp_md or None, type=type_)
+
+    @classmethod
     def from_hdf5(cls, h5grp, order='observation'):
         """Parse an HDF5 formatted BIOM table
 
