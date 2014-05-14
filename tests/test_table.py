@@ -318,8 +318,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5_subset(h5py.File('test_data/test.biom'),
-                                   samples=samples)
+        t = Table.from_hdf5(h5py.File('test_data/test.biom'), samples=samples)
         os.chdir(cwd)
 
         npt.assert_equal(t.sample_ids, ['Sample2', 'Sample4', 'Sample6'])
@@ -392,8 +391,8 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5_subset(h5py.File('test_data/test.biom'),
-                                   observations=observations)
+        t = Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            observations=observations)
         os.chdir(cwd)
 
         npt.assert_equal(t.sample_ids, ['Sample1', 'Sample2', 'Sample3',
@@ -463,21 +462,19 @@ class TableTests(TestCase):
 
         # Raises an error if trying to subset samples and observations
         with self.assertRaises(ValueError):
-            Table.from_hdf5_subset(h5py.File('test_data/test.biom'),
-                                   observations=['GG_OTU_1', 'GG_OTU_3',
-                                                 'GG_OTU_5'],
-                                   samples=['Sample2', 'Sample4', 'Sample6'])
+            Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            observations=['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'],
+                            samples=['Sample2', 'Sample4', 'Sample6'])
 
         # Raises an error if not all the given samples are in the OTU table
         with self.assertRaises(ValueError):
-            Table.from_hdf5_subset(h5py.File('test_data/test.biom'),
-                                   samples=['Sample2', 'DoesNotExist',
-                                            'Sample6'])
+            Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            samples=['Sample2', 'DoesNotExist', 'Sample6'])
 
         # Raises an error if not all the given observation are in the OTU table
         with self.assertRaises(ValueError):
-            Table.from_hdf5_subset(h5py.File('test_data/test.biom'),
-                                   observations=['GG_OTU_1', 'DoesNotExist'])
+            Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            observations=['GG_OTU_1', 'DoesNotExist'])
         os.chdir(cwd)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
