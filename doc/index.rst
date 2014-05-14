@@ -23,7 +23,7 @@ Contents
 BIOM version
 ============
 
-The latest official version of the biom-format project is |release| and of the BIOM file format is 1.0. Details on the file format can be found `here <./documentation/biom_format.html>`_.
+The latest official version of the biom-format project is |release| and of the BIOM file format is 2.0. Details on the file format can be found `here <./documentation/biom_format.html>`_.
 
 Installing the biom-format project
 ==================================
@@ -32,9 +32,10 @@ To install the ``biom-format`` project, you can download the latest version `her
 
 The biom-format project has the following dependencies:
 	* `Python <http://www.python.org/>`_ >= 2.7 and < 3.0
-	* `numpy <http://www.numpy.org/>`_ >= 1.3.0
-	* `pyqi <http://bipy.github.io/pyqi>`_ 0.3.1-dev
-	* `scipy <http://www.scipy.org/>`_ (optional; must be installed if using the ``ScipySparseMat`` sparse matrix backend)
+	* `numpy <http://www.numpy.org/>`_ >= 1.7.0
+	* `pyqi <http://pyqi.readthedocs.org>`_ 0.3.2
+	* `scipy <http://www.scipy.org/>`_ >= 0.13.0 
+	* `h5py <http://www.h5py.org/>`_ >= 2.20.0 (optional; must be installed if creating or reading HDF5 formatted files)
 
 The easiest way to install the latest version of the biom-format project and its required dependencies is via pip::
 
