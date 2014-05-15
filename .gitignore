@@ -38,3 +38,6 @@ Thumbs.db
 *.Rproj
 
 R-code/biom.Rcheck*
+
+# Sphinx builds
+doc/documentation/generated

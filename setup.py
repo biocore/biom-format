@@ -57,7 +57,9 @@ ext = '.pyx' if USE_CYTHON else '.c'
 extensions = [Extension("biom._filter",
                         ["biom/_filter" + ext]),
               Extension("biom._transform",
-                        ["biom/_transform" + ext])]
+                        ["biom/_transform" + ext]),
+              Extension("biom._subsample",
+                        ["biom/_subsample" + ext])]
 
 if USE_CYTHON:
     from Cython.Build import cythonize

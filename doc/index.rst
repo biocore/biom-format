@@ -23,7 +23,7 @@ Projects using the BIOM format
 * `phyloseq <http://www.bioconductor.org/packages/release/bioc/html/phyloseq.html>`_
 * `MEGAN <http://ab.inf.uni-tuebingen.de/software/megan5/>`_
 
-If you are using BIOM in your project, and would like your project to be listed, please submit a `pull request <https://github.com/biocore/biom-format/pulls>`_ to the BIOM project. More information on submitting pull requests can be found `here <https://help.github.com/articles/using-pull-requests>`_.
+If you are using BIOM in your project, and would like your project to be listed, please submit a `pull request <https://github.com/biocore/biom-format/pulls>`_ to the BIOM project. More information on `submitting pull requests can be found here <https://help.github.com/articles/using-pull-requests>`_.
 
 Contents
 ========
@@ -37,12 +37,12 @@ Contents
 BIOM version
 ============
 
-The latest official version of the biom-format project is |release| and of the BIOM file format is 2.0. Details on the file format can be found `here <./documentation/biom_format.html>`_.
+The latest official version of the biom-format project is |release| and of the BIOM file format is 2.0. Details on the `file format can be found here <./documentation/biom_format.html>`_.
 
 Installing the biom-format project
 ==================================
 
-To install the ``biom-format`` project, you can download the latest version `here <https://pypi.python.org/pypi/biom-format/>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
+To install the ``biom-format`` project, you can download the `latest version here <https://pypi.python.org/pypi/biom-format/>`_, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.
 
 The biom-format project has the following dependencies:
 
@@ -62,7 +62,7 @@ If you decided not to install biom-format using pip, it is also possible to manu
 
 	cd $HOME/code
 
-Download the latest release, which can be found `here <https://pypi.python.org/pypi/biom-format>`_. After downloading, unpack and install (note: x.y.z refers to the downloaded version)::
+Download the `latest release, which can be found here <https://pypi.python.org/pypi/biom-format>`_. After downloading, unpack and install (note: x.y.z refers to the downloaded version)::
 
 	tar xzf biom-format-x.y.z.tar.gz
 	cd $HOME/code/biom-format-x.y.z

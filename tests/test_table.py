@@ -1664,6 +1664,26 @@ class SparseTableTests(TestCase):
         with self.assertRaises(TableException):
             self.st_rich.filter(lambda vals, id_, md: False, 'observation')
 
+    def test_subsample(self):
+        table = Table(np.array([[0, 5, 0]]), ['O1'], ['S1', 'S2', 'S3'])
+
+        obs = table.subsample(5, axis='observation')
+        npt.assert_equal(obs.data('O1', 'observation'), np.array([5]))
+        self.assertEqual(obs.sample_ids, ['S2'])
+
+        table = Table(np.array([[3, 1, 1], [0, 3, 3]]), ['O1', 'O2'],
+                      ['S1', 'S2', 'S3'])
+        actual_o1 = set()
+        actual_o2 = set()
+        for i in range(100):
+            obs = table.subsample(3)
+            actual_o1.add(tuple(obs.data('O1', 'observation')))
+            actual_o2.add(tuple(obs.data('O2', 'observation')))
+        self.assertEqual(actual_o1, {(3, 0, 0), (3, 1, 0), (3, 0, 1),
+                                     (3, 1, 1)})
+        self.assertEqual(actual_o2, {(0, 3, 3), (0, 2, 3), (0, 3, 2),
+                                     (0, 2, 2)})
+
     def test_pa(self):
         exp = Table(np.array([[1, 1], [1, 0]]), ['5', '6'], ['a', 'b'])
         self.st7.pa()

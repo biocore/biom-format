@@ -1,0 +1,1 @@
+numpydoc license is at biom-format/doc/sphinxext/numpydoc/LICENSE.txt
