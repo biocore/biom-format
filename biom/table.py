@@ -472,6 +472,31 @@ class Table(object):
             table sum. If `axis` is either "sample" or "observation", returns a
             numpy.array that holds a sum for each sample or observation,
             respectively.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Add all values in the table:
+
+        >>> table.sum()
+        array(47)
+
+        Add all values per sample:
+
+        >>> table.sum(axis='sample')
+        array([1, 3, 43])
+
+        Add all values per observation:
+
+        >>> table.sum(axis='observation')
+        array([1, 46])
         """
         if axis == 'whole':
             axis = None
