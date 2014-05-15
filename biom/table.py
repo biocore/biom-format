@@ -446,7 +446,6 @@ class Table(object):
 
         Examples
         --------
-
         >>> import numpy as np
         >>> from biom.table import Table
 
@@ -459,6 +458,7 @@ class Table(object):
         >>> func = lambda x, y: x + y
         >>> table.reduce(func, 'sample') # doctest: +NORMALIZE_WHITESPACE
         array([  1.,   3.,  43.])
+
         >>> table.reduce(func, 'observation') # doctest: +NORMALIZE_WHITESPACE
         array([  1.,  46.])
         """
