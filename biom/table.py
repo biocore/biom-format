@@ -1736,6 +1736,63 @@ class Table(object):
         ------
         UnknownAxisError
             If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 table
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'foo': 'bar'}, {'x': 'y'}], None)
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O1  0.0 0.0 1.0
+        O2  1.0 3.0 42.0
+
+        Create a transform function
+
+        >>> f = lambda data, id_, md: data / 2
+
+        Transform to a new table on samples
+
+        >>> table2 = table.transform(f, 'sample', False)
+        >>> print table2 # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O1  0.0 0.0 0.5
+        O2  0.5 1.5 21.0
+
+        `table` hasn't changed
+
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O1  0.0 0.0 1.0
+        O2  1.0 3.0 42.0
+
+        Tranform in place on observations
+
+        >>> table3 = table.transform(f, 'observation', True)
+
+        `table` is different now
+
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O1  0.0 0.0 0.5
+        O2  0.5 1.5 21.0
+
+        but the table returned (`table3`) is the same as `table`
+
+        >>> print table3 # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O1  0.0 0.0 0.5
+        O2  0.5 1.5 21.0
         """
         table = self if inplace else self.copy()
 
