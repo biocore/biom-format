@@ -1050,7 +1050,7 @@ class Table(object):
         Define a function to keep only samples with sample_type == 'a'. This
         will drop sample S3, which has sample_type 'b':
 
-        >>> filter_fn = lambda id_, md, val: md['sample_type'] == 'a'
+        >>> filter_fn = lambda val, id_, md: md['sample_type'] == 'a'
 
         Get a filtered version of the table, leaving the original table
         untouched:
@@ -1081,7 +1081,7 @@ class Table(object):
         Filter out all observations in the table that do not have
         full_genome_available == True. This will filter out observation O2:
 
-        >>> filter_fn = lambda id_, md, val: md['full_genome_available']
+        >>> filter_fn = lambda val, id_, md: md['full_genome_available']
         >>> table.filter(filter_fn, axis='observation')
         1 x 2 <class 'biom.table.Table'> with 0 nonzero entries (0% dense)
         >>> print table.observation_ids
