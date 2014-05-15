@@ -1291,6 +1291,8 @@ class Table(object):
             table.observation_ids = ids
             table.observation_metadata = metadata
 
+        table._index_ids()
+
         return table
 
     def partition(self, f, axis='sample'):
