@@ -2102,11 +2102,11 @@ class Table(object):
         References
         ----------
         .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-                py.sparse.csr_matrix.html
+py.sparse.csr_matrix.html
         .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-                py.sparse.csc_matrix.html
+py.sparse.csc_matrix.html
         .. [3] http://biom-format.org/documentation/format_versions/biom-2.0.\
-                html
+html
 
         See Also
         --------
