@@ -611,6 +611,21 @@ class Table(object):
         """
         return self.delimited_self()
 
+    def __repr__(self):
+        """Returns a high-level summary of the table's properties
+
+        Returns
+        -------
+        str
+            A string detailing the shape, class, number of nonzero entries, and
+            table density
+        """
+        rows, cols = self.shape
+        percent_dense = 1.0*self.nnz / (rows*cols)
+        return '%d x %d %s with %d nonzero entries (%.2f%% dense)' % (
+            rows, cols, repr(self.__class__), self.nnz, percent_dense
+        )
+
     def exists(self, id_, axis="sample"):
         """Returns whether id_ exists in axis
 
