@@ -972,8 +972,6 @@ class Table(object):
     def iter(self, dense=True, axis='sample'):
         """Yields ``(value, id, metadata)``
 
-        NOTE: will return ``None`` in metadata positions if the corresponding
-        axis metadata metadata is set to ``None``
 
         Parameters
         ----------
@@ -988,6 +986,11 @@ class Table(object):
         -------
         GeneratorType
             A generator that yields (values, id, metadata)
+
+        Notes
+        -----
+        Will return ``None`` in metadata positions if the corresponding axis
+        metadata metadata is set to ``None``.
         """
         if axis == 'sample':
             ids = self.sample_ids
@@ -1610,8 +1613,8 @@ class Table(object):
     def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
-        Only non null values can be modified: the density of the table
-        can't increase. However, zeroing values is fine.
+        Only non null values can be modified  the density of the table can't
+        increase. However, zeroing values is fine.
 
         Parameters
         ----------
@@ -2024,12 +2027,6 @@ class Table(object):
         are stored in both compressed sparse row (for observation oriented
         operations) and compressed sparse column (for sample oriented
         operations).
-
-        ### ADD IN SCIPY SPARSE CSC/CSR URLS
-        ### ADD IN WIKIPEDIA PAGE LINK TO CSR
-        ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
-        ###     THOUGH
-        ### METADATA ARE NOT REPRESENTED HERE YET
 
         Notes
         -----
