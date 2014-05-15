@@ -1558,6 +1558,7 @@ class Table(object):
         Returns
         -------
         biom.Table
+            A subsampled version of self
 
         Raises
         ------
@@ -1569,7 +1570,8 @@ class Table(object):
         Subsampling is performed without replacement. If `n` is greater than
         the sum of a given vector, that vector is omitted from the result.
 
-        Shamelessly adapted from scikit-bio (`skbio.math.subsample`).
+        Adapted from `skbio.math.subsample`, see biom-format/licenses for more
+        information about scikit-bio.
 
         This code assumes absolute abundance.
 
@@ -1619,8 +1621,9 @@ class Table(object):
         table = Table(data, self.observation_ids.copy(),
                       self.sample_ids.copy(), obs_md, samp_md)
 
-        table.filter(lambda v, i, md: v.sum() > 0)
-        table.filter(lambda v, i, md: v.sum() > 0, axis='observation')
+        inv_axis = self._invert_axis(axis)
+        table.filter(lambda v, i, md: v.sum() > 0, axis=inv_axis)
+        table.filter(lambda v, i, md: v.sum() > 0, axis=axis)
 
         return table
 
