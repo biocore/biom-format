@@ -1409,7 +1409,9 @@ class Table(object):
         Subsampling is performed without replacement. If `n` is greater than
         the sum of a given vector, that vector is omitted from the result.
 
-        Shamelessly adapted from `skbio.math.subsample`
+        Shamelessly adapted from scikit-bio (`skbio.math.subsample`).
+
+        This code assumes absolute abundance.
 
         Examples
         --------
@@ -1435,39 +1437,32 @@ class Table(object):
         if n < 0:
             raise ValueError("n cannot be negative.")
 
-        new_ids = []
-        new_metadata = []
-        new_data = []
-        for (values, id_, metadata) in self.iter(axis=axis, dense=False):
-            counts = values.astype(int)
-            counts_sum = counts.sum()
-
-            if n > counts_sum:
-                continue
-
-            if counts_sum == n:
-                result = counts
-            else:
-                result = _subsample(counts, n, counts_sum)
-                result = Table._to_sparse(result)
-
-            new_data.append(result)
-            new_ids.append(id_)
-            new_metadata.append(metadata)
-
         if axis == 'sample':
-            new_data = Table._to_sparse(new_data, transpose=True)
-            table = Table(new_data, self.observation_ids, new_ids,
-                          self.observation_metadata, new_metadata,
-                          shape=(len(self.observation_ids), len(new_ids)))
-            table.filter(lambda i, md, v: v.sum() > 0, axis='observation')
-            return table
+            data = self._data.tocsc()
+        elif axis == 'observation':
+            data = self._data.tocsr()
         else:
-            table = Table(new_data, new_ids, self.sample_ids, new_metadata,
-                          self.sample_metadata, shape=(len(new_ids),
-                                                       len(self.sample_ids)))
-            table.filter(lambda i, md, v: v.sum() > 0)
-            return table
+            raise UnknownAxisError(axis)
+
+        _subsample(data, n)
+
+        if self.sample_metadata is None:
+            samp_md = None
+        else:
+            samp_md = self.sample_metadata.copy()
+
+        if self.observation_metadata is None:
+            obs_md = None
+        else:
+            obs_md = self.observation_metadata.copy()
+
+        table = Table(data, self.observation_ids[:], self.sample_ids[:],
+                      obs_md, samp_md)
+
+        table.filter(lambda v, i, md: v.sum() > 0)
+        table.filter(lambda v, i, md: v.sum() > 0, axis='observation')
+
+        return table
 
     def pa(self, inplace=True):
         """Convert the `Table` to presence/absence data
