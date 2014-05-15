@@ -1369,7 +1369,7 @@ class Table(object):
         else:
             return UnknownAxisError(axis)
 
-    def subsample(self, n, axis='sample', replace=False):
+    def subsample(self, n, axis='sample'):
         """Randomly subsample without replacement.
 
         Parameters
