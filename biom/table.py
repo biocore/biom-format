@@ -1006,6 +1006,27 @@ class Table(object):
         -------
         GeneratorType
             A generator that yields (values, id, metadata)
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'Z3'])
+
+        Iter over samples and keep those that start with an Z:
+
+        >>> [(values, id, metadata) for values, id, metadata in table.iter() if id[0]=='Z']
+        [(array([  1.,  42.]), 'Z3', None)]
+
+        Iter over observations and add the 2nd column of the values
+
+        >>> col = [values[1] for values, id, metadata in table.iter()] 
+        >>> sum(col)
+        46.0
         """
         if axis == 'sample':
             ids = self.sample_ids
