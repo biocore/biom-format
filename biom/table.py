@@ -422,7 +422,7 @@ class Table(object):
         return self._data.getcol(col_idx)
 
     def reduce(self, f, axis):
-        """Reduce over axis with using function `f`
+        """Reduce over axis using function `f`
 
         Parameters
         ----------
@@ -434,8 +434,8 @@ class Table(object):
         Returns
         -------
         numpy.array
-            A one-dimensioal array representing the reduced rows (observations)
-            or columns (samples) of the data matrix
+            A one-dimensional array representing the reduced rows
+            (observations) or columns (samples) of the data matrix
 
         Raises
         ------
@@ -463,7 +463,7 @@ class Table(object):
         Parameters
         ----------
         axis : {'whole', 'sample', 'observation'}, optional
-            The axis on which to operate.
+            Defaults to "whole". The axis on which to operate.
 
         Returns
         -------
@@ -922,12 +922,12 @@ class Table(object):
         Parameters
         ----------
         axis : {'sample', 'observation'}, optional
-            axis to iterate over
+            Defaults to "sample". Axis to iterate over.
 
         Returns
         -------
         generator
-            yields list of values for each value in `axis`
+            Yields list of values for each value in `axis`
 
         Raises
         ------
@@ -952,10 +952,11 @@ class Table(object):
         Parameters
         ----------
         dense : bool, optional
-            If ``False``, yield compressed sparse row or compressed sparse
-            columns if `axis` is 'observation' or 'sample', respectively
+            Defaults to ``True``. If ``False``, yield compressed sparse row or
+            compressed sparse columns if `axis` is 'observation' or 'sample',
+            respectively.
         axis : {'sample', 'observation'}, optional
-            The axis to iterate over
+            Defaults to "sample". The axis to iterate over.
 
         Returns
         -------
@@ -1251,7 +1252,7 @@ class Table(object):
             Defaults to ``operator.add``. Function that reduces two vectors in
             a one-to-one collapse
         norm : bool, optional
-            If ``True``, normalize the resulting table
+            Defaults to ``True``. If ``True``, normalize the resulting table
         min_group_size : int, optional
             Defaults to ``2``. The minimum size of a partition of performing a
             one-to-many collapse
@@ -1576,7 +1577,7 @@ class Table(object):
             The axis on which to count nonzero entries
         binary : bool, optional
             Defaults to ``False``. If ``False``, return number of nonzero
-            entries. If ``True``, sumthe values of the entries
+            entries. If ``True``, sum the values of the entries.
 
         Returns
         -------
@@ -1649,9 +1650,7 @@ class Table(object):
         other : biom.Table
             The other table to merge with this one
         sample : {'union', 'intersection'}, optional
-            Defaults to "union".
         observation : {'union', 'intersection'}, optional
-            Defaults to "union"
         sample_metadata_f : function, optional
             Defaults to ``biom.util.prefer_self``. Defines how to handle sample
             metadata during merge.
@@ -1881,8 +1880,7 @@ class Table(object):
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
         order : {'observation', 'sample'}, optional
-            Defaults to "observation". To indicate which data ordering to load
-            the table as
+           To indicate which data ordering to load the table as
 
         Returns
         -------
@@ -1896,7 +1894,6 @@ class Table(object):
         Examples
         --------
         ### is it okay to actually create files in doctest?
-
         """
         if not HAVE_H5PY:
             raise RuntimeError("h5py is not in the environment, HDF5 support "
@@ -2439,7 +2436,7 @@ def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
         Defaults to ``np.float64``
     shape : tuple or ``None``, optional
         Defaults to ``None``. If `shape` is ``None``, shape will be determined
-        from `data`.
+        automatically from `data`.
     """
     if shape is None:
         values, (rows, cols) = data
