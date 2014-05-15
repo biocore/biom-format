@@ -56,8 +56,8 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
                                func,
                                cnp.uint8_t invert):
     """Faster version of
-    [func(id_i, md_i, vals_i) ^ invert for
-    (id_i, md_i, vals_i) in zip(ids, metadata, rows/cols)]
+    [func(vals_i, id_i, md_i) ^ invert for
+    (vals_i, id_i, md_i) in zip(ids, metadata, rows/cols)]
     """
     cdef:
         cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
@@ -68,7 +68,7 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
         Py_ssize_t i
     for i in range(len(ids)):
         start, end = indptr[i], indptr[i+1]
-        bools[i] = bool(func(ids[i], metadata[i], data[start:end])) ^ invert
+        bools[i] = bool(func(data[start:end], ids[i], metadata[i])) ^ invert
     return bools
 
 cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):

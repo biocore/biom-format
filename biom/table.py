@@ -611,6 +611,21 @@ class Table(object):
         """
         return self.delimited_self()
 
+    def __repr__(self):
+        """Returns a high-level summary of the table's properties
+
+        Returns
+        -------
+        str
+            A string detailing the shape, class, number of nonzero entries, and
+            table density
+        """
+        rows, cols = self.shape
+        return '%d x %d %s with %d nonzero entries (%d%% dense)' % (
+            rows, cols, repr(self.__class__), self.nnz,
+            self.get_table_density() * 100
+        )
+
     def exists(self, id_, axis="sample"):
         """Returns whether id_ exists in axis
 
@@ -991,7 +1006,7 @@ class Table(object):
 
         Parameters
         ----------
-        ids_to_keep : function(id, metadata, values) -> bool, or iterable
+        ids_to_keep : function(values, id, metadata) -> bool, or iterable
             If a function, it will be called with the id (a string),
             the dictionary of metadata of each sample/observation and
             the nonzero values of the sample/observation, and must
@@ -1369,6 +1384,44 @@ class Table(object):
         else:
             return UnknownAxisError(axis)
 
+    def pa(self, inplace=True):
+        """Convert the `Table` to presence/absence data
+
+        Parameters
+        ----------
+        inplace : bool, optional
+            Defaults to `False`
+
+        Returns
+        -------
+        biom.Table
+            Returns itself if `inplace`, else returns a new presence/absence
+            table.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Convert to presence/absence data
+
+        >>> _ = table.pa()
+        >>> print table.data('O1', 'observation')
+        [ 0.  0.  1.]
+        >>> print table.data('O2', 'observation')
+        [ 1.  1.  1.]
+
+        """
+        def transform_f(data, id_, metadata):
+            return np.where(data > 0, 1., 0.)
+
+        return self.transform(transform_f, inplace=inplace)
+
     def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
@@ -1687,14 +1740,23 @@ class Table(object):
                               sample_ids[:], obs_md, sample_md)
 
     @classmethod
-    def from_hdf5(cls, h5grp, order='observation'):
+    def from_hdf5(cls, h5grp, samples=None, observations=None):
         """Parse an HDF5 formatted BIOM table
 
-        The expected structure of this group is below. A few basic
-        definitions, N is the number of observations and M is the number of
-        samples. Data are stored in both compressed sparse row [1]_ (CSR, for
-        observation oriented operations) and compressed sparse column [2]_
-        (CSC, for sample oriented operations).
+        If samples or observations are provided, only those samples or
+        observations ids present in these lists are loaded.
+
+        The expected structure of this group is below. A few basic definitions,
+        N is the number of observations and M is the number of samples. Data
+        are stored in both compressed sparse row (for observation oriented
+        operations) and compressed sparse column (for sample oriented
+        operations).
+
+        ### ADD IN SCIPY SPARSE CSC/CSR URLS
+        ### ADD IN WIKIPEDIA PAGE LINK TO CSR
+        ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
+        ###     THOUGH
+        ### METADATA ARE NOT REPRESENTED HERE YET
 
         Notes
         -----
@@ -1738,8 +1800,30 @@ class Table(object):
 
         Paramters
         ---------
-        h5grp : {`h5py.Group`, `h5py.File`}
-        axis : {'sample', 'observation'}, optional
+        h5grp : a h5py ``Group`` or an open h5py ``File``
+        samples: iterable, optional
+            The sample ids of the samples that we need to retrieve from the
+            hdf5 biom table
+        observations: iterable, optional
+            The observation ids of the observations that we need to retrieve
+            from the hdf5 biom table
+
+        Returns
+        -------
+        Table
+            A BIOM ``Table`` object
+
+        Raises
+        ------
+        ValueError
+            If `samples` and `observations` are provided
+            If `samples` or `observations` are not a subset of the samples or
+            observations ids present in the hdf5 biom table
+
+        Notes
+        -----
+        Subsetting can only happen over samples or observations, but not for
+        both axis at the same time.
 
         See Also
         --------
@@ -1770,14 +1854,20 @@ class Table(object):
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
 
-        if order not in ('observation', 'sample'):
-            raise ValueError("Unknown order %s!" % order)
+        if samples is not None and observations is not None:
+            raise ValueError("Subsetting samples and observations at the same"
+                             "time is not supported. Please specify either"
+                             "samples or observations but not both.")
 
+        subset = not (samples is None and observations is None)
+        order = 'sample' if samples is not None else 'observation'
+
+        id_ = h5grp.attrs['id']
         create_date = h5grp.attrs['creation-date']
         generated_by = h5grp.attrs['generated-by']
 
         shape = h5grp.attrs['shape']
-        type = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
+        type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
         # fetch all of the IDs
         obs_ids = h5grp['observation/ids'][:]
@@ -1790,9 +1880,73 @@ class Table(object):
 
         # load the data
         data_grp = h5grp[order]['matrix']
-        data = data_grp["data"]
-        indices = data_grp["indices"]
-        indptr = data_grp["indptr"]
+        h5_data = data_grp["data"]
+        h5_indices = data_grp["indices"]
+        h5_indptr = data_grp["indptr"]
+
+        # Check if we need to subset the biom table
+        if subset:
+            def _get_ids(source_ids, desired_ids):
+                """If desired_ids is not None, makes sure that it is a subset
+                of source_ids and returns the desired_ids array-like and a
+                boolean array indicating where the desired_ids can be found in
+                source_ids"""
+                if desired_ids is None:
+                    ids = source_ids[:]
+                    idx = np.ones(source_ids.shape, dtype=bool)
+                else:
+                    desired_ids = np.asarray(desired_ids)
+                    # Get the index of the source ids to include
+                    idx = np.in1d(source_ids, desired_ids)
+                    # Retrieve only the ids that we are interested on
+                    ids = source_ids[idx]
+                    # Check that all desired ids have been found on source ids
+                    if ids.shape != desired_ids.shape:
+                        raise ValueError("The following ids could not be "
+                                         "found in the biom table: %s" %
+                                         (set(desired_ids) - set(ids)))
+                return ids, idx
+
+            # Get the observation and sample ids that we are interested in
+            obs_ids, obs_idx = _get_ids(obs_ids, observations)
+            samp_ids, samp_idx = _get_ids(samp_ids, samples)
+
+            # Get the new matrix shape
+            shape = (len(obs_ids), len(samp_ids))
+
+            # Fetch the metadata that we are interested in
+            def _subset_metadata(md, idx):
+                """If md has data, returns the subset indicated by idx, a
+                boolean array"""
+                if md:
+                    md = list(np.asarray(md)[np.where(idx)])
+                return md
+
+            obs_md = _subset_metadata(obs_md, obs_idx)
+            samp_md = _subset_metadata(samp_md, samp_idx)
+
+            # load the subset of the data
+            idx = samp_idx if order == 'sample' else obs_idx
+            keep = np.where(idx)[0]
+            indptr_indices = sorted([(h5_indptr[i], h5_indptr[i+1])
+                                     for i in keep])
+            # Create the new indptr
+            indptr_subset = np.array([end - start
+                                     for start, end in indptr_indices])
+            indptr = np.empty(len(keep) + 1, dtype=np.int32)
+            indptr[0] = 0
+            indptr[1:] = indptr_subset.cumsum()
+
+            data = np.hstack(h5_data[start:end]
+                             for start, end in indptr_indices)
+            indices = np.hstack(h5_indices[start:end]
+                                for start, end in indptr_indices)
+        else:
+            # no subset need, just pass all data to scipy
+            data = h5_data
+            indices = h5_indices
+            indptr = h5_indptr
+
         cs = (data, indices, indptr)
 
         if order == 'sample':
@@ -1800,9 +1954,15 @@ class Table(object):
         else:
             matrix = csr_matrix(cs, shape=shape)
 
-        return Table(matrix, obs_ids, samp_ids,  obs_md or None,
-                     samp_md or None, type=type, create_date=create_date,
-                     generated_by=generated_by)
+        t = Table(matrix, obs_ids, samp_ids, obs_md or None,
+                  samp_md or None, type=type_, create_date=create_date,
+                  generated_by=generated_by, table_id=id_)
+
+        f = lambda vals, id_, md: np.any(vals)
+        axis = 'observation' if order == 'sample' else 'sample'
+        t.filter(f, axis=axis)
+
+        return t
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
@@ -2106,6 +2266,212 @@ class Table(object):
                                      generated_by, date,
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
+
+    @staticmethod
+    def from_tsv(lines, obs_mapping, sample_mapping,
+                 process_func, **kwargs):
+        """Parse an tab separated (observation x sample) formatted BIOM table
+
+        Parameters
+        ----------
+        lines : list, or file-like object
+            The tab delimited data to parse
+        obs_mapping : dict or None
+            The corresponding observation metadata
+        sample_mapping : dict or None
+            The corresponding sample metadata
+        process_func : function
+            A function to transform the observation metadata
+
+        Returns
+        -------
+        Table
+            A BIOM ``Table`` object
+
+        Examples
+        --------
+        >>> from biom.table import Table
+        >>> from StringIO import StringIO
+        >>> tsv = 'a\\tb\\tc\\n1\\t2\\t3\\n4\\t5\\t6'
+        >>> tsv_fh = StringIO(tsv)
+        >>> func = lambda x : x
+        >>> test_table = Table.from_tsv(tsv_fh, None, None, func)
+        """
+
+        (sample_ids, obs_ids, data, t_md,
+            t_md_name) = Table._extract_data_from_tsv(lines, **kwargs)
+
+        # if we have it, keep it
+        if t_md is None:
+            obs_metadata = None
+        else:
+            obs_metadata = [{t_md_name: process_func(v)} for v in t_md]
+
+        if sample_mapping is None:
+            sample_metadata = None
+        else:
+            sample_metadata = [sample_mapping[sample_id]
+                               for sample_id in sample_ids]
+
+        # will override any metadata from parsed table
+        if obs_mapping is not None:
+            obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
+
+        return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata)
+
+    @staticmethod
+    def _extract_data_from_tsv(lines, delim='\t', dtype=float,
+                               header_mark=None, md_parse=None):
+        """Parse a classic table into (sample_ids, obs_ids, data, metadata,
+                                       name)
+        Returns
+        -------
+        list
+            sample_ids
+        list
+            observation_ids
+        array
+            data
+        list
+            metadata
+        string
+            column name if last column is non-numeric
+
+        Parameters
+        ----------
+        lines: list or file-like object
+            delimted data to parse
+        delim: string
+            delimeter in file lines
+        dtype: type
+        header_mark:  string or None
+            string that indicates start of header line
+        md_parse:  function or None
+            funtion used to parse metdata
+
+        Notes
+        ------
+        This is intended to be close to how QIIME classic OTU tables are
+        parsed with the exception of the additional md_name field
+
+        This function is ported from QIIME (http://www.qiime.org), previously
+        named
+        parse_classic_otu_table. QIIME is a GPL project, but we obtained
+        permission
+        from the authors of this function to port it to the BIOM Format project
+        (and keep it under BIOM's BSD license).
+        """
+        if not isinstance(lines, list):
+            try:
+                lines = lines.readlines()
+            except AttributeError:
+                raise RuntimeError(
+                    "Input needs to support readlines or be indexable")
+
+        # find header, the first line that is not empty and does not start
+        # with a #
+        for idx, l in enumerate(lines):
+            if not l.strip():
+                continue
+            if not l.startswith('#'):
+                break
+            if header_mark and l.startswith(header_mark):
+                break
+
+        if idx == 0:
+            data_start = 1
+            header = lines[0].strip().split(delim)[1:]
+        else:
+            if header_mark is not None:
+                data_start = idx + 1
+                header = lines[idx].strip().split(delim)[1:]
+            else:
+                data_start = idx
+                header = lines[idx - 1].strip().split(delim)[1:]
+
+        # attempt to determine if the last column is non-numeric, ie, metadata
+        first_values = lines[data_start].strip().split(delim)
+        last_value = first_values[-1]
+        last_column_is_numeric = True
+
+        if '.' in last_value:
+            try:
+                float(last_value)
+            except ValueError:
+                last_column_is_numeric = False
+        else:
+            try:
+                int(last_value)
+            except ValueError:
+                last_column_is_numeric = False
+
+        # determine sample ids
+        if last_column_is_numeric:
+            md_name = None
+            metadata = None
+            samp_ids = header[:]
+        else:
+            md_name = header[-1]
+            metadata = []
+            samp_ids = header[:-1]
+
+        data = []
+        obs_ids = []
+        for line in lines[data_start:]:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith('#'):
+                continue
+
+            fields = line.strip().split(delim)
+            obs_ids.append(fields[0])
+
+            if last_column_is_numeric:
+                values = map(dtype, fields[1:])
+            else:
+                values = map(dtype, fields[1:-1])
+
+                if md_parse is not None:
+                    metadata.append(md_parse(fields[-1]))
+                else:
+                    metadata.append(fields[-1])
+
+            data.append(values)
+
+        return samp_ids, obs_ids, asarray(data), metadata, md_name
+
+    def to_tsv(self, header_key=None, header_value=None,
+               metadata_formatter=str, observation_column_name='#OTU ID'):
+        """Return self as a string in tab delimited form
+
+        Default ``str`` output for the ``Table`` is just row/col ids and table
+        data without any metadata
+
+        Parameters
+        ----------
+        header_key : string or None
+        header_value : string or None
+        metadata_formatter : function
+            a function which takes a metadata entry and
+            returns a formatted version that should be written to file
+        observation_column_name : string
+            the name of the first column in the output
+            table, corresponding to the observation IDs.
+
+        Returns
+        -------
+        string
+            tab delimited represtation of the Table
+            For example, the default will look something like:
+                #OTU ID\tSample1\tSample2
+                OTU1\t10\t2
+                OTU2\t4\t8
+
+        """
+        return self.delimited_self('\t', header_key, header_value,
+                                   metadata_formatter,
+                                   observation_column_name)
 
 
 def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
