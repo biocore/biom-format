@@ -1290,7 +1290,6 @@ class Table(object):
         #OTU ID S3
         O1  1.0
         O2  42.0
-
         """
         partitions = {}
         # conversion of vector types is not necessary, vectors are not
