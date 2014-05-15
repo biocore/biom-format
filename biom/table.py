@@ -2037,7 +2037,7 @@ class Table(object):
         ./type                       : str, the table type (e.g, OTU table)
         ./format-url                 : str, a URL that describes the format
         ./format-version             : two element tuple of int32,
-                                       major and minor
+        major and minor
         ./generated-by               : str, what generated this file
         ./creation-date              : str, ISO format
         ./shape                      : two element tuple of int32, N by M
@@ -2049,7 +2049,7 @@ class Table(object):
         ./observation/matrix/indices : (nnz,) dataset of int32
         ./observation/matrix/indptr  : (M+1,) dataset of int32
         [./observation/metadata]     : Optional, JSON str, in index order
-                                       with ids. See below for added detail.
+        with ids. See below for added detail.
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
@@ -2057,7 +2057,7 @@ class Table(object):
         ./sample/matrix/indices      : (nnz,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
         [./sample/metadata]          : Optional, JSON str, in index order
-                                       with ids. See below for added detail.
+        with ids. See below for added detail.
 
         The expected structure (in JSON) for the optional metadata is a list of
         objects, where the index order of the list corresponds to the index
@@ -2252,7 +2252,7 @@ html
         ./type                       : str, the table type (e.g, OTU table)
         ./format-url                 : str, a URL that describes the format
         ./format-version             : two element tuple of int32,
-                                       major and minor
+        ajor and minor
         ./generated-by               : str, what generated this file
         ./creation-date              : str, ISO format
         ./shape                      : two element tuple of int32, N by M
@@ -2264,7 +2264,7 @@ html
         ./observation/matrix/indices : (nnz,) dataset of int32
         ./observation/matrix/indptr  : (M+1,) dataset of int32
         [./observation/metadata]     : Optional, JSON str, in index order
-                                       with ids. See below for added detail.
+        with ids. See below for added detail.
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
@@ -2272,7 +2272,7 @@ html
         ./sample/matrix/indices      : (nnz,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
         [./sample/metadata]          : Optional, JSON str, in index order
-                                       with ids. See below for added detail.
+        with ids. See below for added detail.
 
         The expected structure (in JSON) for the optional metadata is a list of
         objects, where the index order of the list corresponds to the index
@@ -2299,11 +2299,11 @@ html
         References
         ----------
         .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-                py.sparse.csr_matrix.html
+py.sparse.csr_matrix.html
         .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-                py.sparse.csc_matrix.html
+py.sparse.csc_matrix.html
         .. [3] http://biom-format.org/documentation/format_versions/biom-2.0.\
-                html
+html
 
         Examples
         --------
