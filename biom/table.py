@@ -977,6 +977,22 @@ class Table(object):
         ------
         UnknownAxisError
             If axis other than 'sample' or 'observation' passed
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+        >>> data = np.arange(30).reshape(3,10) # 3 X 10 OTU X Sample table
+        >>> obs_ids = ['o1', 'o2', 'o3']
+        >>> sam_ids = ['s%i' %i for i in range(1,11)]
+        >>> bt = Table(data, observation_ids=obs_ids, sample_ids=sam_ids)
+
+        Lets find the sample with the largest sum
+
+        >>> sample_gen = bt.iter_data(axis='sample')
+        >>> max_sample_count = max([sample.sum() for sample in sample_gen])
+        >>> print max_sample_count
+        57.0
         """
         if axis == "sample":
             for samp_v in self._iter_samp():
