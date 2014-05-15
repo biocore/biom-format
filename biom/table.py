@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Distance matrices (:mod:`biom.table`)
-=============================================
+=====================================
 
 .. currentmodule:: biom.table
 
