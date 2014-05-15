@@ -463,7 +463,7 @@ class Table(object):
         Parameters
         ----------
         axis : {'whole', 'sample', 'observation'}, optional
-            Defaults to "whole". The axis on which to operate.
+            The axis on which to operate.
 
         Returns
         -------
@@ -922,7 +922,7 @@ class Table(object):
         Parameters
         ----------
         axis : {'sample', 'observation'}, optional
-            Defaults to "sample". Axis to iterate over.
+            Axis to iterate over.
 
         Returns
         -------
@@ -956,7 +956,7 @@ class Table(object):
             compressed sparse columns if `axis` is 'observation' or 'sample',
             respectively.
         axis : {'sample', 'observation'}, optional
-            Defaults to "sample". The axis to iterate over.
+            The axis to iterate over.
 
         Returns
         -------
