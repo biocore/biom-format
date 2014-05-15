@@ -1,6 +1,24 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""The BIOM Table API"""
+"""
+BIOM Table (:mod:`biom.table`)
+==============================
+
+The biom-format project provides rich ``Table`` objects to support use of the
+BIOM file format. The objects encapsulate matrix data (such as OTU counts) and
+abstract the interaction away from the programmer.
+
+.. currentmodule:: biom.table
+
+Classes
+-------
+
+.. autosummary::
+   :toctree: generated/
+
+   Table
+
+"""
 
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
@@ -2046,7 +2064,7 @@ class Table(object):
         [{"taxonomy": ["foo", "bar"]}, {"taxonomy": ["foo", "foobar"]}]
 
         Parameters
-        ---------
+        ----------
         h5grp : a h5py ``Group`` or an open h5py ``File``
         samples: iterable, optional
             The sample ids of the samples that we need to retrieve from the
@@ -2261,7 +2279,7 @@ class Table(object):
         [{"taxonomy": ["foo", "bar"]}, {"taxonomy": ["foo", "foobar"]}]
 
         Parameters
-        ---------
+        ----------
         h5grp : {`h5py.Group`, `h5py.File`}
         generated_by : str
             A description of what generated the table
