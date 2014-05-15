@@ -10,16 +10,17 @@
 
 from __future__ import division
 from string import maketrans
+import numpy as np
 from biom import __version__
-from biom.exception import BiomParseException
-from biom.table import nparray_to_sparse, Table
+from biom.exception import BiomParseException, UnknownAxisError
+from biom.table import Table
 import json
-from numpy import asarray
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Justin Kuczynski", "Daniel McDonald", "Greg Caporaso",
-               "Jose Carlos Clemente Litran", "Adam Robbins-Pianka"]
+               "Jose Carlos Clemente Litran", "Adam Robbins-Pianka",
+               "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -242,27 +243,66 @@ def get_axis_indices(biom_str, to_keep, axis):
     return idxs, json.dumps(subset)[1:-1]  # trim off { and }
 
 
-def parse_biom_table(fp, input_is_dense=False):
+def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
+    """Parses the biom table stored in the filepath `fp`
+
+    Parameters
+    ----------
+    fp : file like
+        File alike object storing the BIOM tables
+    ids : iterable
+        The sample/observation ids of the samples/observations that we need
+        to retrieve from the biom table
+    axis : {'sample', 'observation'}, optional
+        The axis to subset on
+    input_is_dense : boolean
+        Indicates if the BIOM table is dense or sparse. Valid only for JSON
+        tables.
+
+    Returns
+    -------
+    Table
+        The BIOM table stored at fp
+
+    Raises
+    ------
+    ValueError
+        If `samples` and `observations` are provided.
+
+    Notes
+    -----
+    Subsetting from the BIOM table is only supported in one axis
+    """
+    if axis not in ['observations', 'samples']:
+        UnknownAxisError(axis)
+
     try:
-        return Table.from_hdf5(fp)
+        return Table.from_hdf5(fp, ids=ids, axis=axis)
     except:
         pass
 
     if hasattr(fp, 'read'):
         try:
-            return Table.from_json(json.load(fp),
-                                   input_is_dense=input_is_dense)
+            t = Table.from_json(json.load(fp), input_is_dense=input_is_dense)
         except ValueError:
-            return Table.from_tsv(fp, None, None, lambda x: x)
+            t = Table.from_tsv(fp, None, None, lambda x: x)
     elif isinstance(fp, list):
         try:
-            return Table.from_json(json.loads(''.join(fp)),
-                                   input_is_dense=input_is_dense)
+            t = Table.from_json(json.loads(''.join(fp)),
+                                input_is_dense=input_is_dense)
         except ValueError:
-            return Table.from_tsv(fp, None, None, lambda x: x)
+            t = Table.from_tsv(fp, None, None, lambda x: x)
     else:
-        return Table.from_json(json.loads(fp),
-                               input_is_dense=input_is_dense)
+        t = Table.from_json(json.loads(fp), input_is_dense=input_is_dense)
+
+    if ids is not None:
+        f = lambda data, id_, md: id_ in ids
+        t.filter(f, axis=axis)
+        axis = 'observation' if axis == 'sample' else 'sample'
+        f = lambda vals, id_, md: np.any(vals)
+        t.filter(f, axis=axis)
+
+    return t
 
 
 def sc_pipe_separated(x):

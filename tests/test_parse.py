@@ -16,7 +16,7 @@ from biom import __version__
 from numpy import array
 import numpy.testing as npt
 from unittest import TestCase, main
-from biom.parse import generatedby, MetadataMap
+from biom.parse import generatedby, MetadataMap, parse_biom_table
 from biom.table import Table
 from biom.util import HAVE_H5PY
 
@@ -151,6 +151,40 @@ class ParseTests(TestCase):
                                             'Sample6',))
         npt.assert_equal((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
                                                  'GG_OTU_3', 'GG_OTU_4',
+                                                 'GG_OTU_5'))
+        self.assertEqual(tab.sample_metadata, None)
+        self.assertEqual(tab.observation_metadata, None)
+
+        tab = parse_biom_table(StringIO(self.biom_minimal_sparse))
+        npt.assert_equal((tab.sample_ids), ('Sample1', 'Sample2',
+                                            'Sample3', 'Sample4', 'Sample5',
+                                            'Sample6',))
+        npt.assert_equal((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
+                                                 'GG_OTU_3', 'GG_OTU_4',
+                                                 'GG_OTU_5'))
+        self.assertEqual(tab.sample_metadata, None)
+        self.assertEqual(tab.observation_metadata, None)
+
+    def test_parse_biom_table_subset(self):
+        """test the biom table parser subsetting"""
+        tab = parse_biom_table(StringIO(self.biom_minimal_sparse),
+                               ids=['Sample1', 'Sample3', 'Sample5',
+                                    'Sample6'])
+        npt.assert_equal((tab.sample_ids), ('Sample1', 'Sample3', 'Sample5',
+                                            'Sample6',))
+        npt.assert_equal((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
+                                                 'GG_OTU_3', 'GG_OTU_4',
+                                                 'GG_OTU_5'))
+        self.assertEqual(tab.sample_metadata, None)
+        self.assertEqual(tab.observation_metadata, None)
+
+        tab = parse_biom_table(StringIO(self.biom_minimal_sparse),
+                               ids=['GG_OTU_2', 'GG_OTU_3', 'GG_OTU_5'],
+                               axis='observation')
+        npt.assert_equal((tab.sample_ids), ('Sample1', 'Sample2',
+                                            'Sample3', 'Sample4', 'Sample5',
+                                            'Sample6',))
+        npt.assert_equal((tab.observation_ids), ('GG_OTU_2', 'GG_OTU_3',
                                                  'GG_OTU_5'))
         self.assertEqual(tab.sample_metadata, None)
         self.assertEqual(tab.observation_metadata, None)
