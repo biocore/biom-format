@@ -1006,7 +1006,7 @@ class Table(object):
 
         Parameters
         ----------
-        ids_to_keep : function(id, metadata, values) -> bool, or iterable
+        ids_to_keep : function(values, id, metadata) -> bool, or iterable
             If a function, it will be called with the id (a string),
             the dictionary of metadata of each sample/observation and
             the nonzero values of the sample/observation, and must
