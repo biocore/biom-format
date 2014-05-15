@@ -1726,6 +1726,11 @@ class Table(object):
             If `samples` or `observations` are not a subset of the samples or
             observations ids present in the hdf5 biom table
 
+        Notes
+        -----
+        Subsetting can only happen over samples or observations, but not for
+        both axis at the same time.
+
         See Also
         --------
         Table.format_hdf5
@@ -1740,7 +1745,9 @@ class Table(object):
                                "is not available")
 
         if samples is not None and observations is not None:
-            raise ValueError("Not supported")
+            raise ValueError("Subsetting samples and observations at the same"
+                             "time is not supported. Please specify either"
+                             "samples or observations but not both.")
 
         subset = not (samples is None and observations is None)
         order = 'sample' if samples is not None else 'observation'
@@ -1810,15 +1817,19 @@ class Table(object):
             # load the subset of the data
             idx = samp_idx if order == 'sample' else obs_idx
             keep = np.where(idx)[0]
-            data = np.hstack([h5_data[h5_indptr[i]:h5_indptr[i+1]]
-                              for i in keep])
-            indices = np.hstack([h5_indices[h5_indptr[i]:h5_indptr[i+1]]
-                                 for i in keep])
+            indptr_indices = sorted([(h5_indptr[i], h5_indptr[i+1])
+                                     for i in keep])
             # Create the new indptr
+            indptr_subset = np.array([end - start
+                                     for start, end in indptr_indices])
             indptr = np.empty(len(keep) + 1, dtype=np.int32)
             indptr[0] = 0
-            for i, j in enumerate(keep):
-                indptr[i+1] = indptr[i] + (h5_indptr[j+1] - h5_indptr[j])
+            indptr[1:] = indptr_subset.cumsum()
+
+            data = np.hstack(h5_data[start:end]
+                             for start, end in indptr_indices)
+            indices = np.hstack(h5_indices[start:end]
+                                for start, end in indptr_indices)
         else:
             # no subset need, just pass all data to scipy
             data = h5_data
@@ -1832,9 +1843,15 @@ class Table(object):
         else:
             matrix = csr_matrix(cs, shape=shape)
 
-        return Table(matrix, obs_ids, samp_ids, obs_md or None,
-                     samp_md or None, type=type_, create_date=create_date,
-                     generated_by=generated_by)
+        t = Table(matrix, obs_ids, samp_ids, obs_md or None,
+                  samp_md or None, type=type_, create_date=create_date,
+                  generated_by=generated_by)
+
+        f = lambda id_, md, vals: np.any(vals)
+        axis = 'observation' if order == 'sample' else 'sample'
+        t.filter(f, axis=axis)
+
+        return t
 
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
