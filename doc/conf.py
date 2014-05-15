@@ -25,7 +25,7 @@ import biom
 sys.path.insert(0, os.path.abspath('sphinxext/numpydoc'))  
 
 # -- Options for autosummary ----------------------------------------------     
-autosummary_generate = glob.glob('*.rst')  
+autosummary_generate = glob.glob('*.rst') + glob.glob('documentation/*.rst')
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -233,4 +233,3 @@ man_pages = [
      [u'The BIOM Project'], 1)
 ]
 
-autosummary_generate = glob.glob('*.rst') + glob.glob('documentation/*.rst')
