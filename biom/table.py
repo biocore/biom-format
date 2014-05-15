@@ -2739,12 +2739,25 @@ html
         Returns
         -------
         str
-            tab delimited represtation of the Table
-            For example, the default will look something like:
-                #OTU ID\tSample1\tSample2
-                OTU1\t10\t2
-                OTU2\t4\t8
+            tab delimited representation of the Table
 
+        Examples
+        --------
+
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table, with observation metadata and no sample
+        metadata:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'foo': 'bar'}, {'x': 'y'}], None)
+        >>> print table.to_tsv()
+        # Constructed from biom file
+        #OTU ID	S1	S2	S3
+        O1	0.0	0.0	1.0
+        O2	1.0	3.0	42.0
         """
         return self.delimited_self('\t', header_key, header_value,
                                    metadata_formatter,
