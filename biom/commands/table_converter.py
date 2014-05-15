@@ -98,8 +98,8 @@ class TableConverter(Command):
     ])
 
     CommandOuts = ParameterCollection([
-        CommandOut(Name='table', DataType=object,
-                   Description='The resulting table, or str')
+        CommandOut(Name='table', DataType=tuple,
+                   Description='The resulting table and format')
     ])
 
     def run(self, **kwargs):
@@ -161,11 +161,14 @@ class TableConverter(Command):
             result = table.to_tsv(header_key=header_key,
                                   header_value=output_metadata_id,
                                   metadata_formatter=obs_md_fmt_f)
+            fmt = 'tsv'
         elif to_json:
             result = table.to_json(generatedby())
+            fmt = 'json'
         elif to_hdf5:
             result = table
+            fmt = 'hdf5'
 
-        return {'table': result}
+        return {'table': (result, fmt)}
 
 CommandConstructor = TableConverter

@@ -43,7 +43,7 @@ class TableConverterTests(TestCase):
                        to_json=True)
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table'])
+        obs = parse_biom_table(obs['table'][0])
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
@@ -57,7 +57,7 @@ class TableConverterTests(TestCase):
                        sample_metadata=self.sample_md1, to_json=True)
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table'])
+        obs = parse_biom_table(obs['table'][0])
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
@@ -77,7 +77,7 @@ class TableConverterTests(TestCase):
                        process_obs_metadata='sc_separated', to_json=True)
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table'])
+        obs = parse_biom_table(obs['table'][0])
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
@@ -96,12 +96,12 @@ class TableConverterTests(TestCase):
         obs = self.cmd(table=parse_biom_table(self.biom_lines1),
                        to_tsv=True, header_key='taxonomy')
         self.assertEqual(obs.keys(), ['table'])
-        self.assertEqual(obs['table'], classic1)
+        self.assertEqual(obs['table'][0], classic1)
 
         obs = self.cmd(table=parse_biom_table(self.biom_lines1), to_tsv=True,
                        header_key='taxonomy', output_metadata_id='foo')
         self.assertEqual(obs.keys(), ['table'])
-        obs_md_col = obs['table'].split('\n')[1].split('\t')[-1]
+        obs_md_col = obs['table'][0].split('\n')[1].split('\t')[-1]
         self.assertEqual(obs_md_col, 'foo')
 
     def test_invalid_input(self):
