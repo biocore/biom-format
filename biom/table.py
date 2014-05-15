@@ -2101,6 +2101,212 @@ class Table(object):
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
 
+    @staticmethod
+    def from_tsv(lines, obs_mapping, sample_mapping,
+                 process_func, **kwargs):
+        """Parse an tab separated (observation x sample) formatted BIOM table
+
+        Parameters
+        ----------
+        lines : list, or file-like object
+            The tab delimited data to parse
+        obs_mapping : dict or None
+            The corresponding observation metadata
+        sample_mapping : dict or None
+            The corresponding sample metadata
+        process_func : function
+            A function to transform the observation metadata
+
+        Returns
+        -------
+        Table
+            A BIOM ``Table`` object
+
+        Examples
+        --------
+        >>> from biom.table import Table
+        >>> from StringIO import StringIO
+        >>> tsv = 'a\\tb\\tc\\n1\\t2\\t3\\n4\\t5\\t6'
+        >>> tsv_fh = StringIO(tsv)
+        >>> func = lambda x : x
+        >>> test_table = Table.from_tsv(tsv_fh, None, None, func)
+        """
+
+        (sample_ids, obs_ids, data, t_md,
+            t_md_name) = Table._extract_data_from_tsv(lines, **kwargs)
+
+        # if we have it, keep it
+        if t_md is None:
+            obs_metadata = None
+        else:
+            obs_metadata = [{t_md_name: process_func(v)} for v in t_md]
+
+        if sample_mapping is None:
+            sample_metadata = None
+        else:
+            sample_metadata = [sample_mapping[sample_id]
+                               for sample_id in sample_ids]
+
+        # will override any metadata from parsed table
+        if obs_mapping is not None:
+            obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
+
+        return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata)
+
+    @staticmethod
+    def _extract_data_from_tsv(lines, delim='\t', dtype=float,
+                               header_mark=None, md_parse=None):
+        """Parse a classic table into (sample_ids, obs_ids, data, metadata,
+                                       name)
+        Returns
+        -------
+        list
+            sample_ids
+        list
+            observation_ids
+        array
+            data
+        list
+            metadata
+        string
+            column name if last column is non-numeric
+
+        Parameters
+        ----------
+        lines: list or file-like object
+            delimted data to parse
+        delim: string
+            delimeter in file lines
+        dtype: type
+        header_mark:  string or None
+            string that indicates start of header line
+        md_parse:  function or None
+            funtion used to parse metdata
+
+        Notes
+        ------
+        This is intended to be close to how QIIME classic OTU tables are
+        parsed with the exception of the additional md_name field
+
+        This function is ported from QIIME (http://www.qiime.org), previously
+        named
+        parse_classic_otu_table. QIIME is a GPL project, but we obtained
+        permission
+        from the authors of this function to port it to the BIOM Format project
+        (and keep it under BIOM's BSD license).
+        """
+        if not isinstance(lines, list):
+            try:
+                lines = lines.readlines()
+            except AttributeError:
+                raise RuntimeError(
+                    "Input needs to support readlines or be indexable")
+
+        # find header, the first line that is not empty and does not start
+        # with a #
+        for idx, l in enumerate(lines):
+            if not l.strip():
+                continue
+            if not l.startswith('#'):
+                break
+            if header_mark and l.startswith(header_mark):
+                break
+
+        if idx == 0:
+            data_start = 1
+            header = lines[0].strip().split(delim)[1:]
+        else:
+            if header_mark is not None:
+                data_start = idx + 1
+                header = lines[idx].strip().split(delim)[1:]
+            else:
+                data_start = idx
+                header = lines[idx - 1].strip().split(delim)[1:]
+
+        # attempt to determine if the last column is non-numeric, ie, metadata
+        first_values = lines[data_start].strip().split(delim)
+        last_value = first_values[-1]
+        last_column_is_numeric = True
+
+        if '.' in last_value:
+            try:
+                float(last_value)
+            except ValueError:
+                last_column_is_numeric = False
+        else:
+            try:
+                int(last_value)
+            except ValueError:
+                last_column_is_numeric = False
+
+        # determine sample ids
+        if last_column_is_numeric:
+            md_name = None
+            metadata = None
+            samp_ids = header[:]
+        else:
+            md_name = header[-1]
+            metadata = []
+            samp_ids = header[:-1]
+
+        data = []
+        obs_ids = []
+        for line in lines[data_start:]:
+            line = line.strip()
+            if not line:
+                continue
+            if line.startswith('#'):
+                continue
+
+            fields = line.strip().split(delim)
+            obs_ids.append(fields[0])
+
+            if last_column_is_numeric:
+                values = map(dtype, fields[1:])
+            else:
+                values = map(dtype, fields[1:-1])
+
+                if md_parse is not None:
+                    metadata.append(md_parse(fields[-1]))
+                else:
+                    metadata.append(fields[-1])
+
+            data.append(values)
+
+        return samp_ids, obs_ids, asarray(data), metadata, md_name
+
+    def to_tsv(self, header_key=None, header_value=None,
+               metadata_formatter=str, observation_column_name='#OTU ID'):
+        """Return self as a string in tab delimited form
+
+        Default ``str`` output for the ``Table`` is just row/col ids and table
+        data without any metadata
+
+        Parameters
+        ----------
+        header_key : string or None
+        header_value : string or None
+        metadata_formatter : function
+            a function which takes a metadata entry and
+            returns a formatted version that should be written to file
+        observation_column_name : string
+            the name of the first column in the output
+            table, corresponding to the observation IDs.
+
+        Returns
+        -------
+        string
+            tab delimited represtation of the Table
+            For example, the default will look something like:
+                #OTU ID\tSample1\tSample2
+                OTU1\t10\t2
+                OTU2\t4\t8
+
+        """
+        return self.delimited_self('\t', header_key, header_value,
+                                   metadata_formatter,
+                                   observation_column_name)
+
 
 def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
     """Map directly on to the coo_matrix constructor
