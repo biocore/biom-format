@@ -1958,7 +1958,7 @@ class Table(object):
                   samp_md or None, type=type_, create_date=create_date,
                   generated_by=generated_by, table_id=id_)
 
-        f = lambda id_, md, vals: np.any(vals)
+        f = lambda vals, id_, md: np.any(vals)
         axis = 'observation' if order == 'sample' else 'sample'
         t.filter(f, axis=axis)
 
