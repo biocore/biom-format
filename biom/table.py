@@ -4,18 +4,10 @@
 BIOM Table (:mod:`biom.table`)
 ==============================
 
-
 The biom-format project provides rich ``Table`` objects to support use of the
 BIOM file format. The objects encapsulate matrix data (such as OTU counts) and
 abstract the interaction away from the programmer.
 
-Description of available ``Table`` objects
-------------------------------------------
-
-There are multiple objects available but some of them are unofficial abstract
-base classes (does not use the ``abc`` module for historical reasons). In
-practice, the objects used should be the derived Tables such as
-``SparseOTUTable`` or ``DenseGeneTable``. 
 
 Abstract base classes
 ---------------------
