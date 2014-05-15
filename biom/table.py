@@ -1073,7 +1073,8 @@ class Table(object):
         Filter the table in-place using the same function (drop all samples
         where sample_type is not 'a'):
 
-        >>> _ = table.filter(filter_fn)
+        >>> table.filter(filter_fn)
+        2 x 2 <class 'biom.table.Table'> with 2 nonzero entries (50% dense)
         >>> print table.sample_ids
         ['S1' 'S2']
 
@@ -1081,10 +1082,10 @@ class Table(object):
         full_genome_available == True. This will filter out observation O2:
 
         >>> filter_fn = lambda id_, md, val: md['full_genome_available']
-        >>> _ = table.filter(filter_fn, axis='observation')
+        >>> table.filter(filter_fn, axis='observation')
+        1 x 2 <class 'biom.table.Table'> with 0 nonzero entries (0% dense)
         >>> print table.observation_ids
         ['O1']
-
         """
         table = self if inplace else self.copy()
 
