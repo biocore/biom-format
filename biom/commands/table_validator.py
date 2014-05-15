@@ -108,16 +108,17 @@ class TableValidator(Command):
             ('creation-date', self._valid_creation_date)
         ]
 
-        required_groups = ['observation', 'sample']
+        required_groups = ['observation', 'sample',
+                           'observation/matrix', 'sample/matrix']
 
         required_datasets = ['observation/ids',
-                             'observation/data',
-                             'observation/indices',
-                             'observation/indptr',
+                             'observation/matrix/data',
+                             'observation/matrix/indices',
+                             'observation/matrix/indptr',
                              'sample/ids',
-                             'sample/data',
-                             'sample/indices',
-                             'sample/indptr']
+                             'sample/matrix/data',
+                             'sample/matrix/indices',
+                             'sample/matrix/indptr']
 
         for required_attr, attr_validator in required_attrs:
             if required_attr not in table.attrs:
