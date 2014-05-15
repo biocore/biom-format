@@ -292,7 +292,7 @@ class Table(object):
         ----------
         md : dict of dict
             ``md`` should be of the form ``{id:{dict_of_metadata}}``
-        axis : 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
         if axis == 'sample':
@@ -618,13 +618,39 @@ class Table(object):
         ----------
         id_: str
             id to check if exists
-        axis : 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to check
 
         Returns
         -------
         bool
             True if ``id_`` exists, False otherwise
+
+        Examples
+        --------
+
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Check whether sample ID is in the table:
+
+        >>> table.exists('S1')
+        True
+        >>> table.exists('S4')
+        False
+
+        Check whether an observation ID is in the table:
+
+        >>> table.exists('O1', 'observation')
+        True
+        >>> table.exists('O3', 'observation')
+        False
+
         """
         if axis == "sample":
             return id_ in self._sample_index
@@ -868,7 +894,7 @@ class Table(object):
         ----------
         dense : bool
             If True, yield values as a dense vector
-        axis : str, either 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to iterate over
 
         Returns
@@ -904,7 +930,7 @@ class Table(object):
         ----------
         order : iterable
             The desired order for axis
-        axis : 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
         md = []
@@ -949,7 +975,7 @@ class Table(object):
         ----------
         sort_f : function
             A function that takes a list of values and sorts it
-        axis : 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
         if axis == 'sample':
@@ -972,7 +998,7 @@ class Table(object):
             return a boolean.
             If it's an iterable, it will be converted to an array of
             bools.
-        axis : str, defaults to "sample"
+        axis : {'sample', 'observation'}, optional
             It controls whether to filter samples or observations. Can
             be "sample" or "observation".
         invert : bool
@@ -1031,7 +1057,7 @@ class Table(object):
         f : function
             ``f`` is given the ID and metadata of the vector and must return
             what partition the vector is part of.
-        axis : str, either 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to iterate over
 
         Returns
@@ -1434,6 +1460,44 @@ class Table(object):
             table.filter(lambda i, md, v: v.sum() > 0)
             return table
 
+    def pa(self, inplace=True):
+        """Convert the `Table` to presence/absence data
+
+        Parameters
+        ----------
+        inplace : bool, optional
+            Defaults to `False`
+
+        Returns
+        -------
+        Table
+            Returns itself if `inplace`, else returns a new presence/absence
+            table.
+
+        Examples
+        --------
+        >>> from biom.table import Table
+        >>> import numpy as np
+
+        Create a 2x3 BIOM table
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Convert to presence/absence data
+
+        >>> _ = table.pa()
+        >>> print table.data('O1', 'observation')
+        [ 0.  0.  1.]
+        >>> print table.data('O2', 'observation')
+        [ 1.  1.  1.]
+
+        """
+        def transform_f(data, id_, metadata):
+            return np.ones(len(data), dtype=float)
+
+        return self.transform(transform_f, inplace=inplace)
+
     def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
@@ -1448,7 +1512,7 @@ class Table(object):
             observation or sample id, and an observation or sample
             metadata entry. It must return an array of transformed
             values that replace the original values.
-        axis : str, defaults to "sample"
+        axis : {'sample', 'observation'}, optional
             The axis to operate on. Can be "sample" or "observation".
         inplace : bool, defaults to True
             Whether to return a new table or modify itself.
@@ -1490,7 +1554,7 @@ class Table(object):
 
         Parameters
         ----------
-        axis : 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             The axis to use for normalization
         """
         def f(val, id_, _):
