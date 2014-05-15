@@ -2753,7 +2753,7 @@ html
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
         >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
         ...               [{'foo': 'bar'}, {'x': 'y'}], None)
-        >>> print table.to_tsv()
+        >>> print table.to_tsv() # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	S1	S2	S3
         O1	0.0	0.0	1.0
