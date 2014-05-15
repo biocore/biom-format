@@ -217,6 +217,20 @@ class TableTests(TestCase):
             for f in self.to_remove:
                 os.remove(f)
 
+    def test_repr(self):
+        """__repr__ method of biom.table.Table"""
+        # table
+        data = np.asarray([[0, 0, 0], [0, 1, 0], [0, 0, 0]])
+        t = Table(data, ['a', 'b', 'c'], ['x', 'y', 'z'])
+        self.assertEqual("3 x 3 <class 'biom.table.Table'> with 1 nonzero "
+                         "entries (11% dense)", repr(t))
+
+        # empty table
+        data = np.asarray([[]])
+        t = Table(data, [], [])
+        self.assertEqual("0 x 0 <class 'biom.table.Table'> with 0 nonzero "
+                         "entries (0% dense)", repr(t))
+
     def test_init_with_nparray(self):
         """to_sparse in constructor should be triggered"""
         data = np.array([[1, 2], [3, 4]])
