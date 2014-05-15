@@ -1,6 +1,22 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-"""The BIOM Table API"""
+"""
+Distance matrices (:mod:`biom.table`)
+=============================================
+
+.. currentmodule:: biom.table
+
+The BIOM Table API
+
+Classes
+-------
+
+.. autosummary::
+   :toctree: generated/
+
+   Table
+
+"""
 
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
@@ -1934,8 +1950,8 @@ class Table(object):
         [./sample/metadata]          : Optional, JSON str, in index order
                                        with ids
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         h5grp : a h5py ``Group`` or an open h5py ``File``
         samples: iterable, optional
             The sample ids of the samples that we need to retrieve from the
