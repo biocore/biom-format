@@ -17,7 +17,7 @@ import os
 import biom
 
 # NOTE: parts of this file were taken from scipy's doc/source/conf.py. See      
-# scikit-bio/licenses/scipy.txt for scipy's license.                            
+# biom-format/licenses/scipy.txt for scipy's license.                            
                                                                                 
 # If extensions (or modules to document with autodoc) are in another directory, 
 # add these directories to sys.path here. If the directory is relative to the   
