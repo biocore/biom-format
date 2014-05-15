@@ -773,7 +773,7 @@ class Table(object):
     def is_empty(self):
         """Check whether the table is empty
 
-        Returns 
+        Returns
         -------
         bool
             ``True`` if the table is empty, ``False`` otherwise
@@ -1665,7 +1665,7 @@ class Table(object):
 
         Notes
         -----
-        - There is an implicit type conversion to ``float``. 
+        - There is an implicit type conversion to ``float``.
         - The return type is always that of ``self``
         """
         # determine the sample order in the resulting table
