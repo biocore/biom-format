@@ -1074,10 +1074,11 @@ class Table(object):
             It controls whether to filter samples or observations. Can
             be "sample" or "observation".
         invert : bool, optional
-            Defaults to `False`. If set to True, discard samples or
+            Defaults to ``False``. If set to ``True``, discard samples or
             observations where `ids_to_keep` returns True
-        inplace : bool, defaults to True
-            Whether to return a new table or modify itself.
+        inplace : bool, optional
+            Defaults to ``True``. Whether to return a new table or modify
+            itself.
 
         Returns
         -------
