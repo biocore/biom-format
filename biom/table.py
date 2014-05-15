@@ -1618,12 +1618,12 @@ class Table(object):
         original table untouched:
 
         >>> new_table = table.norm(inplace=False)
-        >>> print table
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  2.0 0.0
         O2  6.0 1.0
-        >>> print new_table
+        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  0.25    0.0
@@ -1633,12 +1633,12 @@ class Table(object):
         again leaving the original table untouched:
 
         >>> new_table = table.norm(axis='observation', inplace=False)
-        >>> print table
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  2.0 0.0
         O2  6.0 1.0
-        >>> print new_table
+        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  1.0 0.0
@@ -1648,7 +1648,7 @@ class Table(object):
 
         >>> table.norm(axis='observation')
         2 x 2 <class 'biom.table.Table'> with 3 nonzero entries (75% dense)
-        >>> print table
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  1.0 0.0
