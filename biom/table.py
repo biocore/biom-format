@@ -1343,6 +1343,44 @@ class Table(object):
         else:
             return UnknownAxisError(axis)
 
+    def pa(self, inplace=True):
+        """Convert the `Table` to presence/absence data
+
+        Parameters
+        ----------
+        inplace : bool, optional
+            Defaults to `False`
+
+        Returns
+        -------
+        biom.Table
+            Returns itself if `inplace`, else returns a new presence/absence
+            table.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Convert to presence/absence data
+
+        >>> _ = table.pa()
+        >>> print table.data('O1', 'observation')
+        [ 0.  0.  1.]
+        >>> print table.data('O2', 'observation')
+        [ 1.  1.  1.]
+
+        """
+        def transform_f(data, id_, metadata):
+            return np.ones(len(data), dtype=float)
+
+        return self.transform(transform_f, inplace=inplace)
+
     def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
