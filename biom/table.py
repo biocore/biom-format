@@ -1073,11 +1073,12 @@ class Table(object):
         axis : {'sample', 'observation'}, optional
             It controls whether to filter samples or observations. Can
             be "sample" or "observation".
-        invert : bool
-            If set to True, discard samples or observations where
-            `ids_to_keep` returns True
-        inplace : bool, defaults to True
-            Whether to return a new table or modify itself.
+        invert : bool, optional
+            Defaults to ``False``. If set to ``True``, discard samples or
+            observations where `ids_to_keep` returns True
+        inplace : bool, optional
+            Defaults to ``True``. Whether to return a new table or modify
+            itself.
 
         Returns
         -------
@@ -1089,6 +1090,60 @@ class Table(object):
         UnknownAxisError
             If provided an unrecognized axis.
 
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table, with observation metadata and sample
+        metadata:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'full_genome_available': True},
+        ...                {'full_genome_available': False}],
+        ...               [{'sample_type': 'a'}, {'sample_type': 'a'},
+        ...                {'sample_type': 'b'}])
+
+        Define a function to keep only samples with sample_type == 'a'. This
+        will drop sample S3, which has sample_type 'b':
+
+        >>> filter_fn = lambda val, id_, md: md['sample_type'] == 'a'
+
+        Get a filtered version of the table, leaving the original table
+        untouched:
+
+        >>> new_table = table.filter(filter_fn, inplace=False)
+        >>> print table.sample_ids
+        ['S1' 'S2' 'S3']
+        >>> print new_table.sample_ids
+        ['S1' 'S2']
+
+        Using the same filtering function, discard all samples with sample_type
+        'a'. This will keep only sample S3, which has sample_type 'b':
+
+        >>> new_table = table.filter(filter_fn, inplace=False, invert=True)
+        >>> print table.sample_ids
+        ['S1' 'S2' 'S3']
+        >>> print new_table.sample_ids
+        ['S3']
+
+        Filter the table in-place using the same function (drop all samples
+        where sample_type is not 'a'):
+
+        >>> table.filter(filter_fn)
+        2 x 2 <class 'biom.table.Table'> with 2 nonzero entries (50% dense)
+        >>> print table.sample_ids
+        ['S1' 'S2']
+
+        Filter out all observations in the table that do not have
+        full_genome_available == True. This will filter out observation O2:
+
+        >>> filter_fn = lambda val, id_, md: md['full_genome_available']
+        >>> table.filter(filter_fn, axis='observation')
+        1 x 2 <class 'biom.table.Table'> with 0 nonzero entries (0% dense)
+        >>> print table.observation_ids
+        ['O1']
         """
         table = self if inplace else self.copy()
 
