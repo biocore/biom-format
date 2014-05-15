@@ -2087,8 +2087,6 @@ class Table(object):
         if obs_mapping is not None:
             obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
 
-        #data = nparray_to_sparse(data)
-
         return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata)
 
     @staticmethod
