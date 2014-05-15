@@ -975,9 +975,9 @@ class Table(object):
         axis : str, defaults to "sample"
             It controls whether to filter samples or observations. Can
             be "sample" or "observation".
-        invert : bool, defaults to False
-            If set to True, discard samples or observations where
-            `ids_to_keep` returns True
+        invert : bool, optional
+            Defaults to `False`. If set to True, discard samples or
+            observations where `ids_to_keep` returns True
         inplace : bool, defaults to True
             Whether to return a new table or modify itself.
 
@@ -1033,6 +1033,7 @@ class Table(object):
         where sample_type is not 'a'):
 
         >>> table.filter(filter_fn)
+        <biom.table.Table object at 0x10177f850> #random
         >>> print table.sample_ids
         ['S1' 'S2']
 
@@ -1041,6 +1042,7 @@ class Table(object):
 
         >>> filter_fn = lambda id_, md, val: md['full_genome_available']
         >>> table.filter(filter_fn, axis='observation')
+        <biom.table.Table object at 0x10177f850> #random
         >>> print table.observation_ids
         ['O1']
 
