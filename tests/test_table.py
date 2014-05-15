@@ -1554,6 +1554,15 @@ class SparseTableTests(TestCase):
         self.st_rich._data *= 2
         self.assertNotEqual(copied_table, self.st_rich)
 
+    def test_filter_id_state(self):
+        f = lambda vals, id_, md: id_[0] == 'b'
+        filtered_table = self.st3.filter(f, inplace=False)
+        filtered_table_2 = self.st3.filter(f, inplace=True)
+        self.assertEqual(filtered_table._sample_index, {'b': 0})
+        self.assertEqual(filtered_table._obs_index, {'2': 0, '3': 1})
+        self.assertEqual(filtered_table_2._sample_index, {'b': 0})
+        self.assertEqual(filtered_table_2._obs_index, {'2': 0, '3': 1})
+
     def test_filter_return_type(self):
         f = lambda vals, id_, md: id_[0] == 'b'
         filtered_table = self.st3.filter(f, inplace=False)
