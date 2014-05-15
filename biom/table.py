@@ -1738,10 +1738,8 @@ class Table(object):
 
         Paramters
         ---------
-        h5grp : a h5py ``Group`` or an open h5py ``File``
-        generated_by : str
-        compress : Boolean  'True' means fiels will be compressed with
-            gzip, 'False' means no compression
+        h5grp : {`h5py.Group`, `h5py.File`}
+        axis : {'sample', 'observation'}, optional
 
         See Also
         --------
@@ -1857,10 +1855,12 @@ class Table(object):
 
         Paramters
         ---------
-        h5grp : a h5py ``Group`` or an open h5py ``File``
+        h5grp : {`h5py.Group`, `h5py.File`}
         generated_by : str
-        compress : Boolean  'True' means fiels will be compressed with
-            gzip, 'False' means no compression
+            A description of what generated the table
+        compress : Boolean
+            `True` means fiels will be compressed with gzip, `False` means no
+            compression
 
         See Also
         --------
