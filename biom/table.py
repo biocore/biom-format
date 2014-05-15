@@ -1580,7 +1580,7 @@ class Table(object):
         >>> table = Table(np.array([[0, 2, 3], [1, 0, 2]]), ['O1', 'O2'],
         ...               ['S1', 'S2', 'S3'])
 
-        Subsample 1 items over the sample axis:
+        Subsample 1 item over the sample axis:
 
         >>> print table.subsample(1).sum(axis='sample')
         [ 1.  1.  1.]
@@ -1616,8 +1616,8 @@ class Table(object):
         else:
             obs_md = self.observation_metadata.copy()
 
-        table = Table(data, self.observation_ids[:], self.sample_ids[:],
-                      obs_md, samp_md)
+        table = Table(data, self.observation_ids.copy(),
+                      self.sample_ids.copy(), obs_md, samp_md)
 
         table.filter(lambda v, i, md: v.sum() > 0)
         table.filter(lambda v, i, md: v.sum() > 0, axis='observation')
