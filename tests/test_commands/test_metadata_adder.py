@@ -40,12 +40,13 @@ class MetadataAdderTests(TestCase):
                        sample_metadata=self.sample_md_lines1)
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = obs['table']
+        obs, fmt = obs['table']
         self.assertEqual(obs.sample_metadata[obs.index('f4', 'sample')],
                          {'bar': '0.23', 'foo': '9', 'baz': 'abc;123'})
         self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
                          {'bar': '-4.2', 'foo': '0', 'baz': '123;abc'})
         self.assertEqual(obs.sample_metadata[obs.index('f2', 'sample')], {})
+        self.assertEqual(fmt, 'hdf5')
 
     def test_add_sample_metadata_with_casting(self):
         """Correctly adds sample metadata with casting."""
@@ -55,12 +56,13 @@ class MetadataAdderTests(TestCase):
                        float_fields=['bar'])
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = obs['table']
+        obs, fmt = obs['table']
         self.assertEqual(obs.sample_metadata[obs.index('f4', 'sample')],
                          {'bar': 0.23, 'foo': 9, 'baz': ['abc', '123']})
         self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
                          {'bar': -4.2, 'foo': 0, 'baz': ['123', 'abc']})
         self.assertEqual(obs.sample_metadata[obs.index('f2', 'sample')], {})
+        self.assertEqual(fmt, 'hdf5')
 
     def test_add_observation_metadata_no_casting(self):
         """Correctly adds observation metadata without casting it."""
@@ -69,10 +71,11 @@ class MetadataAdderTests(TestCase):
         # observations that aren't in the table are included. Don't perform any
         # casting.
         obs = self.cmd(table=self.biom_table1,
-                       observation_metadata=self.obs_md_lines1)
+                       observation_metadata=self.obs_md_lines1,
+                       output_as_json=True)
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = obs['table']
+        obs, fmt = obs['table']
         self.assertEqual(
             obs.observation_metadata[obs.index('None7', 'observation')],
             {'foo': '6', 'taxonomy': 'abc;123|def;456'})
@@ -82,6 +85,7 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(
             obs.observation_metadata[obs.index('None8', 'observation')],
             {'taxonomy': ['k__Bacteria']})
+        self.assertEqual(fmt, 'json')
 
     def test_add_observation_metadata_with_casting(self):
         """Correctly adds observation metadata with casting."""
@@ -90,7 +94,7 @@ class MetadataAdderTests(TestCase):
                        sc_pipe_separated=['taxonomy'], int_fields=['foo'])
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = obs['table']
+        obs, fmt = obs['table']
         self.assertEqual(
             obs.observation_metadata[obs.index('None7', 'observation')],
             {'foo': 6, 'taxonomy': [['abc', '123'], ['def', '456']]})
@@ -100,6 +104,7 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(
             obs.observation_metadata[obs.index('None8', 'observation')],
             {'taxonomy': ['k__Bacteria']})
+        self.assertEqual(fmt, 'hdf5')
 
     def test_no_metadata(self):
         """Correctly raises error when not provided any metadata."""
