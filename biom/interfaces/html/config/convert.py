@@ -33,15 +33,15 @@ cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 
 
 inputs = [
-    HTMLInputOption(Parameter=cmd_in_lookup('table_file'),
+    HTMLInputOption(Parameter=cmd_in_lookup('table'),
                     Type='upload_file',
                     Help='the input table filepath, either in BIOM or classic '
                     'format'),
-    HTMLInputOption(Parameter=cmd_in_lookup('biom_to_classic_table'),
+    HTMLInputOption(Parameter=cmd_in_lookup('to_tsv'),
                     Type=bool),
-    HTMLInputOption(Parameter=cmd_in_lookup('sparse_biom_to_dense_biom'),
+    HTMLInputOption(Parameter=cmd_in_lookup('to_json'),
                     Type=bool),
-    HTMLInputOption(Parameter=cmd_in_lookup('dense_biom_to_sparse_biom'),
+    HTMLInputOption(Parameter=cmd_in_lookup('to_hdf5'),
                     Type=bool),
     HTMLInputOption(Parameter=cmd_in_lookup('sample_metadata'),
                     Type='upload_file',
@@ -56,6 +56,10 @@ inputs = [
                     Choices=['taxonomy', 'naive', 'sc_separated'],
                     Help='Process metadata associated with observations when '
                     'converting from a classic table'),
+    HTMLInputOption(Parameter=cmd_in_lookup('tsv_metadata_formatter'),
+                    Type='multiple_choice',
+                    Choices=['naive', 'sc_separated'],
+                    Help='Format the metadata for TSV output'),
     HTMLInputOption(Parameter=None,
                     Name='download-file',
                     Required=True,
@@ -63,7 +67,7 @@ inputs = [
 ]
 
 outputs = [
-    HTMLDownload(Parameter=cmd_out_lookup('table_str'),
+    HTMLDownload(Parameter=cmd_out_lookup('table'),
                  Handler=newline_list_of_strings,
                  FilenameLookup='download-file',
                  FileExtension='.biom')

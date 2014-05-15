@@ -39,10 +39,11 @@ class TableConverterTests(TestCase):
 
     def test_classic_to_biom(self):
         """Correctly converts classic to biom."""
-        obs = self.cmd(table_file=self.classic_lines1)
-        self.assertEqual(obs.keys(), ['table_str'])
+        obs = self.cmd(table=parse_biom_table(self.classic_lines1),
+                       to_json=True)
+        self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table_str'])
+        obs = parse_biom_table(obs['table'][0])
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
@@ -52,11 +53,11 @@ class TableConverterTests(TestCase):
     def test_classic_to_biom_with_metadata(self):
         """Correctly converts classic to biom with metadata."""
         # No processing of metadata.
-        obs = self.cmd(table_file=self.classic_lines1,
-                       sample_metadata=self.sample_md1)
-        self.assertEqual(obs.keys(), ['table_str'])
+        obs = self.cmd(table=parse_biom_table(self.classic_lines1),
+                       sample_metadata=self.sample_md1, to_json=True)
+        self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table_str'])
+        obs = parse_biom_table(obs['table'][0])
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
@@ -71,12 +72,12 @@ class TableConverterTests(TestCase):
             {'taxonomy': 'Unclassified'})
 
         # With processing of metadata (currently only supports observation md).
-        obs = self.cmd(table_file=self.classic_lines1,
+        obs = self.cmd(table=parse_biom_table(self.classic_lines1),
                        sample_metadata=self.sample_md1,
-                       process_obs_metadata='sc_separated')
-        self.assertEqual(obs.keys(), ['table_str'])
+                       process_obs_metadata='sc_separated', to_json=True)
+        self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table_str'])
+        obs = parse_biom_table(obs['table'][0])
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
@@ -92,15 +93,15 @@ class TableConverterTests(TestCase):
 
     def test_biom_to_classic(self):
         """Correctly converts biom to classic."""
-        obs = self.cmd(table_file=self.biom_lines1, biom_to_classic_table=True,
-                       header_key='taxonomy')
-        self.assertEqual(obs.keys(), ['table_str'])
-        self.assertEqual(obs['table_str'], classic1)
+        obs = self.cmd(table=parse_biom_table(self.biom_lines1),
+                       to_tsv=True, header_key='taxonomy')
+        self.assertEqual(obs.keys(), ['table'])
+        self.assertEqual(obs['table'][0], classic1)
 
-        obs = self.cmd(table_file=self.biom_lines1, biom_to_classic_table=True,
+        obs = self.cmd(table=parse_biom_table(self.biom_lines1), to_tsv=True,
                        header_key='taxonomy', output_metadata_id='foo')
-        self.assertEqual(obs.keys(), ['table_str'])
-        obs_md_col = obs['table_str'].split('\n')[1].split('\t')[-1]
+        self.assertEqual(obs.keys(), ['table'])
+        obs_md_col = obs['table'][0].split('\n')[1].split('\t')[-1]
         self.assertEqual(obs_md_col, 'foo')
 
     def test_invalid_input(self):

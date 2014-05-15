@@ -249,12 +249,20 @@ def parse_biom_table(fp, input_is_dense=False):
         pass
 
     if hasattr(fp, 'read'):
-        return Table.from_json(json.load(fp), input_is_dense=input_is_dense)
+        try:
+            return Table.from_json(json.load(fp),
+                                   input_is_dense=input_is_dense)
+        except ValueError:
+            return Table.from_tsv(fp, None, None, lambda x: x)
     elif isinstance(fp, list):
-        return Table.from_json(json.loads(''.join(fp)),
-                               input_is_dense=input_is_dense)
+        try:
+            return Table.from_json(json.loads(''.join(fp)),
+                                   input_is_dense=input_is_dense)
+        except ValueError:
+            return Table.from_tsv(fp, None, None, lambda x: x)
     else:
-        return Table.from_json(json.loads(fp), input_is_dense=input_is_dense)
+        return Table.from_json(json.loads(fp),
+                               input_is_dense=input_is_dense)
 
 
 def sc_pipe_separated(x):
