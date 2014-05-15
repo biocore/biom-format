@@ -1552,7 +1552,7 @@ class Table(object):
         def f(val, id_, _):
             return val / float(val.sum())
 
-        return table.transform(f, axis=axis, inplace=inplace)
+        return self.transform(f, axis=axis, inplace=inplace)
 
     def nonzero(self):
         """Yields locations of nonzero elements within the data matrix
