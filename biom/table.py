@@ -1603,6 +1603,56 @@ class Table(object):
         -------
         biom.Table
             The normalized table
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x2 table:
+
+        >>> data = np.asarray([[2, 0], [6, 1]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2'])
+
+        Get a version of the table normalized on the 'sample' axis, leaving the
+        original table untouched:
+
+        >>> new_table = table.norm(inplace=False)
+        >>> print table
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  2.0 0.0
+        O2  6.0 1.0
+        >>> print new_table
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  0.25    0.0
+        O2  0.75    1.0
+
+        Get a version of the table normalized on the 'observation' axis,
+        again leaving the original table untouched:
+
+        >>> new_table = table.norm(axis='observation', inplace=False)
+        >>> print table
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  2.0 0.0
+        O2  6.0 1.0
+        >>> print new_table
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  1.0 0.0
+        O2  0.857142857143  0.142857142857
+
+        Do the same normalization on 'observation', this time in-place:
+
+        >>> table.norm(axis='observation')
+        2 x 2 <class 'biom.table.Table'> with 3 nonzero entries (75% dense)
+        >>> print table
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  1.0 0.0
+        O2  0.857142857143  0.142857142857
         """
         def f(val, id_, _):
             return val / float(val.sum())
