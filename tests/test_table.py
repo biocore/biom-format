@@ -1404,6 +1404,11 @@ class SparseTableTests(TestCase):
         with self.assertRaises(TableException):
             self.st_rich.filter(lambda id_, md, vals: False, 'observation')
 
+    def test_pa(self):
+        exp = Table(np.array([[1, 1], [1, 0]]), ['5', '6'], ['a', 'b'])
+        self.st7.pa()
+        self.assertEqual(self.st7, exp)
+
     def test_transform_return_type(self):
         f = lambda data, id_, md: data / 2.
         filtered_table = self.st3.transform(f, inplace=False)
