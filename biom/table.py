@@ -1360,7 +1360,7 @@ class Table(object):
         Raises
         ------
         ValueError
-            If `n` is less than zero or greater than the sum of `counts`.
+            If `n` is less than zero.
 
         Notes
         -----
