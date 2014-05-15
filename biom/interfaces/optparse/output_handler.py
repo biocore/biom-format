@@ -17,8 +17,36 @@ __email__ = "gregcaporaso@gmail.com"
 
 from os.path import exists
 from pyqi.core.exception import IncompetentDeveloperError
+from pyqi.core.interfaces.optparse.output_handler import write_list_of_strings
 from biom.parse import generatedby
 from biom.util import HAVE_H5PY
+
+
+def write_subsetted_biom_table(result_key, data, option_value=None):
+    """Write a string to a file"""
+    if option_value is None:
+        raise IncompetentDeveloperError("Cannot write output without a "
+                                        "filepath.")
+
+    if exists(option_value):
+        raise IOError("Output path '%s' already exists." % option_value)
+
+    table, fmt = data
+
+    if fmt not in ['hdf5', 'json']:
+        raise IncompetentDeveloperError("Unknown file format")
+
+    if fmt == 'json':
+        write_list_of_strings(result_key, table, option_value)
+    else:
+        if HAVE_H5PY:
+            import h5py
+        else:
+            # This should never be raised here
+            raise ImportError("h5py is not available, cannot write HDF5!")
+
+        with h5py.File(option_value, 'w') as f:
+            table.to_hdf5(f, generatedby())
 
 
 def write_biom_table(result_key, data, option_value=None):

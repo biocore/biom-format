@@ -249,7 +249,7 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
     Parameters
     ----------
     fp : file like
-        File alike object storing the BIOM tables
+        File alike object storing the BIOM table
     ids : iterable
         The sample/observation ids of the samples/observations that we need
         to retrieve from the biom table

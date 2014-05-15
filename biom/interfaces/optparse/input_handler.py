@@ -20,6 +20,12 @@ from biom.util import biom_open
 from biom.parse import MetadataMap, parse_biom_table
 
 
+def load_hdf5(fp):
+    """Return an HDF5 object"""
+    with biom_open(fp) as f:
+        return f
+
+
 def load_hdf5_or_json(fp):
     """Return a parsed JSON object or an HDF5 object"""
     with biom_open(fp) as f:

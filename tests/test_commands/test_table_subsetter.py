@@ -31,10 +31,10 @@ class TableSubsetterTests(TestCase):
 
     def test_subset_samples(self):
         """Correctly subsets samples in a table."""
-        obs = self.cmd(table_str=self.biom_str1, axis='samples',
+        obs = self.cmd(json_table_str=self.biom_str1, axis='samples',
                        ids=['f4', 'f2'])
-        self.assertEqual(obs.keys(), ['subset_generator'])
-        obs = parse_biom_table(list(obs['subset_generator']))
+        self.assertEqual(obs.keys(), ['subsetted_table'])
+        obs = parse_biom_table(list(obs['subsetted_table'][0]))
         self.assertEqual(len(obs.sample_ids), 2)
         self.assertEqual(len(obs.observation_ids), 14)
         self.assertTrue('f4' in obs.sample_ids)
@@ -42,10 +42,10 @@ class TableSubsetterTests(TestCase):
 
     def test_subset_observations(self):
         """Correctly subsets observations in a table."""
-        obs = self.cmd(table_str=self.biom_str1, axis='observations',
+        obs = self.cmd(json_table_str=self.biom_str1, axis='observations',
                        ids=['None2', '879972'])
-        self.assertEqual(obs.keys(), ['subset_generator'])
-        obs = parse_biom_table(list(obs['subset_generator']))
+        self.assertEqual(obs.keys(), ['subsetted_table'])
+        obs = parse_biom_table(list(obs['subsetted_table'][0]))
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 2)
         self.assertTrue('None2' in obs.observation_ids)
