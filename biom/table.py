@@ -1039,8 +1039,9 @@ class Table(object):
 
         Parameters
         ----------
-        sort_f : function
-            A function that takes a list of values and sorts it
+        sort_f : function, optional
+            Defaults to ``biom.util.natsort``. A function that takes a list of
+            values and sorts it
         axis : {'sample', 'observation'}, optional
             The axis to operate on
 
@@ -1049,6 +1050,51 @@ class Table(object):
         biom.Table
             A table whose samples or observations are sorted according to the
             `sort_f` function
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[1, 0, 4], [1, 3, 0]])
+        >>> table = Table(data, ['O2', 'O1'], ['S2', 'S1', 'S3'])
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S2  S1  S3
+        O2  1.0 0.0 4.0
+        O1  1.0 3.0 0.0
+
+        Sort the order of samples in the table using the default natural
+        sorting:
+
+        >>> new_table = table.sort()
+        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O2  0.0 1.0 4.0
+        O1  3.0 1.0 0.0
+
+        Sort the order of observations in the table using the default natural
+        sorting:
+
+        >>> new_table = table.sort(axis='observation')
+        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S2  S1  S3
+        O1  1.0 3.0 0.0
+        O2  1.0 0.0 4.0
+
+        Sort the samples in reverse order using a custom sort function:
+
+        >>> sort_f = lambda x: list(sorted(x, reverse=True))
+        >>> new_table = table.sort(sort_f=sort_f)
+        >>> print new_table  # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S3  S2  S1
+        O2  4.0 1.0 0.0
+        O1  0.0 1.0 3.0
         """
         if axis == 'sample':
             return self.sort_order(sort_f(self.sample_ids))
