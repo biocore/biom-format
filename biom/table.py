@@ -1343,6 +1343,97 @@ class Table(object):
         else:
             return UnknownAxisError(axis)
 
+    def subsample(self, n, axis='sample', replace=False):
+        """Randomly subsample without replacement.
+
+        Parameters
+        ----------
+        n : int
+            Number of items to subsample from `counts`.
+        axis : {'sample', 'observation'}, optional
+            The axis to sample over
+
+        Returns
+        -------
+        biom.Table
+
+        Raises
+        ------
+        ValueError
+            If `n` is less than zero or greater than the sum of `counts`.
+
+        Notes
+        -----
+        Subsampling is performed without replacement. If `n` is greater than
+        the sum of a given vector, that vector is omitted from the result.
+
+        Shamelessly adapted from `skbio.math.subsample`
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+        >>> table = Table(np.array([[0, 2, 3], [1, 0, 2]]), ['O1', 'O2'],
+        ...               ['S1', 'S2', 'S3'])
+
+        Subsample 1 items over the sample axis:
+
+        >>> print table.subsample(1).sum(axis='sample')
+        [ 1.  1.  1.]
+
+        Subsample 2 items over the sample axis, note that 'S1' is filtered out:
+
+        >>> ss = table.subsample(2)
+        >>> print ss.sum(axis='sample')
+        [ 2.  2.]
+        >>> print ss.sample_ids
+        ['S2' 'S3']
+
+        """
+        if n < 0:
+            raise ValueError("n cannot be negative.")
+
+        new_ids = []
+        new_metadata = []
+        new_data = []
+        for (values, id_, metadata) in self.iter(axis=axis, dense=False):
+            counts = values.astype(int)
+            counts_sum = counts.sum()
+
+            if n > counts_sum:
+                continue
+
+            if counts_sum == n:
+                result = counts
+            else:
+                unpkd = np.concatenate([np.repeat(np.array(i,),
+                                                  counts.getcol(i).data[0])
+                                        for i in counts.indices])
+                permuted = np.random.permutation(unpkd)[:n]
+
+                result = np.zeros(counts.shape[-1], dtype=float)
+                for p in permuted:
+                    result[p] += 1
+                result = Table._to_sparse(result)
+
+            new_data.append(result)
+            new_ids.append(id_)
+            new_metadata.append(metadata)
+
+        if axis == 'sample':
+            new_data = Table._to_sparse(new_data, transpose=True)
+            table = Table(new_data, self.observation_ids, new_ids,
+                          self.observation_metadata, new_metadata,
+                          shape=(len(self.observation_ids), len(new_ids)))
+            table.filter(lambda i, md, v: v.sum() > 0, axis='observation')
+            return table
+        else:
+            table = Table(new_data, new_ids, self.sample_ids, new_metadata,
+                          self.sample_metadata, shape=(len(new_ids),
+                                                       len(self.sample_ids)))
+            table.filter(lambda i, md, v: v.sum() > 0)
+            return table
+
     def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
