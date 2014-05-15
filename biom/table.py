@@ -288,10 +288,11 @@ class Table(object):
 
     def add_metadata(self, md, axis='sample'):
         """Take a dict of metadata and add it to an axis.
+
         Parameters
         ----------
         md : dict of dict
-            ``md`` should be of the form ``{id:{dict_of_metadata}}``
+            `md` should be of the form ``{id: {dict_of_metadata}}``
         axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
@@ -421,9 +422,27 @@ class Table(object):
         return self._data.getcol(col_idx)
 
     def reduce(self, f, axis):
-        """Reduce over axis with f
+        """Reduce over axis with using function `f`
 
-        ``axis`` can be either ``sample`` or ``observation``
+        Parameters
+        ----------
+        f : function
+            The function to use for the reduce operation
+        axis : {'sample', 'observation'}
+            The axis on which to operate
+
+        Returns
+        -------
+        numpy.array
+            A one-dimensioal array representing the reduced rows (observations)
+            or columns (samples) of the data matrix
+
+        Raises
+        ------
+        UnknownAxisErorr
+            If `axis` is neither "sample" nor "observation"
+        TableException
+            If the table's data matrix is empty
         """
         if self.is_empty():
             raise TableException("Cannot reduce an empty table")
@@ -436,18 +455,23 @@ class Table(object):
             return asarray([reduce(f, v) for v in
                             self.iter_data(axis="observation")])
         else:
-            raise TableException("Unknown reduction axis")
+            raise UnknownAxisError(axis)
 
     def sum(self, axis='whole'):
         """Returns the sum by axis
 
-        axis can be:
+        Parameters
+        ----------
+        axis : {'whole', 'sample', 'observation'}, optional
+            The axis on which to operate.
 
-        ``whole``       : whole matrix sum
-
-        ``sample``     : return a vector with a sum for each sample
-
-        ``observation`` : return a vector with a sum for each observation
+        Returns
+        -------
+        numpy.array or float
+            If `axis` is "whole", returns an float representing the whole
+            table sum. If `axis` is either "sample" or "observation", returns a
+            numpy.array that holds a sum for each sample or observation,
+            respectively.
         """
         if axis == 'whole':
             axis = None
@@ -498,8 +522,8 @@ class Table(object):
         Returns
         -------
         defaultdict or None
-            The corresponding metadata `defaultdict` or None of that axis does
-            not have metadata.
+            The corresponding metadata ``defaultdict`` or ``None`` of that axis
+            does not have metadata.
 
         Raises
         ------
@@ -530,7 +554,6 @@ class Table(object):
 
         >>> table.metadata('S1', 'sample') is None
         True
-
         """
         if axis == 'sample':
             md = self.sample_metadata
@@ -567,7 +590,6 @@ class Table(object):
 
         Examples
         --------
-
         >>> import numpy as np
         >>> from biom.table import Table
 
@@ -585,7 +607,6 @@ class Table(object):
 
         >>> table.index('S1', 'sample')
         0
-
         """
         if axis == 'sample':
             idx_lookup = self._sample_index
@@ -600,7 +621,20 @@ class Table(object):
         return idx_lookup[id_]
 
     def get_value_by_ids(self, obs_id, samp_id):
-        """Return value in the matrix corresponding to ``(obs_id, samp_id)``"""
+        """Return value in the matrix corresponding to ``(obs_id, samp_id)``
+
+        Parameters
+        ----------
+        obs_id : str
+            The ID of the observation
+        samp_id : str
+            The ID of the sample
+
+        Returns
+        -------
+        float
+            The data value corresponding to the specified matrix position
+        """
         return self[self.index(obs_id, 'observation'),
                     self.index(samp_id, 'sample')]
 
@@ -624,11 +658,10 @@ class Table(object):
         Returns
         -------
         bool
-            True if ``id_`` exists, False otherwise
+            ``True`` if `id_` exists, ``False`` otherwise
 
         Examples
         --------
-
         >>> import numpy as np
         >>> from biom.table import Table
 
@@ -650,7 +683,6 @@ class Table(object):
         True
         >>> table.exists('O3', 'observation')
         False
-
         """
         if axis == "sample":
             return id_ in self._sample_index
@@ -724,14 +756,20 @@ class Table(object):
         return '\n'.join(output)
 
     def is_empty(self):
-        """Returns ``True`` if the table is empty"""
+        """Check whether the table is empty
+
+        Returns 
+        -------
+        bool
+            ``True`` if the table is empty, ``False`` otherwise
+        """
         if not self.sample_ids.size or not self.observation_ids.size:
             return True
         else:
             return False
 
     def __iter__(self):
-        """Defined by subclass"""
+        """See ``biom.table.Table.iter``"""
         return self.iter()
 
     def _iter_samp(self):
@@ -748,7 +786,13 @@ class Table(object):
             yield self._get_row(r)
 
     def get_table_density(self):
-        """Returns the fraction of nonzero elements in the table."""
+        """Returns the fraction of nonzero elements in the table.
+
+        Returns
+        -------
+        float
+            The fraction of nonzero elements in the table
+        """
         density = 0.0
 
         if not self.is_empty():
@@ -832,7 +876,7 @@ class Table(object):
         Parameters
         ----------
         id_ : str
-            ID of the sample or observation whose index will be returned.
+            ID of the samples or observations whose data will be returned.
         axis : {'sample', 'observation'}
             Axis to search for `id_`.
 
@@ -862,13 +906,13 @@ class Table(object):
 
         Parameters
         ----------
-        axis: 'sample' or 'observation'
+        axis : {'sample', 'observation'}, optional
             axis to iterate over
 
         Returns
         -------
         generator
-            yields list of values for each value in 'axis'
+            yields list of values for each value in `axis`
 
         Raises
         ------
@@ -892,8 +936,9 @@ class Table(object):
 
         Parameters
         ----------
-        dense : bool
-            If True, yield values as a dense vector
+        dense : bool, optional
+            If ``False``, yield compressed sparse row or compressed sparse
+            columns if `axis` is 'observation' or 'sample', respectively
         axis : {'sample', 'observation'}, optional
             The axis to iterate over
 
@@ -901,7 +946,6 @@ class Table(object):
         -------
         GeneratorType
             A generator that yields (values, id, metadata)
-
         """
         if axis == 'sample':
             ids = self.sample_ids
@@ -932,6 +976,12 @@ class Table(object):
             The desired order for axis
         axis : {'sample', 'observation'}, optional
             The axis to operate on
+
+        Returns
+        -------
+        Table
+            A table where the observations or samples are sorted according to
+            `order`
         """
         md = []
         vals = []
@@ -977,6 +1027,12 @@ class Table(object):
             A function that takes a list of values and sorts it
         axis : {'sample', 'observation'}, optional
             The axis to operate on
+
+        Returns
+        -------
+        biom.Table
+            A table whose samples or observations are sorted according to the
+            `sort_f` function
         """
         if axis == 'sample':
             return self.sort_order(sort_f(self.sample_ids))
@@ -991,7 +1047,7 @@ class Table(object):
 
         Parameters
         ----------
-        ids_to_keep : function(id, metadata, values) -> bool, or iterable
+        ids_to_keep : iterable or function(id, metadata, values) -> bool
             If a function, it will be called with the id (a string),
             the dictionary of metadata of each sample/observation and
             the nonzero values of the sample/observation, and must
@@ -1055,7 +1111,7 @@ class Table(object):
         Parameters
         ----------
         f : function
-            ``f`` is given the ID and metadata of the vector and must return
+            `f` is given the ID and metadata of the vector and must return
             what partition the vector is part of.
         axis : {'sample', 'observation'}, optional
             The axis to iterate over
@@ -1064,7 +1120,6 @@ class Table(object):
         -------
         GeneratorType
             A generator that yields `Table`
-
         """
         partitions = {}
         # conversion of vector types is not necessary, vectors are not
@@ -1120,13 +1175,13 @@ class Table(object):
         Partition data by metadata or IDs and then collapse each partition into
         a single vector.
 
-        If ``include_collapsed_metadata`` is True, metadata for the collapsed
+        If `include_collapsed_metadata` is ``True``, metadata for the collapsed
         partition are retained and can be referred to by the corresponding ID
         from each vector within the partition.
 
-        The remainder is only relevant to setting ``one_to_many`` to True.
+        The remainder is only relevant to setting `one_to_many` to ``True``.
 
-        If ``one_to_many`` is True, allow vectors to collapse into multiple
+        If `one_to_many` is ``True``, allow vectors to collapse into multiple
         bins if the metadata describe a one-many relationship. Supplied
         functions must allow for iteration support over the metadata key and
         must return a tuple of (path, bin) as to describe both the path in the
@@ -1149,27 +1204,27 @@ class Table(object):
         counted multiple times.
 
         There are two supported modes for handling one-to-many relationships
-        via ``one_to_many_mode``: ``add`` and ``divide``. ``add`` will add the
+        via `one_to_many_mode`: ``add`` and `divide`. ``add`` will add the
         vector counts to each partition that the vector maps to, which may
         increase the total number of counts in the output table. ``divide``
         will divide a vectors's counts by the number of metadata that the
         vector has before adding the counts to each partition. This will not
         increase the total number of counts in the output table.
 
-        If ``one_to_many_md_key`` is specified, that becomes the metadata
+        If `one_to_many_md_key` is specified, that becomes the metadata
         key that describes the collapsed path. If a value is not specified,
         then it defaults to 'Path'.
 
-        If ``strict`` is specified, then all metadata pathways operated on
-        must be indexable by ``metadata_f``.
+        If `strict` is specified, then all metadata pathways operated on
+        must be indexable by `metadata_f`.
 
-        ``one_to_many`` and ``norm`` are not supported together.
+        `one_to_many` and `norm` are not supported together.
 
-        ``one_to_many`` and ``reduce_f`` are not supported together.
+        `one_to_many` and `reduce_f` are not supported together.
 
-        ``one_to_many`` and ``min_group_size`` are not supported together.
+        `one_to_many` and `min_group_size` are not supported together.
 
-        A final note on space consumption. At present, the ``one_to_many``
+        A final note on space consumption. At present, the `one_to_many`
         functionality requires a temporary dense matrix representation.
 
         Parameters
@@ -1177,10 +1232,11 @@ class Table(object):
         f : function
             Function that is used to determine what partition a vector belongs
             to
-        reduce_f : function
-            Function that reduces two vectors in a one-to-one collapse
-        norm : bool
-            If `True`, normalize the resulting table
+        reduce_f : function, optional
+            Defaults to ``operator.add``. Function that reduces two vectors in
+            a one-to-one collapse
+        norm : bool, optional
+            If ``True``, normalize the resulting table
         min_group_size : int
             The minimum size of a partition of performing a one-to-many
             collapse
