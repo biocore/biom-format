@@ -1073,8 +1073,9 @@ class Table(object):
 
         Parameters
         ----------
-        sort_f : function
-            A function that takes a list of values and sorts it
+        sort_f : function, optional
+            Defaults to ``biom.util.natsort``. A function that takes a list of
+            values and sorts it
         axis : {'sample', 'observation'}, optional
             The axis to operate on
 
@@ -1083,6 +1084,51 @@ class Table(object):
         biom.Table
             A table whose samples or observations are sorted according to the
             `sort_f` function
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[1, 0, 4], [1, 3, 0]])
+        >>> table = Table(data, ['O2', 'O1'], ['S2', 'S1', 'S3'])
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S2  S1  S3
+        O2  1.0 0.0 4.0
+        O1  1.0 3.0 0.0
+
+        Sort the order of samples in the table using the default natural
+        sorting:
+
+        >>> new_table = table.sort()
+        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O2  0.0 1.0 4.0
+        O1  3.0 1.0 0.0
+
+        Sort the order of observations in the table using the default natural
+        sorting:
+
+        >>> new_table = table.sort(axis='observation')
+        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S2  S1  S3
+        O1  1.0 3.0 0.0
+        O2  1.0 0.0 4.0
+
+        Sort the samples in reverse order using a custom sort function:
+
+        >>> sort_f = lambda x: list(sorted(x, reverse=True))
+        >>> new_table = table.sort(sort_f=sort_f)
+        >>> print new_table  # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S3  S2  S1
+        O2  4.0 1.0 0.0
+        O1  0.0 1.0 3.0
         """
         if axis == 'sample':
             return self.sort_order(sort_f(self.sample_ids))
@@ -1637,6 +1683,56 @@ class Table(object):
         -------
         biom.Table
             The normalized table
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x2 table:
+
+        >>> data = np.asarray([[2, 0], [6, 1]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2'])
+
+        Get a version of the table normalized on the 'sample' axis, leaving the
+        original table untouched:
+
+        >>> new_table = table.norm(inplace=False)
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  2.0 0.0
+        O2  6.0 1.0
+        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  0.25    0.0
+        O2  0.75    1.0
+
+        Get a version of the table normalized on the 'observation' axis,
+        again leaving the original table untouched:
+
+        >>> new_table = table.norm(axis='observation', inplace=False)
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  2.0 0.0
+        O2  6.0 1.0
+        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  1.0 0.0
+        O2  0.857142857143  0.142857142857
+
+        Do the same normalization on 'observation', this time in-place:
+
+        >>> table.norm(axis='observation')
+        2 x 2 <class 'biom.table.Table'> with 3 nonzero entries (75% dense)
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  1.0 0.0
+        O2  0.857142857143  0.142857142857
         """
         def f(val, id_, _):
             return val / float(val.sum())
@@ -1942,6 +2038,12 @@ class Table(object):
         ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
         ###     THOUGH
         ### METADATA ARE NOT REPRESENTED HERE YET
+
+        Notes
+        -----
+        The expected HDF5 group structure is below. An example of an HDF5 file
+        in DDL can be found here [3]_.
+
         ./id                         : str, an arbitrary ID
         ./type                       : str, the table type (e.g, OTU table)
         ./format-url                 : str, a URL that describes the format
@@ -1954,19 +2056,28 @@ class Table(object):
         ./observation                : Group
         ./observation/ids            : (N,) dataset of str or vlen str
         ./observation/matrix         : Group
-        ./observation/matrix/data    : (N,) dataset of float64
-        ./observation/matrix/indices : (N,) dataset of int32
+        ./observation/matrix/data    : (nnz,) dataset of float64
+        ./observation/matrix/indices : (nnz,) dataset of int32
         ./observation/matrix/indptr  : (M+1,) dataset of int32
         [./observation/metadata]     : Optional, JSON str, in index order
-                                       with ids
+                                       with ids. See below for added detail.
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
-        ./sample/matrix/data         : (M,) dataset of float64
-        ./sample/matrix/indices      : (M,) dataset of int32
+        ./sample/matrix/data         : (nnz,) dataset of float64
+        ./sample/matrix/indices      : (nnz,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
         [./sample/metadata]          : Optional, JSON str, in index order
-                                       with ids
+                                       with ids. See below for added detail.
+
+        The expected structure (in JSON) for the optional metadata is a list of
+        objects, where the index order of the list corresponds to the index
+        order of the relevant axis IDs. The metadata are parsed directly by
+        JSON, and there are no constraints on the contained metadata with the
+        exception of the outer list, and that the order of the list matters.
+        Below is an example of observational metadata for two observations:
+
+        [{"taxonomy": ["foo", "bar"]}, {"taxonomy": ["foo", "foobar"]}]
 
         Parameters
         ----------
@@ -1999,9 +2110,26 @@ class Table(object):
         --------
         Table.format_hdf5
 
+        References
+        ----------
+        .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
+                py.sparse.csr_matrix.html
+        .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
+                py.sparse.csc_matrix.html
+        .. [3] http://biom-format.org/documentation/format_versions/biom-2.0.\
+                html
+
+        See Also
+        --------
+        Table.to_hdf5
+
         Examples
         --------
-        ### is it okay to actually create files in doctest?
+        >>> from h5py import File # doctest: +SKIP
+        >>> from biom.table import Table
+        >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
+        >>> t = Table.from_hdf5(f) # doctest: +SKIP
+
         """
         if not HAVE_H5PY:
             raise RuntimeError("h5py is not in the environment, HDF5 support "
@@ -2120,17 +2248,17 @@ class Table(object):
     def to_hdf5(self, h5grp, generated_by, compress=True):
         """Store CSC and CSR in place
 
-        The expected structure of this group is below. A few basic definitions,
-        N is the number of observations and M is the number of samples. Data
-        are stored in both compressed sparse row (for observation oriented
-        operations) and compressed sparse column (for sample oriented
-        operations).
+        The resulting structure of this group is below. A few basic
+        definitions, N is the number of observations and M is the number of
+        samples. Data are stored in both compressed sparse row [1]_ (CSR, for
+        observation oriented operations) and compressed sparse column [2]_
+        (CSC, for sample oriented operations).
 
-        ### ADD IN SCIPY SPARSE CSC/CSR URLS
-        ### ADD IN WIKIPEDIA PAGE LINK TO CSR
-        ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
-        ###     THOUGH
-        ### METADATA ARE NOT REPRESENTED HERE YET
+        Notes
+        -----
+        The expected HDF5 group structure is below. An example of an HDF5 file
+        in DDL can be found here [3]_.
+
         ./id                         : str, an arbitrary ID
         ./type                       : str, the table type (e.g, OTU table)
         ./format-url                 : str, a URL that describes the format
@@ -2143,24 +2271,34 @@ class Table(object):
         ./observation                : Group
         ./observation/ids            : (N,) dataset of str or vlen str
         ./observation/matrix         : Group
-        ./observation/matrix/data    : (N,) dataset of float64
-        ./observation/matrix/indices : (N,) dataset of int32
+        ./observation/matrix/data    : (nnz,) dataset of float64
+        ./observation/matrix/indices : (nnz,) dataset of int32
         ./observation/matrix/indptr  : (M+1,) dataset of int32
         [./observation/metadata]     : Optional, JSON str, in index order
-                                       with ids
+                                       with ids. See below for added detail.
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
-        ./sample/matrix/data         : (M,) dataset of float64
-        ./sample/matrix/indices      : (M,) dataset of int32
+        ./sample/matrix/data         : (nnz,) dataset of float64
+        ./sample/matrix/indices      : (nnz,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
         [./sample/metadata]          : Optional, JSON str, in index order
-                                       with ids
+                                       with ids. See below for added detail.
+
+        The expected structure (in JSON) for the optional metadata is a list of
+        objects, where the index order of the list corresponds to the index
+        order of the relevant axis IDs. The metadata are parsed directly by
+        JSON, and there are no constraints on the contained metadata with the
+        exception of the outer list, and that the order of the list matters.
+        Below is an example of observational metadata for two observations:
+
+        [{"taxonomy": ["foo", "bar"]}, {"taxonomy": ["foo", "foobar"]}]
 
         Parameters
         ----------
-        h5grp : a h5py ``Group`` or an open h5py ``File``
+        h5grp : {`h5py.Group`, `h5py.File`}
         generated_by : str
+            A description of what generated the table
         compress : bool, optional
             Defaults to ``True`` means fields will be compressed with gzip,
             ``False`` means no compression
@@ -2169,9 +2307,23 @@ class Table(object):
         --------
         Table.format_hdf5
 
+        References
+        ----------
+        .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
+                py.sparse.csr_matrix.html
+        .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
+                py.sparse.csc_matrix.html
+        .. [3] http://biom-format.org/documentation/format_versions/biom-2.0.\
+                html
+
         Examples
         --------
-        ### is it okay to actually create files in doctest?
+        >>> from h5py import File  # doctest: +SKIP
+        >>> from biom.table import Table
+        >>> from numpy import array
+        >>> t = Table(array([[1, 2], [3, 4]]), ['a', 'b'], ['x', 'y'])
+        >>> with File('foo.biom', 'w') as f:  # doctest: +SKIP
+        ...     t.to_hdf5(f, "example")
 
         """
         if not HAVE_H5PY:

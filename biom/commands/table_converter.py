@@ -31,6 +31,12 @@ class TableConverter(Command):
         'sc_separated': lambda x: [e.strip() for e in x.split(';')],
         'naive': lambda x: x
     }
+
+    ObservationMetadataFormatters = {
+        'sc_separated': lambda x: '; '.join(x),
+        'naive': lambda x: x
+    }
+
     ObservationMetadataTypes['taxonomy'] = \
         ObservationMetadataTypes['sc_separated']
 
@@ -51,21 +57,15 @@ class TableConverter(Command):
         # or a classic table. One possible solution is to split out different
         # types of conversions into their own (smaller and simpler) commands,
         # which would allow us to avoid some of this I/O-ish stuff.
-        CommandIn(Name='table_file', DataType=file,
+        CommandIn(Name='table', DataType=Table,
                   Description='the input table (file-like object), either in '
                   'BIOM or classic format', Required=True),
-        CommandIn(Name='biom_to_classic_table', DataType=bool,
-                  Description='convert BIOM table file to classic table file',
-                  Default=False, DefaultDescription='convert classic table '
-                  'file to BIOM table file'),
-        CommandIn(Name='sparse_biom_to_dense_biom', DataType=bool,
-                  Description='convert sparse BIOM table file to a dense BIOM '
-                  'table file', Default=False, DefaultDescription='convert '
-                  'classic table file to BIOM table file'),
-        CommandIn(Name='dense_biom_to_sparse_biom', DataType=bool,
-                  Description='convert dense BIOM table file to a sparse BIOM '
-                  'table file', Default=False, DefaultDescription='convert '
-                  'classic table file to BIOM table file'),
+        CommandIn(Name='to_json', DataType=bool,
+                  Description='Output as a JSON table', Default=False),
+        CommandIn(Name='to_hdf5', DataType=bool,
+                  Description='Output as a HDF5 table', Default=False),
+        CommandIn(Name='to_tsv', DataType=bool,
+                  Description='Output as a TSV table', Default=False),
         CommandIn(Name='sample_metadata', DataType=MetadataMap,
                   Description='the sample metadata map (will add sample '
                   'metadata to the BIOM table, if provided). Only applies '
@@ -89,93 +89,86 @@ class TableConverter(Command):
         CommandIn(Name='process_obs_metadata', DataType=str,
                   Description='process metadata associated with observations '
                   'when converting from a classic table. Must be one of: %s' %
-                  ', '.join(ObservationMetadataTypes.keys()), Default='naive')
+                  ', '.join(ObservationMetadataTypes.keys()), Default='naive'),
+        CommandIn(Name='tsv_metadata_formatter', DataType=str,
+                  Description='Method for formatting the observation '
+                  'metadata, must be one of: %s' %
+                  ', '.join(ObservationMetadataFormatters),
+                  Default='sc_separated')
     ])
 
     CommandOuts = ParameterCollection([
-        CommandOut(Name='table_str', DataType=str,
-                   Description='The resulting table')
+        CommandOut(Name='table', DataType=tuple,
+                   Description='The resulting table and format')
     ])
 
     def run(self, **kwargs):
-        table_file = kwargs['table_file']
-        biom_to_classic_table = kwargs['biom_to_classic_table']
-        sparse_biom_to_dense_biom = kwargs['sparse_biom_to_dense_biom']
-        dense_biom_to_sparse_biom = kwargs['dense_biom_to_sparse_biom']
+        table = kwargs['table']
         sample_metadata = kwargs['sample_metadata']
         observation_metadata = kwargs['observation_metadata']
         header_key = kwargs['header_key']
         output_metadata_id = kwargs['output_metadata_id']
         process_obs_metadata = kwargs['process_obs_metadata']
+        obs_md_fmt = kwargs['tsv_metadata_formatter']
+        to_tsv = kwargs['to_tsv']
+        to_hdf5 = kwargs['to_hdf5']
+        to_json = kwargs['to_json']
 
-        if sum([biom_to_classic_table, sparse_biom_to_dense_biom,
-                dense_biom_to_sparse_biom]) > 1:
-            raise CommandError("Converting between classic/BIOM formats and "
-                               "sparse/dense representations are mutually "
-                               "exclusive. You may only specify a single "
-                               "operation at a time.")
+        if sum([to_tsv, to_hdf5, to_json]) == 0:
+            raise CommandError("Must specify an output format")
+        elif sum([to_tsv, to_hdf5, to_json]) > 1:
+            raise CommandError("Can only specify a single output format")
+
+        if obs_md_fmt not in self.ObservationMetadataFormatters:
+            raise CommandError("Unknown tsv_metadata_formatter: %s" %
+                               obs_md_fmt)
+        else:
+            obs_md_fmt_f = self.ObservationMetadataFormatters[obs_md_fmt]
+
+        if sample_metadata is not None:
+            table.add_metadata(sample_metadata)
 
         # if the user does not specify a name for the output metadata column,
         # set it to the same as the header key
         output_metadata_id = output_metadata_id or header_key
 
-        convert_error_msg = ("Input does not look like a BIOM-formatted file. "
-                             "Did you accidentally specify that a classic "
-                             "table file should be created from a BIOM table "
-                             "file?")
-        if biom_to_classic_table:
-            try:
-                result = convert_biom_to_table(table_file, header_key,
-                                               output_metadata_id)
-            except (ValueError, TypeError):
-                raise CommandError(convert_error_msg)
-        elif sparse_biom_to_dense_biom:
-            try:
-                table = parse_biom_table(table_file)
-            except (ValueError, TypeError):
-                raise CommandError(convert_error_msg)
-
-            conv_table = Table(table._data,
-                               table.observation_ids,
-                               table.sample_ids,
-                               table.observation_metadata,
-                               table.sample_metadata,
-                               table.TableId)
-            result = conv_table.to_json(generatedby())
-        elif dense_biom_to_sparse_biom:
-            try:
-                table = parse_biom_table(table_file)
-            except (ValueError, TypeError):
-                raise CommandError(convert_error_msg)
-
-            conv_table = Table(table._data,
-                               table.observation_ids,
-                               table.sample_ids,
-                               table.observation_metadata,
-                               table.sample_metadata,
-                               table.table_id)
-            result = conv_table.to_json(generatedby())
+        if process_obs_metadata not in self.ObservationMetadataTypes:
+            raise CommandError(
+                "Unknown observation metadata processing method, must be "
+                "one of: %s" %
+                ', '.join(self.ObservationMetadataTypes.keys()))
         else:
-            if process_obs_metadata not in \
-                    self.ObservationMetadataTypes.keys():
-                raise CommandError(
-                    "Unknown observation metadata processing method, must be "
-                    "one of: %s" %
-                    ', '.join(self.ObservationMetadataTypes.keys()))
+            # assume we had a table coming in as TSV
+            if table.observation_metadata is None:
+                raise CommandError("Obseration metadata processing requested "
+                                   "but it doesn't appear that there is any "
+                                   "metadata to operate on!")
 
-            convert_error_msg = ("Input does not look like a classic table. "
-                                 "Did you forget to specify that a classic "
-                                 "table file should be created from a BIOM "
-                                 "table file?")
-            try:
-                result = convert_table_to_biom(
-                    table_file,
-                    sample_metadata,
-                    observation_metadata,
-                    self.ObservationMetadataTypes[process_obs_metadata])
-            except (ValueError, TypeError, IndexError):
-                raise CommandError(convert_error_msg)
+            # and if this came in as TSV, then we expect only a single type of
+            # metadata
+            md_key = table.observation_metadata[0].keys()[0]
 
-        return {'table_str': result}
+            process_f = self.ObservationMetadataTypes[process_obs_metadata]
+            it = zip(table.observation_ids, table.observation_metadata)
+            new_md = {id_: {md_key: process_f(md[md_key])} for id_, md in it}
+
+            if observation_metadata:
+                for k, v in observation_metadata.items():
+                    new_md[k].update(v)
+            table.add_metadata(new_md, 'observation')
+
+        if to_tsv:
+            result = table.to_tsv(header_key=header_key,
+                                  header_value=output_metadata_id,
+                                  metadata_formatter=obs_md_fmt_f)
+            fmt = 'tsv'
+        elif to_json:
+            result = table.to_json(generatedby())
+            fmt = 'json'
+        elif to_hdf5:
+            result = table
+            fmt = 'hdf5'
+
+        return {'table': (result, fmt)}
 
 CommandConstructor = TableConverter

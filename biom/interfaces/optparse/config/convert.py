@@ -20,9 +20,9 @@ from pyqi.core.interfaces.optparse import (OptparseUsageExample,
                                            OptparseOption, OptparseResult)
 from pyqi.core.command import (make_command_in_collection_lookup_f,
                                make_command_out_collection_lookup_f)
-from pyqi.core.interfaces.optparse.input_handler import file_reading_handler
-from pyqi.core.interfaces.optparse.output_handler import write_string
-from biom.interfaces.optparse.input_handler import load_metadata
+from biom.interfaces.optparse.input_handler import (load_biom_table,
+                                                    load_metadata)
+from biom.interfaces.optparse.output_handler import write_biom_table
 from biom.commands.table_converter import CommandConstructor
 
 cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
@@ -37,20 +37,12 @@ usage_examples = [
 ]
 
 inputs = [
-    OptparseOption(Parameter=cmd_in_lookup('table_file'),
+    OptparseOption(Parameter=cmd_in_lookup('table'),
                    Type='existing_filepath',
-                   Handler=file_reading_handler,
+                   Handler=load_biom_table,
                    ShortName='i', Name='input-fp',
                    Help='the input table filepath, either in BIOM or classic '
                    'format'),
-    OptparseOption(Parameter=cmd_in_lookup('biom_to_classic_table'),
-                   Type=None, Action='store_true', ShortName='b'),
-    OptparseOption(Parameter=cmd_in_lookup('sparse_biom_to_dense_biom'),
-                   Type=None,
-                   Action='store_true'),
-    OptparseOption(Parameter=cmd_in_lookup('dense_biom_to_sparse_biom'),
-                   Type=None,
-                   Action='store_true'),
     OptparseOption(Parameter=cmd_in_lookup('sample_metadata'),
                    Type='existing_filepath',
                    Handler=load_metadata,
@@ -62,6 +54,13 @@ inputs = [
     OptparseOption(Parameter=cmd_in_lookup('header_key')),
     OptparseOption(Parameter=cmd_in_lookup('output_metadata_id')),
     OptparseOption(Parameter=cmd_in_lookup('process_obs_metadata')),
+    OptparseOption(Parameter=cmd_in_lookup('tsv_metadata_formatter')),
+    OptparseOption(Parameter=cmd_in_lookup('to_json'),
+                   Action='store_true'),
+    OptparseOption(Parameter=cmd_in_lookup('to_tsv'),
+                   Action='store_true'),
+    OptparseOption(Parameter=cmd_in_lookup('to_hdf5'),
+                   Action='store_true'),
     OptparseOption(Parameter=None,
                    Type='new_filepath',
                    ShortName='o',
@@ -71,7 +70,7 @@ inputs = [
 ]
 
 outputs = [
-    OptparseResult(Parameter=cmd_out_lookup('table_str'),
-                   Handler=write_string,
+    OptparseResult(Parameter=cmd_out_lookup('table'),
+                   Handler=write_biom_table,
                    InputName='output-fp')
 ]
