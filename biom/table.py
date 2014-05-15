@@ -459,11 +459,8 @@ class Table(object):
         >>> func = lambda x, y: x + y
         >>> table.reduce(func, 'sample') # doctest: +NORMALIZE_WHITESPACE
         array([  1.,   3.,  43.])
-
         >>> table.reduce(func, 'observation') # doctest: +NORMALIZE_WHITESPACE
         array([  1.,  46.])
-
-
         """
         if self.is_empty():
             raise TableException("Cannot reduce an empty table")
