@@ -621,9 +621,9 @@ class Table(object):
             table density
         """
         rows, cols = self.shape
-        percent_dense = 1.0*self.nnz / (rows*cols)
-        return '%d x %d %s with %d nonzero entries (%.2f%% dense)' % (
-            rows, cols, repr(self.__class__), self.nnz, percent_dense
+        return '%d x %d %s with %d nonzero entries (%d%% dense)' % (
+            rows, cols, repr(self.__class__), self.nnz,
+            self.get_table_density() * 100
         )
 
     def exists(self, id_, axis="sample"):
