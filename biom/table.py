@@ -1752,6 +1752,7 @@ class Table(object):
         subset = not (samples is None and observations is None)
         order = 'sample' if samples is not None else 'observation'
 
+        id_ = h5grp.attrs['id']
         create_date = h5grp.attrs['creation-date']
         generated_by = h5grp.attrs['generated-by']
 
@@ -1845,7 +1846,7 @@ class Table(object):
 
         t = Table(matrix, obs_ids, samp_ids, obs_md or None,
                   samp_md or None, type=type_, create_date=create_date,
-                  generated_by=generated_by)
+                  generated_by=generated_by, table_id=id_)
 
         f = lambda id_, md, vals: np.any(vals)
         axis = 'observation' if order == 'sample' else 'sample'
