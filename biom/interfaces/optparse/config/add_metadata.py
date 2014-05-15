@@ -96,6 +96,10 @@ inputs = [
                    'fields, or if you want to include only the first n fields '
                    'where n is the number of entries provided here'),
 
+    OptparseOption(Parameter=cmd_in_lookup('output_as_json'),
+                   Type=None,
+                   Action='store_true'),
+
     OptparseOption(Parameter=None, Type='new_filepath', ShortName='o',
                    Name='output-fp', Required=True,
                    Help='the output BIOM table')
