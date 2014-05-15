@@ -490,13 +490,13 @@ class Table(object):
 
         Add all values per sample:
 
-        >>> table.sum(axis='sample')
-        array([1., 3., 43.])
+        >>> table.sum(axis='sample') # doctest: +NORMALIZE_WHITESPACE
+        array([  1.,  3.,  43.])
 
         Add all values per observation:
 
-        >>> table.sum(axis='observation')
-        array([1., 46.])
+        >>> table.sum(axis='observation') # doctest: +NORMALIZE_WHITESPACE
+        array([  1.,  46.])
         """
         if axis == 'whole':
             axis = None
