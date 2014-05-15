@@ -2252,7 +2252,7 @@ html
         ./type                       : str, the table type (e.g, OTU table)
         ./format-url                 : str, a URL that describes the format
         ./format-version             : two element tuple of int32,
-        ajor and minor
+        major and minor
         ./generated-by               : str, what generated this file
         ./creation-date              : str, ISO format
         ./shape                      : two element tuple of int32, N by M
