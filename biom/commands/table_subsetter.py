@@ -14,7 +14,6 @@ from pyqi.core.command import (Command, CommandIn, CommandOut,
 from pyqi.core.exception import CommandError
 from biom.parse import (get_axis_indices, direct_slice_data, direct_parse_key,
                         parse_biom_table)
-from types import GeneratorType
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -27,7 +26,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 class TableSubsetter(Command):
-    Axes = ['samples', 'observations']
+    Axes = ['sample', 'observation']
 
     BriefDescription = "Subset a BIOM table"
     LongDescription = ("Subset a BIOM table, over either observations or "
@@ -104,7 +103,7 @@ class TableSubsetter(Command):
                 yield new_axis_md
                 yield ","
 
-                if axis == "observations":
+                if axis == "observation":
                     yield direct_parse_key(json_table_str, "columns")
                 else:
                     yield direct_parse_key(json_table_str, "rows")

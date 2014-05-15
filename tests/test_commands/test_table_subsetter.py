@@ -16,10 +16,13 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Jai Ram Rideout"
 __email__ = "jai.rideout@gmail.com"
 
+import os
 from pyqi.core.exception import CommandError
 from biom.commands.table_subsetter import TableSubsetter
 from biom.parse import parse_biom_table
 from unittest import TestCase, main
+import numpy.testing as npt
+from biom.util import HAVE_H5PY, biom_open
 
 
 class TableSubsetterTests(TestCase):
@@ -31,7 +34,7 @@ class TableSubsetterTests(TestCase):
 
     def test_subset_samples(self):
         """Correctly subsets samples in a table."""
-        obs = self.cmd(json_table_str=self.biom_str1, axis='samples',
+        obs = self.cmd(json_table_str=self.biom_str1, axis='sample',
                        ids=['f4', 'f2'])
         self.assertEqual(obs.keys(), ['subsetted_table'])
         obs = parse_biom_table(list(obs['subsetted_table'][0]))
@@ -42,7 +45,7 @@ class TableSubsetterTests(TestCase):
 
     def test_subset_observations(self):
         """Correctly subsets observations in a table."""
-        obs = self.cmd(json_table_str=self.biom_str1, axis='observations',
+        obs = self.cmd(json_table_str=self.biom_str1, axis='observation',
                        ids=['None2', '879972'])
         self.assertEqual(obs.keys(), ['subsetted_table'])
         obs = parse_biom_table(list(obs['subsetted_table'][0]))
@@ -54,8 +57,51 @@ class TableSubsetterTests(TestCase):
     def test_invalid_input(self):
         """Correctly raises politically correct error upon invalid input."""
         with self.assertRaises(CommandError):
-            self.cmd(table_str=self.biom_str1, axis='foo',
+            self.cmd(json_table_str=self.biom_str1, axis='foo',
                      ids=['f2', 'f4'])
+
+        with self.assertRaises(CommandError):
+            self.cmd(axis='sample', ids=['f2', 'f4'])
+
+        with self.assertRaises(CommandError):
+            self.cmd(json_table_str=self.biom_str1, hdf5_table='foo',
+                     axis='sample', ids=['f2', 'f4'])
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_subset_samples_hdf5(self):
+        """Correctly subsets samples in a hdf5 table"""
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        with biom_open('test_data/test.biom') as f:
+            obs = self.cmd(hdf5_table=f, axis='sample',
+                           ids=['Sample1', 'Sample2', 'Sample3'])
+        os.chdir(cwd)
+        self.assertEqual(obs.keys(), ['subsetted_table'])
+        obs = obs['subsetted_table'][0]
+        self.assertEqual(len(obs.sample_ids), 3)
+        self.assertEqual(len(obs.observation_ids), 5)
+        self.assertTrue('Sample1' in obs.sample_ids)
+        self.assertTrue('Sample2' in obs.sample_ids)
+        self.assertTrue('Sample3' in obs.sample_ids)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_subset_observations_hdf5(self):
+        """Correctly subsets samples in a hdf5 table"""
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        with biom_open('test_data/test.biom') as f:
+            obs = self.cmd(hdf5_table=f, axis='observation',
+                           ids=['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'])
+        os.chdir(cwd)
+        self.assertEqual(obs.keys(), ['subsetted_table'])
+        obs = obs['subsetted_table'][0]
+        self.assertEqual(len(obs.sample_ids), 4)
+        self.assertEqual(len(obs.observation_ids), 3)
+        self.assertTrue('GG_OTU_1' in obs.observation_ids)
+        self.assertTrue('GG_OTU_3' in obs.observation_ids)
+        self.assertTrue('GG_OTU_5' in obs.observation_ids)
 
 
 biom1 = ('{"id": "None","format": "Biological Observation Matrix 1.0.0",'

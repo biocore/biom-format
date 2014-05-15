@@ -105,7 +105,7 @@ def direct_slice_data(biom_str, to_keep, axis):
     Will raise IndexError if the inices are out of bounds. Fully zerod rows
     or columns are possible and this is _not_ checked.
     """
-    if axis not in ['observations', 'samples']:
+    if axis not in ['observation', 'sample']:
         raise IndexError("Unknown axis type")
 
     # it would be nice if all of these lookups could be done in a single
@@ -137,11 +137,11 @@ def direct_slice_data(biom_str, to_keep, axis):
 
     # more bounds check and set new shape
     new_shape = "[%d, %d]"
-    if axis == 'observations':
+    if axis == 'observation':
         if max(to_keep) >= n_rows:
             raise IndexError("Observations to keep are out of bounds!")
         new_shape = new_shape % (len(to_keep), n_cols)
-    elif axis == 'samples':
+    elif axis == 'sample':
         if max(to_keep) >= n_cols:
             raise IndexError("Samples to keep are out of bounds!")
         new_shape = new_shape % (n_rows, len(to_keep))
@@ -149,9 +149,9 @@ def direct_slice_data(biom_str, to_keep, axis):
     to_keep = set(to_keep)
     new_data = []
 
-    if axis == 'observations':
+    if axis == 'observation':
         new_data = _direct_slice_data_sparse_obs(data_fields, to_keep)
-    elif axis == 'samples':
+    elif axis == 'sample':
         new_data = _direct_slice_data_sparse_samp(data_fields, to_keep)
 
     return '"data": %s, "shape": %s' % (new_data, new_shape)
@@ -214,10 +214,10 @@ def get_axis_indices(biom_str, to_keep, axis):
     Raises KeyError if unknown key is specified
     """
     to_keep = set(to_keep)
-    if axis == 'observations':
+    if axis == 'observation':
         axis_key = 'rows'
         axis_data = direct_parse_key(biom_str, axis_key)
-    elif axis == "samples":
+    elif axis == "sample":
         axis_key = 'columns'
         axis_data = direct_parse_key(biom_str, axis_key)
     else:
@@ -273,7 +273,7 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
     -----
     Subsetting from the BIOM table is only supported in one axis
     """
-    if axis not in ['observations', 'samples']:
+    if axis not in ['observation', 'sample']:
         UnknownAxisError(axis)
 
     try:
