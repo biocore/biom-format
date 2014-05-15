@@ -443,6 +443,27 @@ class Table(object):
             If `axis` is neither "sample" nor "observation"
         TableException
             If the table's data matrix is empty
+
+        Examples
+        --------
+
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 table
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'foo': 'bar'}, {'x': 'y'}], None)
+
+        >>> func = lambda x, y: x + y
+        >>> table.reduce(func, 'sample') # doctest: +NORMALIZE_WHITESPACE
+        array([  1.,   3.,  43.])
+
+        >>> table.reduce(func, 'observation') # doctest: +NORMALIZE_WHITESPACE
+        array([  1.,  46.])
+
+
         """
         if self.is_empty():
             raise TableException("Cannot reduce an empty table")
