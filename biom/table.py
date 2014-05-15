@@ -535,15 +535,15 @@ class Table(object):
                               self.sample_ids[:], self.observation_ids[:],
                               sample_md_copy, obs_md_copy, self.table_id)
 
-    def metadata(self, id_, axis):
+    def metadata(self, id, axis):
         """Return the metadata of the identified sample/observation.
 
         Parameters
         ----------
-        id_ : str
+        id : str
             ID of the sample or observation whose index will be returned.
         axis : {'sample', 'observation'}
-            Axis to search for `id_`.
+            Axis to search for `id`.
 
         Returns
         -------
@@ -588,24 +588,24 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-        idx = self.index(id_, axis=axis)
+        idx = self.index(id, axis=axis)
 
         return md[idx] if md is not None else None
 
-    def index(self, id_, axis):
+    def index(self, id, axis):
         """Return the index of the identified sample/observation.
 
         Parameters
         ----------
-        id_ : str
+        id : str
             ID of the sample or observation whose index will be returned.
         axis : {'sample', 'observation'}
-            Axis to search for `id_`.
+            Axis to search for `id`.
 
         Returns
         -------
         int
-            Index of the sample/observation identified by `id_`.
+            Index of the sample/observation identified by `id`.
 
         Raises
         ------
@@ -641,10 +641,10 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-        if id_ not in idx_lookup:
-            raise UnknownIDError(id_, axis)
+        if id not in idx_lookup:
+            raise UnknownIDError(id, axis)
 
-        return idx_lookup[id_]
+        return idx_lookup[id]
 
     def get_value_by_ids(self, obs_id, samp_id):
         """Return value in the matrix corresponding to ``(obs_id, samp_id)``
@@ -686,12 +686,12 @@ class Table(object):
             self.get_table_density() * 100
         )
 
-    def exists(self, id_, axis="sample"):
-        """Returns whether id_ exists in axis
+    def exists(self, id, axis="sample"):
+        """Returns whether id exists in axis
 
         Parameters
         ----------
-        id_: str
+        id: str
             id to check if exists
         axis : {'sample', 'observation'}, optional
             The axis to check
@@ -699,7 +699,7 @@ class Table(object):
         Returns
         -------
         bool
-            ``True`` if `id_` exists, ``False`` otherwise
+            ``True`` if `id` exists, ``False`` otherwise
 
         Examples
         --------
@@ -726,9 +726,9 @@ class Table(object):
         False
         """
         if axis == "sample":
-            return id_ in self._sample_index
+            return id in self._sample_index
         elif axis == "observation":
-            return id_ in self._obs_index
+            return id in self._obs_index
         else:
             raise UnknownAxisError(axis)
 
@@ -910,16 +910,16 @@ class Table(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def data(self, id_, axis):
-        """Returns observations associated with sample id `id_` or
-        samples associated with observation id `id_`
+    def data(self, id, axis):
+        """Returns observations associated with sample id `id` or
+        samples associated with observation id `id`
 
         Parameters
         ----------
-        id_ : str
+        id : str
             ID of the samples or observations whose data will be returned.
         axis : {'sample', 'observation'}
-            Axis to search for `id_`.
+            Axis to search for `id`.
 
         Raises
         ------
@@ -927,9 +927,9 @@ class Table(object):
             If provided an unrecognized axis.
         """
         if axis == 'sample':
-            return self._to_dense(self[:, self.index(id_, 'sample')])
+            return self._to_dense(self[:, self.index(id, 'sample')])
         elif axis == 'observation':
-            return self._to_dense(self[self.index(id_, 'observation'), :])
+            return self._to_dense(self[self.index(id, 'observation'), :])
         else:
             raise UnknownAxisError(axis)
 
