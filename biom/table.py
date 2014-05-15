@@ -29,6 +29,7 @@ from biom.util import (get_biom_format_version_string,
 
 from ._filter import _filter
 from ._transform import _transform
+from ._subsample import _subsample
 
 
 __author__ = "Daniel McDonald"
@@ -1432,14 +1433,7 @@ class Table(object):
             if counts_sum == n:
                 result = counts
             else:
-                unpkd = np.concatenate([np.repeat(np.array(i,),
-                                                  counts.getcol(i).data[0])
-                                        for i in counts.indices])
-                permuted = np.random.permutation(unpkd)[:n]
-
-                result = np.zeros(counts.shape[-1], dtype=float)
-                for p in permuted:
-                    result[p] += 1
+                result = _subsample(counts, n, counts_sum)
                 result = Table._to_sparse(result)
 
             new_data.append(result)
