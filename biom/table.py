@@ -76,6 +76,7 @@ from biom.util import (get_biom_format_version_string,
 
 from ._filter import _filter
 from ._transform import _transform
+from ._subsample import _subsample
 
 
 __author__ = "Daniel McDonald"
@@ -490,6 +491,31 @@ class Table(object):
             If `axis` is neither "sample" nor "observation"
         TableException
             If the table's data matrix is empty
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 table
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'foo': 'bar'}, {'x': 'y'}], None)
+
+        Create a reduce function
+
+        >>> func = lambda x, y: x + y
+
+        Reduce table on samples
+
+        >>> table.reduce(func, 'sample') # doctest: +NORMALIZE_WHITESPACE
+        array([  1.,   3.,  43.])
+
+        Reduce table on observations
+
+        >>> table.reduce(func, 'observation') # doctest: +NORMALIZE_WHITESPACE
+        array([  1.,  46.])
         """
         if self.is_empty():
             raise TableException("Cannot reduce an empty table")
@@ -1591,6 +1617,88 @@ class Table(object):
         else:
             return UnknownAxisError(axis)
 
+    def subsample(self, n, axis='sample'):
+        """Randomly subsample without replacement.
+
+        Parameters
+        ----------
+        n : int
+            Number of items to subsample from `counts`.
+        axis : {'sample', 'observation'}, optional
+            The axis to sample over
+
+        Returns
+        -------
+        biom.Table
+            A subsampled version of self
+
+        Raises
+        ------
+        ValueError
+            If `n` is less than zero.
+
+        Notes
+        -----
+        Subsampling is performed without replacement. If `n` is greater than
+        the sum of a given vector, that vector is omitted from the result.
+
+        Adapted from `skbio.math.subsample`, see biom-format/licenses for more
+        information about scikit-bio.
+
+        This code assumes absolute abundance.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+        >>> table = Table(np.array([[0, 2, 3], [1, 0, 2]]), ['O1', 'O2'],
+        ...               ['S1', 'S2', 'S3'])
+
+        Subsample 1 item over the sample axis:
+
+        >>> print table.subsample(1).sum(axis='sample')
+        [ 1.  1.  1.]
+
+        Subsample 2 items over the sample axis, note that 'S1' is filtered out:
+
+        >>> ss = table.subsample(2)
+        >>> print ss.sum(axis='sample')
+        [ 2.  2.]
+        >>> print ss.sample_ids
+        ['S2' 'S3']
+
+        """
+        if n < 0:
+            raise ValueError("n cannot be negative.")
+
+        if axis == 'sample':
+            data = self._data.tocsc()
+        elif axis == 'observation':
+            data = self._data.tocsr()
+        else:
+            raise UnknownAxisError(axis)
+
+        _subsample(data, n)
+
+        if self.sample_metadata is None:
+            samp_md = None
+        else:
+            samp_md = self.sample_metadata.copy()
+
+        if self.observation_metadata is None:
+            obs_md = None
+        else:
+            obs_md = self.observation_metadata.copy()
+
+        table = Table(data, self.observation_ids.copy(),
+                      self.sample_ids.copy(), obs_md, samp_md)
+
+        inv_axis = self._invert_axis(axis)
+        table.filter(lambda v, i, md: v.sum() > 0, axis=inv_axis)
+        table.filter(lambda v, i, md: v.sum() > 0, axis=axis)
+
+        return table
+
     def pa(self, inplace=True):
         """Convert the table to presence/absence data
 
@@ -1601,14 +1709,14 @@ class Table(object):
 
         Returns
         -------
-        biom.Table
+        Table
             Returns itself if `inplace`, else returns a new presence/absence
             table.
 
         Examples
         --------
-        >>> import numpy as np
         >>> from biom.table import Table
+        >>> import numpy as np
 
         Create a 2x3 BIOM table
 

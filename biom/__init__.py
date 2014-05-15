@@ -20,4 +20,17 @@ __version__ = "1.3.1-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
-__all__ = ['table', 'parse', 'util', 'exception']
+
+from .table import Table
+from .parse import parse_biom_table as parse_table
+
+example_table = Table([[0, 1, 2], [3, 4, 5]], ['O1', 'O2'],
+                      ['S1', 'S2', 'S3'],
+                      [{'taxonomy': ['Bacteria', 'Firmicutes']},
+                       {'taxonomy': ['Bacteria', 'Bacteroidetes']}],
+                      [{'environment': 'A'},
+                       {'environment': 'B'},
+                       {'environment': 'A'}], input_is_dense=True)
+
+
+__all__ = ['Table', 'example_table', 'parse_table']
