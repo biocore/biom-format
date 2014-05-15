@@ -28,7 +28,7 @@ cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
 cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 
 inputs = [
-    HTMLInputOption(Parameter=cmd_in_lookup('table_str'),
+    HTMLInputOption(Parameter=cmd_in_lookup('json_table_str'),
                     Type='upload_file',
                     Handler=load_file_contents,
                     Name='input-fp',
