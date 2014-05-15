@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-Distance matrices (:mod:`biom.table`)
-=====================================
+BIOM Table (:mod:`biom.table`)
+==============================
 
 .. currentmodule:: biom.table
 

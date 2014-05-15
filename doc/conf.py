@@ -82,7 +82,7 @@ release = biom.__version__
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build', '_templates/autosummary/*.rst']
+exclude_patterns = ['_build', '_templates/autosummary/*.rst', 'sphinxext']
 
 # The reST default role (used for this markup: `text`) to use for all documents.
 #default_role = None
@@ -233,4 +233,4 @@ man_pages = [
      [u'The BIOM Project'], 1)
 ]
 
-autosummary_generate = glob.glob('*.rst')
+autosummary_generate = glob.glob('*.rst') + glob.glob('documentation/*.rst')
