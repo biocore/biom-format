@@ -1335,6 +1335,40 @@ class Table(object):
         -------
         GeneratorType
             A generator that yields `Table`
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+        >>> from biom.util import unzip
+
+        Create a 2x3 BIOM table, with observation metadata and sample
+        metadata:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'full_genome_available': True},
+        ...                {'full_genome_available': False}],
+        ...               [{'sample_type': 'a'}, {'sample_type': 'a'},
+        ...                {'sample_type': 'b'}])
+
+        Define a function to bin by sample_type
+
+        >>> f = lambda id_, md: md['sample_type']
+
+        Partition the table and view results
+
+        >>> bins, tables = table.partition(f)
+        >>> print bins[1] # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  0.0 0.0
+        O2  1.0 3.0
+        >>> print tables[1] # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S3
+        O1  1.0
+        O2  42.0
         """
         partitions = {}
         # conversion of vector types is not necessary, vectors are not
