@@ -85,14 +85,11 @@ setup(name='biom-format',
       include_dirs=[np.get_include()],
       scripts=glob('scripts/*'),
       install_requires=["numpy >= 1.3.0",
-                        "pyqi == 0.3.1",
+                        "pyqi == 0.3.2",
                         "scipy >= 0.13.0"],
       extras_require={'test': ["nose >= 0.10.1",
                                "tox >= 1.6.1"],
                       'hdf5': ["h5py >= 2.2.0"]
                       },
-      dependency_links=[
-          'https://github.com/bipy/pyqi/archive/master.zip#egg=pyqi-0.3.1-dev'
-      ],
       classifiers=classifiers
       )

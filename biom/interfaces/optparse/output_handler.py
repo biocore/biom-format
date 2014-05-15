@@ -18,6 +18,7 @@ __email__ = "gregcaporaso@gmail.com"
 from os.path import exists
 from pyqi.core.exception import IncompetentDeveloperError
 from biom.parse import generatedby
+from biom.util import HAVE_H5PY
 
 
 def write_biom_table(result_key, data, option_value=None):
@@ -29,5 +30,19 @@ def write_biom_table(result_key, data, option_value=None):
     if exists(option_value):
         raise IOError("Output path '%s' already exists." % option_value)
 
-    with open(option_value, 'w') as f:
-        f.write(data.get_biom_format_json_string(generatedby()))
+    table, fmt = data
+
+    if fmt not in ['hdf5', 'json']:
+        raise IncompetentDeveloperError("Unknown file format")
+
+    if fmt == 'json':
+        with open(option_value, 'w') as f:
+            f.write(table.to_json(generatedby()))
+    else:
+        if HAVE_H5PY:
+            import h5py
+        else:
+            raise ImportError("h5py is not available, cannot write HDF5!")
+
+        with h5py.File(option_value, 'w') as f:
+            table.to_hdf5(f, generatedby())
