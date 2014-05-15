@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Distance matrices (:mod:`biom.table`)
-=============================================
+=====================================
 
 .. currentmodule:: biom.table
 
@@ -2139,8 +2139,8 @@ class Table(object):
         [./sample/metadata]          : Optional, JSON str, in index order
                                        with ids
 
-        Paramters
-        ---------
+        Parameters
+        ----------
         h5grp : a h5py ``Group`` or an open h5py ``File``
         generated_by : str
         compress : bool, optional

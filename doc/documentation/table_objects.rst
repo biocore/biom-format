@@ -24,6 +24,6 @@ Abstract base classes establish standard interfaces for subclassed types and pro
 ``Table``
 ^^^^^^^^^
 
-.. autoclass:: biom.table.Table
-   :members:
+.. automodule:: biom.table
+
 
