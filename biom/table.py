@@ -455,9 +455,16 @@ class Table(object):
         >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
         ...               [{'foo': 'bar'}, {'x': 'y'}], None)
 
+        Create a reduce function
+
         >>> func = lambda x, y: x + y
+
+        Reduce table on samples
+
         >>> table.reduce(func, 'sample') # doctest: +NORMALIZE_WHITESPACE
         array([  1.,   3.,  43.])
+
+        Reduce table on observations
 
         >>> table.reduce(func, 'observation') # doctest: +NORMALIZE_WHITESPACE
         array([  1.,  46.])
