@@ -294,14 +294,17 @@ class Table(object):
 
     @property
     def shape(self):
+        """The shape of the underlying contingency matrix"""
         return self._data.shape
 
     @property
     def dtype(self):
+        """The type of the objects in the underlying contingency matrix"""
         return self._data.dtype
 
     @property
     def nnz(self):
+        """Number of non-zero elements of the underlying contingency matrix"""
         return self._data.nnz
 
     def add_metadata(self, md, axis='sample'):
@@ -509,10 +512,15 @@ class Table(object):
         return matrix_sum
 
     def transpose(self):
-        """Return a new table that is the transpose of this table.
+        """Transpose the contingency table
 
         The returned table will be an entirely new table, including copies of
         the (transposed) data, sample/observation IDs and metadata.
+
+        Returns
+        -------
+        Table
+            Return a new table that is the transpose of caller table.
         """
         sample_md_copy = deepcopy(self.sample_metadata)
         obs_md_copy = deepcopy(self.observation_metadata)
@@ -2592,19 +2600,7 @@ class Table(object):
     def _extract_data_from_tsv(lines, delim='\t', dtype=float,
                                header_mark=None, md_parse=None):
         """Parse a classic table into (sample_ids, obs_ids, data, metadata,
-                                       name)
-        Returns
-        -------
-        list
-            sample_ids
-        list
-            observation_ids
-        array
-            data
-        list
-            metadata
-        string
-            column name if last column is non-numeric
+        name)
 
         Parameters
         ----------
@@ -2618,17 +2614,30 @@ class Table(object):
         md_parse:  function or None
             funtion used to parse metdata
 
+        Returns
+        -------
+        list
+            sample_ids
+        list
+            observation_ids
+        array
+            data
+        list
+            metadata
+        string
+            column name if last column is non-numeric
+
         Notes
         ------
-        This is intended to be close to how QIIME classic OTU tables are
-        parsed with the exception of the additional md_name field
+        This is intended to be close to how QIIME classic OTU tables are parsed
+        with the exception of the additional md_name field
 
         This function is ported from QIIME (http://www.qiime.org), previously
-        named
-        parse_classic_otu_table. QIIME is a GPL project, but we obtained
-        permission
-        from the authors of this function to port it to the BIOM Format project
-        (and keep it under BIOM's BSD license).
+        named parse_classic_otu_table. QIIME is a GPL project, but we obtained
+        permission from the authors of this function to port it to the BIOM
+        Format project (and keep it under BIOM's BSD license).
+
+        .. shownumpydoc
         """
         if not isinstance(lines, list):
             try:
