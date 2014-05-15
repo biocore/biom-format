@@ -49,7 +49,7 @@ inputs = [
 ]
 
 outputs = [
-    HTMLDownload(Parameter=cmd_out_lookup('subset_generator'),
+    HTMLDownload(Parameter=cmd_out_lookup('subsetted_table'),
                  Handler=newline_list_of_strings,
                  FilenameLookup='download-file',
                  FileExtension='.biom')
