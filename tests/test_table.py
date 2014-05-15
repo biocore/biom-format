@@ -1524,6 +1524,13 @@ class SparseTableTests(TestCase):
         self.st7.pa()
         self.assertEqual(self.st7, exp)
 
+    def test_pa_works_if_something_has_been_zeroed(self):
+        exp = Table(np.array([[0, 1], [1, 0]]), ['5', '6'], ['a', 'b'])
+        self.st7._data[0, 0] = 0
+        self.st7.pa()
+        self.assertEqual(self.st7, exp)
+
+
     def test_transform_return_type(self):
         f = lambda data, id_, md: data / 2.
         filtered_table = self.st3.transform(f, inplace=False)

@@ -1418,7 +1418,7 @@ class Table(object):
 
         """
         def transform_f(data, id_, metadata):
-            return np.ones(len(data), dtype=float)
+            return np.where(data > 0, 1., 0.)
 
         return self.transform(transform_f, inplace=inplace)
 
