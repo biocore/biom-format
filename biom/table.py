@@ -439,7 +439,7 @@ class Table(object):
 
         Raises
         ------
-        UnknownAxisErorr
+        UnknownAxisError
             If `axis` is neither "sample" nor "observation"
         TableException
             If the table's data matrix is empty
@@ -1990,8 +1990,8 @@ class Table(object):
     def from_hdf5(cls, h5grp, ids=None, axis='sample'):
         """Parse an HDF5 formatted BIOM table
 
-        If samples or observations are provided, only those samples or
-        observations ids present in these lists are loaded.
+        If ids is provided, only the samples/observations listed in ids
+        (depending on the value of axis) will be loaded
 
         The expected structure of this group is below. A few basic definitions,
         N is the number of observations and M is the number of samples. Data
@@ -2048,12 +2048,11 @@ class Table(object):
         Parameters
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
-        samples: iterable, optional
-            The sample ids of the samples that we need to retrieve from the
-            hdf5 biom table
-        observations: iterable, optional
-            The observation ids of the observations that we need to retrieve
-            from the hdf5 biom table
+        ids : iterable
+            The sample/observation ids of the samples/observations that we need
+            to retrieve from the hdf5 biom table
+        axis : {'sample', 'observation'}, optional
+            The axis to subset on
 
         Returns
         -------
@@ -2063,14 +2062,8 @@ class Table(object):
         Raises
         ------
         ValueError
-            If `samples` and `observations` are provided
-            If `samples` or `observations` are not a subset of the samples or
-            observations ids present in the hdf5 biom table
-
-        Notes
-        -----
-        Subsetting can only happen over samples or observations, but not for
-        both axis at the same time.
+            If `ids` are not a subset of the samples or observations ids
+            present in the hdf5 biom table
 
         See Also
         --------
