@@ -1252,27 +1252,29 @@ class Table(object):
             a one-to-one collapse
         norm : bool, optional
             If ``True``, normalize the resulting table
-        min_group_size : int
-            The minimum size of a partition of performing a one-to-many
-            collapse
-        include_collapsed_metadata : bool
-            If `True`, retain the collapsed metadata keyed by the original IDs
-            of the associated vectors
-        one_to_many : bool
-            Perform a one-to-many collapse
-        one_to_many_mode : str, 'add' or 'divide'
+        min_group_size : int, optional
+            Defaults to ``2``. The minimum size of a partition of performing a
+            one-to-many collapse
+        include_collapsed_metadata : bool, optional
+            Defaults to ``True``. If ``True``, retain the collapsed metadata
+            keyed by the original IDs of the associated vectors
+        one_to_many : bool, optional
+            Defaults to ``False``. Perform a one-to-many collapse
+        one_to_many_mode : {'add', 'divide'}, optional
             The way to reduce two vectors in a one-to-many collapse
-        one_to_many_md_key : str
-            The if `include_collapsed_metadata` is `True`, store the original
-            vector metadata under this key
-        strict : bool
-            Requires full pathway data within a one-to-many structure
+        one_to_many_md_key : str, optional
+            Defaults to "Path". If `include_collapsed_metadata` is ``True``,
+            store the original vector metadata under this key
+        strict : bool, optional
+            Defaults to ``False``. Requires full pathway data within a
+            one-to-many structure
+        axis : {'sample', 'observation'}, optional
+            The axis to collapse
 
         Returns
         -------
-        Table
+        biom.Table
             The collapsed table
-
         """
         collapsed_data = []
         collapsed_ids = []
@@ -1441,12 +1443,12 @@ class Table(object):
             return UnknownAxisError(axis)
 
     def pa(self, inplace=True):
-        """Convert the `Table` to presence/absence data
+        """Convert the table to presence/absence data
 
         Parameters
         ----------
         inplace : bool, optional
-            Defaults to `False`
+            Defaults to ``False``
 
         Returns
         -------
@@ -1471,7 +1473,6 @@ class Table(object):
         [ 0.  0.  1.]
         >>> print table.data('O2', 'observation')
         [ 1.  1.  1.]
-
         """
         def transform_f(data, id_, metadata):
             return np.ones(len(data), dtype=float)
@@ -1494,8 +1495,9 @@ class Table(object):
             values that replace the original values.
         axis : {'sample', 'observation'}, optional
             The axis to operate on. Can be "sample" or "observation".
-        inplace : bool, defaults to True
-            Whether to return a new table or modify itself.
+        inplace : bool, optional
+            Defaults to ``True``. Whether to return a new table or modify
+            itself.
 
         Returns
         -------
@@ -1529,23 +1531,35 @@ class Table(object):
 
         return table
 
-    def norm(self, axis='sample'):
+    def norm(self, axis='sample', inplace=True):
         """Normalize in place sample values by an observation, or vice versa.
 
         Parameters
         ----------
         axis : {'sample', 'observation'}, optional
             The axis to use for normalization
+        inplace : bool, optional
+            Defaults to ``True``. If ``True``, performs the normalization in
+            place. Otherwise, returns a new table with the noramlization
+            applied.
+
+        Returns
+        -------
+        biom.Table
+            The normalized table
         """
         def f(val, id_, _):
             return val / float(val.sum())
 
-        self.transform(f, axis=axis)
+        return table.transform(f, axis=axis, inplace=inplace)
 
     def nonzero(self):
-        """Returns locations of nonzero elements within the data matrix
+        """Yields locations of nonzero elements within the data matrix
 
-        The values returned are ``(observation_id, sample_id)``
+        Returns
+        -------
+        generator
+            Yields ``(observation_id, sample_id)`` for each nonzero element
         """
         # this is naively implemented. If performance is a concern, private
         # methods can be written to hit against the underlying types directly
@@ -1556,10 +1570,18 @@ class Table(object):
     def nonzero_counts(self, axis, binary=False):
         """Get nonzero summaries about an axis
 
-        axis : either 'sample', 'observation', or 'whole'
-        binary : sum of nonzero entries, or summing the values of the entries
+        Parameters
+        ----------
+        axis : {'sample', 'observation', 'whole'}
+            The axis on which to count nonzero entries
+        binary : bool, optional
+            Defaults to ``False``. If ``False``, return number of nonzero
+            entries. If ``True``, sumthe values of the entries
 
-        Returns a numpy array in index order to the axis
+        Returns
+        -------
+        numpy.array
+            Counts in index order to the axis
         """
         if binary:
             dtype = 'int'
@@ -1614,19 +1636,38 @@ class Table(object):
         """Merge two tables together
 
         The axes, samples and observations, can be controlled independently.
-        Both can either work on ``union`` or ``intersection``.
+        Both can work on either "union" or "intersection".
 
-        ``sample_metadata_f`` and ``observation_metadata_f`` define how to
+        `sample_metadata_f` and `observation_metadata_f` define how to
         merge metadata between tables. The default is to just keep the metadata
         associated to self if self has metadata otherwise take metadata from
-        other. These functions are given both metadata dictsand must return
+        other. These functions are given both metadata dicts and must return
         a single metadata dict
 
-        NOTE: There is an implicit type conversion to ``float``. Tables using
-        strings as the type are not supported. No check is currently in
-        place.
+        Parameters
+        ----------
+        other : biom.Table
+            The other table to merge with this one
+        sample : {'union', 'intersection'}, optional
+            Defaults to "union".
+        observation : {'union', 'intersection'}, optional
+            Defaults to "union"
+        sample_metadata_f : function, optional
+            Defaults to ``biom.util.prefer_self``. Defines how to handle sample
+            metadata during merge.
+        obesrvation_metadata_f : function, optional
+            Defaults to ``biom.util.prefer_self``. Defines how to handle
+            observation metdata during merge.
 
-        NOTE: The return type is always that of ``self``
+        Returns
+        -------
+        biom.Table
+            The merged table
+
+        Notes
+        -----
+        - There is an implicit type conversion to ``float``. 
+        - The return type is always that of ``self``
         """
         # determine the sample order in the resulting table
         if sample is 'union':
@@ -1839,12 +1880,13 @@ class Table(object):
         Paramters
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
-        order : 'observation' or 'sample' to indicate which data ordering to
-            load the table as
+        order : {'observation', 'sample'}, optional
+            Defaults to "observation". To indicate which data ordering to load
+            the table as
 
         Returns
         -------
-        Table
+        biom.Table
             A BIOM ``Table`` object
 
         See Also
@@ -1938,8 +1980,9 @@ class Table(object):
         ---------
         h5grp : a h5py ``Group`` or an open h5py ``File``
         generated_by : str
-        compress : Boolean  'True' means fiels will be compressed with
-            gzip, 'False' means no compression
+        compress : bool, optional
+            Defaults to ``True`` means fields will be compressed with gzip,
+            ``False`` means no compression
 
         See Also
         --------
@@ -2036,11 +2079,14 @@ class Table(object):
     def to_json(self, generated_by, direct_io=None):
         """Returns a JSON string representing the table in BIOM format.
 
-        ``generated_by``: a string describing the software used to build the
-        table
-
-        If direct_io is not None, the final output is written directly to
-        direct_io during processing.
+        Parameters
+        ----------
+        generated_by : str
+            a string describing the software used to build the table
+        direct_io : file or file-like object, optional
+            Defaults to ``None``. Must implementing a ``write`` function. If
+            `direct_io` is not ``None``, the final output is written directly
+            to `direct_io` during processing.
         """
         if (not isinstance(generated_by, str) and
                 not isinstance(generated_by, unicode)):
@@ -2175,7 +2221,7 @@ class Table(object):
     @staticmethod
     def from_tsv(lines, obs_mapping, sample_mapping,
                  process_func, **kwargs):
-        """Parse an tab separated (observation x sample) formatted BIOM table
+        """Parse a tab separated (observation x sample) formatted BIOM table
 
         Parameters
         ----------
@@ -2190,11 +2236,13 @@ class Table(object):
 
         Returns
         -------
-        Table
+        biom.Table
             A BIOM ``Table`` object
 
         Examples
         --------
+        Parse tab separated data into a table:
+
         >>> from biom.table import Table
         >>> from StringIO import StringIO
         >>> tsv = 'a\\tb\\tc\\n1\\t2\\t3\\n4\\t5\\t6'
@@ -2202,7 +2250,6 @@ class Table(object):
         >>> func = lambda x : x
         >>> test_table = Table.from_tsv(tsv_fh, None, None, func)
         """
-
         (sample_ids, obs_ids, data, t_md,
             t_md_name) = Table._extract_data_from_tsv(lines, **kwargs)
 
@@ -2355,18 +2402,20 @@ class Table(object):
 
         Parameters
         ----------
-        header_key : string or None
-        header_value : string or None
-        metadata_formatter : function
-            a function which takes a metadata entry and
+        header_key : str or ``None``, optional
+            Defaults to ``None``
+        header_value : str or ``None``, optional
+            Defaults to ``None``
+        metadata_formatter : function, optional
+            Defaults to ``str``.  a function which takes a metadata entry and
             returns a formatted version that should be written to file
-        observation_column_name : string
-            the name of the first column in the output
+        observation_column_name : str, optional
+            Defaults to "#OTU ID". The name of the first column in the output
             table, corresponding to the observation IDs.
 
         Returns
         -------
-        string
+        str
             tab delimited represtation of the Table
             For example, the default will look something like:
                 #OTU ID\tSample1\tSample2
@@ -2382,7 +2431,15 @@ class Table(object):
 def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
     """Map directly on to the coo_matrix constructor
 
-    data must be (values, (rows, cols))
+    Parameters
+    ----------
+    data : tuple
+        data must be (values, (rows, cols))
+    dtype : type, optional
+        Defaults to ``np.float64``
+    shape : tuple or ``None``, optional
+        Defaults to ``None``. If `shape` is ``None``, shape will be determined
+        from `data`.
     """
     if shape is None:
         values, (rows, cols) = data
@@ -2407,7 +2464,20 @@ def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
 def list_list_to_sparse(data, dtype=float, shape=None):
     """Convert a list of lists into a scipy.sparse matrix.
 
-    [[row, col, value], ...]
+    Parameters
+    ----------
+    data : iterable of iterables
+        `data` should be in the format [[row, col, value], ...]
+    dtype : type, optional
+        defaults to ``float``
+    shape : tuple or ``None``, optional
+        Defaults to ``None``. If `shape` is ``None``, shape will be determined
+        automatically from `data`.
+
+    Returns
+    -------
+    scipy.csr_matrix
+        The newly generated matrix
     """
     rows, cols, values = izip(*data)
 
@@ -2425,7 +2495,20 @@ def list_list_to_sparse(data, dtype=float, shape=None):
 
 
 def nparray_to_sparse(data, dtype=float):
-    """Convert a numpy array to a scipy.sparse matrix."""
+    """Convert a numpy array to a scipy.sparse matrix.
+
+    Parameters
+    ----------
+    data : numpy.array
+        The data to convert into a sparse matrix
+    dtype : type, optional
+        Defaults to ``float``. The type of data to be represented.
+
+    Returns
+    -------
+    scipy.csr_matrix
+        The newly generated matrix
+    """
     if data.shape == (0,):
         # an empty vector. Note, this short circuit is necessary as calling
         # csr_matrix([], shape=(0, 0), dtype=dtype) will result in a matrix
@@ -2450,7 +2533,20 @@ def nparray_to_sparse(data, dtype=float):
 
 
 def list_nparray_to_sparse(data, dtype=float):
-    """Takes a list of numpy arrays and creates a scipy.sparse matrix."""
+    """Takes a list of numpy arrays and creates a scipy.sparse matrix.
+
+    Parameters
+    ----------
+    data : iterable of numpy.array
+        The data to convert into a sparse matrix
+    dtype : type, optional
+        Defaults to ``float``. The type of data to be represented.
+
+    Returns
+    -------
+    scipy.csr_matrix
+        The newly generated matrix
+    """
     matrix = coo_matrix(data, shape=(len(data), len(data[0])), dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
@@ -2458,7 +2554,20 @@ def list_nparray_to_sparse(data, dtype=float):
 
 
 def list_sparse_to_sparse(data, dtype=float):
-    """Takes a list of scipy.sparse matrices and creates a scipy.sparse mat."""
+    """Takes a list of scipy.sparse matrices and creates a scipy.sparse mat.
+
+    Parameters
+    ----------
+    data : iterable of scipy.sparse matrices
+        The data to convert into a sparse matrix
+    dtype : type, optional
+        Defaults to ``float``. The type of data to be represented.
+
+    Returns
+    -------
+    scipy.csr_matrix
+        The newly generated matrix
+    """
     if isspmatrix(data[0]):
         if data[0].shape[0] > data[0].shape[1]:
             is_col = True
@@ -2488,7 +2597,20 @@ def list_sparse_to_sparse(data, dtype=float):
 
 
 def list_dict_to_sparse(data, dtype=float):
-    """Takes a list of dict {(row,col):val} and creates a scipy.sparse mat."""
+    """Takes a list of dict {(row,col):val} and creates a scipy.sparse mat.
+
+    Parameters
+    ----------
+    data : iterable of dicts
+        The data to convert into a sparse matrix
+    dtype : type, optional
+        Defaults to ``float``. The type of data to be represented.
+
+    Returns
+    -------
+    scipy.csr_matrix
+        The newly generated matrix
+    """
     if isspmatrix(data[0]):
         if data[0].shape[0] > data[0].shape[1]:
             is_col = True
@@ -2532,7 +2654,20 @@ def list_dict_to_sparse(data, dtype=float):
 
 
 def dict_to_sparse(data, dtype=float, shape=None):
-    """Takes a dict {(row,col):val} and creates a scipy.sparse matrix."""
+    """Takes a dict {(row,col):val} and creates a scipy.sparse matrix.
+
+    Parameters
+    ----------
+    data : dict
+        The data to convert into a sparse matrix
+    dtype : type, optional
+        Defaults to ``float``. The type of data to be represented.
+
+    Returns
+    -------
+    scipy.csr_matrix
+        The newly generated matrix
+    """
     if shape is None:
         n_rows = max(data.keys(), key=itemgetter(0))[0] + 1
         n_cols = max(data.keys(), key=itemgetter(1))[1] + 1
