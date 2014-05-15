@@ -486,17 +486,17 @@ class Table(object):
         Add all values in the table:
 
         >>> table.sum()
-        array(47)
+        array(47.0)
 
         Add all values per sample:
 
         >>> table.sum(axis='sample')
-        array([1, 3, 43])
+        array([1., 3., 43.])
 
         Add all values per observation:
 
         >>> table.sum(axis='observation')
-        array([1, 46])
+        array([1., 46.])
         """
         if axis == 'whole':
             axis = None
