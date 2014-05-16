@@ -1216,7 +1216,7 @@ class Table(object):
 
         Iter over observations and add the 2nd column of the values
 
-        >>> col = [values[1] for values, id, metadata in table.iter()] 
+        >>> col = [values[1] for values, id, metadata in table.iter()]
         >>> sum(col)
         46.0
         """
