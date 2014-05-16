@@ -72,4 +72,3 @@ The following information will be written to ``rich_sparse_otu_table_qual_summar
 	 Sample1: 2
 	 Sample6: 3
 	 Sample2: 3
-	 Sample3: 4

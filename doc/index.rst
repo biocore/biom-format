@@ -130,11 +130,11 @@ Note that the licenses between the ``biom`` R package (GPL-2) and the other biom
 Citing the BIOM project
 =======================
 
-You can cite the BIOM format as follows:
+You can cite the BIOM format as follows (`link <http://www.gigasciencejournal.com/content/1/1/7>`_):
 
 | The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome.
 | Daniel McDonald, Jose C. Clemente, Justin Kuczynski, Jai Ram Rideout, Jesse Stombaugh, Doug Wendel, Andreas Wilke, Susan Huse, John Hufnagle, Folker Meyer, Rob Knight, and J. Gregory Caporaso.
-| GigaScience, June 2012.
+| GigaScience 2012, 1:7. doi:10.1186/2047-217X-1-7
 
 Development team
 ================
