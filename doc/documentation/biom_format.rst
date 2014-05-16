@@ -12,7 +12,7 @@ The BIOM project consists of two independent tools: the `biom-format` software p
    ./format_versions/biom-1.0.rst
    ./format_versions/biom-2.0.rst
 
-Release versions contain three integers in the following format: ``major-version.incremental-version.minor-version``. When ``-dev`` is appended to the end of a version string that indicates a development (or between-release version). For example, ``1.0.0-dev`` would refer to the development version following the 1.0.0 release. 
+Release versions contain three integers in the following format: ``major-version.minor-version.micro-version``. When ``-dev`` is appended to the end of a version string that indicates a development (or between-release version). For example, ``1.0.0-dev`` would refer to the development version following the 1.0.0 release. 
 
 
 .. _sparse-or-dense:
@@ -54,7 +54,7 @@ OTU table data tends to be sparse (e.g., greater than 90% of counts are zero, an
 Encapsulation of core study data (OTU table data and sample/OTU metadata) in a single file
 ------------------------------------------------------------------------------------------
 
-The JSON-format OTU table allow for storage of arbitrary amounts of sample and OTU metadata in a single file. Sample metadata corresponds to what is generally found in QIIME mapping files. At this stage inclusion of this information in the OTU table file is optional, but it may be useful for sharing these files with other QIIME users and for publishing or archiving results of analyses. OTU metadata (generally a taxonomic assignment for an OTU) is also optional. In contrast to the previous OTU table format, you can now store more than one OTU metadata value in this field, so for example you can score taxonomic assignments based on two different taxonomic assignment approaches.
+Formats, such as JSON and HDF5, made more efficient storage of highly sparse data and allowed for storage of arbitrary amounts of sample and OTU metadata in a single file. Sample metadata corresponds to what is generally found in QIIME mapping files. At this stage inclusion of this information in the OTU table file is optional, but it may be useful for sharing these files with other QIIME users and for publishing or archiving results of analyses. OTU metadata (generally a taxonomic assignment for an OTU) is also optional. In contrast to the previous OTU table format, you can now store more than one OTU metadata value in this field, so for example you can score taxonomic assignments based on two different taxonomic assignment approaches.
 
 Facilitating the use of tables between tools that support this format
 ---------------------------------------------------------------------

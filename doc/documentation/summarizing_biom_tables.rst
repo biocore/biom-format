@@ -25,7 +25,6 @@ The following information will be written to ``rich_sparse_otu_table_summary.txt
 	Num observations: 5
 	Total count: 27
 	Table density (fraction of non-zero values): 0.5000
-	Table md5 (unzipped): e0d1194d2d94ea81994c93b8f0db7f51
 
 	Counts/sample summary:
 	 Min: 3
@@ -57,7 +56,6 @@ The following information will be written to ``rich_sparse_otu_table_qual_summar
 
 	Num samples: 6
 	Num observations: 5
-	Table md5 (unzipped): e0d1194d2d94ea81994c93b8f0db7f51
 	
 	Observations/sample summary:
 	 Min: 1
