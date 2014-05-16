@@ -605,7 +605,7 @@ class Table(object):
 
         Raises
         ------
-        UnknownAxisErorr
+        UnknownAxisError
             If `axis` is neither "sample" nor "observation"
         TableException
             If the table's data matrix is empty
@@ -2445,11 +2445,11 @@ class Table(object):
                               sample_ids[:], obs_md, sample_md)
 
     @classmethod
-    def from_hdf5(cls, h5grp, samples=None, observations=None):
+    def from_hdf5(cls, h5grp, ids=None, axis='sample'):
         """Parse an HDF5 formatted BIOM table
 
-        If samples or observations are provided, only those samples or
-        observations ids present in these lists are loaded.
+        If ids is provided, only the samples/observations listed in ids
+        (depending on the value of axis) will be loaded
 
         The expected structure of this group is below. A few basic definitions,
         N is the number of observations and M is the number of samples. Data
@@ -2500,12 +2500,11 @@ class Table(object):
         Parameters
         ----------
         h5grp : a h5py ``Group`` or an open h5py ``File``
-        samples: iterable, optional
-            The sample ids of the samples that we need to retrieve from the
-            hdf5 biom table
-        observations: iterable, optional
-            The observation ids of the observations that we need to retrieve
-            from the hdf5 biom table
+        ids : iterable
+            The sample/observation ids of the samples/observations that we need
+            to retrieve from the hdf5 biom table
+        axis : {'sample', 'observation'}, optional
+            The axis to subset on
 
         Returns
         -------
@@ -2515,14 +2514,8 @@ class Table(object):
         Raises
         ------
         ValueError
-            If `samples` and `observations` are provided
-            If `samples` or `observations` are not a subset of the samples or
-            observations ids present in the hdf5 biom table
-
-        Notes
-        -----
-        Subsetting can only happen over samples or observations, but not for
-        both axis at the same time.
+            If `ids` are not a subset of the samples or observations ids
+            present in the hdf5 biom table
 
         See Also
         --------
@@ -2548,18 +2541,19 @@ html
         >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
         >>> t = Table.from_hdf5(f) # doctest: +SKIP
 
+        Parse a hdf5 biom table subsetting observations
+        >>> from h5py import File # doctest: +SKIP
+        >>> from biom.parse import parse_biom_table
+        >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
+        >>> t = Table.from_hdf5(f, ids=["GG_OTU_1"],
+        ...                     axis='observation') # doctest: +SKIP
         """
         if not HAVE_H5PY:
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
 
-        if samples is not None and observations is not None:
-            raise ValueError("Subsetting samples and observations at the same"
-                             "time is not supported. Please specify either"
-                             "samples or observations but not both.")
-
-        subset = not (samples is None and observations is None)
-        order = 'sample' if samples is not None else 'observation'
+        if axis not in ['sample', 'observation']:
+            raise UnknownAxisError(axis)
 
         id_ = h5grp.attrs['id']
         create_date = h5grp.attrs['creation-date']
@@ -2578,13 +2572,13 @@ html
         samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
 
         # load the data
-        data_grp = h5grp[order]['matrix']
+        data_grp = h5grp[axis]['matrix']
         h5_data = data_grp["data"]
         h5_indices = data_grp["indices"]
         h5_indptr = data_grp["indptr"]
 
         # Check if we need to subset the biom table
-        if subset:
+        if ids is not None:
             def _get_ids(source_ids, desired_ids):
                 """If desired_ids is not None, makes sure that it is a subset
                 of source_ids and returns the desired_ids array-like and a
@@ -2607,8 +2601,9 @@ html
                 return ids, idx
 
             # Get the observation and sample ids that we are interested in
-            obs_ids, obs_idx = _get_ids(obs_ids, observations)
-            samp_ids, samp_idx = _get_ids(samp_ids, samples)
+            samp, obs = (ids, None) if axis == 'sample' else (None, ids)
+            obs_ids, obs_idx = _get_ids(obs_ids, obs)
+            samp_ids, samp_idx = _get_ids(samp_ids, samp)
 
             # Get the new matrix shape
             shape = (len(obs_ids), len(samp_ids))
@@ -2625,7 +2620,7 @@ html
             samp_md = _subset_metadata(samp_md, samp_idx)
 
             # load the subset of the data
-            idx = samp_idx if order == 'sample' else obs_idx
+            idx = samp_idx if axis == 'sample' else obs_idx
             keep = np.where(idx)[0]
             indptr_indices = sorted([(h5_indptr[i], h5_indptr[i+1])
                                      for i in keep])
@@ -2648,7 +2643,7 @@ html
 
         cs = (data, indices, indptr)
 
-        if order == 'sample':
+        if axis == 'sample':
             matrix = csc_matrix(cs, shape=shape)
         else:
             matrix = csr_matrix(cs, shape=shape)
@@ -2658,7 +2653,7 @@ html
                   generated_by=generated_by, table_id=id_)
 
         f = lambda vals, id_, md: np.any(vals)
-        axis = 'observation' if order == 'sample' else 'sample'
+        axis = 'observation' if axis == 'sample' else 'sample'
         t.filter(f, axis=axis)
 
         return t

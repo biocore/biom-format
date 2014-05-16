@@ -18,6 +18,13 @@ __email__ = "gregcaporaso@gmail.com"
 import json
 from biom.util import biom_open
 from biom.parse import MetadataMap, parse_biom_table
+from pyqi.core.interfaces.optparse.input_handler import load_file_contents
+
+
+def biom_load_file_contents(fp):
+    if fp is None:
+        return fp
+    return load_file_contents(fp)
 
 
 def load_hdf5_or_json(fp):
