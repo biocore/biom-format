@@ -101,7 +101,7 @@ You should get a file path ending with ``biom`` printed to your screen if it is 
 Enabling tab completion of biom commands
 ----------------------------------------
 
-The ``biom`` command referenced in the previous section is a driver for commands in biom-format, powered by `pyqi <http://biocore.github.io/pyqi>`_. You can enable tab completion of biom command names and command options (meaning that when you begin typing the name of a command or option you can auto-complete it by hitting the *tab* key) by following a few simple steps from the pyqi documentation. While this step is optional, tab completion is very convenient so it's worth enabling.
+The ``biom`` command referenced in the previous section is a driver for commands in biom-format, powered by `the pyqi project <http://biocore.github.io/pyqi>`_. You can enable tab completion of biom command names and command options (meaning that when you begin typing the name of a command or option you can auto-complete it by hitting the *tab* key) by following a few simple steps from the pyqi documentation. While this step is optional, tab completion is very convenient so it's worth enabling.
 
 To enable tab completion, follow the steps outlined under `Configuring bash completion <http://biocore.github.io/pyqi/doc/tutorials/defining_your_command_driver.html#configuring-bash-completion>`_ in the pyqi install documentation, substituting ``biom`` for ``my-project`` and ``my_project`` in all commands. After completing those steps and closing and re-opening your terminal, auto-completion should be enabled.
 
