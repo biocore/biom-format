@@ -26,3 +26,4 @@ script:
   - pep8 biom setup.py
   - biom show-install-info
   - make -C doc html
+  - for table in examples/*.biom; do echo ${table}; biom summarize-table -i ${table}; done
