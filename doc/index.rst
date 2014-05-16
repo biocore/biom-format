@@ -46,7 +46,7 @@ To install the ``biom-format`` project, you can download the `latest version her
 
 The biom-format project has the following dependencies:
 
-    * `Python <http://www.python.org/>`_ >= 2.7 and < 3.0
+	*  `Python <http://www.python.org/>`_ >= 2.7 and < 3.0
 	* `numpy <http://www.numpy.org/>`_ >= 1.7.0
 	* `pyqi <http://pyqi.readthedocs.org>`_ 0.3.2
 	* `scipy <http://www.scipy.org/>`_ >= 0.13.0 
