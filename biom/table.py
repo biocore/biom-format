@@ -20,7 +20,10 @@ Classes
 
 Examples
 --------
-First, lets create a toy table to play around with. For this example, we're going to construct a 10x4 `Table`, or one that has 10 observations and 4 samples. Each observation and sample will be given an arbitrary but unique name. We'll also add on some metadata.
+First, lets create a toy table to play around with. For this example, we're
+going to construct a 10x4 `Table`, or one that has 10 observations and 4
+samples. Each observation and sample will be given an arbitrary but unique
+name. We'll also add on some metadata.
 
 >>> import numpy as np
 >>> from biom.table import Table
@@ -40,12 +43,124 @@ First, lets create a toy table to play around with. For this example, we're goin
 ...                    {'taxonomy': ['Bacteria', 'Firmicutes']},
 ...                    {'taxonomy': ['Bacteria', 'Firmicutes']}]
 >>> table = Table(data, observ_ids, sample_ids, observ_metadata,
-...               sample_metadata)
+...               sample_metadata, table_id='Example Table')
 
-Now that we have a table, let's explore a few of the member variables that are
-provided by the object.
+Now that we have a table, let's explore it at a high level first.
 
->>> table.sample_ids
+>>> table
+10 x 4 <class 'biom.table.Table'> with 39 nonzero entries (97% dense)
+>>> print table # doctest: +NORMALIZE_WHITESPACE
+# Constructed from biom file
+#OTU ID S0  S1  S2  S3
+O0  0.0 1.0 2.0 3.0
+O1  4.0 5.0 6.0 7.0
+O2  8.0 9.0 10.0    11.0
+O3  12.0    13.0    14.0    15.0
+O4  16.0    17.0    18.0    19.0
+O5  20.0    21.0    22.0    23.0
+O6  24.0    25.0    26.0    27.0
+O7  28.0    29.0    30.0    31.0
+O8  32.0    33.0    34.0    35.0
+O9  36.0    37.0    38.0    39.0
+>>> print table.sample_ids # doctest: +NORMALIZE_WHITESPACE
+['S0' 'S1' 'S2' 'S3']
+>>> print table.observation_ids # doctest: +NORMALIZE_WHITESPACE
+['O0' 'O1' 'O2' 'O3' 'O4' 'O5' 'O6' 'O7' 'O8' 'O9']
+>>> print table.nnz  # number of nonzero entries
+39
+
+While it's fun to just poke at the table, let's dig deeper. First, we're going
+to convert the `Table` into relative abundances (within each sample), and the
+filter the `Table` to just the samples associated with environment 'A'. The
+filtering gets fancy: we can pass in an arbitrary function to determine what
+samples we want to keep. This function must accept a sparse vector of values,
+the corresponding ID and the corresponding metadata, and should return `True`
+or `False`, where `True` indicates that the vector should be retained.
+
+>>> normed = table.norm(axis='sample', inplace=False)
+>>> filter_f = lambda values, id_, md: md['environment'] == 'A'
+>>> env_a = normed.filter(filter_f, axis='sample', inplace=False)
+>>> print env_a # doctest: +NORMALIZE_WHITESPACE
+# Constructed from biom file
+#OTU ID S0  S2
+O0  0.0 0.01
+O1  0.0222222222222 0.03
+O2  0.0444444444444 0.05
+O3  0.0666666666667 0.07
+O4  0.0888888888889 0.09
+O5  0.111111111111  0.11
+O6  0.133333333333  0.13
+O7  0.155555555556  0.15
+O8  0.177777777778  0.17
+O9  0.2 0.19
+
+But, what if we wanted individual tables per environment? While we could just
+perform some fancy iteration, we can instead just rely on `Table.partition` for
+these operations. `partition`, like `filter`, accepts a function. However, the
+`partition` method only passes the corresponding ID and metadata to the
+function. The function should return what partition the data are a part of.
+Within this example, we're also going to sum up our tables over the partitioned
+samples. Please note that we're using the original table (ie, not normalized)
+here.
+
+>>> part_f = lambda id_, md: md['environment']
+>>> env_tables = table.partition(part_f, axis='sample')
+>>> for partition, env_table in env_tables:
+...     print partition, env_table.sum('sample')
+A [ 180.  200.]
+B [ 190.  210.]
+
+For this last example, and to highlight a bit more functionality, we're going
+to first transform the table such that all multiples of three will be retained,
+while all non-multiples of three will get set to zero. Following this, we'll
+then collpase the table by taxonomy, and then convert the table into
+presence/absence data.
+
+First, let's setup the transform. We're going to define a function that takes
+the modulus of every value in the vector, and see if it is equal to zero. If it
+is equal to zero, we'll keep the value, otherwise we'll set the value to zero.
+
+>>> transform_f = lambda v,i,m: np.where(v % 3 == 0, v, 0)
+>>> mult_of_three = tform = table.transform(transform_f, inplace=False)
+>>> print mult_of_three # doctest: +NORMALIZE_WHITESPACE
+# Constructed from biom file
+#OTU ID S0  S1  S2  S3
+O0  0.0 0.0 0.0 3.0
+O1  0.0 0.0 6.0 0.0
+O2  0.0 9.0 0.0 0.0
+O3  12.0    0.0 0.0 15.0
+O4  0.0 0.0 18.0    0.0
+O5  0.0 21.0    0.0 0.0
+O6  24.0    0.0 0.0 27.0
+O7  0.0 0.0 30.0    0.0
+O8  0.0 33.0    0.0 0.0
+O9  36.0    0.0 0.0 39.0
+
+Next, we're going to collapse the table over the phylum level taxon. To do
+this, we're going to define a helper variable for the index position of the
+phylum (see the construction of the table above). Next, we're going to pass
+this to `Table.collapse`, and since we want to collapse over the observations,
+we'll need to specify 'observation' as the axis.
+
+>>> phylum_idx = 1
+>>> collapse_f = lambda id_, md: md['taxonomy'][phylum_idx]
+>>> collapsed = mult_of_three.collapse(collapse_f, axis='observation')
+>>> print collapsed # doctest: +NORMALIZE_WHITESPACE
+# Constructed from biom file
+#OTU ID S0  S1  S2  S3
+Firmicutes  7.2 6.6 7.2 8.4
+Bacteroidetes   12.0    10.5    0.0 13.5
+Proteobacteria  4.0 3.0 6.0 5.0
+
+Finally, let's convert the table to presence/absence data.
+
+>>> pa = collapsed.pa()
+>>> print pa # doctest: +NORMALIZE_WHITESPACE
+# Constructed from biom file
+#OTU ID S0  S1  S2  S3
+Firmicutes  1.0 1.0 1.0 1.0
+Bacteroidetes   1.0 1.0 0.0 1.0
+Proteobacteria  1.0 1.0 1.0 1.0
 
 """
 
@@ -1309,7 +1424,7 @@ class Table(object):
         Returns
         -------
         GeneratorType
-            A generator that yields `Table`
+            A generator that yields (partition, `Table`)
         """
         partitions = {}
         # conversion of vector types is not necessary, vectors are not
