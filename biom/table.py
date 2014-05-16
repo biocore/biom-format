@@ -1066,7 +1066,8 @@ class Table(object):
 
         Iter over samples and keep those that start with an Z:
 
-        >>> [(values, id, metadata) for values, id, metadata in table.iter() if id[0]=='Z']
+        >>> [(values, id, metadata) 
+        ...     for values, id, metadata in table.iter() if id[0]=='Z']
         [(array([  1.,  42.]), 'Z3', None)]
 
         Iter over observations and add the 2nd column of the values
