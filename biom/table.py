@@ -70,12 +70,12 @@ O9  36.0    37.0    38.0    39.0
 39
 
 While it's fun to just poke at the table, let's dig deeper. First, we're going
-to convert the `Table` into relative abundances (within each sample), and the
-filter the `Table` to just the samples associated with environment 'A'. The
+to convert `table` into relative abundances (within each sample), and then
+filter `table` to just the samples associated with environment 'A'. The
 filtering gets fancy: we can pass in an arbitrary function to determine what
 samples we want to keep. This function must accept a sparse vector of values,
-the corresponding ID and the corresponding metadata, and should return `True`
-or `False`, where `True` indicates that the vector should be retained.
+the corresponding ID and the corresponding metadata, and should return ``True``
+or ``False``, where ``True`` indicates that the vector should be retained.
 
 >>> normed = table.norm(axis='sample', inplace=False)
 >>> filter_f = lambda values, id_, md: md['environment'] == 'A'
@@ -1513,7 +1513,6 @@ class Table(object):
         #OTU ID S3
         O1  1.0
         O2  42.0
-
         """
         partitions = {}
         # conversion of vector types is not necessary, vectors are not
