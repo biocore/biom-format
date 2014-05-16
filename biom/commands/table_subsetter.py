@@ -12,7 +12,7 @@ from __future__ import division
 from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
 from pyqi.core.exception import CommandError
-from biom.parse import (get_axis_indices, direct_slice_data, direct_parse_key)
+from biom.parse import get_axis_indices, direct_slice_data, direct_parse_key
 from biom.table import Table
 from biom.util import biom_open
 

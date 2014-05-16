@@ -244,7 +244,7 @@ def get_axis_indices(biom_str, to_keep, axis):
 
 
 def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
-    """Parses the biom table stored in the filepath `fp`
+    r"""Parses the biom table stored in the filepath `fp`
 
     Parameters
     ----------
@@ -272,6 +272,22 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
     Notes
     -----
     Subsetting from the BIOM table is only supported in one axis
+
+    Examples
+    --------
+    Parse a hdf5 biom table
+
+    >>> from h5py import File # doctest: +SKIP
+    >>> from biom.parse import parse_biom_table
+    >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
+    >>> t = Table.from_hdf5(f) # doctest: +SKIP
+
+    Parse a hdf5 biom table subsetting observations
+    >>> from h5py import File # doctest: +SKIP
+    >>> from biom.parse import parse_biom_table
+    >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
+    >>> t = Table.from_hdf5(f, ids=["GG_OTU_1"],
+    ...                     axis='observation') # doctest: +SKIP
     """
     if axis not in ['observation', 'sample']:
         UnknownAxisError(axis)
