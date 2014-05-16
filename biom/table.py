@@ -1978,16 +1978,16 @@ class Table(object):
         >>> import numpy as np
         >>> from biom.table import Table
 
-        Create a 2x2 table:
+        Create a 2x2 table and a 3x2 table:
 
         >>> d_a = np.asarray([[2, 0], [6, 1]])
         >>> t_a = Table(d_a, ['O1', 'O2'], ['S1', 'S2'])
         >>> d_b = np.asarray([[4, 5], [0, 3], [10, 10]])
         >>> t_b = Table(d_b, ['O1', 'O2', 'O3'], ['S1', 'S2'])
 
-        Merging the table results in the overlapping samples (see `O1` and
-        `S2`) to be summed and the non-overlapping ones to be added to the
-        resulting table (see `S3`).
+        Merging the table results in the overlapping samples/observations (see
+        `O1` and `S2`) to be summed and the non-overlapping ones to be added to
+        the resulting table (see `S3`).
 
         >>> merged_table = t_a.merge(t_b)
         >>> print merged_table  # doctest: +NORMALIZE_WHITESPACE
