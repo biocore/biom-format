@@ -1066,7 +1066,7 @@ class Table(object):
 
         Iter over samples and keep those that start with an Z:
 
-        >>> [(values, id, metadata) 
+        >>> [(values, id, metadata)
         ...     for values, id, metadata in table.iter() if id[0]=='Z']
         [(array([  1.,  42.]), 'Z3', None)]
 
