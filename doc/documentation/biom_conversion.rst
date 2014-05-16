@@ -13,25 +13,13 @@ The ``convert`` command in the biom-format project can be used to convert betwee
 General usage examples
 ----------------------
 
-Convert a tab-delimited table to sparse biom format. Note that you *must* specify the type of table here::
+Convert a tab-delimited table to biom format. Note that you *must* specify the type of table here::
 
 	biom convert -i table.txt -o table.from_txt.biom --table-type="otu table"
-
-Convert a tab-delimited table to dense biom format::
-
-	biom convert -i table.txt -o table.dense.biom --table-type="otu table" --matrix-type=dense
 
 Convert biom format to tab-delimited table format::
 
 	biom convert -i table.biom -o table.from_biom.txt -b
-
-Convert dense biom format to sparse biom format::
-
-	biom convert -i table.dense.biom -o table.sparse.biom --dense-biom-to-sparse-biom
-
-Convert sparse biom format to dense biom format::
-
-	biom convert -i table.sparse.biom -o table.dense.biom --sparse-biom-to-dense-biom
 
 Convert biom format to classic format, including the ``taxonomy`` observation metadata as the last column of the classic format table. Because the BIOM format can support an arbitrary number of observation (or sample) metadata entries, and the classic format can support only a single observation metadata entry, you must specify which of the observation metadata entries you want to include in the output table::
 

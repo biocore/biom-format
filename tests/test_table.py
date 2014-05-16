@@ -209,13 +209,27 @@ class TableTests(TestCase):
 
         # Explicit zeros.
         self.explicit_zeros = Table(np.array([[0, 0, 1], [1, 0, 0],
-                                                        [1, 0, 2]]),
+                                              [1, 0, 2]]),
                                     ['a', 'b', 'c'], ['x', 'y', 'z'])
 
     def tearDown(self):
         if self.to_remove:
             for f in self.to_remove:
                 os.remove(f)
+
+    def test_repr(self):
+        """__repr__ method of biom.table.Table"""
+        # table
+        data = np.asarray([[0, 0, 0], [0, 1, 0], [0, 0, 0]])
+        t = Table(data, ['a', 'b', 'c'], ['x', 'y', 'z'])
+        self.assertEqual("3 x 3 <class 'biom.table.Table'> with 1 nonzero "
+                         "entries (11% dense)", repr(t))
+
+        # empty table
+        data = np.asarray([[]])
+        t = Table(data, [], [])
+        self.assertEqual("0 x 0 <class 'biom.table.Table'> with 0 nonzero "
+                         "entries (0% dense)", repr(t))
 
     def test_init_with_nparray(self):
         """to_sparse in constructor should be triggered"""
@@ -311,6 +325,156 @@ class TableTests(TestCase):
         npt.assert_equal(list(t.iter_data(axis="observation")), exp)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_from_hdf5_sample_subset(self):
+        """Parse a sample subset of a hdf5 formatted BIOM table"""
+        samples = ['Sample2', 'Sample4', 'Sample6']
+
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        t = Table.from_hdf5(h5py.File('test_data/test.biom'), samples=samples)
+        os.chdir(cwd)
+
+        npt.assert_equal(t.sample_ids, ['Sample2', 'Sample4', 'Sample6'])
+        npt.assert_equal(t.observation_ids, ['GG_OTU_2', 'GG_OTU_3',
+                                             'GG_OTU_4', 'GG_OTU_5'])
+        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
+                                     u'p__Cyanobacteria',
+                                     u'c__Nostocophycideae',
+                                     u'o__Nostocales',
+                                     u'f__Nostocaceae',
+                                     u'g__Dolichospermum',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Archaea',
+                                     u'p__Euryarchaeota',
+                                     u'c__Methanomicrobia',
+                                     u'o__Methanosarcinales',
+                                     u'f__Methanosarcinaceae',
+                                     u'g__Methanosarcina',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Firmicutes',
+                                     u'c__Clostridia',
+                                     u'o__Halanaerobiales',
+                                     u'f__Halanaerobiaceae',
+                                     u'g__Halanaerobium',
+                                     u's__Halanaerobiumsaccharolyticum']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Proteobacteria',
+                                     u'c__Gammaproteobacteria',
+                                     u'o__Enterobacteriales',
+                                     u'f__Enterobacteriaceae',
+                                     u'g__Escherichia',
+                                     u's__']})
+        self.assertEqual(t.observation_metadata, exp_obs_md)
+
+        exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CATACCAGTAGC',
+                        u'Description': u'human gut',
+                        u'BODY_SITE': u'gut'},
+                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CTCTCGGCCTGT',
+                        u'Description': u'human skin',
+                        u'BODY_SITE': u'skin'},
+                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CTAACTACCAAT',
+                        u'Description': u'human skin',
+                        u'BODY_SITE': u'skin'})
+        self.assertEqual(t.sample_metadata, exp_samp_md)
+
+        exp = [np.array([1., 2., 1.]),
+               np.array([0., 4., 2.]),
+               np.array([1., 0., 1.]),
+               np.array([1., 0., 0.])]
+        npt.assert_equal(list(t.iter_data(axis='observation')), exp)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_from_hdf5_observation_subset(self):
+        """Parse a observation subset of a hdf5 formatted BIOM table"""
+        observations = ['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5']
+
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        t = Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            observations=observations)
+        os.chdir(cwd)
+
+        npt.assert_equal(t.sample_ids, ['Sample2', 'Sample3',
+                                        'Sample4', 'Sample6'])
+        npt.assert_equal(t.observation_ids, ['GG_OTU_1', 'GG_OTU_3',
+                                             'GG_OTU_5'])
+        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
+                                     u'p__Proteobacteria',
+                                     u'c__Gammaproteobacteria',
+                                     u'o__Enterobacteriales',
+                                     u'f__Enterobacteriaceae',
+                                     u'g__Escherichia',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Archaea',
+                                     u'p__Euryarchaeota',
+                                     u'c__Methanomicrobia',
+                                     u'o__Methanosarcinales',
+                                     u'f__Methanosarcinaceae',
+                                     u'g__Methanosarcina',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Proteobacteria',
+                                     u'c__Gammaproteobacteria',
+                                     u'o__Enterobacteriales',
+                                     u'f__Enterobacteriaceae',
+                                     u'g__Escherichia',
+                                     u's__']})
+        self.assertEqual(t.observation_metadata, exp_obs_md)
+
+        exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CATACCAGTAGC',
+                        u'Description': u'human gut',
+                        u'BODY_SITE': u'gut'},
+                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CTCTCTACCTGT',
+                        u'Description': u'human gut',
+                        u'BODY_SITE': u'gut'},
+                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CTCTCGGCCTGT',
+                        u'Description': u'human skin',
+                        u'BODY_SITE': u'skin'},
+                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
+                        u'BarcodeSequence': u'CTAACTACCAAT',
+                        u'Description': u'human skin',
+                        u'BODY_SITE': u'skin'})
+        self.assertEqual(t.sample_metadata, exp_samp_md)
+
+        exp = [np.array([0., 1., 0., 0.]),
+               np.array([0., 1., 4., 2.]),
+               np.array([1., 1., 0., 0.])]
+        npt.assert_equal(list(t.iter_data(axis='observation')), exp)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_from_hdf5_subset_error(self):
+        """hdf5 biom table parse throws error with invalid parameters"""
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+
+        # Raises an error if trying to subset samples and observations
+        with self.assertRaises(ValueError):
+            Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            observations=['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'],
+                            samples=['Sample2', 'Sample4', 'Sample6'])
+
+        # Raises an error if not all the given samples are in the OTU table
+        with self.assertRaises(ValueError):
+            Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            samples=['Sample2', 'DoesNotExist', 'Sample6'])
+
+        # Raises an error if not all the given observation are in the OTU table
+        with self.assertRaises(ValueError):
+            Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            observations=['GG_OTU_1', 'DoesNotExist'])
+        os.chdir(cwd)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5(self):
         """Write a file"""
         fname = mktemp()
@@ -331,6 +495,107 @@ class TableTests(TestCase):
 
         obs = Table.from_hdf5(h5)
         self.assertEqual(obs, self.st_rich)
+
+    def test_from_tsv(self):
+        tab1_fh = StringIO(otu_table1)
+        sparse_rich = Table.from_tsv(tab1_fh, None, None,
+                                     OBS_META_TYPES['naive'])
+        self.assertEqual(sorted(sparse_rich.sample_ids),
+                         sorted(['Fing', 'Key', 'NA']))
+        self.assertEqual(sorted(sparse_rich.observation_ids),
+                         map(str, [0, 1, 3, 4, 7]))
+        for i, obs_id in enumerate(sparse_rich.observation_ids):
+            if obs_id == '0':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; '
+                                  'Actinobacteria; Actinobacteridae; '
+                                  'Propionibacterineae; '
+                                  'Propionibacterium'})
+            elif obs_id == '1':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; Firmicutes; '
+                                  'Alicyclobacillaceae; Bacilli; '
+                                  'Lactobacillales; Lactobacillales; '
+                                  'Streptococcaceae; '
+                                  'Streptococcus'})
+            elif obs_id == '7':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; '
+                                  'Actinobacteria; Actinobacteridae; '
+                                  'Gordoniaceae; '
+                                  'Corynebacteriaceae'})
+            elif obs_id in ['3', '4']:
+                pass  # got lazy
+            else:
+                raise RuntimeError('obs_id incorrect?')
+
+        self.assertEquals(sparse_rich.sample_metadata, None)
+
+        for i, obs_id in enumerate(sparse_rich.observation_ids):
+            for j, sample_id in enumerate(sparse_rich.sample_ids):
+                if obs_id == '1' and sample_id == 'Key':
+                    # should test some abundance data
+                    self.assertEqual(True, True)
+
+    def test_from_tsv_dense(self):
+        tab1_fh = StringIO(otu_table1)
+        sparse_rich = Table.from_tsv(tab1_fh.readlines(), None, None,
+                                     OBS_META_TYPES['naive'])
+        self.assertEqual(sorted(sparse_rich.sample_ids),
+                         sorted(['Fing', 'Key', 'NA']))
+        self.assertEqual(sorted(sparse_rich.observation_ids),
+                         map(str, [0, 1, 3, 4, 7]))
+        for i, obs_id in enumerate(sparse_rich.observation_ids):
+            if obs_id == '0':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; '
+                                  'Actinobacteria; Actinobacteridae; '
+                                  'Propionibacterineae; '
+                                  'Propionibacterium'})
+            elif obs_id == '1':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; Firmicutes; '
+                                  'Alicyclobacillaceae; Bacilli; '
+                                  'Lactobacillales; Lactobacillales; '
+                                  'Streptococcaceae; '
+                                  'Streptococcus'})
+            elif obs_id == '7':
+                self.assertEqual(sparse_rich.observation_metadata[i],
+                                 {'Consensus Lineage': 'Bacteria; '
+                                  'Actinobacteria; Actinobacteridae; '
+                                  'Gordoniaceae; '
+                                  'Corynebacteriaceae'})
+            elif obs_id in ['3', '4']:
+                pass  # got lazy
+            else:
+                raise RuntimeError('obs_id incorrect?')
+
+        self.assertEquals(sparse_rich.sample_metadata, None)
+
+        for i, obs_id in enumerate(sparse_rich.observation_ids):
+            for j, sample_id in enumerate(sparse_rich.sample_ids):
+                if obs_id == '1' and sample_id == 'Key':
+                    self.assertEqual(True, True)
+                    # should test some abundance data
+
+    def test_to_tsv(self):
+        """Print out self in a delimited form"""
+        exp = '\n'.join(
+            ["# Constructed from biom file",
+             "#OTU ID\ta\tb",
+             "1\t5.0\t6.0",
+             "2\t7.0\t8.0"])
+        obs = self.st1.delimited_self()
+        self.assertEqual(obs, exp)
+
+        # Test observation_column_name.
+        exp = '\n'.join(
+            ["# Constructed from biom file",
+             "Taxon\ta\tb",
+             "1\t5.0\t6.0",
+             "2\t7.0\t8.0"])
+        obs = self.st1.to_tsv(observation_column_name='Taxon')
+        self.assertEqual(obs, exp)
 
     def test_metadata_invalid_input(self):
         """Correctly handles invalid input."""
@@ -1289,15 +1554,24 @@ class SparseTableTests(TestCase):
         self.st_rich._data *= 2
         self.assertNotEqual(copied_table, self.st_rich)
 
+    def test_filter_id_state(self):
+        f = lambda vals, id_, md: id_[0] == 'b'
+        filtered_table = self.st3.filter(f, inplace=False)
+        filtered_table_2 = self.st3.filter(f, inplace=True)
+        self.assertEqual(filtered_table._sample_index, {'b': 0})
+        self.assertEqual(filtered_table._obs_index, {'2': 0, '3': 1})
+        self.assertEqual(filtered_table_2._sample_index, {'b': 0})
+        self.assertEqual(filtered_table_2._obs_index, {'2': 0, '3': 1})
+
     def test_filter_return_type(self):
-        f = lambda id_, md, vals: id_[0] == 'b'
+        f = lambda vals, id_, md: id_[0] == 'b'
         filtered_table = self.st3.filter(f, inplace=False)
         filtered_table_2 = self.st3.filter(f, inplace=True)
         self.assertEqual(filtered_table, filtered_table_2)
         self.assertTrue(filtered_table_2 is self.st3)
 
     def test_filter_general_sample(self):
-        f = lambda id_, md, vals: id_ == 'a'
+        f = lambda vals, id_, md: id_ == 'a'
 
         values = csr_matrix(np.array([[5.],
                                       [7.]]))
@@ -1310,12 +1584,12 @@ class SparseTableTests(TestCase):
         obs_table = table.filter(f, 'sample', inplace=False)
         self.assertEqual(obs_table, exp_table)
 
-        f_2 = lambda id_, md, vals: np.all(vals == np.array([5, 7]))
+        f_2 = lambda vals, id_, md: np.all(vals == np.array([5, 7]))
         obs_table_2 = table.filter(f_2, 'sample', inplace=False)
         self.assertEqual(obs_table_2, exp_table)
 
     def test_filter_general_observation(self):
-        f = lambda id_, md, vals: md['taxonomy'][1] == 'p__c'
+        f = lambda vals, id_, md: md['taxonomy'][1] == 'p__c'
         values = csr_matrix(np.array([[7., 8.]]))
         exp_table = Table(values, ['2'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__c']}],
@@ -1324,12 +1598,12 @@ class SparseTableTests(TestCase):
         obs_table = table.filter(f, 'observation', inplace=False)
         self.assertEqual(obs_table, exp_table)
 
-        f_2 = lambda id_, md, vals: np.all(vals == np.array([7, 8]))
+        f_2 = lambda vals, id_, md: np.all(vals == np.array([7, 8]))
         obs_table_2 = table.filter(f_2, 'observation', inplace=False)
         self.assertEqual(obs_table_2, exp_table)
 
     def test_filter_sample_id(self):
-        f = lambda id_, md, vals: id_ == 'a'
+        f = lambda vals, id_, md: id_ == 'a'
 
         values = csr_matrix(np.array([[5.],
                                       [7.]]))
@@ -1343,7 +1617,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_sample_metadata(self):
-        f = lambda id_, md, vals: md['barcode'] == 'ttgg'
+        f = lambda vals, id_, md: md['barcode'] == 'ttgg'
         values = csr_matrix(np.array([[6.],
                                       [8.]]))
         exp_table = Table(values, ['1', '2'], ['b'],
@@ -1355,7 +1629,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_sample_invert(self):
-        f = lambda id_, md, vals: md['barcode'] == 'aatt'
+        f = lambda vals, id_, md: md['barcode'] == 'aatt'
         values = csr_matrix(np.array([[6.],
                                       [8.]]))
         exp_table = Table(values, ['1', '2'], ['b'],
@@ -1368,10 +1642,10 @@ class SparseTableTests(TestCase):
 
     def test_filter_sample_remove_everything(self):
         with self.assertRaises(TableException):
-            self.st_rich.filter(lambda id_, md, vals: False, 'sample')
+            self.st_rich.filter(lambda vals, id_, md: False, 'sample')
 
     def test_filter_observations_id(self):
-        f = lambda id_, md, vals: id_ == '1'
+        f = lambda vals, id_, md: id_ == '1'
         values = csr_matrix(np.array([[5., 6.]]))
         exp_table = Table(values, ['1'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__b']}],
@@ -1381,7 +1655,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_observations_metadata(self):
-        f = lambda id_, md, vals: md['taxonomy'][1] == 'p__c'
+        f = lambda vals, id_, md: md['taxonomy'][1] == 'p__c'
         values = csr_matrix(np.array([[7., 8.]]))
         exp_table = Table(values, ['2'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__c']}],
@@ -1391,7 +1665,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_observations_invert(self):
-        f = lambda id_, md, vals: md['taxonomy'][1] == 'p__c'
+        f = lambda vals, id_, md: md['taxonomy'][1] == 'p__c'
         values = csr_matrix(np.array([[5., 6.]]))
         exp_table = Table(values, ['1'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__b']}],
@@ -1402,7 +1676,39 @@ class SparseTableTests(TestCase):
 
     def test_filter_observations_remove_everything(self):
         with self.assertRaises(TableException):
-            self.st_rich.filter(lambda id_, md, vals: False, 'observation')
+            self.st_rich.filter(lambda vals, id_, md: False, 'observation')
+
+    def test_subsample(self):
+        table = Table(np.array([[0, 5, 0]]), ['O1'], ['S1', 'S2', 'S3'])
+
+        obs = table.subsample(5, axis='observation')
+        npt.assert_equal(obs.data('O1', 'observation'), np.array([5]))
+        self.assertEqual(obs.sample_ids, ['S2'])
+
+        table = Table(np.array([[3, 1, 1], [0, 3, 3]]), ['O1', 'O2'],
+                      ['S1', 'S2', 'S3'])
+        actual_o1 = set()
+        actual_o2 = set()
+        for i in range(100):
+            obs = table.subsample(3)
+            actual_o1.add(tuple(obs.data('O1', 'observation')))
+            actual_o2.add(tuple(obs.data('O2', 'observation')))
+        self.assertEqual(actual_o1, {(3, 0, 0), (3, 1, 0), (3, 0, 1),
+                                     (3, 1, 1)})
+        self.assertEqual(actual_o2, {(0, 3, 3), (0, 2, 3), (0, 3, 2),
+                                     (0, 2, 2)})
+
+    def test_pa(self):
+        exp = Table(np.array([[1, 1], [1, 0]]), ['5', '6'], ['a', 'b'])
+        self.st7.pa()
+        self.assertEqual(self.st7, exp)
+
+    def test_pa_works_if_something_has_been_zeroed(self):
+        exp = Table(np.array([[0, 1], [1, 0]]), ['5', '6'], ['a', 'b'])
+        self.st7._data[0, 0] = 0
+        self.st7.pa()
+        self.assertEqual(self.st7, exp)
+
 
     def test_transform_return_type(self):
         f = lambda data, id_, md: data / 2.
@@ -2084,6 +2390,38 @@ class SparseTableTests(TestCase):
         # verify that the tables are the same
         self.assertEqual(t, t2)
 
+    def test_extract_data_from_tsv(self):
+        """Parses a classic table
+
+        This method is ported from QIIME (http://www.qiime.org). QIIME is a GPL
+        project, but we obtained permission from the authors of this method to
+        port it to the BIOM Format project (and keep it under BIOM's BSD
+        license).
+        """
+        input = legacy_otu_table1.splitlines()
+        samp_ids = ['Fing', 'Key', 'NA']
+        obs_ids = ['0', '1', '7', '3', '4']
+        metadata = [
+            'Bacteria; Actinobacteria; Actinobacteridae; Propionibacterineae; '
+            'Propionibacterium',
+            'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillal'
+            'es; Lactobacillales; Streptococcaceae; Streptococcus',
+            'Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Coryneb'
+            'acteriaceae',
+            'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Staphylococca'
+            'ceae',
+            'Bacteria; Cyanobacteria; Chloroplasts; vectors']
+        md_name = 'Consensus Lineage'
+        data = np.array([[19111, 44536, 42],
+                        [1216, 3500, 6],
+                        [1803, 1184, 2],
+                        [1722, 4903, 17],
+                        [589, 2074, 34]])
+
+        exp = (samp_ids, obs_ids, data, metadata, md_name)
+        obs = Table._extract_data_from_tsv(input, dtype=int)
+        npt.assert_equal(obs, exp)
+
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
         f = lambda id_, md: md['age']
@@ -2388,6 +2726,40 @@ class SupportTests2(TestCase):
         exp[1, 3] = 2
         obs = list_sparse_to_sparse(ins)
         self.assertEqual((obs != exp).sum(), 0)
+
+legacy_otu_table1 = """# some comment goes here
+#OTU id\tFing\tKey\tNA\tConsensus Lineage
+0\t19111\t44536\t42 \tBacteria; Actinobacteria; Actinobacteridae; Propioniba\
+cterineae; Propionibacterium
+
+1\t1216\t3500\t6\tBacteria; Firmicutes; Alicyclobacillaceae; Bacilli; La\
+ctobacillales; Lactobacillales; Streptococcaceae; Streptococcus
+7\t1803\t1184\t2\tBacteria; Actinobacteria; Actinobacteridae; Gordoniace\
+ae; Corynebacteriaceae
+3\t1722\t4903\t17\tBacteria; Firmicutes; Alicyclobacillaceae; Bacilli; St\
+aphylococcaceae
+4\t589\t2074\t34\tBacteria; Cyanobacteria; Chloroplasts; vectors
+"""
+otu_table1 = """# Some comment
+#OTU ID\tFing\tKey\tNA\tConsensus Lineage
+0\t19111\t44536\t42\tBacteria; Actinobacteria; Actinobacteridae; \
+Propionibacterineae; Propionibacterium
+# some other comment
+1\t1216\t3500\t6\tBacteria; Firmicutes; Alicyclobacillaceae; Bacilli; \
+Lactobacillales; Lactobacillales; Streptococcaceae; Streptococcus
+7\t1803\t1184\t2\tBacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; \
+Corynebacteriaceae
+# comments
+#    everywhere!
+3\t1722\t4903\t17\tBacteria; Firmicutes; Alicyclobacillaceae; \
+Bacilli; Staphylococcaceae
+4\t589\t2074\t34\tBacteria; Cyanobacteria; Chloroplasts; vectors
+"""
+
+OBS_META_TYPES = {'sc_separated': lambda x: [e.strip() for e in x.split(';')],
+                  'naive': lambda x: x
+                  }
+OBS_META_TYPES['taxonomy'] = OBS_META_TYPES['sc_separated']
 
 if __name__ == '__main__':
     main()

@@ -77,12 +77,15 @@ class MetadataAdder(Command):
                   'to include only the first n fields where n is the number '
                   'of entries provided here',
                   DefaultDescription='use header from observation metadata '
-                  'map')
+                  'map'),
+        CommandIn(Name='output_as_json', DataType=bool,
+                  Description='Output as JSON', Default=False)
     ])
 
     CommandOuts = ParameterCollection([
-        CommandOut(Name='table', DataType=Table,
-                   Description='Table with added metadata')
+        CommandOut(Name='table', DataType=tuple,
+                   Description='Table with added metadata, and the output '
+                               'format')
     ])
 
     def run(self, **kwargs):
@@ -95,6 +98,7 @@ class MetadataAdder(Command):
         float_fields = kwargs['float_fields']
         sample_header = kwargs['sample_header']
         observation_header = kwargs['observation_header']
+        output_as = 'json' if kwargs['output_as_json'] else 'hdf5'
 
         # define metadata processing functions, if any
         process_fns = {}
@@ -138,7 +142,7 @@ class MetadataAdder(Command):
         if observation_metadata:
             table.add_metadata(observation_metadata, axis='observation')
 
-        return {'table': table}
+        return {'table': (table, output_as)}
 
     def _split_on_semicolons(self, x):
         return [e.strip() for e in x.split(';')]

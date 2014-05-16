@@ -25,3 +25,4 @@ script:
   - nosetests --with-doctest
   - pep8 biom setup.py
   - biom show-install-info
+  - make -C doc html
