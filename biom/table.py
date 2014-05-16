@@ -1668,8 +1668,43 @@ class Table(object):
 
         Returns
         -------
-        biom.Table
+        Table
             The collapsed table
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a ``Table``
+
+        >>> dt_rich = Table(
+        ...    np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
+        ...    ['1', '2', '3'], ['a', 'b', 'c'],
+        ...    [{'taxonomy': ['k__a', 'p__b']},
+        ...     {'taxonomy': ['k__a', 'p__c']},
+        ...     {'taxonomy': ['k__a', 'p__c']}],
+        ...    [{'barcode': 'aatt'},
+        ...     {'barcode': 'ttgg'},
+        ...     {'barcode': 'aatt'}])
+        >>> print dt_rich # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID a   b   c
+        1   5.0 6.0 7.0
+        2   8.0 9.0 10.0
+        3   11.0    12.0    13.0
+
+        Create Function to determine what partition a vector belongs to
+
+        >>> bin_f = lambda id_, x: x['taxonomy'][1]
+        >>> obs_phy = dt_rich.collapse(
+        ...    bin_f, norm=False, min_group_size=1,
+        ...    axis='observation').sort(axis='observation')
+        >>> print obs_phy # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID a   b   c
+        p__b    5.0 6.0 7.0
+        p__c    19.0    21.0    23.0
         """
         collapsed_data = []
         collapsed_ids = []
