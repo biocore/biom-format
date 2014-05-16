@@ -114,7 +114,7 @@ class TableSubsetter(Command):
             table = subset_generator()
         else:
             with biom_open(hdf5_biom) as f:
-              table = Table.from_hdf5(f, ids=ids, axis=axis)
+                table = Table.from_hdf5(f, ids=ids, axis=axis)
             format_ = 'hdf5'
 
         return {'subsetted_table': (table, format_)}
