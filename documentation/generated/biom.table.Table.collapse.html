@@ -1,0 +1,240 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>biom.table.Table.collapse &mdash; biom-format.org</title>
+    
+    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.0.0-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/copybutton.js"></script>
+    <link rel="top" title="biom-format.org" href="../../index.html" />
+    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
+    <link rel="next" title="biom.table.Table.copy" href="biom.table.Table.copy.html" />
+    <link rel="prev" title="biom.table.Table.add_metadata" href="biom.table.Table.add_metadata.html" /> 
+  </head>
+  <body>
+  
+  <a href="https://github.com/biocore/biom-format"><img
+    style="position: absolute; top: 0; right: 0; border: 0;"
+    src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+    alt="Fork me on GitHub"></a>
+
+      <div class="header"><h1 class="heading"><a href="../../index.html">
+          <span>biom-format.org</span></a></h1>
+        <h2 class="heading"><span>biom.table.Table.collapse</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom.table.Table.add_metadata.html">biom.table.Table.add_metadata</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="biom.table.Table.copy.html">biom.table.Table.copy</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="biom-table-table-collapse">
+<h1>biom.table.Table.collapse<a class="headerlink" href="#biom-table-table-collapse" title="Permalink to this headline">¶</a></h1>
+<dl class="method">
+<dt id="biom.table.Table.collapse">
+<tt class="descclassname">Table.</tt><tt class="descname">collapse</tt><big>(</big><em>f</em>, <em>reduce_f=&lt;built-in function add&gt;</em>, <em>norm=True</em>, <em>min_group_size=2</em>, <em>include_collapsed_metadata=True</em>, <em>one_to_many=False</em>, <em>one_to_many_mode='add'</em>, <em>one_to_many_md_key='Path'</em>, <em>strict=False</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.collapse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collapse partitions in a table by metadata or by IDs</p>
+<p>Partition data by metadata or IDs and then collapse each partition into
+a single vector.</p>
+<p>If <cite>include_collapsed_metadata</cite> is <tt class="docutils literal"><span class="pre">True</span></tt>, metadata for the collapsed
+partition are retained and can be referred to by the corresponding ID
+from each vector within the partition.</p>
+<p>The remainder is only relevant to setting <cite>one_to_many</cite> to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
+<p>If <cite>one_to_many</cite> is <tt class="docutils literal"><span class="pre">True</span></tt>, allow vectors to collapse into multiple
+bins if the metadata describe a one-many relationship. Supplied
+functions must allow for iteration support over the metadata key and
+must return a tuple of (path, bin) as to describe both the path in the
+hierarchy represented and the specific bin being collapsed into. The
+uniqueness of the bin is _not_ based on the path but by the name of the
+bin.</p>
+<p>The metadata value for the corresponding collapsed column may include
+more (or less) information about the collapsed data. For example, if
+collapsing &#8220;FOO&#8221;, and there are vectors that span three associations A,
+B, and C, such that vector 1 spans A and B, vector 2 spans B and C and
+vector 3 spans A and C, the resulting table will contain three
+collapsed vectors:</p>
+<ul class="simple">
+<li>A, containing original vectors 1 and 3</li>
+<li>B, containing original vectors 1 and 2</li>
+<li>C, containing original vectors 2 and 3</li>
+</ul>
+<p>If a vector maps to the same partition multiple times, it will be
+counted multiple times.</p>
+<p>There are two supported modes for handling one-to-many relationships
+via <cite>one_to_many_mode</cite>: <tt class="docutils literal"><span class="pre">add</span></tt> and <cite>divide</cite>. <tt class="docutils literal"><span class="pre">add</span></tt> will add the
+vector counts to each partition that the vector maps to, which may
+increase the total number of counts in the output table. <tt class="docutils literal"><span class="pre">divide</span></tt>
+will divide a vectors&#8217;s counts by the number of metadata that the
+vector has before adding the counts to each partition. This will not
+increase the total number of counts in the output table.</p>
+<p>If <cite>one_to_many_md_key</cite> is specified, that becomes the metadata
+key that describes the collapsed path. If a value is not specified,
+then it defaults to &#8216;Path&#8217;.</p>
+<p>If <cite>strict</cite> is specified, then all metadata pathways operated on
+must be indexable by <cite>metadata_f</cite>.</p>
+<p><cite>one_to_many</cite> and <cite>norm</cite> are not supported together.</p>
+<p><cite>one_to_many</cite> and <cite>reduce_f</cite> are not supported together.</p>
+<p><cite>one_to_many</cite> and <cite>min_group_size</cite> are not supported together.</p>
+<p>A final note on space consumption. At present, the <cite>one_to_many</cite>
+functionality requires a temporary dense matrix representation.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>f</strong> : function</p>
+<blockquote>
+<div><p>Function that is used to determine what partition a vector belongs
+to</p>
+</div></blockquote>
+<p><strong>reduce_f</strong> : function, optional</p>
+<blockquote>
+<div><p>Defaults to <tt class="docutils literal"><span class="pre">operator.add</span></tt>. Function that reduces two vectors in
+a one-to-one collapse</p>
+</div></blockquote>
+<p><strong>norm</strong> : bool, optional</p>
+<blockquote>
+<div><p>Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>. If <tt class="docutils literal"><span class="pre">True</span></tt>, normalize the resulting table</p>
+</div></blockquote>
+<p><strong>min_group_size</strong> : int, optional</p>
+<blockquote>
+<div><p>Defaults to <tt class="docutils literal"><span class="pre">2</span></tt>. The minimum size of a partition of performing a
+one-to-many collapse</p>
+</div></blockquote>
+<p><strong>include_collapsed_metadata</strong> : bool, optional</p>
+<blockquote>
+<div><p>Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>. If <tt class="docutils literal"><span class="pre">True</span></tt>, retain the collapsed metadata
+keyed by the original IDs of the associated vectors</p>
+</div></blockquote>
+<p><strong>one_to_many</strong> : bool, optional</p>
+<blockquote>
+<div><p>Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>. Perform a one-to-many collapse</p>
+</div></blockquote>
+<p><strong>one_to_many_mode</strong> : {&#8216;add&#8217;, &#8216;divide&#8217;}, optional</p>
+<blockquote>
+<div><p>The way to reduce two vectors in a one-to-many collapse</p>
+</div></blockquote>
+<p><strong>one_to_many_md_key</strong> : str, optional</p>
+<blockquote>
+<div><p>Defaults to &#8220;Path&#8221;. If <cite>include_collapsed_metadata</cite> is <tt class="docutils literal"><span class="pre">True</span></tt>,
+store the original vector metadata under this key</p>
+</div></blockquote>
+<p><strong>strict</strong> : bool, optional</p>
+<blockquote>
+<div><p>Defaults to <tt class="docutils literal"><span class="pre">False</span></tt>. Requires full pathway data within a
+one-to-many structure</p>
+</div></blockquote>
+<p><strong>axis</strong> : {&#8216;sample&#8217;, &#8216;observation&#8217;}, optional</p>
+<blockquote>
+<div><p>The axis to collapse</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Table</p>
+<blockquote class="last">
+<div><p>The collapsed table</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
+</pre></div>
+</div>
+<p>Create a <tt class="docutils literal"><span class="pre">Table</span></tt></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">dt_rich</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">],</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">],</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">13</span><span class="p">]]),</span>
+<span class="gp">... </span>   <span class="p">[</span><span class="s">&#39;1&#39;</span><span class="p">,</span> <span class="s">&#39;2&#39;</span><span class="p">,</span> <span class="s">&#39;3&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">],</span>
+<span class="gp">... </span>   <span class="p">[{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;k__a&#39;</span><span class="p">,</span> <span class="s">&#39;p__b&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;k__a&#39;</span><span class="p">,</span> <span class="s">&#39;p__c&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;k__a&#39;</span><span class="p">,</span> <span class="s">&#39;p__c&#39;</span><span class="p">]}],</span>
+<span class="gp">... </span>   <span class="p">[{</span><span class="s">&#39;barcode&#39;</span><span class="p">:</span> <span class="s">&#39;aatt&#39;</span><span class="p">},</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s">&#39;barcode&#39;</span><span class="p">:</span> <span class="s">&#39;ttgg&#39;</span><span class="p">},</span>
+<span class="gp">... </span>    <span class="p">{</span><span class="s">&#39;barcode&#39;</span><span class="p">:</span> <span class="s">&#39;aatt&#39;</span><span class="p">}])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">dt_rich</span> 
+<span class="go"># Constructed from biom file</span>
+<span class="go">#OTU ID a   b   c</span>
+<span class="go">1   5.0 6.0 7.0</span>
+<span class="go">2   8.0 9.0 10.0</span>
+<span class="go">3   11.0    12.0    13.0</span>
+</pre></div>
+</div>
+<p>Create Function to determine what partition a vector belongs to</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">bin_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">id_</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s">&#39;taxonomy&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs_phy</span> <span class="o">=</span> <span class="n">dt_rich</span><span class="o">.</span><span class="n">collapse</span><span class="p">(</span>
+<span class="gp">... </span>   <span class="n">bin_f</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">min_group_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">axis</span><span class="o">=</span><span class="s">&#39;observation&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s">&#39;observation&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">obs_phy</span> 
+<span class="go"># Constructed from biom file</span>
+<span class="go">#OTU ID a   b   c</span>
+<span class="go">p__b    5.0 6.0 7.0</span>
+<span class="go">p__c    19.0    21.0    23.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom.table.Table.add_metadata.html">biom.table.Table.add_metadata</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="biom.table.Table.copy.html">biom.table.Table.copy</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+
+    <div class="footer">
+        &copy; Copyright 2011-2013, The BIOM Format Development Team.
+      Last updated on May 16, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-6636235-6']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>

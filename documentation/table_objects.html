@@ -6,16 +6,15 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>biom-format Table objects &mdash; biom-format.org</title>
+    <title>BIOM Table (biom.table) &mdash; biom-format.org</title>
     
     <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.3.1',
+        VERSION:     '2.0.0-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,769 +23,198 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
     <link rel="top" title="biom-format.org" href="../index.html" />
     <link rel="up" title="BIOM Documentation" href="index.html" />
-    <link rel="next" title="Converting between file formats" href="biom_conversion.html" />
-    <link rel="prev" title="The biom file format: Version 1.0" href="format_versions/biom-1.0.html" /> 
+    <link rel="next" title="biom.table.Table" href="generated/biom.table.Table.html" />
+    <link rel="prev" title="The biom file format: Version 2.0" href="format_versions/biom-2.0.html" /> 
   </head>
   <body>
+  
+  <a href="https://github.com/biocore/biom-format"><img
+    style="position: absolute; top: 0; right: 0; border: 0;"
+    src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+    alt="Fork me on GitHub"></a>
+
       <div class="header"><h1 class="heading"><a href="../index.html">
           <span>biom-format.org</span></a></h1>
-        <h2 class="heading"><span>biom-format Table objects</span></h2>
+        <h2 class="heading"><span>BIOM Table (biom.table)</span></h2>
       </div>
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="format_versions/biom-1.0.html">The biom file format: Version 1.0</a>
+        «&#160;&#160;<a href="format_versions/biom-2.0.html">The biom file format: Version 2.0</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="biom_conversion.html">Converting between file formats</a>&#160;&#160;»
+        <a href="generated/biom.table.Table.html">biom.table.Table</a>&#160;&#160;»
         </p>
 
       </div>
       <div class="content">
         
         
-  <div class="section" id="biom-format-table-objects">
-<span id="table-objects"></span><h1>biom-format <tt class="docutils literal"><span class="pre">Table</span></tt> objects<a class="headerlink" href="#biom-format-table-objects" title="Permalink to this headline">¶</a></h1>
-<p>The biom-format project provides rich <tt class="docutils literal"><span class="pre">Table</span></tt> objects to support use of the BIOM file format. The objects encapsulate matrix data (such as OTU counts) and abstract the interaction away from the programmer. This provides the immediate benefit of the programmer not having to worry about what the underlying data object is, and in turn allows for different data representations to be supported. Currently, biom-format supports a <tt class="docutils literal"><span class="pre">dense</span></tt> object built off of <tt class="docutils literal"><span class="pre">numpy.array</span></tt> (<a class="reference external" href="http://numpy.scipy.org/">NumPy</a>) and a <tt class="docutils literal"><span class="pre">sparse</span></tt> object built off of Python dictionaries.</p>
-<div class="section" id="biom-format-table-factory-method">
-<h2>biom-format <tt class="docutils literal"><span class="pre">table_factory</span></tt> method<a class="headerlink" href="#biom-format-table-factory-method" title="Permalink to this headline">¶</a></h2>
-<p>Generally, construction of a <tt class="docutils literal"><span class="pre">Table</span></tt> subclass will be through the <tt class="docutils literal"><span class="pre">table_factory</span></tt> method. This method facilitates any necessary data conversions and supports a wide variety of input data types.</p>
-<dl class="function">
-<dt id="biom.table.table_factory">
-<tt class="descclassname">biom.table.</tt><tt class="descname">table_factory</tt><big>(</big><em>data</em>, <em>sample_ids</em>, <em>observation_ids</em>, <em>sample_metadata=None</em>, <em>observation_metadata=None</em>, <em>table_id=None</em>, <em>constructor=&lt;class 'biom.table.SparseOTUTable'&gt;</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.table_factory" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a table</p>
-<p>Attempts to make &#8216;data&#8217; sane with respect to the constructor type through
-various means of juggling. Data can be:</p>
-<blockquote>
-<div><ul class="simple">
-<li>numpy.array</li>
-<li>list of numpy.array vectors</li>
-<li>SparseObj representation</li>
-<li>dict representation</li>
-<li>list of SparseObj representation vectors</li>
-<li>list of lists of sparse values [[row, col, value], ...]</li>
-<li>list of lists of dense values [[value, value, ...], ...]</li>
-</ul>
-</div></blockquote>
-<p>Example usage to create a SparseOTUTable object:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">table_factory</span><span class="p">,</span> <span class="n">SparseOTUTable</span>
-<span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span>
-
-<span class="n">sample_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;s1&#39;</span><span class="p">,</span><span class="s">&#39;s2&#39;</span><span class="p">,</span><span class="s">&#39;s3&#39;</span><span class="p">,</span><span class="s">&#39;s4&#39;</span><span class="p">]</span>
-<span class="n">sample_md</span> <span class="o">=</span> <span class="p">[{</span><span class="s">&#39;pH&#39;</span><span class="p">:</span><span class="mf">4.2</span><span class="p">,</span><span class="s">&#39;country&#39;</span><span class="p">:</span><span class="s">&#39;Peru&#39;</span><span class="p">},</span>
-             <span class="p">{</span><span class="s">&#39;pH&#39;</span><span class="p">:</span><span class="mf">5.2</span><span class="p">,</span><span class="s">&#39;country&#39;</span><span class="p">:</span><span class="s">&#39;Peru&#39;</span><span class="p">},</span>
-             <span class="p">{</span><span class="s">&#39;pH&#39;</span><span class="p">:</span><span class="mf">5.0</span><span class="p">,</span><span class="s">&#39;country&#39;</span><span class="p">:</span><span class="s">&#39;Peru&#39;</span><span class="p">},</span>
-             <span class="p">{</span><span class="s">&#39;pH&#39;</span><span class="p">:</span><span class="mf">4.9</span><span class="p">,</span><span class="s">&#39;country&#39;</span><span class="p">:</span><span class="s">&#39;Peru&#39;</span><span class="p">}]</span>
-
-<span class="n">observation_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;o1&#39;</span><span class="p">,</span><span class="s">&#39;o2&#39;</span><span class="p">,</span><span class="s">&#39;o3&#39;</span><span class="p">]</span>
-<span class="n">observation_md</span> <span class="o">=</span> <span class="p">[{</span><span class="s">&#39;domain&#39;</span><span class="p">:</span><span class="s">&#39;Archaea&#39;</span><span class="p">},</span>
-                  <span class="p">{</span><span class="s">&#39;domain&#39;</span><span class="p">:</span><span class="s">&#39;Bacteria&#39;</span><span class="p">},</span>
-                  <span class="p">{</span><span class="s">&#39;domain&#39;</span><span class="p">:</span><span class="s">&#39;Bacteria&#39;</span><span class="p">}]</span>
-
-<span class="n">data</span> <span class="o">=</span> <span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span><span class="mi">2</span><span class="p">,</span><span class="mi">3</span><span class="p">,</span><span class="mi">4</span><span class="p">],</span>
-              <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span><span class="mi">6</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">8</span><span class="p">],</span>
-              <span class="p">[</span><span class="mi">9</span><span class="p">,</span><span class="mi">10</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">12</span><span class="p">]])</span>
-
-<span class="n">t</span> <span class="o">=</span> <span class="n">table_factory</span><span class="p">(</span><span class="n">data</span><span class="p">,</span>
-                  <span class="n">sample_ids</span><span class="p">,</span>
-                  <span class="n">observation_ids</span><span class="p">,</span>
-                  <span class="n">sample_md</span><span class="p">,</span>
-                  <span class="n">observation_md</span><span class="p">,</span>
-                  <span class="n">constructor</span><span class="o">=</span><span class="n">SparseOTUTable</span><span class="p">)</span>
+  <span class="target" id="module-biom.table"></span><div class="section" id="biom-table-biom-table">
+<h1>BIOM Table (<a class="reference internal" href="#module-biom.table" title="biom.table"><tt class="xref py py-mod docutils literal"><span class="pre">biom.table</span></tt></a>)<a class="headerlink" href="#biom-table-biom-table" title="Permalink to this headline">¶</a></h1>
+<p>The biom-format project provides rich <tt class="docutils literal"><span class="pre">Table</span></tt> objects to support use of the
+BIOM file format. The objects encapsulate matrix data (such as OTU counts) and
+abstract the interaction away from the programmer.</p>
+<div class="section" id="classes">
+<h2>Classes<a class="headerlink" href="#classes" title="Permalink to this headline">¶</a></h2>
+<table border="1" class="longtable docutils">
+<colgroup>
+<col width="10%" />
+<col width="90%" />
+</colgroup>
+<tbody valign="top">
+<tr class="row-odd"><td><a class="reference internal" href="generated/biom.table.Table.html#biom.table.Table" title="biom.table.Table"><tt class="xref py py-obj docutils literal"><span class="pre">Table</span></tt></a>(data,&nbsp;observation_ids,&nbsp;sample_ids[,&nbsp;...])</td>
+<td>The (canonically pronounced &#8216;teh&#8217;) Table.</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>First, lets create a toy table to play around with. For this example, we&#8217;re
+going to construct a 10x4 <cite>Table</cite>, or one that has 10 observations and 4
+samples. Each observation and sample will be given an arbitrary but unique
+name. We&#8217;ll also add on some metadata.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">40</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sample_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;S</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">observ_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;O</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">10</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sample_metadata</span> <span class="o">=</span> <span class="p">[{</span><span class="s">&#39;environment&#39;</span><span class="p">:</span> <span class="s">&#39;A&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s">&#39;environment&#39;</span><span class="p">:</span> <span class="s">&#39;B&#39;</span><span class="p">},</span>
+<span class="gp">... </span>                   <span class="p">{</span><span class="s">&#39;environment&#39;</span><span class="p">:</span> <span class="s">&#39;A&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s">&#39;environment&#39;</span><span class="p">:</span> <span class="s">&#39;B&#39;</span><span class="p">}]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">observ_metadata</span> <span class="o">=</span> <span class="p">[{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Bacteria&#39;</span><span class="p">,</span> <span class="s">&#39;Firmicutes&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>                   <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Bacteria&#39;</span><span class="p">,</span> <span class="s">&#39;Firmicutes&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>                   <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Bacteria&#39;</span><span class="p">,</span> <span class="s">&#39;Proteobacteria&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>                   <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Bacteria&#39;</span><span class="p">,</span> <span class="s">&#39;Proteobacteria&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>                   <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Bacteria&#39;</span><span class="p">,</span> <span class="s">&#39;Proteobacteria&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>                   <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Bacteria&#39;</span><span class="p">,</span> <span class="s">&#39;Bacteroidetes&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>                   <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Bacteria&#39;</span><span class="p">,</span> <span class="s">&#39;Bacteroidetes&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>                   <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Bacteria&#39;</span><span class="p">,</span> <span class="s">&#39;Firmicutes&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>                   <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Bacteria&#39;</span><span class="p">,</span> <span class="s">&#39;Firmicutes&#39;</span><span class="p">]},</span>
+<span class="gp">... </span>                   <span class="p">{</span><span class="s">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s">&#39;Bacteria&#39;</span><span class="p">,</span> <span class="s">&#39;Firmicutes&#39;</span><span class="p">]}]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">observ_ids</span><span class="p">,</span> <span class="n">sample_ids</span><span class="p">,</span> <span class="n">observ_metadata</span><span class="p">,</span>
+<span class="gp">... </span>              <span class="n">sample_metadata</span><span class="p">,</span> <span class="n">table_id</span><span class="o">=</span><span class="s">&#39;Example Table&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-</dd></dl>
-
+<p>Now that we have a table, let&#8217;s explore it at a high level first.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">table</span>
+<span class="go">10 x 4 &lt;class &#39;biom.table.Table&#39;&gt; with 39 nonzero entries (97% dense)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span> 
+<span class="go"># Constructed from biom file</span>
+<span class="go">#OTU ID S0  S1  S2  S3</span>
+<span class="go">O0  0.0 1.0 2.0 3.0</span>
+<span class="go">O1  4.0 5.0 6.0 7.0</span>
+<span class="go">O2  8.0 9.0 10.0    11.0</span>
+<span class="go">O3  12.0    13.0    14.0    15.0</span>
+<span class="go">O4  16.0    17.0    18.0    19.0</span>
+<span class="go">O5  20.0    21.0    22.0    23.0</span>
+<span class="go">O6  24.0    25.0    26.0    27.0</span>
+<span class="go">O7  28.0    29.0    30.0    31.0</span>
+<span class="go">O8  32.0    33.0    34.0    35.0</span>
+<span class="go">O9  36.0    37.0    38.0    39.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">sample_ids</span> 
+<span class="go">[&#39;S0&#39; &#39;S1&#39; &#39;S2&#39; &#39;S3&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">observation_ids</span> 
+<span class="go">[&#39;O0&#39; &#39;O1&#39; &#39;O2&#39; &#39;O3&#39; &#39;O4&#39; &#39;O5&#39; &#39;O6&#39; &#39;O7&#39; &#39;O8&#39; &#39;O9&#39;]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">nnz</span>  <span class="c"># number of nonzero entries</span>
+<span class="go">39</span>
+</pre></div>
 </div>
-<div class="section" id="description-of-available-table-objects">
-<h2>Description of available <tt class="docutils literal"><span class="pre">Table</span></tt> objects<a class="headerlink" href="#description-of-available-table-objects" title="Permalink to this headline">¶</a></h2>
-<p>There are multiple objects available but some of them are unofficial abstract base classes (does not use the <tt class="docutils literal"><span class="pre">abc</span></tt> module for historical reasons). In practice, the objects used should be the derived Tables such as <tt class="docutils literal"><span class="pre">SparseOTUTable</span></tt> or <tt class="docutils literal"><span class="pre">DenseGeneTable</span></tt>.</p>
-<div class="section" id="abstract-base-classes">
-<h3>Abstract base classes<a class="headerlink" href="#abstract-base-classes" title="Permalink to this headline">¶</a></h3>
-<p>Abstract base classes establish standard interfaces for subclassed types and provide common functionality for derived types.</p>
-<div class="section" id="table">
-<h4><tt class="docutils literal"><span class="pre">Table</span></tt><a class="headerlink" href="#table" title="Permalink to this headline">¶</a></h4>
-<p><tt class="docutils literal"><span class="pre">Table</span></tt> is a container object and an abstract base class that provides a common and required API for subclassed objects. Through the use of private interfaces, it is possible to create public methods that operate on the underlying datatype without having to implement each method in each subclass. For instance, <tt class="docutils literal"><span class="pre">Table.iterSamplesData</span></tt> will return a generator that always yields <tt class="docutils literal"><span class="pre">numpy.array</span></tt> vectors for each sample regardless of how the table data is actually stored. This functionality results from derived classes implementing private interfaces, such as <tt class="docutils literal"><span class="pre">Table._conv_to_np</span></tt>.</p>
-<dl class="class">
-<dt id="biom.table.Table">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">Table</tt><big>(</big><em>Data</em>, <em>SampleIds</em>, <em>ObservationIds</em>, <em>SampleMetadata=None</em>, <em>ObservationMetadata=None</em>, <em>TableId=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.Table" title="Permalink to this definition">¶</a></dt>
-<dd><p>Abstract base class representing a Table.</p>
-<p>Once created, a Table object is immutable except for its sample/observation
-metadata, which can be modified in place via addSampleMetadata and
-addObservationMetadata.</p>
-<dl class="docutils">
-<dt>Code to simulate immutability taken from here:</dt>
-<dd><a class="reference external" href="http://en.wikipedia.org/wiki/Immutable_object">http://en.wikipedia.org/wiki/Immutable_object</a></dd>
-</dl>
-<dl class="method">
-<dt id="biom.table.Table.addObservationMetadata">
-<tt class="descname">addObservationMetadata</tt><big>(</big><em>md</em><big>)</big><a class="headerlink" href="#biom.table.Table.addObservationMetadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Take a dict of metadata and add it to an observation.</p>
-<p><tt class="docutils literal"><span class="pre">md</span></tt> should be of the form <tt class="docutils literal"><span class="pre">{observation_id:{dict_of_metadata}}</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.addSampleMetadata">
-<tt class="descname">addSampleMetadata</tt><big>(</big><em>md</em><big>)</big><a class="headerlink" href="#biom.table.Table.addSampleMetadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Take a dict of metadata and add it to a sample.</p>
-<p><tt class="docutils literal"><span class="pre">md</span></tt> should be of the form <tt class="docutils literal"><span class="pre">{sample_id:{dict_of_metadata}}</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.binObservationsByMetadata">
-<tt class="descname">binObservationsByMetadata</tt><big>(</big><em>f</em>, <em>constructor=None</em><big>)</big><a class="headerlink" href="#biom.table.Table.binObservationsByMetadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Yields tables by metadata</p>
-<p><tt class="docutils literal"><span class="pre">f</span></tt> is given the observation metadata by row and must return what 
-&#8220;bin&#8221; the observation is part of.</p>
-<p><tt class="docutils literal"><span class="pre">constructor</span></tt>: the type of binned tables to create, e.g.
-SparseTaxonTable. If None, the binned tables will be the same type as
-this table.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.binSamplesByMetadata">
-<tt class="descname">binSamplesByMetadata</tt><big>(</big><em>f</em>, <em>constructor=None</em><big>)</big><a class="headerlink" href="#biom.table.Table.binSamplesByMetadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Yields tables by metadata</p>
-<p><tt class="docutils literal"><span class="pre">f</span></tt> is given the sample metadata by row and must return what &#8220;bin&#8221; 
-the sample is part of.</p>
-<p><tt class="docutils literal"><span class="pre">constructor</span></tt>: the type of binned tables to create, e.g.
-SparseTaxonTable. If None, the binned tables will be the same type as
-this table.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.collapseObservationsByMetadata">
-<tt class="descname">collapseObservationsByMetadata</tt><big>(</big><em>metadata_f</em>, <em>reduce_f=&lt;built-in function add&gt;</em>, <em>norm=True</em>, <em>min_group_size=2</em>, <em>include_collapsed_metadata=True</em>, <em>constructor=None</em>, <em>one_to_many=False</em>, <em>one_to_many_mode='add'</em>, <em>one_to_many_md_key='Path'</em>, <em>strict=False</em><big>)</big><a class="headerlink" href="#biom.table.Table.collapseObservationsByMetadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Collapse observations in a table by observation metadata</p>
-<p>Bin observations by metadata then collapse each bin into a single 
-observation.</p>
-<p>If <tt class="docutils literal"><span class="pre">include_collapsed_metadata</span></tt> is True, metadata for the collapsed
-observations are retained and can be referred to by the
-<tt class="docutils literal"><span class="pre">ObservationId</span></tt> from each observation within the bin.</p>
-<p><tt class="docutils literal"><span class="pre">constructor</span></tt>: the type of collapsed table to create, e.g.
-SparseTaxonTable. If None, the collapsed table will be the same type as
-this table.</p>
-<p>The remainder is only relevant to setting <tt class="docutils literal"><span class="pre">one_to_many</span></tt> to True.</p>
-<p>If <tt class="docutils literal"><span class="pre">one_to_many</span></tt> is True, allow observations to fall into multiple 
-bins if the metadata describe a one-many relationship. Supplied
-functions must allow for iteration support over the metadata key and 
-must return a tuple of (path, bin) as to describe both the path in the 
-hierarchy represented and the specific bin being collapsed into. The 
-uniqueness of the bin is _not_ based on the path but by the name of the
-bin.</p>
-<p>The metadata value for the corresponding collapsed row may include more
-(or less) information about the collapsed data. For example, if 
-collapsing &#8220;KEGG Pathways&#8221;, and there are observations that span three 
-pathways A, B, and C, such that observation 1 spans A and B, 
-observation 2 spans B and C and observation 3 spans A and C, the 
-resulting table will contain three collapsed observations:</p>
-<ul class="simple">
-<li>A, containing original observation 1 and 3</li>
-<li>B, containing original observation 1 and 2</li>
-<li>C, containing original observation 2 and 3</li>
-</ul>
-<p>If an observation maps to the same bin multiple times, it will be
-counted multiple times.</p>
-<p>There are two supported modes for handling one-to-many relationships
-via <tt class="docutils literal"><span class="pre">one_to_many_mode</span></tt>: <tt class="docutils literal"><span class="pre">add</span></tt> and <tt class="docutils literal"><span class="pre">divide</span></tt>. <tt class="docutils literal"><span class="pre">add</span></tt> will add the
-observation counts to each bin that the observation maps to, which may
-increase the total number of counts in the output table. <tt class="docutils literal"><span class="pre">divide</span></tt>
-will divide an observation&#8217;s counts by the number of metadata that the
-observation has before adding the counts to each bin. This will not
-increase the total number of counts in the output table.</p>
-<p>If <tt class="docutils literal"><span class="pre">one_to_many_md_key</span></tt> is specified, that becomes the metadata
-key that describes the collapsed path. If a value is not specified,
-then it defaults to &#8216;Path&#8217;.</p>
-<p>If <tt class="docutils literal"><span class="pre">strict</span></tt> is specified, then all metadata pathways operated on
-must be indexable by <tt class="docutils literal"><span class="pre">metadata_f</span></tt>.</p>
-<p><tt class="docutils literal"><span class="pre">one_to_many</span></tt> and <tt class="docutils literal"><span class="pre">norm</span></tt> are not supported together.</p>
-<p><tt class="docutils literal"><span class="pre">one_to_many</span></tt> and <tt class="docutils literal"><span class="pre">reduce_f</span></tt> are not supported together.</p>
-<p><tt class="docutils literal"><span class="pre">one_to_many</span></tt> and <tt class="docutils literal"><span class="pre">min_group_size</span></tt> are not supported together.</p>
-<p>A final note on space consumption. At present, the <tt class="docutils literal"><span class="pre">one_to_many</span></tt>
-functionality requires a temporary dense matrix representation. This 
-was done so as it initially seems like true support requires rapid
-<tt class="docutils literal"><span class="pre">__setitem__</span></tt> functionality on the <tt class="docutils literal"><span class="pre">SparseObj</span></tt> and at the time of
-implementation, <tt class="docutils literal"><span class="pre">CSMat</span></tt> was O(N) to the number of nonzero elements.
-This is a work around until either a better <tt class="docutils literal"><span class="pre">__setitem__</span></tt> 
-implementation is in play on <tt class="docutils literal"><span class="pre">CSMat</span></tt> or a hybrid solution that allows
-for multiple <tt class="docutils literal"><span class="pre">SparseObj</span></tt> types is used.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.collapseSamplesByMetadata">
-<tt class="descname">collapseSamplesByMetadata</tt><big>(</big><em>metadata_f</em>, <em>reduce_f=&lt;built-in function add&gt;</em>, <em>norm=True</em>, <em>min_group_size=2</em>, <em>include_collapsed_metadata=True</em>, <em>constructor=None</em>, <em>one_to_many=False</em>, <em>one_to_many_mode='add'</em>, <em>one_to_many_md_key='Path'</em>, <em>strict=False</em><big>)</big><a class="headerlink" href="#biom.table.Table.collapseSamplesByMetadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Collapse samples in a table by sample metadata</p>
-<p>Bin samples by metadata then collapse each bin into a single sample.</p>
-<p>If <tt class="docutils literal"><span class="pre">include_collapsed_metadata</span></tt> is True, metadata for the collapsed
-samples are retained and can be referred to by the <tt class="docutils literal"><span class="pre">SampleId</span></tt> from
-each sample within the bin.</p>
-<p><tt class="docutils literal"><span class="pre">constructor</span></tt>: the type of collapsed table to create, e.g.
-SparseTaxonTable. If None, the collapsed table will be the same type as
-this table.</p>
-<p>The remainder is only relevant to setting <tt class="docutils literal"><span class="pre">one_to_many</span></tt> to True.</p>
-<p>If <tt class="docutils literal"><span class="pre">one_to_many</span></tt> is True, allow samples to collapse into multiple 
-bins if the metadata describe a one-many relationship. Supplied 
-functions must allow for iteration support over the metadata key and 
-must return a tuple of (path, bin) as to describe both the path in the 
-hierarchy represented and the specific bin being collapsed into. The 
-uniqueness of the bin is _not_ based on the path but by the name of the
-bin.</p>
-<p>The metadata value for the corresponding collapsed column may include 
-more (or less) information about the collapsed data. For example, if 
-collapsing &#8220;FOO&#8221;, and there are samples that span three associations A,
-B, and C, such that sample 1 spans A and B, sample 2 spans B and C and 
-sample 3 spans A and C, the resulting table will contain three 
-collapsed samples:</p>
-<ul class="simple">
-<li>A, containing original sample 1 and 3</li>
-<li>B, containing original sample 1 and 2</li>
-<li>C, containing original sample 2 and 3</li>
-</ul>
-<p>If a sample maps to the same bin multiple times, it will be 
-counted multiple times.</p>
-<p>There are two supported modes for handling one-to-many relationships
-via <tt class="docutils literal"><span class="pre">one_to_many_mode</span></tt>: <tt class="docutils literal"><span class="pre">add</span></tt> and <tt class="docutils literal"><span class="pre">divide</span></tt>. <tt class="docutils literal"><span class="pre">add</span></tt> will add the
-sample counts to each bin that the sample maps to, which may increase
-the total number of counts in the output table. <tt class="docutils literal"><span class="pre">divide</span></tt> will divide
-a sample&#8217;s counts by the number of metadata that the sample has before
-adding the counts to each bin. This will not increase the total number
-of counts in the output table.</p>
-<p>If <tt class="docutils literal"><span class="pre">one_to_many_md_key</span></tt> is specified, that becomes the metadata
-key that describes the collapsed path. If a value is not specified,
-then it defaults to &#8216;Path&#8217;.</p>
-<p>If <tt class="docutils literal"><span class="pre">strict</span></tt> is specified, then all metadata pathways operated on
-must be indexable by <tt class="docutils literal"><span class="pre">metadata_f</span></tt>.</p>
-<p><tt class="docutils literal"><span class="pre">one_to_many</span></tt> and <tt class="docutils literal"><span class="pre">norm</span></tt> are not supported together.</p>
-<p><tt class="docutils literal"><span class="pre">one_to_many</span></tt> and <tt class="docutils literal"><span class="pre">reduce_f</span></tt> are not supported together.</p>
-<p><tt class="docutils literal"><span class="pre">one_to_many</span></tt> and <tt class="docutils literal"><span class="pre">min_group_size</span></tt> are not supported together.</p>
-<p>A final note on space consumption. At present, the <tt class="docutils literal"><span class="pre">one_to_many</span></tt>
-functionality requires a temporary dense matrix representation. This 
-was done so as it initially seems like true support requires rapid
-<tt class="docutils literal"><span class="pre">__setitem__</span></tt> functionality on the <tt class="docutils literal"><span class="pre">SparseObj</span></tt> and at the time of
-implementation, <tt class="docutils literal"><span class="pre">CSMat</span></tt> was O(N) to the number of nonzero elements.
-This is a work around until either a better <tt class="docutils literal"><span class="pre">__setitem__</span></tt> 
-implementation is in play on <tt class="docutils literal"><span class="pre">CSMat</span></tt> or a hybrid solution that allows
-for multiple <tt class="docutils literal"><span class="pre">SparseObj</span></tt> types is used.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.copy">
-<tt class="descname">copy</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.Table.copy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a copy of the table</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.delimitedSelf">
-<tt class="descname">delimitedSelf</tt><big>(</big><em>delim='t'</em>, <em>header_key=None</em>, <em>header_value=None</em>, <em>metadata_formatter=&lt;type 'str'&gt;</em>, <em>observation_column_name='#OTU ID'</em><big>)</big><a class="headerlink" href="#biom.table.Table.delimitedSelf" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return self as a string in a delimited form</p>
-<p>Default str output for the Table is just row/col ids and table data
-without any metadata</p>
-<p>Including observation metadata in output: If <tt class="docutils literal"><span class="pre">header_key</span></tt> is not 
-<tt class="docutils literal"><span class="pre">None</span></tt>, the observation metadata with that name will be included 
-in the delimited output. If <tt class="docutils literal"><span class="pre">header_value</span></tt> is also not <tt class="docutils literal"><span class="pre">None</span></tt>, the 
-observation metadata will use the provided <tt class="docutils literal"><span class="pre">header_value</span></tt> as the 
-observation metadata name (i.e., the column header) in the delimited 
-output.</p>
-<p><tt class="docutils literal"><span class="pre">metadata_formatter</span></tt>: a function which takes a metadata entry and 
-returns a formatted version that should be written to file</p>
-<p><tt class="docutils literal"><span class="pre">observation_column_name</span></tt>: the name of the first column in the output
-table, corresponding to the observation IDs. For example, the default
-will look something like:</p>
-<blockquote>
-<div>#OTU ID     Sample1 Sample2
-OTU1        10      2
-OTU2        4       8</div></blockquote>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.descriptiveEquality">
-<tt class="descname">descriptiveEquality</tt><big>(</big><em>other</em><big>)</big><a class="headerlink" href="#biom.table.Table.descriptiveEquality" title="Permalink to this definition">¶</a></dt>
-<dd><p>For use in testing, describe how the tables are not equal</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.filterObservations">
-<tt class="descname">filterObservations</tt><big>(</big><em>f</em>, <em>invert=False</em><big>)</big><a class="headerlink" href="#biom.table.Table.filterObservations" title="Permalink to this definition">¶</a></dt>
-<dd><p>Filter observations from self based on <tt class="docutils literal"><span class="pre">f</span></tt></p>
-<p><tt class="docutils literal"><span class="pre">f</span></tt> must accept three variables, the observation values, observation
-ID and observation metadata. The function must only return <tt class="docutils literal"><span class="pre">True</span></tt> or
-<tt class="docutils literal"><span class="pre">False</span></tt>, where <tt class="docutils literal"><span class="pre">True</span></tt> indicates that an observation should be
-retained.</p>
-<p>invert: if <tt class="docutils literal"><span class="pre">invert</span> <span class="pre">==</span> <span class="pre">True</span></tt>, a return value of <tt class="docutils literal"><span class="pre">True</span></tt> from <tt class="docutils literal"><span class="pre">f</span></tt> 
-indicates that an observation should be discarded</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.filterSamples">
-<tt class="descname">filterSamples</tt><big>(</big><em>f</em>, <em>invert=False</em><big>)</big><a class="headerlink" href="#biom.table.Table.filterSamples" title="Permalink to this definition">¶</a></dt>
-<dd><p>Filter samples from self based on <tt class="docutils literal"><span class="pre">f</span></tt></p>
-<p><tt class="docutils literal"><span class="pre">f</span></tt> must accept three variables, the sample values, sample ID and 
-sample metadata. The function must only return <tt class="docutils literal"><span class="pre">True</span></tt> or <tt class="docutils literal"><span class="pre">False</span></tt>, 
-where <tt class="docutils literal"><span class="pre">True</span></tt> indicates that a sample should be retained.</p>
-<p>invert: if <tt class="docutils literal"><span class="pre">invert</span> <span class="pre">==</span> <span class="pre">True</span></tt>, a return value of <tt class="docutils literal"><span class="pre">True</span></tt> from <tt class="docutils literal"><span class="pre">f</span></tt> 
-indicates that a sample should be discarded</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.getBiomFormatJsonString">
-<tt class="descname">getBiomFormatJsonString</tt><big>(</big><em>generated_by</em>, <em>direct_io=None</em><big>)</big><a class="headerlink" href="#biom.table.Table.getBiomFormatJsonString" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a JSON string representing the table in BIOM format.</p>
-<p><tt class="docutils literal"><span class="pre">generated_by</span></tt>: a string describing the software used to build the
-table</p>
-<p>If direct_io is not None, the final output is written directly to
-direct_io during processing.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.getBiomFormatObject">
-<tt class="descname">getBiomFormatObject</tt><big>(</big><em>generated_by</em><big>)</big><a class="headerlink" href="#biom.table.Table.getBiomFormatObject" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a dictionary representing the table in BIOM format.</p>
-<p>This dictionary can then be easily converted into a JSON string for
-serialization.</p>
-<p><tt class="docutils literal"><span class="pre">generated_by</span></tt>: a string describing the software used to build the 
-table</p>
-<p>TODO: This method may be very inefficient in terms of memory usage, so
-it needs to be tested with several large tables to determine if
-optimizations are necessary or not (i.e. subclassing JSONEncoder, using
-generators, etc...).</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.getBiomFormatPrettyPrint">
-<tt class="descname">getBiomFormatPrettyPrint</tt><big>(</big><em>generated_by</em><big>)</big><a class="headerlink" href="#biom.table.Table.getBiomFormatPrettyPrint" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns a &#8216;pretty print&#8217; format of a BIOM file</p>
-<p><tt class="docutils literal"><span class="pre">generated_by</span></tt>: a string describing the software used to build the
-table</p>
-<p>WARNING: This method displays data values in a columnar format and 
-can be misleading.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.getObservationIndex">
-<tt class="descname">getObservationIndex</tt><big>(</big><em>obs_id</em><big>)</big><a class="headerlink" href="#biom.table.Table.getObservationIndex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the observation index for observation <tt class="docutils literal"><span class="pre">obs_id</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.getSampleIndex">
-<tt class="descname">getSampleIndex</tt><big>(</big><em>samp_id</em><big>)</big><a class="headerlink" href="#biom.table.Table.getSampleIndex" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the sample index for sample <tt class="docutils literal"><span class="pre">samp_id</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.getTableDensity">
-<tt class="descname">getTableDensity</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.Table.getTableDensity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Defined by subclass</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.getValueByIds">
-<tt class="descname">getValueByIds</tt><big>(</big><em>obs_id</em>, <em>samp_id</em><big>)</big><a class="headerlink" href="#biom.table.Table.getValueByIds" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return value in the matrix corresponding to <tt class="docutils literal"><span class="pre">(obs_id,</span> <span class="pre">samp_id)</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.isEmpty">
-<tt class="descname">isEmpty</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.Table.isEmpty" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns <tt class="docutils literal"><span class="pre">True</span></tt> if the table is empty</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.iterObservationData">
-<tt class="descname">iterObservationData</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.Table.iterObservationData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Yields observation values</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.iterObservations">
-<tt class="descname">iterObservations</tt><big>(</big><em>conv_to_np=True</em><big>)</big><a class="headerlink" href="#biom.table.Table.iterObservations" title="Permalink to this definition">¶</a></dt>
-<dd><p>Yields <tt class="docutils literal"><span class="pre">(observation_value,</span> <span class="pre">observation_id,</span> <span class="pre">observation_metadata)</span></tt></p>
-<p>NOTE: will return <tt class="docutils literal"><span class="pre">None</span></tt> in <tt class="docutils literal"><span class="pre">observation_metadata</span></tt> positions if 
-<tt class="docutils literal"><span class="pre">self.ObservationMetadata</span></tt> is set to <tt class="docutils literal"><span class="pre">None</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.iterSampleData">
-<tt class="descname">iterSampleData</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.Table.iterSampleData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Yields sample values</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.iterSamples">
-<tt class="descname">iterSamples</tt><big>(</big><em>conv_to_np=True</em><big>)</big><a class="headerlink" href="#biom.table.Table.iterSamples" title="Permalink to this definition">¶</a></dt>
-<dd><p>Yields <tt class="docutils literal"><span class="pre">(sample_value,</span> <span class="pre">sample_id,</span> <span class="pre">sample_metadata)</span></tt></p>
-<p>NOTE: will return <tt class="docutils literal"><span class="pre">None</span></tt> in <tt class="docutils literal"><span class="pre">sample_metadata</span></tt> positions if 
-<tt class="docutils literal"><span class="pre">self.SampleMetadata</span></tt> is set to <tt class="docutils literal"><span class="pre">None</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.merge">
-<tt class="descname">merge</tt><big>(</big><em>other</em>, <em>Sample='union'</em>, <em>Observation='union'</em>, <em>sample_metadata_f=&lt;function prefer_self at 0x2a6b668&gt;</em>, <em>observation_metadata_f=&lt;function prefer_self at 0x2a6b668&gt;</em><big>)</big><a class="headerlink" href="#biom.table.Table.merge" title="Permalink to this definition">¶</a></dt>
-<dd><p>Merge two tables together</p>
-<p>The axes, samples and observations, can be controlled independently. 
-Both can either work on <tt class="docutils literal"><span class="pre">union</span></tt> or <tt class="docutils literal"><span class="pre">intersection</span></tt>.</p>
-<p><tt class="docutils literal"><span class="pre">sample_metadata_f</span></tt> and <tt class="docutils literal"><span class="pre">observation_metadata_f</span></tt> define how to 
-merge metadata between tables. The default is to just keep the metadata
-associated to self if self has metadata otherwise take metadata from
-other. These functions are given both metadata dictsand must return 
-a single metadata dict</p>
-<p>NOTE: There is an implicit type conversion to <tt class="docutils literal"><span class="pre">float</span></tt>. Tables using
-strings as the type are not supported. No check is currently in
-place.</p>
-<p>NOTE: The return type is always that of <tt class="docutils literal"><span class="pre">self</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.nonzero">
-<tt class="descname">nonzero</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.Table.nonzero" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns locations of nonzero elements within the data matrix</p>
-<p>The values returned are <tt class="docutils literal"><span class="pre">(observation_id,</span> <span class="pre">sample_id)</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.nonzeroCounts">
-<tt class="descname">nonzeroCounts</tt><big>(</big><em>axis</em>, <em>binary=False</em><big>)</big><a class="headerlink" href="#biom.table.Table.nonzeroCounts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get nonzero summaries about an axis</p>
-<p>axis : either &#8216;sample&#8217;, &#8216;observation&#8217;, or &#8216;whole&#8217;
-binary : sum of nonzero entries, or summing the values of the entries</p>
-<p>Returns a numpy array in index order to the axis</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.normObservationByMetadata">
-<tt class="descname">normObservationByMetadata</tt><big>(</big><em>obs_metadata_id</em><big>)</big><a class="headerlink" href="#biom.table.Table.normObservationByMetadata" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return new table with vals divided by obs_metadata_id</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.normObservationBySample">
-<tt class="descname">normObservationBySample</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.Table.normObservationBySample" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return new table with vals as relative abundances within each sample</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.normSampleByObservation">
-<tt class="descname">normSampleByObservation</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.Table.normSampleByObservation" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return new table with vals as relative abundances within each obs</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.observationData">
-<tt class="descname">observationData</tt><big>(</big><em>id_</em><big>)</big><a class="headerlink" href="#biom.table.Table.observationData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return samples associated with observation id <tt class="docutils literal"><span class="pre">id_</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.observationExists">
-<tt class="descname">observationExists</tt><big>(</big><em>id_</em><big>)</big><a class="headerlink" href="#biom.table.Table.observationExists" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns True if observation <tt class="docutils literal"><span class="pre">id_</span></tt> exists, False otherwise</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.reduce">
-<tt class="descname">reduce</tt><big>(</big><em>f</em>, <em>axis</em><big>)</big><a class="headerlink" href="#biom.table.Table.reduce" title="Permalink to this definition">¶</a></dt>
-<dd><p>Reduce over axis with f</p>
-<p><tt class="docutils literal"><span class="pre">axis</span></tt> can be either <tt class="docutils literal"><span class="pre">sample</span></tt> or <tt class="docutils literal"><span class="pre">observation</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.sampleData">
-<tt class="descname">sampleData</tt><big>(</big><em>id_</em><big>)</big><a class="headerlink" href="#biom.table.Table.sampleData" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return observations associated with sample id <tt class="docutils literal"><span class="pre">id_</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.sampleExists">
-<tt class="descname">sampleExists</tt><big>(</big><em>id_</em><big>)</big><a class="headerlink" href="#biom.table.Table.sampleExists" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns True if sample <tt class="docutils literal"><span class="pre">id_</span></tt> exists, False otherwise</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.sortByObservationId">
-<tt class="descname">sortByObservationId</tt><big>(</big><em>sort_f=&lt;function natsort at 0x2a6b5f0&gt;</em><big>)</big><a class="headerlink" href="#biom.table.Table.sortByObservationId" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a table where observations are sorted by <tt class="docutils literal"><span class="pre">sort_f</span></tt></p>
-<p><tt class="docutils literal"><span class="pre">sort_f</span></tt> must take a single parameter: the list of observation 
-ids</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.sortBySampleId">
-<tt class="descname">sortBySampleId</tt><big>(</big><em>sort_f=&lt;function natsort at 0x2a6b5f0&gt;</em><big>)</big><a class="headerlink" href="#biom.table.Table.sortBySampleId" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a table where samples are sorted by <tt class="docutils literal"><span class="pre">sort_f</span></tt></p>
-<p><tt class="docutils literal"><span class="pre">sort_f</span></tt> must take a single parameter: the list of sample ids</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.sortObservationOrder">
-<tt class="descname">sortObservationOrder</tt><big>(</big><em>obs_order</em><big>)</big><a class="headerlink" href="#biom.table.Table.sortObservationOrder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a new table with observations in <tt class="docutils literal"><span class="pre">observation</span> <span class="pre">order</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.sortSampleOrder">
-<tt class="descname">sortSampleOrder</tt><big>(</big><em>sample_order</em><big>)</big><a class="headerlink" href="#biom.table.Table.sortSampleOrder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a new table with samples in <tt class="docutils literal"><span class="pre">sample_order</span></tt></p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.sum">
-<tt class="descname">sum</tt><big>(</big><em>axis='whole'</em><big>)</big><a class="headerlink" href="#biom.table.Table.sum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the sum by axis</p>
-<p>axis can be:</p>
-<p><tt class="docutils literal"><span class="pre">whole</span></tt>       : whole matrix sum</p>
-<p><tt class="docutils literal"><span class="pre">sample</span></tt>     : return a vector with a sum for each sample</p>
-<p><tt class="docutils literal"><span class="pre">observation</span></tt> : return a vector with a sum for each observation</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.transformObservations">
-<tt class="descname">transformObservations</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#biom.table.Table.transformObservations" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterate over observations, applying a function <tt class="docutils literal"><span class="pre">f</span></tt> to each value</p>
-<p><tt class="docutils literal"><span class="pre">f</span></tt> must take three values: an observation value (int or float), an 
-observation id, and an observation metadata entry, and return a single
-value (int or float) that replaces the provided observation value</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.transformSamples">
-<tt class="descname">transformSamples</tt><big>(</big><em>f</em><big>)</big><a class="headerlink" href="#biom.table.Table.transformSamples" title="Permalink to this definition">¶</a></dt>
-<dd><p>Iterate over samples, applying a function <tt class="docutils literal"><span class="pre">f</span></tt> to each value</p>
-<p><tt class="docutils literal"><span class="pre">f</span></tt> must take three values: a sample value (int or float), a sample 
-id, and a sample metadata entry, and return a single value (int or 
-float) that replaces the provided sample value</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="biom.table.Table.transpose">
-<tt class="descname">transpose</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.Table.transpose" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a new table that is the transpose of this table.</p>
-<p>The returned table will be an entirely new table, including copies of
-the (transposed) data, sample/observation IDs and metadata.</p>
-</dd></dl>
-
-</dd></dl>
-
+<p>While it&#8217;s fun to just poke at the table, let&#8217;s dig deeper. First, we&#8217;re going
+to convert <cite>table</cite> into relative abundances (within each sample), and then
+filter <cite>table</cite> to just the samples associated with environment &#8216;A&#8217;. The
+filtering gets fancy: we can pass in an arbitrary function to determine what
+samples we want to keep. This function must accept a sparse vector of values,
+the corresponding ID and the corresponding metadata, and should return <tt class="docutils literal"><span class="pre">True</span></tt>
+or <tt class="docutils literal"><span class="pre">False</span></tt>, where <tt class="docutils literal"><span class="pre">True</span></tt> indicates that the vector should be retained.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">normed</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s">&#39;sample&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">filter_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">values</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">md</span><span class="p">[</span><span class="s">&#39;environment&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;A&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">env_a</span> <span class="o">=</span> <span class="n">normed</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filter_f</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s">&#39;sample&#39;</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">env_a</span> 
+<span class="go"># Constructed from biom file</span>
+<span class="go">#OTU ID S0  S2</span>
+<span class="go">O0  0.0 0.01</span>
+<span class="go">O1  0.0222222222222 0.03</span>
+<span class="go">O2  0.0444444444444 0.05</span>
+<span class="go">O3  0.0666666666667 0.07</span>
+<span class="go">O4  0.0888888888889 0.09</span>
+<span class="go">O5  0.111111111111  0.11</span>
+<span class="go">O6  0.133333333333  0.13</span>
+<span class="go">O7  0.155555555556  0.15</span>
+<span class="go">O8  0.177777777778  0.17</span>
+<span class="go">O9  0.2 0.19</span>
+</pre></div>
 </div>
-<div class="section" id="otutable">
-<h4><tt class="docutils literal"><span class="pre">OTUTable</span></tt><a class="headerlink" href="#otutable" title="Permalink to this headline">¶</a></h4>
-<p>The <tt class="docutils literal"><span class="pre">OTUTable</span></tt> base class provides functionality specific for OTU tables. Currently, it only provides a static private member variable that describes its <tt class="docutils literal"><span class="pre">BIOM</span></tt> type. This object was stubbed out incase future methods are developed that do not make sense with the context of, say, an MG-RAST metagenomic abundance table. It is advised to always use an object that subclasses <tt class="docutils literal"><span class="pre">OTUTable</span></tt> if the analysis is on OTU data.</p>
-<dl class="class">
-<dt id="biom.table.OTUTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">OTUTable</tt><a class="headerlink" href="#biom.table.OTUTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>OTU table abstract class</p>
-</dd></dl>
-
+<p>But, what if we wanted individual tables per environment? While we could just
+perform some fancy iteration, we can instead just rely on <cite>Table.partition</cite> for
+these operations. <cite>partition</cite>, like <cite>filter</cite>, accepts a function. However, the
+<cite>partition</cite> method only passes the corresponding ID and metadata to the
+function. The function should return what partition the data are a part of.
+Within this example, we&#8217;re also going to sum up our tables over the partitioned
+samples. Please note that we&#8217;re using the original table (ie, not normalized)
+here.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">part_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">id_</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">md</span><span class="p">[</span><span class="s">&#39;environment&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">env_tables</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">partition</span><span class="p">(</span><span class="n">part_f</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s">&#39;sample&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">partition</span><span class="p">,</span> <span class="n">env_table</span> <span class="ow">in</span> <span class="n">env_tables</span><span class="p">:</span>
+<span class="gp">... </span>    <span class="k">print</span> <span class="n">partition</span><span class="p">,</span> <span class="n">env_table</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="s">&#39;sample&#39;</span><span class="p">)</span>
+<span class="go">A [ 180.  200.]</span>
+<span class="go">B [ 190.  210.]</span>
+</pre></div>
 </div>
-<div class="section" id="pathwaytable">
-<h4><tt class="docutils literal"><span class="pre">PathwayTable</span></tt><a class="headerlink" href="#pathwaytable" title="Permalink to this headline">¶</a></h4>
-<p>A table type to represent gene pathways.</p>
-<dl class="class">
-<dt id="biom.table.PathwayTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">PathwayTable</tt><a class="headerlink" href="#biom.table.PathwayTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Pathway table abstract class</p>
-</dd></dl>
-
+<p>For this last example, and to highlight a bit more functionality, we&#8217;re going
+to first transform the table such that all multiples of three will be retained,
+while all non-multiples of three will get set to zero. Following this, we&#8217;ll
+then collpase the table by taxonomy, and then convert the table into
+presence/absence data.</p>
+<p>First, let&#8217;s setup the transform. We&#8217;re going to define a function that takes
+the modulus of every value in the vector, and see if it is equal to zero. If it
+is equal to zero, we&#8217;ll keep the value, otherwise we&#8217;ll set the value to zero.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">transform_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">v</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">m</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">v</span> <span class="o">%</span> <span class="mi">3</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mult_of_three</span> <span class="o">=</span> <span class="n">tform</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">transform</span><span class="p">(</span><span class="n">transform_f</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">mult_of_three</span> 
+<span class="go"># Constructed from biom file</span>
+<span class="go">#OTU ID S0  S1  S2  S3</span>
+<span class="go">O0  0.0 0.0 0.0 3.0</span>
+<span class="go">O1  0.0 0.0 6.0 0.0</span>
+<span class="go">O2  0.0 9.0 0.0 0.0</span>
+<span class="go">O3  12.0    0.0 0.0 15.0</span>
+<span class="go">O4  0.0 0.0 18.0    0.0</span>
+<span class="go">O5  0.0 21.0    0.0 0.0</span>
+<span class="go">O6  24.0    0.0 0.0 27.0</span>
+<span class="go">O7  0.0 0.0 30.0    0.0</span>
+<span class="go">O8  0.0 33.0    0.0 0.0</span>
+<span class="go">O9  36.0    0.0 0.0 39.0</span>
+</pre></div>
 </div>
-<div class="section" id="functiontable">
-<h4><tt class="docutils literal"><span class="pre">FunctionTable</span></tt><a class="headerlink" href="#functiontable" title="Permalink to this headline">¶</a></h4>
-<p>A table type to represent gene functions.</p>
-<dl class="class">
-<dt id="biom.table.FunctionTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">FunctionTable</tt><a class="headerlink" href="#biom.table.FunctionTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function table abstract class</p>
-</dd></dl>
-
+<p>Next, we&#8217;re going to collapse the table over the phylum level taxon. To do
+this, we&#8217;re going to define a helper variable for the index position of the
+phylum (see the construction of the table above). Next, we&#8217;re going to pass
+this to <cite>Table.collapse</cite>, and since we want to collapse over the observations,
+we&#8217;ll need to specify &#8216;observation&#8217; as the axis.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">phylum_idx</span> <span class="o">=</span> <span class="mi">1</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">collapse_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">id_</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">md</span><span class="p">[</span><span class="s">&#39;taxonomy&#39;</span><span class="p">][</span><span class="n">phylum_idx</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">collapsed</span> <span class="o">=</span> <span class="n">mult_of_three</span><span class="o">.</span><span class="n">collapse</span><span class="p">(</span><span class="n">collapse_f</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s">&#39;observation&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">collapsed</span> 
+<span class="go"># Constructed from biom file</span>
+<span class="go">#OTU ID S0  S1  S2  S3</span>
+<span class="go">Firmicutes  7.2 6.6 7.2 8.4</span>
+<span class="go">Bacteroidetes   12.0    10.5    0.0 13.5</span>
+<span class="go">Proteobacteria  4.0 3.0 6.0 5.0</span>
+</pre></div>
 </div>
-<div class="section" id="orthologtable">
-<h4><tt class="docutils literal"><span class="pre">OrthologTable</span></tt><a class="headerlink" href="#orthologtable" title="Permalink to this headline">¶</a></h4>
-<p>A table type to represent gene orthologs.</p>
-<dl class="class">
-<dt id="biom.table.OrthologTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">OrthologTable</tt><a class="headerlink" href="#biom.table.OrthologTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Ortholog table abstract class</p>
-</dd></dl>
-
-</div>
-<div class="section" id="genetable">
-<h4><tt class="docutils literal"><span class="pre">GeneTable</span></tt><a class="headerlink" href="#genetable" title="Permalink to this headline">¶</a></h4>
-<p>A table type to represent genes.</p>
-<dl class="class">
-<dt id="biom.table.GeneTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">GeneTable</tt><a class="headerlink" href="#biom.table.GeneTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gene table abstract class</p>
-</dd></dl>
-
-</div>
-<div class="section" id="metabolitetable">
-<h4><tt class="docutils literal"><span class="pre">MetaboliteTable</span></tt><a class="headerlink" href="#metabolitetable" title="Permalink to this headline">¶</a></h4>
-<p>A table type to represent metabolite profiles.</p>
-<dl class="class">
-<dt id="biom.table.MetaboliteTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">MetaboliteTable</tt><a class="headerlink" href="#biom.table.MetaboliteTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Metabolite table abstract class</p>
-</dd></dl>
-
-</div>
-<div class="section" id="taxontable">
-<h4><tt class="docutils literal"><span class="pre">TaxonTable</span></tt><a class="headerlink" href="#taxontable" title="Permalink to this headline">¶</a></h4>
-<p>A table type to represent taxonomies.</p>
-<dl class="class">
-<dt id="biom.table.TaxonTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">TaxonTable</tt><a class="headerlink" href="#biom.table.TaxonTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Taxon table abstract class</p>
-</dd></dl>
-
-</div>
-</div>
-<div class="section" id="container-classes">
-<h3>Container classes<a class="headerlink" href="#container-classes" title="Permalink to this headline">¶</a></h3>
-<p>The container classes implement required private member variable interfaces as defined by the <tt class="docutils literal"><span class="pre">Table</span></tt> abstract base class. Specifically, these objects define the ways in which data is moved into and out of the contained data object. These are fully functional and usable objects, however they do not implement table type specifc functionality.</p>
-<div class="section" id="sparsetable">
-<h4><tt class="docutils literal"><span class="pre">SparseTable</span></tt><a class="headerlink" href="#sparsetable" title="Permalink to this headline">¶</a></h4>
-<p>The subclass <tt class="docutils literal"><span class="pre">SparseTable</span></tt> can be derived for use with table data. This object implemented all of the required private interfaces specified by the <tt class="docutils literal"><span class="pre">Table</span></tt> base class. The object contains a <tt class="docutils literal"><span class="pre">_data</span></tt> private member variable that is an instance of the current sparse backend. It is advised to used derived objects of SparseTable if the data being operated on is sparse.</p>
-<dl class="class">
-<dt id="biom.table.SparseTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">SparseTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.SparseTable" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="biom.table.SparseTable.getTableDensity">
-<tt class="descname">getTableDensity</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.SparseTable.getTableDensity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the fraction of nonzero elements in the table.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="densetable">
-<h4><tt class="docutils literal"><span class="pre">DenseTable</span></tt><a class="headerlink" href="#densetable" title="Permalink to this headline">¶</a></h4>
-<p>The <tt class="docutils literal"><span class="pre">DenseTable</span></tt> object fulfills all private member methods stubbed out by the <tt class="docutils literal"><span class="pre">Table</span></tt> base class. The dense table contains a private member variable that is an instance of <tt class="docutils literal"><span class="pre">numpy.array</span></tt>. The <tt class="docutils literal"><span class="pre">array</span></tt> object is a matrix that contains all values including zeros. It is advised to use this table only if the number of samples and observations is reasonble. Unfortunately, it isn&#8217;t reasonable to define reasonable in this context. However, if either the number of observations or the number of samples is &gt; 1000, it would probably be a good idea to rely on a <tt class="docutils literal"><span class="pre">SparseTable</span></tt>.</p>
-<dl class="class">
-<dt id="biom.table.DenseTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">DenseTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.DenseTable" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="method">
-<dt id="biom.table.DenseTable.getTableDensity">
-<tt class="descname">getTableDensity</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.DenseTable.getTableDensity" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns the fraction of nonzero elements in the table.</p>
-</dd></dl>
-
-</dd></dl>
-
-</div>
-</div>
-<div class="section" id="table-type-objects">
-<h3>Table type objects<a class="headerlink" href="#table-type-objects" title="Permalink to this headline">¶</a></h3>
-<p>The table type objects define variables and methods specific to a table type. These inherit from a <tt class="docutils literal"><span class="pre">Container</span> <span class="pre">Class</span></tt> and a table type base class, and are therefore instantiable. Generally you&#8217;ll instantiate tables with <tt class="docutils literal"><span class="pre">biom.table.table_factory</span></tt>, and one of these will be passed as the <tt class="docutils literal"><span class="pre">constructor</span></tt> argument.</p>
-<div class="section" id="denseotutable">
-<h4><tt class="docutils literal"><span class="pre">DenseOTUTable</span></tt><a class="headerlink" href="#denseotutable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.DenseOTUTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">DenseOTUTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.DenseOTUTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable dense OTU table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="sparseotutable">
-<h4><tt class="docutils literal"><span class="pre">SparseOTUTable</span></tt><a class="headerlink" href="#sparseotutable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.SparseOTUTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">SparseOTUTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.SparseOTUTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable sparse OTU table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="densepathwaytable">
-<h4><tt class="docutils literal"><span class="pre">DensePathwayTable</span></tt><a class="headerlink" href="#densepathwaytable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.DensePathwayTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">DensePathwayTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.DensePathwayTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable dense pathway table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="sparsepathwaytable">
-<h4><tt class="docutils literal"><span class="pre">SparsePathwayTable</span></tt><a class="headerlink" href="#sparsepathwaytable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.SparsePathwayTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">SparsePathwayTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.SparsePathwayTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable sparse pathway table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="densefunctiontable">
-<h4><tt class="docutils literal"><span class="pre">DenseFunctionTable</span></tt><a class="headerlink" href="#densefunctiontable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.DenseFunctionTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">DenseFunctionTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.DenseFunctionTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable dense function table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="sparsefunctionable">
-<h4><tt class="docutils literal"><span class="pre">SparseFunctionable</span></tt><a class="headerlink" href="#sparsefunctionable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.SparseFunctionTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">SparseFunctionTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.SparseFunctionTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable sparse function table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="denseorthologtable">
-<h4><tt class="docutils literal"><span class="pre">DenseOrthologTable</span></tt><a class="headerlink" href="#denseorthologtable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.DenseOrthologTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">DenseOrthologTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.DenseOrthologTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable dense ortholog table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="sparseorthologtable">
-<h4><tt class="docutils literal"><span class="pre">SparseOrthologTable</span></tt><a class="headerlink" href="#sparseorthologtable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.SparseOrthologTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">SparseOrthologTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.SparseOrthologTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable sparse ortholog table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="densegenetable">
-<h4><tt class="docutils literal"><span class="pre">DenseGeneTable</span></tt><a class="headerlink" href="#densegenetable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.DenseGeneTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">DenseGeneTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.DenseGeneTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable dense gene table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="sparsegenetable">
-<h4><tt class="docutils literal"><span class="pre">SparseGeneTable</span></tt><a class="headerlink" href="#sparsegenetable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.SparseGeneTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">SparseGeneTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.SparseGeneTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable sparse gene table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="densemetabolitetable">
-<h4><tt class="docutils literal"><span class="pre">DenseMetaboliteTable</span></tt><a class="headerlink" href="#densemetabolitetable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.DenseMetaboliteTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">DenseMetaboliteTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.DenseMetaboliteTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable dense metabolite table</p>
-</dd></dl>
-
-</div>
-<div class="section" id="sparsemetabolitetable">
-<h4><tt class="docutils literal"><span class="pre">SparseMetaboliteTable</span></tt><a class="headerlink" href="#sparsemetabolitetable" title="Permalink to this headline">¶</a></h4>
-<dl class="class">
-<dt id="biom.table.SparseMetaboliteTable">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">SparseMetaboliteTable</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.SparseMetaboliteTable" title="Permalink to this definition">¶</a></dt>
-<dd><p>Instantiatable sparse metabolite table</p>
-</dd></dl>
-
-</div>
+<p>Finally, let&#8217;s convert the table to presence/absence data.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">pa</span> <span class="o">=</span> <span class="n">collapsed</span><span class="o">.</span><span class="n">pa</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">pa</span> 
+<span class="go"># Constructed from biom file</span>
+<span class="go">#OTU ID S0  S1  S2  S3</span>
+<span class="go">Firmicutes  1.0 1.0 1.0 1.0</span>
+<span class="go">Bacteroidetes   1.0 1.0 0.0 1.0</span>
+<span class="go">Proteobacteria  1.0 1.0 1.0 1.0</span>
+</pre></div>
 </div>
 </div>
 </div>
@@ -796,11 +224,11 @@ the (transposed) data, sample/observation IDs and metadata.</p>
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="format_versions/biom-1.0.html">The biom file format: Version 1.0</a>
+        «&#160;&#160;<a href="format_versions/biom-2.0.html">The biom file format: Version 2.0</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="biom_conversion.html">Converting between file formats</a>&#160;&#160;»
+        <a href="generated/biom.table.Table.html">biom.table.Table</a>&#160;&#160;»
         </p>
 
       </div>
@@ -808,8 +236,8 @@ the (transposed) data, sample/observation IDs and metadata.</p>
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Dec 04, 2013.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Last updated on May 16, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 

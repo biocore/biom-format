@@ -24,25 +24,24 @@ The following information will be written to ``rich_sparse_otu_table_summary.txt
 	Num samples: 6
 	Num observations: 5
 	Total count: 27
-	Table density (fraction of non-zero values): 0.5000
-	Table md5 (unzipped): e0d1194d2d94ea81994c93b8f0db7f51
-
+	Table density (fraction of non-zero values): 0.500
+	
 	Counts/sample summary:
-	 Min: 3
-	 Max: 7
-	 Median: 4.0
-	 Mean: 4.5
-	 Std. dev.: 1.5
+	 Min: 3.0
+	 Max: 7.0
+	 Median: 4.000
+	 Mean: 4.500
+	 Std. dev.: 1.500
 	 Sample Metadata Categories: LinkerPrimerSequence; BarcodeSequence; Description; BODY_SITE
 	 Observation Metadata Categories: taxonomy
-
+	
 	Counts/sample detail:
-	 Sample2: 3
-	 Sample5: 3
-	 Sample3: 4
-	 Sample6: 4
-	 Sample4: 6
-	 Sample1: 7
+	 Sample5: 3.0
+	 Sample2: 3.0
+	 Sample6: 4.0
+	 Sample3: 4.0
+	 Sample4: 6.0
+	 Sample1: 7.0
 
 As you can see, general summary information about the table is provided, including the number of samples, the number of observations, the total count (i.e., the sum of all values in the table), and so on, followed by the per-sample counts.
 
@@ -57,21 +56,19 @@ The following information will be written to ``rich_sparse_otu_table_qual_summar
 
 	Num samples: 6
 	Num observations: 5
-	Table md5 (unzipped): e0d1194d2d94ea81994c93b8f0db7f51
 	
 	Observations/sample summary:
 	 Min: 1
 	 Max: 4
-	 Median: 2.5
-	 Mean: 2.5
-	 Std. dev.: 0.957427107756
+	 Median: 2.500
+	 Mean: 2.500
+	 Std. dev.: 0.957
 	 Sample Metadata Categories: LinkerPrimerSequence; BarcodeSequence; Description; BODY_SITE
 	 Observation Metadata Categories: taxonomy
-
+	
 	Observations/sample detail:
 	 Sample5: 1
-	 Sample1: 2
 	 Sample4: 2
-	 Sample2: 3
+	 Sample1: 2
 	 Sample6: 3
-	 Sample3: 4
+	 Sample2: 3

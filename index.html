@@ -5,17 +5,16 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-
+    
     <title>The Biological Observation Matrix (BIOM) format &mdash; biom-format.org</title>
-
+    
     <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="_static/print.css" type="text/css" />
-
+    
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '1.3.1',
+        VERSION:     '2.0.0-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,29 +23,23 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/theme_extras.js"></script>
+    <script type="text/javascript" src="_static/copybutton.js"></script>
     <link rel="top" title="biom-format.org" href="#" />
-    <link rel="next" title="BIOM Documentation" href="documentation/index.html" />
+    <link rel="next" title="BIOM Documentation" href="documentation/index.html" /> 
   </head>
   <body>
-      <div class="header">
-        <table border="0">
-        <tr>
-        <td>
-           <a href="#">
-              <span>
-                 <img src="_static/biom-format.png" alt="biom-format.org">
-              </span>
-           </a>
-        </td>
-        <td>&nbsp;&nbsp;&nbsp;&nbsp;</td>
-        <td>
+  
+  <a href="https://github.com/biocore/biom-format"><img
+    style="position: absolute; top: 0; right: 0; border: 0;"
+    src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+    alt="Fork me on GitHub"></a>
+
+      <div class="header"><h1 class="heading"><a href="#">
+          <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>The Biological Observation Matrix (BIOM) format</span></h2>
-      </td>
-      </table>
       </div>
       <div class="topnav">
-
+      
         <p>
         <a class="uplink" href="#">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -55,30 +48,29 @@
 
       </div>
       <div class="content">
-
-
-  <div class="section" id="the-biological-observation-matrix-biom-format">
+        
+        
+  <img alt="_images/biom-format.png" src="_images/biom-format.png" />
+<div class="section" id="the-biological-observation-matrix-biom-format">
 <h1>The Biological Observation Matrix (BIOM) format<a class="headerlink" href="#the-biological-observation-matrix-biom-format" title="Permalink to this headline">¶</a></h1>
-<p>The <a class="reference external" href="http://www.biom-format.org">BIOM file format</a> (canonically pronounced <cite>biome</cite>) is designed to be a general-use format for representing biological sample by observation contingency tables. BIOM is a recognized standard for the <a class="reference external" href="http://www.earthmicrobiome.org">Earth Microbiome Project</a> and is a <a class="reference external" href="http://gensc.org/">Genomics Standards Consortium</a> candidate project.</p>
+<p>The <a class="reference external" href="http://www.biom-format.org">BIOM file format</a> (canonically pronounced <cite>biome</cite>) is designed to be a general-use format for representing biological sample by observation contingency tables. BIOM is a recognized standard for the <a class="reference external" href="http://www.earthmicrobiome.org">Earth Microbiome Project</a> and is a <a class="reference external" href="http://gensc.org/">Genomics Standards Consortium</a> supported project.</p>
 <p>The <a class="reference external" href="http://www.biom-format.org">BIOM format</a> is designed for general use in broad areas of comparative -omics. For example, in marker-gene surveys, the primary use of this format is to represent OTU tables: the observations in this case are OTUs and the matrix contains counts corresponding to the number of times each OTU is observed in each sample. With respect to metagenome data, this format would be used to represent metagenome tables: the observations in this case might correspond to SEED subsystems, and the matrix would contain counts corresponding to the number of times each subsystem is observed in each metagenome. Similarly, with respect to genome data, this format may be used to represent a set of genomes: the observations in this case again might correspond to SEED subsystems, and the counts would correspond to the number of times each subsystem is observed in each genome.</p>
 <p>There are two components to the BIOM project: first is the <a class="reference external" href="./documentation/biom_format.html">definition of the BIOM format</a>, and second is <a class="reference external" href="./documentation/table_objects.html">development of support objects</a> in multiple programming languages to support the use of BIOM in diverse bioinformatics applications. The version of the BIOM file format is independent of the version of the <cite>biom-format</cite> software.</p>
 <p>There are official implementations of BIOM format support objects (APIs) in the Python and R programming languages. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python <tt class="docutils literal"><span class="pre">biom-format</span></tt> API. For more details about the R API, please see the <a class="reference external" href="http://cran.r-project.org/web/packages/biom/index.html">CRAN biom package</a>.</p>
 </div>
-
-<div class="section" id="projects-using-biom">
-<h1>Projects using the BIOM format<a class="headerlink" href="#projects-using-biom" title="Permalink to this headline">¶</a></h1>
-<ul>
-<li><a class="reference internal" href="http://qiime.org">QIIME</a></li>
-<li><a class="reference internal" href="http://metagenomics.anl.gov/">MG-RAST</a></li>
-<li><a class="reference internal" href="http://picrust.github.io/picrust/">PICRUSt</a></li>
-<li><a class="reference internal" href="http://emperor.colorado.edu">Emperor</a></li>
-<li><a class="reference internal" href="http://www.mothur.org/wiki/Make.biom">Mothur</a></li>
-<li><a class="reference internal" href="http://www.bioconductor.org/packages/release/bioc/html/phyloseq.html">phyloseq</a></li>
-<li><a class="reference internal" href="http://ab.inf.uni-tuebingen.de/software/megan5/">MEGAN</a></li>
+<div class="section" id="projects-using-the-biom-format">
+<h1>Projects using the BIOM format<a class="headerlink" href="#projects-using-the-biom-format" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference external" href="http://www.qiime.org">QIIME</a></li>
+<li><a class="reference external" href="http://metagenomics.anl.gov">MG-RAST</a></li>
+<li><a class="reference external" href="http://picrust.github.io/picrust">PICRUSt</a></li>
+<li><a class="reference external" href="http://www.mothur.org/wiki/Make.biom">Mothur</a></li>
+<li><a class="reference external" href="http://www.bioconductor.org/packages/release/bioc/html/phyloseq.html">phyloseq</a></li>
+<li><a class="reference external" href="http://ab.inf.uni-tuebingen.de/software/megan5/">MEGAN</a></li>
+<li><a class="reference external" href="http://vamps.mbl.edu/">VAMPS</a></li>
 </ul>
-To expand this list please submit a <a class="reference internal" href="https://help.github.com/articles/using-pull-requests">pull request</a>
+<p>If you are using BIOM in your project, and would like your project to be listed, please submit a <a class="reference external" href="https://github.com/biocore/biom-format/pulls">pull request</a> to the BIOM project. More information on <a class="reference external" href="https://help.github.com/articles/using-pull-requests">submitting pull requests can be found here</a>.</p>
 </div>
-
 <div class="section" id="contents">
 <h1>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
@@ -86,17 +78,17 @@ To expand this list please submit a <a class="reference internal" href="https://
 <li class="toctree-l1"><a class="reference internal" href="documentation/index.html">BIOM Documentation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="documentation/biom_format.html">The biom file format</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="documentation/format_versions/biom-1.0.html">The biom file format: Version 1.0</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documentation/format_versions/biom-2.0.html">The biom file format: Version 2.0</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="documentation/biom_format.html#tips-and-faqs-regarding-the-biom-file-format">Tips and FAQs regarding the BIOM file format</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="documentation/biom_format.html#should-i-generate-sparse-or-dense-biom-files">Should I generate sparse or dense biom files?</a></li>
 <li class="toctree-l3"><a class="reference internal" href="documentation/biom_format.html#motivation-for-the-biom-format">Motivation for the BIOM format</a></li>
 <li class="toctree-l3"><a class="reference internal" href="documentation/biom_format.html#file-extension">File extension</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="documentation/table_objects.html">biom-format <tt class="docutils literal"><span class="pre">Table</span></tt> objects</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="documentation/table_objects.html#biom-format-table-factory-method">biom-format <tt class="docutils literal"><span class="pre">table_factory</span></tt> method</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documentation/table_objects.html#description-of-available-table-objects">Description of available <tt class="docutils literal"><span class="pre">Table</span></tt> objects</a></li>
+<li class="toctree-l2"><a class="reference internal" href="documentation/table_objects.html">BIOM Table (<tt class="docutils literal"><span class="pre">biom.table</span></tt>)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="documentation/table_objects.html#classes">Classes</a></li>
+<li class="toctree-l3"><a class="reference internal" href="documentation/table_objects.html#examples">Examples</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="documentation/biom_conversion.html">Converting between file formats</a><ul>
@@ -108,12 +100,6 @@ To expand this list please submit a <a class="reference internal" href="https://
 <li class="toctree-l3"><a class="reference internal" href="documentation/adding_metadata.html#id1">Adding metadata</a></li>
 <li class="toctree-l3"><a class="reference internal" href="documentation/adding_metadata.html#processing-metadata-while-adding">Processing metadata while adding</a></li>
 <li class="toctree-l3"><a class="reference internal" href="documentation/adding_metadata.html#renaming-or-naming-metadata-columns-while-adding">Renaming (or naming) metadata columns while adding</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="documentation/change_sparse_backend.html">Sparse matrix backends</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="documentation/change_sparse_backend.html#how-to-check-what-sparse-matrix-backend-is-in-use">How to check what sparse matrix backend is in use</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documentation/change_sparse_backend.html#changing-the-sparse-backend">Changing the sparse backend</a></li>
-<li class="toctree-l3"><a class="reference internal" href="documentation/change_sparse_backend.html#sparse-matrix-backend-descriptions">Sparse matrix backend descriptions</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="documentation/summarizing_biom_tables.html">Summarizing BIOM tables</a><ul>
@@ -129,53 +115,60 @@ To expand this list please submit a <a class="reference internal" href="https://
 </div>
 <div class="section" id="biom-version">
 <h1>BIOM version<a class="headerlink" href="#biom-version" title="Permalink to this headline">¶</a></h1>
-<p>The latest official version of the biom-format project is 1.3.1 and of the BIOM file format is 1.0. Details on the file format can be found <a class="reference external" href="./documentation/biom_format.html">here</a>.</p>
+<p>The latest official version of the biom-format project is 2.0.0-dev and of the BIOM file format is 2.0. Details on the <a class="reference external" href="./documentation/biom_format.html">file format can be found here</a>.</p>
 </div>
 <div class="section" id="installing-the-biom-format-project">
 <h1>Installing the biom-format project<a class="headerlink" href="#installing-the-biom-format-project" title="Permalink to this headline">¶</a></h1>
-<p>To install the <tt class="docutils literal"><span class="pre">biom-format</span></tt> project, you can download the latest version <a class="reference external" href="https://pypi.python.org/pypi/biom-format/">here</a>, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.</p>
-<dl class="docutils">
-<dt>The biom-format project has the following dependencies:</dt>
-<dd><ul class="first last simple">
+<p>To install the <tt class="docutils literal"><span class="pre">biom-format</span></tt> project, you can download the <a class="reference external" href="https://pypi.python.org/pypi/biom-format/">latest version here</a>, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.</p>
+<p>The biom-format project has the following dependencies:</p>
+<blockquote>
+<div><ul class="simple">
 <li><a class="reference external" href="http://www.python.org/">Python</a> &gt;= 2.7 and &lt; 3.0</li>
-<li><a class="reference external" href="http://www.numpy.org/">numpy</a> &gt;= 1.3.0</li>
-<li><a class="reference external" href="http://bipy.github.io/pyqi">pyqi</a> 0.3.1</li>
-<li><a class="reference external" href="http://labix.org/python-dateutil">dateutil</a> (optional; must be installed if using the <tt class="docutils literal"><span class="pre">biom</span> <span class="pre">validate-table</span></tt> command)</li>
-<li><a class="reference external" href="http://www.scipy.org/">scipy</a> (optional; must be installed if using the <tt class="docutils literal"><span class="pre">ScipySparseMat</span></tt> sparse matrix backend)</li>
+<li><a class="reference external" href="http://www.numpy.org/">numpy</a> &gt;= 1.7.0</li>
+<li><a class="reference external" href="http://pyqi.readthedocs.org">pyqi</a> 0.3.2</li>
+<li><a class="reference external" href="http://www.scipy.org/">scipy</a> &gt;= 0.13.0</li>
+<li><a class="reference external" href="http://www.h5py.org/">h5py</a> &gt;= 2.20.0 (optional; must be installed if creating or reading HDF5 formatted files)</li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 <p>The easiest way to install the latest version of the biom-format project and its required dependencies is via pip:</p>
-<div class="highlight-python"><pre>pip install biom-format</pre>
+<div class="highlight-python"><div class="highlight"><pre>pip install biom-format
+</pre></div>
 </div>
 <p>That&#8217;s it!</p>
 <p>If you decided not to install biom-format using pip, it is also possible to manually install the latest release. We&#8217;ll illustrate the install process in the <tt class="docutils literal"><span class="pre">$HOME/code</span></tt> directory. You can either work in this directory on your system (creating it, if necessary, by running <tt class="docutils literal"><span class="pre">mkdir</span> <span class="pre">$HOME/code</span></tt>) or replace all occurrences of <tt class="docutils literal"><span class="pre">$HOME/code</span></tt> in the following instructions with your working directory. Change to this directory to start the install process:</p>
-<div class="highlight-python"><pre>cd $HOME/code</pre>
+<div class="highlight-python"><div class="highlight"><pre>cd $HOME/code
+</pre></div>
 </div>
-<p>Download the latest release, which can be found <a class="reference external" href="https://pypi.python.org/pypi/biom-format">here</a>. After downloading, unpack and install (note: x.y.z refers to the downloaded version):</p>
-<div class="highlight-python"><pre>tar xzf biom-format-x.y.z.tar.gz
-cd $HOME/code/biom-format-x.y.z</pre>
+<p>Download the <a class="reference external" href="https://pypi.python.org/pypi/biom-format">latest release, which can be found here</a>. After downloading, unpack and install (note: x.y.z refers to the downloaded version):</p>
+<div class="highlight-python"><div class="highlight"><pre>tar xzf biom-format-x.y.z.tar.gz
+cd $HOME/code/biom-format-x.y.z
+</pre></div>
 </div>
 <p>Alternatively, to install the development version, pull it from GitHub, and change to the resulting directory:</p>
-<div class="highlight-python"><pre>git clone git://github.com/biom-format/biom-format.git
-cd $HOME/code/biom-format</pre>
+<div class="highlight-python"><div class="highlight"><pre>git clone git://github.com/biocore/biom-format.git
+cd $HOME/code/biom-format
+</pre></div>
 </div>
 <p>To install (either the development or release version), follow these steps:</p>
-<div class="highlight-python"><pre>sudo python setup.py install</pre>
+<div class="highlight-python"><div class="highlight"><pre>sudo python setup.py install
+</pre></div>
 </div>
 <p>If you do not have sudo access on your system (or don&#8217;t want to install the <tt class="docutils literal"><span class="pre">biom-format</span></tt> project in the default location) you&#8217;ll need to install the library code and scripts in specified directories, and then tell your system where to look for those files. You can do this as follows:</p>
-<div class="highlight-python"><pre>echo "export PATH=$HOME/bin/:$PATH" &gt;&gt; $HOME/.bashrc
-echo "export PYTHONPATH=$HOME/lib/:$PYTHONPATH" &gt;&gt; $HOME/.bashrc
+<div class="highlight-python"><div class="highlight"><pre>echo &quot;export PATH=$HOME/bin/:$PATH&quot; &gt;&gt; $HOME/.bashrc
+echo &quot;export PYTHONPATH=$HOME/lib/:$PYTHONPATH&quot; &gt;&gt; $HOME/.bashrc
 mkdir -p $HOME/bin $HOME/lib/
 source $HOME/.bashrc
-python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib/ --install-lib=$HOME/lib/</pre>
+python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib/ --install-lib=$HOME/lib/
+</pre></div>
 </div>
 <p>You should then have access to the biom-format project. You can test this by running the following command:</p>
-<div class="highlight-python"><pre>python -c "from biom import __version__; print __version__"</pre>
+<div class="highlight-python"><div class="highlight"><pre>python -c &quot;from biom import __version__; print __version__&quot;
+</pre></div>
 </div>
 <p>You should see the current version of the biom-format project.</p>
 <p>Next you can run:</p>
-<div class="highlight-python"><pre>which biom</pre>
+<div class="highlight-python"><div class="highlight"><pre>which biom
+</pre></div>
 </div>
 <p>You should get a file path ending with <tt class="docutils literal"><span class="pre">biom</span></tt> printed to your screen if it is installed correctly. Finally, to see a list of all <tt class="docutils literal"><span class="pre">biom</span></tt> commands, run:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">biom</span>
@@ -183,8 +176,8 @@ python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib
 </div>
 <div class="section" id="enabling-tab-completion-of-biom-commands">
 <h2>Enabling tab completion of biom commands<a class="headerlink" href="#enabling-tab-completion-of-biom-commands" title="Permalink to this headline">¶</a></h2>
-<p>The <tt class="docutils literal"><span class="pre">biom</span></tt> command referenced in the previous section is a driver for commands in biom-format, powered by <a class="reference external" href="http://bipy.github.io/pyqi">pyqi</a>. You can enable tab completion of biom command names and command options (meaning that when you begin typing the name of a command or option you can auto-complete it by hitting the <em>tab</em> key) by following a few simple steps from the pyqi documentation. While this step is optional, tab completion is very convenient so it&#8217;s worth enabling.</p>
-<p>To enable tab completion, follow the steps outlined under <a class="reference external" href="http://bipy.github.io/pyqi/doc/tutorials/defining_your_command_driver.html#configuring-bash-completion">Configuring bash completion</a> in the pyqi install documentation, substituting <tt class="docutils literal"><span class="pre">biom</span></tt> for <tt class="docutils literal"><span class="pre">my-project</span></tt> and <tt class="docutils literal"><span class="pre">my_project</span></tt> in all commands. After completing those steps and closing and re-opening your terminal, auto-completion should be enabled.</p>
+<p>The <tt class="docutils literal"><span class="pre">biom</span></tt> command referenced in the previous section is a driver for commands in biom-format, powered by <a class="reference external" href="http://biocore.github.io/pyqi">the pyqi project</a>. You can enable tab completion of biom command names and command options (meaning that when you begin typing the name of a command or option you can auto-complete it by hitting the <em>tab</em> key) by following a few simple steps from the pyqi documentation. While this step is optional, tab completion is very convenient so it&#8217;s worth enabling.</p>
+<p>To enable tab completion, follow the steps outlined under <a class="reference external" href="http://biocore.github.io/pyqi/doc/tutorials/defining_your_command_driver.html#configuring-bash-completion">Configuring bash completion</a> in the pyqi install documentation, substituting <tt class="docutils literal"><span class="pre">biom</span></tt> for <tt class="docutils literal"><span class="pre">my-project</span></tt> and <tt class="docutils literal"><span class="pre">my_project</span></tt> in all commands. After completing those steps and closing and re-opening your terminal, auto-completion should be enabled.</p>
 </div>
 </div>
 <div class="section" id="biom-format-in-r">
@@ -206,11 +199,11 @@ python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib
 </div>
 <div class="section" id="citing-the-biom-project">
 <h1>Citing the BIOM project<a class="headerlink" href="#citing-the-biom-project" title="Permalink to this headline">¶</a></h1>
-<p>You can cite the BIOM format as follows:</p>
+<p>You can cite the BIOM format as follows (<a class="reference external" href="http://www.gigasciencejournal.com/content/1/1/7">link</a>):</p>
 <div class="line-block">
 <div class="line">The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome.</div>
 <div class="line">Daniel McDonald, Jose C. Clemente, Justin Kuczynski, Jai Ram Rideout, Jesse Stombaugh, Doug Wendel, Andreas Wilke, Susan Huse, John Hufnagle, Folker Meyer, Rob Knight, and J. Gregory Caporaso.</div>
-<div class="line">GigaScience, June 2012.</div>
+<div class="line">GigaScience 2012, 1:7. doi:10.1186/2047-217X-1-7</div>
 </div>
 </div>
 <div class="section" id="development-team">
@@ -221,7 +214,7 @@ python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib
 
       </div>
       <div class="bottomnav">
-
+      
         <p>
         <a class="uplink" href="#">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -233,8 +226,8 @@ python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Dec 04, 2013.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Last updated on May 16, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 
