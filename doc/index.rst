@@ -22,6 +22,7 @@ Projects using the BIOM format
 * `Mothur <http://www.mothur.org/wiki/Make.biom>`_
 * `phyloseq <http://www.bioconductor.org/packages/release/bioc/html/phyloseq.html>`_
 * `MEGAN <http://ab.inf.uni-tuebingen.de/software/megan5/>`_
+* `VAMPS <http://vamps.mbl.edu/>`_
 
 If you are using BIOM in your project, and would like your project to be listed, please submit a `pull request <https://github.com/biocore/biom-format/pulls>`_ to the BIOM project. More information on `submitting pull requests can be found here <https://help.github.com/articles/using-pull-requests>`_.
 
@@ -46,7 +47,7 @@ To install the ``biom-format`` project, you can download the `latest version her
 
 The biom-format project has the following dependencies:
 
-    * `Python <http://www.python.org/>`_ >= 2.7 and < 3.0
+	*  `Python <http://www.python.org/>`_ >= 2.7 and < 3.0
 	* `numpy <http://www.numpy.org/>`_ >= 1.7.0
 	* `pyqi <http://pyqi.readthedocs.org>`_ 0.3.2
 	* `scipy <http://www.scipy.org/>`_ >= 0.13.0 

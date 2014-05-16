@@ -16,7 +16,7 @@ Your BIOM file might look like the following::
 
     {
         "id":null,
-        "format": "Biological Observation Matrix 1.0.0-dev",
+        "format": "1.0.0",
         "format_url": "http://biom-format.org",
         "type": "OTU table",
         "generated_by": "some software package",
