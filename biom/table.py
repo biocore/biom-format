@@ -1652,7 +1652,7 @@ class Table(object):
 
         Returns
         -------
-        ``Table``
+        Table
             The collapsed table
 
         Examples
