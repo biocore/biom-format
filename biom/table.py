@@ -295,14 +295,17 @@ class Table(object):
 
     @property
     def shape(self):
+        """The shape of the underlying contingency matrix"""
         return self._data.shape
 
     @property
     def dtype(self):
+        """The type of the objects in the underlying contingency matrix"""
         return self._data.dtype
 
     @property
     def nnz(self):
+        """Number of non-zero elements of the underlying contingency matrix"""
         return self._data.nnz
 
     def add_metadata(self, md, axis='sample'):
@@ -516,6 +519,31 @@ class Table(object):
             table sum. If `axis` is either "sample" or "observation", returns a
             numpy.array that holds a sum for each sample or observation,
             respectively.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Add all values in the table:
+
+        >>> table.sum()
+        array(47.0)
+
+        Add all values per sample:
+
+        >>> table.sum(axis='sample') # doctest: +NORMALIZE_WHITESPACE
+        array([  1.,  3.,  43.])
+
+        Add all values per observation:
+
+        >>> table.sum(axis='observation') # doctest: +NORMALIZE_WHITESPACE
+        array([  1.,  46.])
         """
         if axis == 'whole':
             axis = None
@@ -535,10 +563,15 @@ class Table(object):
         return matrix_sum
 
     def transpose(self):
-        """Return a new table that is the transpose of this table.
+        """Transpose the contingency table
 
         The returned table will be an entirely new table, including copies of
         the (transposed) data, sample/observation IDs and metadata.
+
+        Returns
+        -------
+        Table
+            Return a new table that is the transpose of caller table.
         """
         sample_md_copy = deepcopy(self.sample_metadata)
         obs_md_copy = deepcopy(self.observation_metadata)
@@ -553,15 +586,15 @@ class Table(object):
                               self.sample_ids[:], self.observation_ids[:],
                               sample_md_copy, obs_md_copy, self.table_id)
 
-    def metadata(self, id_, axis):
+    def metadata(self, id, axis):
         """Return the metadata of the identified sample/observation.
 
         Parameters
         ----------
-        id_ : str
+        id : str
             ID of the sample or observation whose index will be returned.
         axis : {'sample', 'observation'}
-            Axis to search for `id_`.
+            Axis to search for `id`.
 
         Returns
         -------
@@ -606,24 +639,24 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-        idx = self.index(id_, axis=axis)
+        idx = self.index(id, axis=axis)
 
         return md[idx] if md is not None else None
 
-    def index(self, id_, axis):
+    def index(self, id, axis):
         """Return the index of the identified sample/observation.
 
         Parameters
         ----------
-        id_ : str
+        id : str
             ID of the sample or observation whose index will be returned.
         axis : {'sample', 'observation'}
-            Axis to search for `id_`.
+            Axis to search for `id`.
 
         Returns
         -------
         int
-            Index of the sample/observation identified by `id_`.
+            Index of the sample/observation identified by `id`.
 
         Raises
         ------
@@ -659,10 +692,10 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-        if id_ not in idx_lookup:
-            raise UnknownIDError(id_, axis)
+        if id not in idx_lookup:
+            raise UnknownIDError(id, axis)
 
-        return idx_lookup[id_]
+        return idx_lookup[id]
 
     def get_value_by_ids(self, obs_id, samp_id):
         """Return value in the matrix corresponding to ``(obs_id, samp_id)``
@@ -704,12 +737,12 @@ class Table(object):
             self.get_table_density() * 100
         )
 
-    def exists(self, id_, axis="sample"):
-        """Returns whether id_ exists in axis
+    def exists(self, id, axis="sample"):
+        """Returns whether id exists in axis
 
         Parameters
         ----------
-        id_: str
+        id: str
             id to check if exists
         axis : {'sample', 'observation'}, optional
             The axis to check
@@ -717,7 +750,7 @@ class Table(object):
         Returns
         -------
         bool
-            ``True`` if `id_` exists, ``False`` otherwise
+            ``True`` if `id` exists, ``False`` otherwise
 
         Examples
         --------
@@ -744,9 +777,9 @@ class Table(object):
         False
         """
         if axis == "sample":
-            return id_ in self._sample_index
+            return id in self._sample_index
         elif axis == "observation":
-            return id_ in self._obs_index
+            return id in self._obs_index
         else:
             raise UnknownAxisError(axis)
 
@@ -928,16 +961,16 @@ class Table(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def data(self, id_, axis):
-        """Returns observations associated with sample id `id_` or
-        samples associated with observation id `id_`
+    def data(self, id, axis):
+        """Returns observations associated with sample id `id` or
+        samples associated with observation id `id`
 
         Parameters
         ----------
-        id_ : str
+        id : str
             ID of the samples or observations whose data will be returned.
         axis : {'sample', 'observation'}
-            Axis to search for `id_`.
+            Axis to search for `id`.
 
         Raises
         ------
@@ -945,9 +978,9 @@ class Table(object):
             If provided an unrecognized axis.
         """
         if axis == 'sample':
-            return self._to_dense(self[:, self.index(id_, 'sample')])
+            return self._to_dense(self[:, self.index(id, 'sample')])
         elif axis == 'observation':
-            return self._to_dense(self[self.index(id_, 'observation'), :])
+            return self._to_dense(self[self.index(id, 'observation'), :])
         else:
             raise UnknownAxisError(axis)
 
@@ -977,6 +1010,22 @@ class Table(object):
         ------
         UnknownAxisError
             If axis other than 'sample' or 'observation' passed
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+        >>> data = np.arange(30).reshape(3,10) # 3 X 10 OTU X Sample table
+        >>> obs_ids = ['o1', 'o2', 'o3']
+        >>> sam_ids = ['s%i' %i for i in range(1,11)]
+        >>> bt = Table(data, observation_ids=obs_ids, sample_ids=sam_ids)
+
+        Lets find the sample with the largest sum
+
+        >>> sample_gen = bt.iter_data(axis='sample')
+        >>> max_sample_count = max([sample.sum() for sample in sample_gen])
+        >>> print max_sample_count
+        57.0
         """
         if axis == "sample":
             for samp_v in self._iter_samp():
@@ -990,8 +1039,6 @@ class Table(object):
     def iter(self, dense=True, axis='sample'):
         """Yields ``(value, id, metadata)``
 
-        NOTE: will return ``None`` in metadata positions if the corresponding
-        axis metadata metadata is set to ``None``
 
         Parameters
         ----------
@@ -1285,6 +1332,8 @@ class Table(object):
             table.observation_ids = ids
             table.observation_metadata = metadata
 
+        table._index_ids()
+
         return table
 
     def partition(self, f, axis='sample'):
@@ -1302,6 +1351,40 @@ class Table(object):
         -------
         GeneratorType
             A generator that yields `Table`
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+        >>> from biom.util import unzip
+
+        Create a 2x3 BIOM table, with observation metadata and sample
+        metadata:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'full_genome_available': True},
+        ...                {'full_genome_available': False}],
+        ...               [{'sample_type': 'a'}, {'sample_type': 'a'},
+        ...                {'sample_type': 'b'}])
+
+        Define a function to bin by sample_type
+
+        >>> f = lambda id_, md: md['sample_type']
+
+        Partition the table and view results
+
+        >>> bins, tables = table.partition(f)
+        >>> print bins[1] # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2
+        O1  0.0 0.0
+        O2  1.0 3.0
+        >>> print tables[1] # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S3
+        O1  1.0
+        O2  42.0
         """
         partitions = {}
         # conversion of vector types is not necessary, vectors are not
@@ -1731,8 +1814,8 @@ class Table(object):
     def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
-        Only non null values can be modified: the density of the table
-        can't increase. However, zeroing values is fine.
+        Only non null values can be modified  the density of the table can't
+        increase. However, zeroing values is fine.
 
         Parameters
         ----------
@@ -1757,6 +1840,63 @@ class Table(object):
         ------
         UnknownAxisError
             If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 table
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'foo': 'bar'}, {'x': 'y'}], None)
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O1  0.0 0.0 1.0
+        O2  1.0 3.0 42.0
+
+        Create a transform function
+
+        >>> f = lambda data, id_, md: data / 2
+
+        Transform to a new table on samples
+
+        >>> table2 = table.transform(f, 'sample', False)
+        >>> print table2 # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O1  0.0 0.0 0.5
+        O2  0.5 1.5 21.0
+
+        `table` hasn't changed
+
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O1  0.0 0.0 1.0
+        O2  1.0 3.0 42.0
+
+        Tranform in place on observations
+
+        >>> table3 = table.transform(f, 'observation', True)
+
+        `table` is different now
+
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O1  0.0 0.0 0.5
+        O2  0.5 1.5 21.0
+
+        but the table returned (`table3`) is the same as `table`
+
+        >>> print table3 # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3
+        O1  0.0 0.0 0.5
+        O2  0.5 1.5 21.0
         """
         table = self if inplace else self.copy()
 
@@ -2146,12 +2286,6 @@ class Table(object):
         operations) and compressed sparse column (for sample oriented
         operations).
 
-        ### ADD IN SCIPY SPARSE CSC/CSR URLS
-        ### ADD IN WIKIPEDIA PAGE LINK TO CSR
-        ### ALL THESE INTS CAN BE UINT, SCIPY DOES NOT BY DEFAULT STORE AS THIS
-        ###     THOUGH
-        ### METADATA ARE NOT REPRESENTED HERE YET
-
         Notes
         -----
         The expected HDF5 group structure is below. An example of an HDF5 file
@@ -2161,7 +2295,7 @@ class Table(object):
         ./type                       : str, the table type (e.g, OTU table)
         ./format-url                 : str, a URL that describes the format
         ./format-version             : two element tuple of int32,
-                                       major and minor
+        major and minor
         ./generated-by               : str, what generated this file
         ./creation-date              : str, ISO format
         ./shape                      : two element tuple of int32, N by M
@@ -2173,7 +2307,7 @@ class Table(object):
         ./observation/matrix/indices : (nnz,) dataset of int32
         ./observation/matrix/indptr  : (M+1,) dataset of int32
         [./observation/metadata]     : Optional, JSON str, in index order
-                                       with ids. See below for added detail.
+        with ids. See below for added detail.
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
@@ -2181,7 +2315,7 @@ class Table(object):
         ./sample/matrix/indices      : (nnz,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
         [./sample/metadata]          : Optional, JSON str, in index order
-                                       with ids. See below for added detail.
+        with ids. See below for added detail.
 
         The expected structure (in JSON) for the optional metadata is a list of
         objects, where the index order of the list corresponds to the index
@@ -2226,11 +2360,11 @@ class Table(object):
         References
         ----------
         .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-                py.sparse.csr_matrix.html
+py.sparse.csr_matrix.html
         .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-                py.sparse.csc_matrix.html
+py.sparse.csc_matrix.html
         .. [3] http://biom-format.org/documentation/format_versions/biom-2.0.\
-                html
+html
 
         See Also
         --------
@@ -2376,7 +2510,7 @@ class Table(object):
         ./type                       : str, the table type (e.g, OTU table)
         ./format-url                 : str, a URL that describes the format
         ./format-version             : two element tuple of int32,
-                                       major and minor
+        major and minor
         ./generated-by               : str, what generated this file
         ./creation-date              : str, ISO format
         ./shape                      : two element tuple of int32, N by M
@@ -2388,7 +2522,7 @@ class Table(object):
         ./observation/matrix/indices : (nnz,) dataset of int32
         ./observation/matrix/indptr  : (M+1,) dataset of int32
         [./observation/metadata]     : Optional, JSON str, in index order
-                                       with ids. See below for added detail.
+        with ids. See below for added detail.
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
@@ -2396,7 +2530,7 @@ class Table(object):
         ./sample/matrix/indices      : (nnz,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
         [./sample/metadata]          : Optional, JSON str, in index order
-                                       with ids. See below for added detail.
+        with ids. See below for added detail.
 
         The expected structure (in JSON) for the optional metadata is a list of
         objects, where the index order of the list corresponds to the index
@@ -2423,11 +2557,11 @@ class Table(object):
         References
         ----------
         .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-                py.sparse.csr_matrix.html
+py.sparse.csr_matrix.html
         .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-                py.sparse.csc_matrix.html
+py.sparse.csc_matrix.html
         .. [3] http://biom-format.org/documentation/format_versions/biom-2.0.\
-                html
+html
 
         Examples
         --------
@@ -2721,19 +2855,7 @@ class Table(object):
     def _extract_data_from_tsv(lines, delim='\t', dtype=float,
                                header_mark=None, md_parse=None):
         """Parse a classic table into (sample_ids, obs_ids, data, metadata,
-                                       name)
-        Returns
-        -------
-        list
-            sample_ids
-        list
-            observation_ids
-        array
-            data
-        list
-            metadata
-        string
-            column name if last column is non-numeric
+        name)
 
         Parameters
         ----------
@@ -2747,17 +2869,30 @@ class Table(object):
         md_parse:  function or None
             funtion used to parse metdata
 
+        Returns
+        -------
+        list
+            sample_ids
+        list
+            observation_ids
+        array
+            data
+        list
+            metadata
+        string
+            column name if last column is non-numeric
+
         Notes
         ------
-        This is intended to be close to how QIIME classic OTU tables are
-        parsed with the exception of the additional md_name field
+        This is intended to be close to how QIIME classic OTU tables are parsed
+        with the exception of the additional md_name field
 
         This function is ported from QIIME (http://www.qiime.org), previously
-        named
-        parse_classic_otu_table. QIIME is a GPL project, but we obtained
-        permission
-        from the authors of this function to port it to the BIOM Format project
-        (and keep it under BIOM's BSD license).
+        named parse_classic_otu_table. QIIME is a GPL project, but we obtained
+        permission from the authors of this function to port it to the BIOM
+        Format project (and keep it under BIOM's BSD license).
+
+        .. shownumpydoc
         """
         if not isinstance(lines, list):
             try:
@@ -2862,12 +2997,25 @@ class Table(object):
         Returns
         -------
         str
-            tab delimited represtation of the Table
-            For example, the default will look something like:
-                #OTU ID\tSample1\tSample2
-                OTU1\t10\t2
-                OTU2\t4\t8
+            tab delimited representation of the Table
 
+        Examples
+        --------
+
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table, with observation metadata and no sample
+        metadata:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               [{'foo': 'bar'}, {'x': 'y'}], None)
+        >>> print table.to_tsv() # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID	S1	S2	S3
+        O1	0.0	0.0	1.0
+        O2	1.0	3.0	42.0
         """
         return self.delimited_self('\t', header_key, header_value,
                                    metadata_formatter,
