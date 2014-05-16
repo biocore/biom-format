@@ -2215,6 +2215,12 @@ class Table(object):
         >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
         >>> t = Table.from_hdf5(f) # doctest: +SKIP
 
+        Parse a hdf5 biom table subsetting observations
+        >>> from h5py import File # doctest: +SKIP
+        >>> from biom.parse import parse_biom_table
+        >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
+        >>> t = Table.from_hdf5(f, ids=["GG_OTU_1"],
+        ...                     axis='observation') # doctest: +SKIP
         """
         if not HAVE_H5PY:
             raise RuntimeError("h5py is not in the environment, HDF5 support "

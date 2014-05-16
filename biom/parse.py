@@ -280,14 +280,14 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
     >>> from h5py import File # doctest: +SKIP
     >>> from biom.parse import parse_biom_table
     >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
-    >>> t = Table.from_hdf5(f) # doctest: +SKIP
+    >>> t = parse_biom_table(f) # doctest: +SKIP
 
     Parse a hdf5 biom table subsetting observations
     >>> from h5py import File # doctest: +SKIP
     >>> from biom.parse import parse_biom_table
     >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
-    >>> t = Table.from_hdf5(f, ids=["GG_OTU_1"],
-    ...                     axis='observation') # doctest: +SKIP
+    >>> t = parse_biom_table(f, ids=["GG_OTU_1"],
+    ...                      axis='observation') # doctest: +SKIP
     """
     if axis not in ['observation', 'sample']:
         UnknownAxisError(axis)
