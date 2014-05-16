@@ -12,8 +12,9 @@ from __future__ import division
 from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
 from pyqi.core.exception import CommandError
-from biom.parse import (get_axis_indices, direct_slice_data, direct_parse_key,
-                        parse_biom_table)
+from biom.parse import (get_axis_indices, direct_slice_data, direct_parse_key)
+from biom.table import Table
+from biom.util import biom_open
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -42,8 +43,8 @@ class TableSubsetter(Command):
                   Description='the input BIOM table as an unparsed json '
                               'string',
                   Required=False),
-        CommandIn(Name='hdf5_table', DataType=object,
-                  Description='the input BIOM table as an HDF5 object',
+        CommandIn(Name='hdf5_table', DataType=str,
+                  Description='the fp to the input BIOM table',
                   Required=False),
         CommandIn(Name='axis', DataType=str,
                   Description='the axis to subset over, either ' +
@@ -69,12 +70,12 @@ class TableSubsetter(Command):
                 axis,
                 ' or '.join(map(lambda e: "'%s'" % e, self.Axes))))
 
-        if not hdf5_biom and not json_table_str:
+        if hdf5_biom is None and json_table_str is None:
             raise CommandError("Must specify an input table")
-        elif hdf5_biom and json_table_str:
+        elif hdf5_biom is not None and json_table_str is not None:
             raise CommandError("Can only specify one input table")
 
-        if json_table_str:
+        if json_table_str is not None:
             idxs, new_axis_md = get_axis_indices(json_table_str, ids, axis)
             new_data = direct_slice_data(json_table_str, idxs, axis)
 
@@ -112,7 +113,8 @@ class TableSubsetter(Command):
             format_ = 'json'
             table = subset_generator()
         else:
-            table = parse_biom_table(hdf5_biom, ids=ids, axis=axis)
+            with biom_open(hdf5_biom) as f:
+              table = Table.from_hdf5(f, ids=ids, axis=axis)
             format_ = 'hdf5'
 
         return {'subsetted_table': (table, format_)}

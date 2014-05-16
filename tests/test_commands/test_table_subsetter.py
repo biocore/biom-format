@@ -73,9 +73,8 @@ class TableSubsetterTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        with biom_open('test_data/test.biom') as f:
-            obs = self.cmd(hdf5_table=f, axis='sample',
-                           ids=['Sample1', 'Sample2', 'Sample3'])
+        obs = self.cmd(hdf5_table='test_data/test.biom', axis='sample',
+                       ids=['Sample1', 'Sample2', 'Sample3'])
         os.chdir(cwd)
         self.assertEqual(obs.keys(), ['subsetted_table'])
         obs = obs['subsetted_table'][0]
@@ -91,9 +90,8 @@ class TableSubsetterTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        with biom_open('test_data/test.biom') as f:
-            obs = self.cmd(hdf5_table=f, axis='observation',
-                           ids=['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'])
+        obs = self.cmd(hdf5_table='test_data/test.biom', axis='observation',
+                       ids=['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'])
         os.chdir(cwd)
         self.assertEqual(obs.keys(), ['subsetted_table'])
         obs = obs['subsetted_table'][0]

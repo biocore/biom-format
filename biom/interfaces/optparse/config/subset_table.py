@@ -13,9 +13,8 @@ from pyqi.core.interfaces.optparse import (OptparseOption,
                                            OptparseResult)
 from pyqi.core.command import (make_command_in_collection_lookup_f,
                                make_command_out_collection_lookup_f)
-from pyqi.core.interfaces.optparse.input_handler import (load_file_contents,
-                                                         load_file_lines)
-from biom.interfaces.optparse.input_handler import load_hdf5
+from pyqi.core.interfaces.optparse.input_handler import load_file_lines
+from biom.interfaces.optparse.input_handler import biom_load_file_contents
 from biom.interfaces.optparse.output_handler import write_subsetted_biom_table
 from biom.commands.table_subsetter import CommandConstructor
 
@@ -48,13 +47,13 @@ usage_examples = [
 inputs = [
     OptparseOption(Parameter=cmd_in_lookup('hdf5_table'),
                    Type='existing_filepath',
-                   Handler=load_hdf5, ShortName='i',
+                   Handler=None, ShortName='i',
                    Name='input-hdf5-fp',
                    Help='the input hdf5 BIOM table filepath to subset'),
 
     OptparseOption(Parameter=cmd_in_lookup('json_table_str'),
                    Type='existing_filepath',
-                   Handler=load_file_contents, ShortName='j',
+                   Handler=biom_load_file_contents, ShortName='j',
                    Name='input-json-fp',
                    Help='the input hdf5 BIOM table filepath to subset'),
 
