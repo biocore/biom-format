@@ -46,6 +46,9 @@ Changes:
     have been removed
 * Added `Table.metadata` to allow fetching of metadata by an ID instead of just
     by index
+* Added `Table.pa` for conversion to presence/absence
+* Added `Table.subsample` for randomly subsampling data
+* `Table` now embraces numpydoc
 
 biom 1.3.1
 ----------
