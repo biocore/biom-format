@@ -2753,7 +2753,7 @@ html
 
         See Also
         --------
-        Table.format_hdf5
+        Table.from_hdf5
 
         References
         ----------
