@@ -298,9 +298,11 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
         pass
 
     if hasattr(fp, 'read'):
+        old_pos = fp.tell()
         try:
             t = Table.from_json(json.load(fp), input_is_dense=input_is_dense)
         except ValueError:
+            fp.seek(old_pos)
             t = Table.from_tsv(fp, None, None, lambda x: x)
     elif isinstance(fp, list):
         try:
