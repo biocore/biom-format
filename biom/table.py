@@ -1039,13 +1039,18 @@ class Table(object):
 
     def descriptive_equality(self, other):
         """For use in testing, describe how the tables are not equal"""
-        if self.observation_ids != other.observation_ids:
+        if not isinstance(other, self.__class__):
+            return "Tables are not of comparable classes"
+        if not self.type == other.type:
+            return "Tables are not the same type"
+        if not np.array_equal(self.observation_ids, other.observation_ids):
             return "Observation IDs are not the same"
-        if self.sample_ids != other.sample_ids:
+        if not np.array_equal(self.sample_ids, other.sample_ids):
             return "Sample IDs are not the same"
-        if self.observation_metadata != other.observation_metadata:
+        if not np.array_equal(self.observation_metadata,
+                              other.observation_metadata):
             return "Observation metadata are not the same"
-        if self.sample_metadata != other.sample_metadata:
+        if not np.array_equal(self.sample_metadata, other.sample_metadata):
             return "Sample metadata are not the same"
         if not self._data_equality(other._data):
             return "Data elements are not the same"
