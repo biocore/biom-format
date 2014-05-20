@@ -2868,6 +2868,11 @@ html
             Defaults to ``None``. Must implementing a ``write`` function. If
             `direct_io` is not ``None``, the final output is written directly
             to `direct_io` during processing.
+
+        Returns
+        -------
+        str
+            A JSON-formatted string representing the biom table
         """
         if (not isinstance(generated_by, str) and
                 not isinstance(generated_by, unicode)):
