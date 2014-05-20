@@ -1063,13 +1063,14 @@ class Table(object):
             return False
         if self.type != other.type:
             return False
-        if np.any(self.observation_ids != other.observation_ids):
+        if not np.array_equal(self.observation_ids, other.observation_ids):
             return False
-        if np.any(self.sample_ids != other.sample_ids):
+        if not np.array_equal(self.sample_ids, other.sample_ids):
             return False
-        if self.observation_metadata != other.observation_metadata:
+        if not np.array_equal(self.observation_metadata,
+                              other.observation_metadata):
             return False
-        if self.sample_metadata != other.sample_metadata:
+        if not np.array_equal(self.sample_metadata, other.sample_metadata):
             return False
         if not self._data_equality(other._data):
             return False
