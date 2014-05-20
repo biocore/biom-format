@@ -11,15 +11,15 @@
 import os
 from StringIO import StringIO
 import json
-from biom import __version__
+from unittest import TestCase, main
 
 from numpy import array
 import numpy.testing as npt
-from unittest import TestCase, main
+
 from biom.parse import generatedby, MetadataMap, parse_biom_table
 from biom.table import Table
 from biom.util import HAVE_H5PY
-
+from biom import __version__
 if HAVE_H5PY:
     import h5py
 
@@ -198,10 +198,69 @@ class ParseTests(TestCase):
         Table.from_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
-    def test_parse_biom_table_str(self):
-        """tests for parse_biom_table_str"""
-        # this method is tested through parse_biom_table tests
-        pass
+    def test_parse_biom_table(self):
+        """tests for parse_biom_table when we do not have h5py"""
+        # This is a TSV as a list of lines
+        t = parse_biom_table(self.classic_otu_table1_no_tax)
+
+        # Test TSV as a list of lines
+        t_tsv_str = t.to_tsv()
+        t_tsv_lines = t_tsv_str.splitlines()
+        t_tsv = parse_biom_table(t_tsv_lines)
+        self.assertEqual(t, t_tsv)
+        # Test TSV as a file-like object
+        t_tsv_stringio = StringIO(t_tsv_str)
+        t_tsv = parse_biom_table(t_tsv_stringio)
+        self.assertEqual(t, t_tsv)
+
+        # Test JSON as a list of lines
+        t_json_str = t.to_json('asd')
+        t_json_lines = t_json_str.splitlines()
+        t_json = parse_biom_table(t_json_lines)
+        self.assertEqual(t, t_json)
+        # Test JSON as a file-like object
+        t_json_str = t.to_json('asd')
+        t_json_stringio = StringIO(t_json_str)
+        t_json = parse_biom_table(t_json_stringio)
+        self.assertEqual(t, t_json)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_parse_biom_table_with_hdf5(self):
+        """tests for parse_biom_table when we have h5py"""
+        # We will round-trip the HDF5 file to several different formats, and
+        # make sure we can recover the same table using parse_biom_table
+        cwd = os.getcwd()
+        if '/' in __file__[1:]:
+            os.chdir(__file__.rsplit('/', 1)[0])
+
+        t = parse_biom_table(h5py.File('test_data/test.biom'))
+
+        # These things are not round-trippable using the general-purpose
+        # parse_biom_table function
+        t.sample_metadata = None
+        t.observation_metadata = None
+        t.type = None
+
+        # Test TSV as a list of lines
+        t_tsv_str = t.to_tsv()
+        t_tsv_lines = t_tsv_str.splitlines()
+        t_tsv = parse_biom_table(t_tsv_lines)
+        self.assertEqual(t, t_tsv)
+        # Test TSV as a file-like object
+        t_tsv_stringio = StringIO(t_tsv_str)
+        t_tsv = parse_biom_table(t_tsv_stringio)
+        self.assertEqual(t, t_tsv)
+
+        # Test JSON as a list of lines
+        t_json_str = t.to_json('asd')
+        t_json_lines = t_json_str.splitlines()
+        t_json = parse_biom_table(t_json_lines)
+        self.assertEqual(t, t_json)
+        # Test JSON as a file-like object
+        t_json_str = t.to_json('asd')
+        t_json_stringio = StringIO(t_json_str)
+        t_json = parse_biom_table(t_json_stringio)
+        self.assertEqual(t, t_json)
 
 
 legacy_otu_table1 = """# some comment goes here
