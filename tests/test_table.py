@@ -1693,6 +1693,14 @@ class SparseTableTests(TestCase):
         self.assertEqual(actual_o2, {(0, 3, 3), (0, 2, 3), (0, 3, 2),
                                      (0, 2, 2)})
 
+    def test_subsample_md_copy_bug(self):
+        """subsample would except when if metadata were present"""
+        table = Table(np.array([[5, 5, 5]]), ['O1'], ['S1', 'S2', 'S3'],
+                      [{'foo': 'bar'}], [{1: 2}, {3: 4}, {5: 6}])
+        exp = table.copy()
+        obs = table.subsample(5)
+        self.assertEqual(obs, exp)
+
     def test_pa(self):
         exp = Table(np.array([[1, 1], [1, 0]]), ['5', '6'], ['a', 'b'])
         self.st7.pa()
