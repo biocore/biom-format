@@ -1941,15 +1941,8 @@ class Table(object):
 
         _subsample(data, n)
 
-        if self.sample_metadata is None:
-            samp_md = None
-        else:
-            samp_md = self.sample_metadata.copy()
-
-        if self.observation_metadata is None:
-            obs_md = None
-        else:
-            obs_md = self.observation_metadata.copy()
+        samp_md = deepcopy(self.sample_metadata)
+        obs_md = deepcopy(self.observation_metadata)
 
         table = Table(data, self.observation_ids.copy(),
                       self.sample_ids.copy(), obs_md, samp_md)
