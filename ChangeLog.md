@@ -12,7 +12,7 @@ Changes:
 * Support for HDF5
 * Codebase is PEP-8 compliant
 * CSMat has been removed and Scipy is now a required dependency
-* Requires PyQi 0.3.1-dev
+* Requires pyqi 0.3.2
 * New HTML interface
 * No longer dependent on dateutil
 * `Table.bin_samples_by_metadata` and `Table.bin_observations_by_metadata` have
