@@ -252,11 +252,6 @@ class UtilTests(TestCase):
         with biom_open('test_data/test.json') as f:
             self.assertTrue(isinstance(f, file))
 
-        with biom_open('test_data/test_writing.json', 'w') as f:
-            self.assertTrue(isinstance(f, file))
-
-        remove('test_data/test_writing.json')
-
     def test_biom_open_gz(self):
         with biom_open('test_data/test.json.gz') as f:
             self.assertTrue(isinstance(f, gzip.GzipFile))
