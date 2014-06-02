@@ -163,7 +163,7 @@ class TableConverter(Command):
                                   metadata_formatter=obs_md_fmt_f)
             fmt = 'tsv'
         elif to_json:
-            result = table.to_json(generatedby())
+            result = table
             fmt = 'json'
         elif to_hdf5:
             result = table
