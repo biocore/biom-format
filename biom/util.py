@@ -335,11 +335,15 @@ def biom_open(fp, permission='U'):
     Read or write the contents of a file
 
     file_fp : file path
-    permission : either 'r','w','a'
+    permission : either 'r', 'w', 'wb', 'rb', 'U'
 
     If the file is binary, be sure to pass in a binary mode (append 'b' to
     the mode); opening a binary file in text mode (e.g., in default mode 'U')
     will have unpredictable results.
+
+    If h5py is available on the system, you cannot use biom_open to create a
+    writable ASCII file handle. You can use it to create writable GZIP handles
+    and HDF5 handles, however.
 
     This function is ported from QIIME (http://www.qiime.org), previously named
     qiime_open. QIIME is a GPL project, but we obtained permission from the
@@ -353,13 +357,17 @@ def biom_open(fp, permission='U'):
     mode = permission
 
     if HAVE_H5PY:
-        if h5py.is_hdf5(fp):
+        if mode in ['U', 'r', 'rb'] and h5py.is_hdf5(fp):
             opener = h5py.File
             mode = 'r' if permission == 'U' else permission
+        elif mode in ['w', 'wb']:
+            opener = h5py.File
 
-    if is_gzip(fp):
+    if mode in ['U', 'r', 'rb'] and is_gzip(fp):
         opener = gzip_open
         mode = 'rb' if permission in ['U', 'r'] else permission
+    elif mode in ['w', 'wb'] and fp.endswith('.gz'):
+        opener = gzip_open
 
     f = opener(fp, mode)
     try:
