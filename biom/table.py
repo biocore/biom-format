@@ -2985,10 +2985,12 @@ html
             shape = '"shape": [%d, %d],' % (num_rows, num_cols)
 
         # Fill in details about the rows in the table and fill in the matrix's
-        # data.
+        # data. BIOM 2.0+ is now only sparse
         if direct_io:
+            direct_io.write('"matrix_type": "sparse",')
             direct_io.write('"data": [')
         else:
+            matrix_type = '"matrix_type": "sparse",'
             data = ['"data": [']
 
         max_row_idx = len(self.observation_ids) - 1
@@ -3051,7 +3053,7 @@ html
             direct_io.write(columns)
             direct_io.write('}')
         else:
-            return "{%s}" % ''.join([id_, format_, format_url,
+            return "{%s}" % ''.join([id_, format_, format_url, matrix_type,
                                      generated_by, date,
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
