@@ -41,4 +41,3 @@ def load_table(f):
 
 
 __all__ = ['Table', 'example_table', 'parse_table', 'load_table']
-
