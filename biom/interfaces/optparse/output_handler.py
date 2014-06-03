@@ -60,12 +60,16 @@ def write_biom_table(result_key, data, option_value=None):
 
     table, fmt = data
 
-    if fmt not in ['hdf5', 'json']:
+    if fmt not in ['hdf5', 'json', 'tsv']:
         raise IncompetentDeveloperError("Unknown file format")
 
     if fmt == 'json':
         with open(option_value, 'w') as f:
             f.write(table.to_json(generatedby()))
+    elif fmt == 'tsv':
+        with open(option_value, 'w') as f:
+            f.write(table)
+            f.write('\n')
     else:
         if HAVE_H5PY:
             import h5py
