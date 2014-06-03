@@ -55,7 +55,7 @@ class TableConverterTests(TestCase):
         # No processing of metadata.
         obs = self.cmd(table=parse_biom_table(self.classic_lines1),
                        sample_metadata=self.sample_md1, to_json=True,
-                       table_type='OTU table')
+                       table_type='OTU table', process_obs_metadata='naive')
         self.assertEqual(obs.keys(), ['table'])
 
         obs = parse_biom_table(obs['table'][0].to_json('testing'))
