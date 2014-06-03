@@ -339,7 +339,7 @@ def biom_open(fp, permission='U'):
     Parameters
     ----------
     file_fp : file path
-    permission : str, ['r', 'w', 'wb', 'rb', 'U']
+    permission : str, {'r', 'w', 'wb', 'rb', 'U'}
 
     Returns
     -------
