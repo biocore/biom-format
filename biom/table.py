@@ -2856,6 +2856,7 @@ html
         ...             "format": "Biological Observation Matrix 1.0.0",
         ...             "format_url": "http://biom-format.org",
         ...             "generated_by": "foo",
+        ...             "type": "OTU table",
         ...             "date": "2014-06-03T14:24:40.884420",
         ...             "matrix_element_type": "float",
         ...             "shape": [5, 6],
@@ -2894,18 +2895,21 @@ html
         obs_ids = [row['id'] for row in json_table['rows']]
         obs_metadata = [row['metadata'] for row in json_table['rows']]
         dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
+        type_ = json_table['type']
 
         if data_pump is None:
             table_obj = Table(json_table['data'], obs_ids, sample_ids,
                               obs_metadata, sample_metadata,
                               shape=json_table['shape'],
                               dtype=dtype,
+                              type=type_,
                               input_is_dense=input_is_dense)
         else:
             table_obj = Table(data_pump, obs_ids, sample_ids,
                               obs_metadata, sample_metadata,
                               shape=json_table['shape'],
                               dtype=dtype,
+                              type=type_,
                               input_is_dense=input_is_dense)
 
         return table_obj
