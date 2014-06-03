@@ -19,7 +19,8 @@ import numpy.testing as npt
 from biom.parse import parse_biom_table
 from biom.util import (natsort, flatten, unzip, HAVE_H5PY,
                        get_biom_project_dir, parse_biom_config_files,
-                       compute_counts_per_sample_stats, safe_md5, biom_open)
+                       compute_counts_per_sample_stats, safe_md5, biom_open,
+                       get_data_path)
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -240,26 +241,26 @@ class UtilTests(TestCase):
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_biom_open_hdf5(self):
-        with biom_open('test_data/test.biom') as f:
+        with biom_open(get_data_path('test.biom')) as f:
             self.assertTrue(isinstance(f, h5py.File))
 
-        with biom_open('test_data/test_writing.biom', 'w') as f:
+        with biom_open(get_data_path('test_writing.biom'), 'w') as f:
             self.assertTrue(isinstance(f, h5py.File))
 
-        remove('test_data/test_writing.biom')
+        remove(get_data_path('test_writing.biom'))
 
     def test_biom_open_json(self):
-        with biom_open('test_data/test.json') as f:
+        with biom_open(get_data_path('test.json')) as f:
             self.assertTrue(isinstance(f, file))
 
     def test_biom_open_gz(self):
-        with biom_open('test_data/test.json.gz') as f:
+        with biom_open(get_data_path('test.json.gz')) as f:
             self.assertTrue(isinstance(f, gzip.GzipFile))
 
-        with biom_open('test_data/test_writing.json.gz', 'w') as f:
+        with biom_open(get_data_path('test_writing.json.gz'), 'w') as f:
             self.assertTrue(isinstance(f, gzip.GzipFile))
 
-        remove('test_data/test_writing.json.gz')
+        remove(get_data_path('test_writing.json.gz'))
 
 
 biom_otu_table1_w_tax = """{
