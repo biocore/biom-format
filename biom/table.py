@@ -2839,9 +2839,11 @@ html
         Parameters
         ----------
         json_table : dict
+            A JSON object or dict that represents the BIOM table
         data_pump : tuple or None
             A secondary source of data
         input_is_dense : bool
+            If `True`, the data contained will be interpretted as dense
 
         Returns
         -------
