@@ -165,6 +165,42 @@ class ParseTests(TestCase):
         self.assertEqual(tab.sample_metadata, None)
         self.assertEqual(tab.observation_metadata, None)
 
+        tablestring = '''{
+            "id":null,
+            "format": "Biological Observation Matrix 0.9.1-dev",
+            "format_url": "http://biom-format.org",
+            "type": "OTU table",
+            "generated_by": "QIIME revision XYZ",
+            "date": "2011-12-19T19:00:00",
+            "rows":[
+                    {"id":"GG_OTU_1", "metadata":null},
+                    {"id":"GG_OTU_2", "metadata":null},
+                    {"id":"GG_OTU_3", "metadata":null},
+                    {"id":"GG_OTU_4", "metadata":null},
+                    {"id":"GG_OTU_5", "metadata":null}
+                ],
+            "columns": [
+                    {"id":"Sample1", "metadata":null},
+                    {"id":"Sample2", "metadata":null},
+                    {"id":"Sample3", "metadata":null},
+                    {"id":"Sample4", "metadata":null},
+                    {"id":"Sample5", "metadata":null},
+                    {"id":"Sample6", "metadata":null}
+                ],
+            "matrix_type": "dense",
+            "matrix_element_type": "int",
+            "shape": [5,6],
+            "data":  [[0,0,1,0,0,0],
+                      [5,1,0,2,3,1],
+                      [0,0,1,4,2,0],
+                      [2,1,1,0,0,1],
+                      [0,1,1,0,0,0]]
+        }'''
+        tbs_fh = json.load(StringIO(tablestring))
+        tab1 = Table.from_json(tbs_fh)
+        tab2 = parse_biom_table(tablestring)
+        self.assertEqual(tab1, tab2)
+
     def test_parse_biom_table_subset(self):
         """test the biom table parser subsetting"""
         tab = parse_biom_table(StringIO(self.biom_minimal_sparse),

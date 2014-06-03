@@ -2893,6 +2893,11 @@ html
         obs_ids = [row['id'] for row in json_table['rows']]
         obs_metadata = [row['metadata'] for row in json_table['rows']]
         dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
+        if 'matrix_type' in json_table:
+            if json_table['matrix_type'] == 'dense':
+                input_is_dense = True
+            else:
+                input_is_dense = False
 
         if data_pump is None:
             table_obj = Table(json_table['data'], obs_ids, sample_ids,
