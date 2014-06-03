@@ -10,6 +10,7 @@
 
 from __future__ import division
 import json
+import sys
 from datetime import datetime
 from operator import and_
 from functools import reduce
@@ -78,7 +79,13 @@ class TableValidator(Command):
                 kwargs['table'] = json.load(f)
                 return self._validate_json(**kwargs)
             elif HAVE_H5PY:
+                import h5py
                 kwargs['table'] = f
+
+                if not isinstance(f, h5py.File):
+                    print("Attempting to validate an HDF5 BIOM table, but the "
+                          "table does not appear to be in HDF5 format!")
+                    sys.exit(1)
                 return self._validate_hdf5(**kwargs)
             else:
                 raise IOError("h5py is not installed, can only validate JSON "
