@@ -27,6 +27,14 @@ __email__ = "gregcaporaso@gmail.com"
 
 
 class TableConverter(Command):
+    TableTypes = ["OTU table",
+                  "Pathway table",
+                  "Function table",
+                  "Ortholog table",
+                  "Gene table",
+                  "Metabolite table",
+                  "Taxon table"]
+
     ObservationMetadataTypes = {
         'sc_separated': lambda x: [e.strip() for e in x.split(';')],
         'naive': lambda x: x
@@ -86,10 +94,13 @@ class TableConverter(Command):
                   'metadata column when creating a classic table from a BIOM-'
                   'formatted table', DefaultDescription='same name as in the '
                   'BIOM-formatted table'),
+        CommandIn(Name='table_type', DataType=str,
+                  Description='the type of the table, must be one of: %s' %
+                  ', '.join(TableTypes), Required=False),
         CommandIn(Name='process_obs_metadata', DataType=str,
                   Description='process metadata associated with observations '
                   'when converting from a classic table. Must be one of: %s' %
-                  ', '.join(ObservationMetadataTypes.keys()), Default='naive'),
+                  ', '.join(ObservationMetadataTypes), Default=None),
         CommandIn(Name='tsv_metadata_formatter', DataType=str,
                   Description='Method for formatting the observation '
                   'metadata, must be one of: %s' %
@@ -110,6 +121,7 @@ class TableConverter(Command):
         output_metadata_id = kwargs['output_metadata_id']
         process_obs_metadata = kwargs['process_obs_metadata']
         obs_md_fmt = kwargs['tsv_metadata_formatter']
+        table_type = kwargs['table_type']
         to_tsv = kwargs['to_tsv']
         to_hdf5 = kwargs['to_hdf5']
         to_json = kwargs['to_json']
@@ -118,6 +130,16 @@ class TableConverter(Command):
             raise CommandError("Must specify an output format")
         elif sum([to_tsv, to_hdf5, to_json]) > 1:
             raise CommandError("Can only specify a single output format")
+
+        # if we don't have a table type, then one is required to be specified
+        if table.type in [None, "None"]:
+            if table_type is None:
+                raise CommandError("Must specify --table-type!")
+            else:
+                if table_type not in self.TableTypes:
+                    raise CommandError("Unknown table type: %s" % table_type)
+
+                table.type = table_type
 
         if obs_md_fmt not in self.ObservationMetadataFormatters:
             raise CommandError("Unknown tsv_metadata_formatter: %s" %
@@ -132,13 +154,13 @@ class TableConverter(Command):
         # set it to the same as the header key
         output_metadata_id = output_metadata_id or header_key
 
-        if process_obs_metadata not in self.ObservationMetadataTypes:
-            raise CommandError(
-                "Unknown observation metadata processing method, must be "
-                "one of: %s" %
-                ', '.join(self.ObservationMetadataTypes.keys()))
-        else:
-            # assume we had a table coming in as TSV
+        if process_obs_metadata is not None and not to_tsv:
+            if process_obs_metadata not in self.ObservationMetadataTypes:
+                raise CommandError(
+                    "Unknown observation metadata processing method, must be "
+                    "one of: %s" %
+                    ', '.join(self.ObservationMetadataTypes.keys()))
+
             if table.observation_metadata is None:
                 raise CommandError("Obseration metadata processing requested "
                                    "but it doesn't appear that there is any "

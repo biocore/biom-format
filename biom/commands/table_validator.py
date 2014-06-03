@@ -401,7 +401,9 @@ class TableValidator(Command):
 
     def _valid_format(self, table_json):
         """Format must be the expected version"""
-        if table_json['format'] != self._format_version:
+        formal = "Biological Observation Matrix %s" % self._format_version
+
+        if table_json['format'] not in [formal, self._format_version]:
             return "Invalid format '%s', must be '%s'" % (table_json['format'],
                                                           self._format_version)
         else:

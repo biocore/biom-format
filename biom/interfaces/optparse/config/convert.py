@@ -31,9 +31,9 @@ cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 usage_examples = [
     OptparseUsageExample(ShortDesc="Converting from classic to BIOM format",
                          LongDesc="Convert the classic file table.txt to a "
-                                  "sparse BIOM format OTU table",
+                                  "HDF5 BIOM format OTU table",
                          Ex='%prog -i table.txt -o table.biom '
-                            '--table-type "otu table"')
+                            '--table-type "OTU table" --to-hdf5')
 ]
 
 inputs = [
@@ -54,6 +54,7 @@ inputs = [
     OptparseOption(Parameter=cmd_in_lookup('header_key')),
     OptparseOption(Parameter=cmd_in_lookup('output_metadata_id')),
     OptparseOption(Parameter=cmd_in_lookup('process_obs_metadata')),
+    OptparseOption(Parameter=cmd_in_lookup('table_type')),
     OptparseOption(Parameter=cmd_in_lookup('tsv_metadata_formatter')),
     OptparseOption(Parameter=cmd_in_lookup('to_json'),
                    Action='store_true'),

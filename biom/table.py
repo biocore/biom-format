@@ -2855,6 +2855,7 @@ html
         ...             "format": "Biological Observation Matrix 1.0.0",
         ...             "format_url": "http://biom-format.org",
         ...             "generated_by": "foo",
+        ...             "type": "OTU table",
         ...             "date": "2014-06-03T14:24:40.884420",
         ...             "matrix_element_type": "float",
         ...             "shape": [5, 6],
@@ -2893,18 +2894,21 @@ html
         obs_ids = [row['id'] for row in json_table['rows']]
         obs_metadata = [row['metadata'] for row in json_table['rows']]
         dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
+        type_ = json_table['type']
 
         if data_pump is None:
             table_obj = Table(json_table['data'], obs_ids, sample_ids,
                               obs_metadata, sample_metadata,
                               shape=json_table['shape'],
                               dtype=dtype,
+                              type=type_,
                               input_is_dense=input_is_dense)
         else:
             table_obj = Table(data_pump, obs_ids, sample_ids,
                               obs_metadata, sample_metadata,
                               shape=json_table['shape'],
                               dtype=dtype,
+                              type=type_,
                               input_is_dense=input_is_dense)
 
         return table_obj
@@ -2984,6 +2988,15 @@ html
                 matrix_element_type
             shape = '"shape": [%d, %d],' % (num_rows, num_cols)
 
+        # Fill in the table type
+        if self.type is None:
+            type_ = '"type": null,'
+        else:
+            type_ = '"type": "%s",' % self.type
+
+        if direct_io:
+            direct_io.write(type_)
+
         # Fill in details about the rows in the table and fill in the matrix's
         # data. BIOM 2.0+ is now only sparse
         if direct_io:
@@ -3054,7 +3067,7 @@ html
             direct_io.write('}')
         else:
             return "{%s}" % ''.join([id_, format_, format_url, matrix_type,
-                                     generated_by, date,
+                                     generated_by, date, type_,
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
 
