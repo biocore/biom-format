@@ -100,7 +100,7 @@ class TableConverter(Command):
         CommandIn(Name='process_obs_metadata', DataType=str,
                   Description='process metadata associated with observations '
                   'when converting from a classic table. Must be one of: %s' %
-                  ', '.join(ObservationMetadataTypes.keys()), Default='naive'),
+                  ', '.join(ObservationMetadataTypes.keys()), Default=None),
         CommandIn(Name='tsv_metadata_formatter', DataType=str,
                   Description='Method for formatting the observation '
                   'metadata, must be one of: %s' %
@@ -154,13 +154,13 @@ class TableConverter(Command):
         # set it to the same as the header key
         output_metadata_id = output_metadata_id or header_key
 
-        if process_obs_metadata not in self.ObservationMetadataTypes:
-            raise CommandError(
-                "Unknown observation metadata processing method, must be "
-                "one of: %s" %
-                ', '.join(self.ObservationMetadataTypes.keys()))
-        elif not to_tsv:
-            # assume we had a table coming in as TSV
+        if process_obs_metadata is not None:
+            if process_obs_metadata not in self.ObservationMetadataTypes:
+                raise CommandError(
+                    "Unknown observation metadata processing method, must be "
+                    "one of: %s" %
+                    ', '.join(self.ObservationMetadataTypes.keys()))
+
             if table.observation_metadata is None:
                 raise CommandError("Obseration metadata processing requested "
                                    "but it doesn't appear that there is any "
