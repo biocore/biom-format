@@ -137,7 +137,7 @@ class TableConverter(Command):
                 "Unknown observation metadata processing method, must be "
                 "one of: %s" %
                 ', '.join(self.ObservationMetadataTypes.keys()))
-        else:
+        elif not to_tsv:
             # assume we had a table coming in as TSV
             if table.observation_metadata is None:
                 raise CommandError("Obseration metadata processing requested "
