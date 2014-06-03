@@ -33,7 +33,7 @@ usage_examples = [
                          LongDesc="Convert the classic file table.txt to a "
                                   "sparse BIOM format OTU table",
                          Ex='%prog -i table.txt -o table.biom '
-                            '--table-type "otu table"')
+                            '--table-type "OTU table"')
 ]
 
 inputs = [
@@ -54,6 +54,7 @@ inputs = [
     OptparseOption(Parameter=cmd_in_lookup('header_key')),
     OptparseOption(Parameter=cmd_in_lookup('output_metadata_id')),
     OptparseOption(Parameter=cmd_in_lookup('process_obs_metadata')),
+    OptparseOption(Parameter=cmd_in_lookup('table_type')),
     OptparseOption(Parameter=cmd_in_lookup('tsv_metadata_formatter')),
     OptparseOption(Parameter=cmd_in_lookup('to_json'),
                    Action='store_true'),
