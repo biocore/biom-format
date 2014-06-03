@@ -1111,9 +1111,8 @@ class Table(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def data(self, id, axis):
-        """Returns observations associated with sample id `id` or
-        samples associated with observation id `id`
+    def data(self, id, axis='sample'):
+        """Returns data associated with an `id`
 
         Parameters
         ----------
