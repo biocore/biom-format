@@ -336,9 +336,17 @@ def biom_open(fp, permission='U'):
 
     Read or write the contents of a file
 
+    Parameters
+    ----------
     file_fp : file path
-    permission : either 'r', 'w', 'wb', 'rb', 'U'
+    permission : str, ['r', 'w', 'wb', 'rb', 'U']
 
+    Returns
+    -------
+    [h5py.File, file, gzip.GzipFile]
+
+    Notes
+    -----
     If the file is binary, be sure to pass in a binary mode (append 'b' to
     the mode); opening a binary file in text mode (e.g., in default mode 'U')
     will have unpredictable results.
