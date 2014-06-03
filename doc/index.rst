@@ -55,11 +55,12 @@ The biom-format project has the following dependencies:
 
 The easiest way to install the latest version of the biom-format project and its required dependencies is via pip::
 
+    pip install numpy
 	pip install biom-format
 
 That's it!
 
-If you decided not to install biom-format using pip, it is also possible to manually install the latest release. We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Change to this directory to start the install process::
+If you decided not to install biom-format using pip, it is also possible to manually install the latest release. We'll illustrate the install process in the ``$HOME/code`` directory. You can either work in this directory on your system (creating it, if necessary, by running ``mkdir $HOME/code``) or replace all occurrences of ``$HOME/code`` in the following instructions with your working directory. Please note that ``numpy`` must be in your installed prior to installing ``biom-format``. Change to this directory to start the install process::
 
 	cd $HOME/code
 
