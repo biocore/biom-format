@@ -2985,6 +2985,12 @@ html
                 matrix_element_type
             shape = '"shape": [%d, %d],' % (num_rows, num_cols)
 
+        # Fill in the table type
+        if direct_io:
+            direct_io.write('"type": "%s",' % str(self.type))
+        else:
+            type_ = '"type": "%s",' % str(self.type)
+
         # Fill in details about the rows in the table and fill in the matrix's
         # data.
         if direct_io:
@@ -3053,7 +3059,7 @@ html
             direct_io.write('}')
         else:
             return "{%s}" % ''.join([id_, format_, format_url,
-                                     generated_by, date,
+                                     generated_by, date, type_,
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
 
