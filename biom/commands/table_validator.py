@@ -45,8 +45,7 @@ class TableValidator(Command):
                   Required=False, Default=False),
         CommandIn(Name='format_version', DataType=str,
                   Description='the specific format version to validate '
-                  'against', Required=False,
-                  Default='1.0.0'),
+                  'against', Required=False, Default=None),
         CommandIn(Name='detailed_report', DataType=bool,
                   Description='include more details in the output report',
                   Required=False, Default=False)
@@ -71,6 +70,12 @@ class TableValidator(Command):
 
     def run(self, **kwargs):
         is_json = kwargs['is_json']
+
+        if kwargs['format_version'] in [None, 'None']:
+            if is_json:
+                kwargs['format_version'] = '1.0.0'
+            else:
+                kwargs['format_version'] = '2.0.0'
 
         # this is not pyqi-appriopriate, but how we parse this thing is
         # dependent on runtime options :(
