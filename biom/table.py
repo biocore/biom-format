@@ -2990,10 +2990,13 @@ html
             shape = '"shape": [%d, %d],' % (num_rows, num_cols)
 
         # Fill in the table type
-        if direct_io:
-            direct_io.write('"type": "%s",' % str(self.type))
+        if self.type is None:
+            type_ = '"type": null,'
         else:
-            type_ = '"type": "%s",' % str(self.type)
+            type_ = '"type": "%s",' % self.type
+
+        if direct_io:
+            direct_io.write(type_)
 
         # Fill in details about the rows in the table and fill in the matrix's
         # data.
