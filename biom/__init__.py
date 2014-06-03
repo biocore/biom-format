@@ -33,4 +33,12 @@ example_table = Table([[0, 1, 2], [3, 4, 5]], ['O1', 'O2'],
                        {'environment': 'A'}], input_is_dense=True)
 
 
-__all__ = ['Table', 'example_table', 'parse_table']
+def load_table(f):
+    from biom.util import biom_open
+    with biom_open(f) as fp:
+        table = parse_table(fp)
+    return table
+
+
+__all__ = ['Table', 'example_table', 'parse_table', 'load_table']
+
