@@ -43,7 +43,7 @@ class TableConverterTests(TestCase):
                        to_json=True)
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table'][0])
+        obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
@@ -57,7 +57,7 @@ class TableConverterTests(TestCase):
                        sample_metadata=self.sample_md1, to_json=True)
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table'][0])
+        obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
@@ -77,7 +77,7 @@ class TableConverterTests(TestCase):
                        process_obs_metadata='sc_separated', to_json=True)
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table'][0])
+        obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
