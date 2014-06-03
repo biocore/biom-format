@@ -55,7 +55,7 @@ The biom-format project has the following dependencies:
 
 The easiest way to install the latest version of the biom-format project and its required dependencies is via pip::
 
-    pip install numpy
+	pip install numpy
 	pip install biom-format
 
 That's it!
