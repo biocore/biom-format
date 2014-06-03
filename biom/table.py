@@ -2834,7 +2834,59 @@ html
     @classmethod
     def from_json(self, json_table, data_pump=None,
                   input_is_dense=False):
-        """Parse a biom otu table type"""
+        """Parse a biom otu table type
+
+        Parameters
+        ----------
+        json_table : dict
+        data_pump : tuple or None
+            A secondary source of data
+        input_is_dense : bool
+
+        Returns
+        -------
+        Table
+
+        Examples
+        --------
+        >>> from biom import Table
+        >>> json_obj = {"id": "None",
+        ...             "format": "Biological Observation Matrix 1.0.0",
+        ...             "format_url": "http://biom-format.org",
+        ...             "generated_by": "foo",
+        ...             "date": "2014-06-03T14:24:40.884420",
+        ...             "matrix_element_type": "float",
+        ...             "shape": [5, 6],
+        ...             "data": [[0,2,1.0],
+        ...                      [1,0,5.0],
+        ...                      [1,1,1.0],
+        ...                      [1,3,2.0],
+        ...                      [1,4,3.0],
+        ...                      [1,5,1.0],
+        ...                      [2,2,1.0],
+        ...                      [2,3,4.0],
+        ...                      [2,5,2.0],
+        ...                      [3,0,2.0],
+        ...                      [3,1,1.0],
+        ...                      [3,2,1.0],
+        ...                      [3,5,1.0],
+        ...                      [4,1,1.0],
+        ...                      [4,2,1.0]],
+        ...             "rows": [{"id": "GG_OTU_1", "metadata": None},
+        ...                      {"id": "GG_OTU_2", "metadata": None},
+        ...                      {"id": "GG_OTU_3", "metadata": None},
+        ...                      {"id": "GG_OTU_4", "metadata": None},
+        ...                      {"id": "GG_OTU_5", "metadata": None}],
+        ...             "columns": [{"id": "Sample1", "metadata": None},
+        ...                         {"id": "Sample2", "metadata": None},
+        ...                         {"id": "Sample3", "metadata": None},
+        ...                         {"id": "Sample4", "metadata": None},
+        ...                         {"id": "Sample5", "metadata": None},
+        ...                         {"id": "Sample6", "metadata": None}]
+        ...             }
+        >>> t = Table.from_json(json_obj)
+
+        """
         sample_ids = [col['id'] for col in json_table['columns']]
         sample_metadata = [col['metadata'] for col in json_table['columns']]
         obs_ids = [row['id'] for row in json_table['rows']]
