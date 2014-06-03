@@ -31,9 +31,9 @@ cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 usage_examples = [
     OptparseUsageExample(ShortDesc="Converting from classic to BIOM format",
                          LongDesc="Convert the classic file table.txt to a "
-                                  "sparse BIOM format OTU table",
+                                  "HDF5 BIOM format OTU table",
                          Ex='%prog -i table.txt -o table.biom '
-                            '--table-type "OTU table"')
+                            '--table-type "OTU table" --to-hdf5')
 ]
 
 inputs = [
