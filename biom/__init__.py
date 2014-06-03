@@ -6,7 +6,7 @@ Quick start
 .. currentmodule:: biom
 
 BIOM has an example table and two methods for reading in `Table` objects that
-are immediately available at the project level.
+are immediately available at the package level.
 
 Functions
 ---------
