@@ -10,12 +10,11 @@
     
     <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/print.css" type="text/css" />
     
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '1.3.1',
+        VERSION:     '2.0.0-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,13 +23,19 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/theme_extras.js"></script>
+    <script type="text/javascript" src="../_static/copybutton.js"></script>
     <link rel="top" title="biom-format.org" href="../index.html" />
     <link rel="up" title="BIOM Documentation" href="index.html" />
     <link rel="next" title="The biom file format: Version 1.0" href="format_versions/biom-1.0.html" />
     <link rel="prev" title="BIOM Documentation" href="index.html" /> 
   </head>
   <body>
+  
+  <a href="https://github.com/biocore/biom-format"><img
+    style="position: absolute; top: 0; right: 0; border: 0;"
+    src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+    alt="Fork me on GitHub"></a>
+
       <div class="header"><h1 class="heading"><a href="../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>The biom file format</span></h2>
@@ -58,42 +63,44 @@
 <li class="toctree-l2"><a class="reference internal" href="format_versions/biom-1.0.html#example-biom-files">Example biom files</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="format_versions/biom-2.0.html">The biom file format: Version 2.0</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="format_versions/biom-2.0.html#example-biom-files">Example biom files</a></li>
+</ul>
+</li>
 </ul>
 </div>
-<p>Release versions contain three integers in the following format: <tt class="docutils literal"><span class="pre">major-version.incremental-version.minor-version</span></tt>. When <tt class="docutils literal"><span class="pre">-dev</span></tt> is appended to the end of a version string that indicates a development (or between-release version). For example, <tt class="docutils literal"><span class="pre">1.0.0-dev</span></tt> would refer to the development version following the 1.0.0 release.</p>
+<p>Release versions contain three integers in the following format: <tt class="docutils literal"><span class="pre">major-version.minor-version.micro-version</span></tt>. When <tt class="docutils literal"><span class="pre">-dev</span></tt> is appended to the end of a version string that indicates a development (or between-release version). For example, <tt class="docutils literal"><span class="pre">1.0.0-dev</span></tt> would refer to the development version following the 1.0.0 release.</p>
 </div>
 <div class="section" id="tips-and-faqs-regarding-the-biom-file-format">
 <span id="sparse-or-dense"></span><h1>Tips and FAQs regarding the BIOM file format<a class="headerlink" href="#tips-and-faqs-regarding-the-biom-file-format" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="should-i-generate-sparse-or-dense-biom-files">
-<h2>Should I generate sparse or dense biom files?<a class="headerlink" href="#should-i-generate-sparse-or-dense-biom-files" title="Permalink to this headline">¶</a></h2>
-<p>In general, we recommend using the sparse format for your biom files. These will be a lot smaller than the dense format biom files when your data is sparse (i.e., more than 85% of your counts are zero). This is common for OTU tables and metagenome tables, and you&#8217;ll want to investigate whether it&#8217;s true for your data. If you currently format your data in tab-separated tables where observations are rows and samples are columns, you can format that file to be convertible to biom format with the <tt class="docutils literal"><span class="pre">biom</span> <span class="pre">convert</span></tt> command. Here you can create dense and sparse formats, and see which file size is smaller. See the section on <a class="reference internal" href="biom_conversion.html#converting"><em>Converting between file formats</em></a>.</p>
-</div>
 <div class="section" id="motivation-for-the-biom-format">
 <h2>Motivation for the BIOM format<a class="headerlink" href="#motivation-for-the-biom-format" title="Permalink to this headline">¶</a></h2>
-<p>The BIOM format was motivation by several goals. First, to facilitate efficient handling and storage of large, sparse biological contingency tables; second, to support encapsulation of core study data (contingency table data and sample/observation metadata) in a single file; and third, to facilitate the use of these tables between tools that support this format (e.g., passing of data between <a class="reference external" href="http://www.qiime.org">QIIME</a>, <a class="reference external" href="http://metagenomics.anl.gov">MG-RAST</a>, and <a class="reference external" href="http://vamps.mbl.edu/">VAMPS</a>.).</p>
+<p>The BIOM format was motivated by several goals. First, to facilitate efficient handling and storage of large, sparse biological contingency tables; second, to support encapsulation of core study data (contingency table data and sample/observation metadata) in a single file; and third, to facilitate the use of these tables between tools that support this format (e.g., passing of data between <a class="reference external" href="http://www.qiime.org">QIIME</a>, <a class="reference external" href="http://metagenomics.anl.gov">MG-RAST</a>, and <a class="reference external" href="http://vamps.mbl.edu/">VAMPS</a>.).</p>
 <div class="section" id="efficient-handling-and-storage-of-very-large-tables">
 <h3>Efficient handling and storage of very large tables<a class="headerlink" href="#efficient-handling-and-storage-of-very-large-tables" title="Permalink to this headline">¶</a></h3>
-<p>In QIIME, we began hitting limitations with OTU table objects when working with thousands of samples and hundreds of thousands of OTUs. In the near future we expect that we&#8217;ll be dealing with hundreds of thousands of samples in single analyses.</p>
+<p>In <a class="reference external" href="http://www.qiime.org">QIIME</a>, we began hitting limitations with OTU table objects when working with thousands of samples and hundreds of thousands of OTUs. In the near future we expect that we&#8217;ll be dealing with hundreds of thousands of samples in single analyses.</p>
 <p>The OTU table format up to QIIME 1.4.0 involved a dense matrix: if an OTU was not observed in a given sample, that would be indicated with a zero. We now primarily represent OTU tables in a sparse format: if an OTU is not observed in a sample, there is no count for that OTU. The two ways of representing this data are exemplified here.</p>
 <p>A dense representation of an OTU table:</p>
-<div class="highlight-python"><pre>OTU ID PC.354  PC.355  PC.356
+<div class="highlight-python"><div class="highlight"><pre>OTU ID PC.354  PC.355  PC.356
 OTU0   0   0   4
 OTU1   6   0   0
 OTU2   1   0   7
-OTU3   0   0   3</pre>
+OTU3   0   0   3
+</pre></div>
 </div>
 <p>A sparse representation of an OTU table:</p>
-<div class="highlight-python"><pre>PC.354 OTU1 6
+<div class="highlight-python"><div class="highlight"><pre>PC.354 OTU1 6
 PC.354 OTU2 1
 PC.356 OTU0 4
 PC.356 OTU2 7
-PC.356 OTU3 3</pre>
+PC.356 OTU3 3
+</pre></div>
 </div>
 <p>OTU table data tends to be sparse (e.g., greater than 90% of counts are zero, and frequently as many as 99% of counts are zero) in which case the latter format is more convenient to work with as it has a smaller memory footprint. Both of these representations are supported in the biom-format project via dense and sparse Table types. Generally if less than 85% of your counts are zero, a dense representation will be more efficient.</p>
 </div>
 <div class="section" id="encapsulation-of-core-study-data-otu-table-data-and-sample-otu-metadata-in-a-single-file">
 <h3>Encapsulation of core study data (OTU table data and sample/OTU metadata) in a single file<a class="headerlink" href="#encapsulation-of-core-study-data-otu-table-data-and-sample-otu-metadata-in-a-single-file" title="Permalink to this headline">¶</a></h3>
-<p>The JSON-format OTU table allow for storage of arbitrary amounts of sample and OTU metadata in a single file. Sample metadata corresponds to what is generally found in QIIME mapping files. At this stage inclusion of this information in the OTU table file is optional, but it may be useful for sharing these files with other QIIME users and for publishing or archiving results of analyses. OTU metadata (generally a taxonomic assignment for an OTU) is also optional. In contrast to the previous OTU table format, you can now store more than one OTU metadata value in this field, so for example you can score taxonomic assignments based on two different taxonomic assignment approaches.</p>
+<p>Formats, such as JSON and HDF5, made more efficient storage of highly sparse data and allowed for storage of arbitrary amounts of sample and OTU metadata in a single file. Sample metadata corresponds to what is generally found in QIIME mapping files. At this stage inclusion of this information in the OTU table file is optional, but it may be useful for sharing these files with other QIIME users and for publishing or archiving results of analyses. OTU metadata (generally a taxonomic assignment for an OTU) is also optional. In contrast to the previous OTU table format, you can now store more than one OTU metadata value in this field, so for example you can score taxonomic assignments based on two different taxonomic assignment approaches.</p>
 </div>
 <div class="section" id="facilitating-the-use-of-tables-between-tools-that-support-this-format">
 <h3>Facilitating the use of tables between tools that support this format<a class="headerlink" href="#facilitating-the-use-of-tables-between-tools-that-support-this-format" title="Permalink to this headline">¶</a></h3>
@@ -123,8 +130,8 @@ PC.356 OTU3 3</pre>
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Dec 04, 2013.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2b1.
+      Last updated on May 16, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 
