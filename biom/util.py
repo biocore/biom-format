@@ -8,6 +8,8 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import os
+import inspect
 from contextlib import contextmanager
 
 from collections import defaultdict
@@ -334,12 +336,24 @@ def biom_open(fp, permission='U'):
 
     Read or write the contents of a file
 
+    Parameters
+    ----------
     file_fp : file path
-    permission : either 'r','w','a'
+    permission : str, {'r', 'w', 'wb', 'rb', 'U'}
 
+    Returns
+    -------
+    [h5py.File, file, gzip.GzipFile]
+
+    Notes
+    -----
     If the file is binary, be sure to pass in a binary mode (append 'b' to
     the mode); opening a binary file in text mode (e.g., in default mode 'U')
     will have unpredictable results.
+
+    If h5py is available on the system, you cannot use biom_open to create a
+    writable ASCII file handle. You can use it to create writable GZIP handles
+    and HDF5 handles, however.
 
     This function is ported from QIIME (http://www.qiime.org), previously named
     qiime_open. QIIME is a GPL project, but we obtained permission from the
@@ -353,16 +367,53 @@ def biom_open(fp, permission='U'):
     mode = permission
 
     if HAVE_H5PY:
-        if h5py.is_hdf5(fp):
+        if mode in ['U', 'r', 'rb'] and h5py.is_hdf5(fp):
             opener = h5py.File
             mode = 'r' if permission == 'U' else permission
+        elif mode == 'w':
+            opener = h5py.File
 
-    if is_gzip(fp):
+    if mode in ['U', 'r', 'rb'] and is_gzip(fp):
         opener = gzip_open
         mode = 'rb' if permission in ['U', 'r'] else permission
+    elif mode in ['w', 'wb'] and fp.endswith('.gz'):
+        opener = gzip_open
 
     f = opener(fp, mode)
     try:
         yield f
     finally:
         f.close()
+
+
+def get_data_path(fn):
+    """Return path to filename ``fn`` in the data folder.
+
+    During testing it is often necessary to load data files. This
+    function returns the full path to files in the ``data`` subfolder.
+
+    Parameters
+    ----------
+    fn : str
+        File name.
+
+    Returns
+    -------
+    str
+        Inferred absolute path to the test data for the module where
+        ``get_data_path(fn)`` is called.
+
+    Notes
+    -----
+    The requested path may not point to an existing file, as its
+    existence is not checked.
+
+    This method was adapted from scikit-bio, specifically `skbio.util.testing`.
+    """
+    # getouterframes returns a list of tuples: the second tuple
+    # contains info about the caller, and the second element is its
+    # filename
+    callers_filename = inspect.getouterframes(inspect.currentframe())[1][1]
+    path = os.path.dirname(os.path.abspath(callers_filename))
+    data_path = os.path.join(path, 'test_data', fn)
+    return data_path
