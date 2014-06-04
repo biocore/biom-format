@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '2.0.0-dev',
+        VERSION:     '2.0.1-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -70,20 +70,21 @@
 </dl>
 <div class="section" id="general-usage-examples">
 <h2>General usage examples<a class="headerlink" href="#general-usage-examples" title="Permalink to this headline">¶</a></h2>
-<p>Convert a tab-delimited table to biom format. Note that you <em>must</em> specify the type of table here:</p>
-<div class="highlight-python"><div class="highlight"><pre>biom convert -i table.txt -o table.from_txt.biom --table-type=&quot;otu table&quot;
+<p>Convert a tab-delimited table to a HDF5 or JSON biom format. Note that you <em>must</em> specify the type of table here:</p>
+<div class="highlight-python"><div class="highlight"><pre>biom convert -i table.txt -o table.from_txt_json.biom --table-type=&quot;OTU table&quot; --to-json
+biom convert -i table.txt -o table.from_txt_hdf5.biom --table-type=&quot;OTU table&quot; --to-hdf5
 </pre></div>
 </div>
 <p>Convert biom format to tab-delimited table format:</p>
-<div class="highlight-python"><div class="highlight"><pre>biom convert -i table.biom -o table.from_biom.txt -b
+<div class="highlight-python"><div class="highlight"><pre>biom convert -i table.biom -o table.from_biom.txt --to-tsv
 </pre></div>
 </div>
 <p>Convert biom format to classic format, including the <tt class="docutils literal"><span class="pre">taxonomy</span></tt> observation metadata as the last column of the classic format table. Because the BIOM format can support an arbitrary number of observation (or sample) metadata entries, and the classic format can support only a single observation metadata entry, you must specify which of the observation metadata entries you want to include in the output table:</p>
-<div class="highlight-python"><div class="highlight"><pre>biom convert -i table.biom -o table.from_biom_w_taxonomy.txt -b --header-key taxonomy
+<div class="highlight-python"><div class="highlight"><pre>biom convert -i table.biom -o table.from_biom_w_taxonomy.txt --to-tsv --header-key taxonomy
 </pre></div>
 </div>
 <p>Convert biom format to classic format, including the <tt class="docutils literal"><span class="pre">taxonomy</span></tt> observation metadata as the last column of the classic format table, but renaming that column as <tt class="docutils literal"><span class="pre">ConsensusLineage</span></tt>. This is useful when using legacy tools that require a specific name for the observation metadata column.:</p>
-<div class="highlight-python"><div class="highlight"><pre>biom convert -i table.biom -o table.from_biom_w_consensuslineage.txt -b --header-key taxonomy --output-metadata-id &quot;ConsensusLineage&quot;
+<div class="highlight-python"><div class="highlight"><pre>biom convert -i table.biom -o table.from_biom_w_consensuslineage.txt --to-tsv --header-key taxonomy --output-metadata-id &quot;ConsensusLineage&quot;
 </pre></div>
 </div>
 </div>
@@ -96,7 +97,7 @@
 </pre></div>
 </div>
 <p>Then, you&#8217;ll want to perform the conversion including a step to convert the taxonomy <cite>string</cite> from the classic OTU table to a taxonomy <cite>list</cite>, as it&#8217;s represented in QIIME 1.4.0-dev and later:</p>
-<div class="highlight-python"><div class="highlight"><pre>biom convert -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --table-type=&quot;otu table&quot; --process-obs-metadata taxonomy
+<div class="highlight-python"><div class="highlight"><pre>biom convert -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --table-type=&quot;OTU table&quot; --process-obs-metadata taxonomy
 </pre></div>
 </div>
 </div>
@@ -120,7 +121,7 @@
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on May 16, 2014.
+      Last updated on Jun 03, 2014.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

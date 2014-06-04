@@ -13,21 +13,22 @@ The ``convert`` command in the biom-format project can be used to convert betwee
 General usage examples
 ----------------------
 
-Convert a tab-delimited table to biom format. Note that you *must* specify the type of table here::
+Convert a tab-delimited table to a HDF5 or JSON biom format. Note that you *must* specify the type of table here::
 
-	biom convert -i table.txt -o table.from_txt.biom --table-type="otu table"
+	biom convert -i table.txt -o table.from_txt_json.biom --table-type="OTU table" --to-json
+	biom convert -i table.txt -o table.from_txt_hdf5.biom --table-type="OTU table" --to-hdf5
 
 Convert biom format to tab-delimited table format::
 
-	biom convert -i table.biom -o table.from_biom.txt -b
+	biom convert -i table.biom -o table.from_biom.txt --to-tsv
 
 Convert biom format to classic format, including the ``taxonomy`` observation metadata as the last column of the classic format table. Because the BIOM format can support an arbitrary number of observation (or sample) metadata entries, and the classic format can support only a single observation metadata entry, you must specify which of the observation metadata entries you want to include in the output table::
 
-	biom convert -i table.biom -o table.from_biom_w_taxonomy.txt -b --header-key taxonomy
+	biom convert -i table.biom -o table.from_biom_w_taxonomy.txt --to-tsv --header-key taxonomy
 
 Convert biom format to classic format, including the ``taxonomy`` observation metadata as the last column of the classic format table, but renaming that column as ``ConsensusLineage``. This is useful when using legacy tools that require a specific name for the observation metadata column.::
 
-	biom convert -i table.biom -o table.from_biom_w_consensuslineage.txt -b --header-key taxonomy --output-metadata-id "ConsensusLineage"
+	biom convert -i table.biom -o table.from_biom_w_consensuslineage.txt --to-tsv --header-key taxonomy --output-metadata-id "ConsensusLineage"
 
 Special case usage examples
 ---------------------------
@@ -40,4 +41,4 @@ If you are converting a QIIME 1.4.0 or earlier OTU table to BIOM format, there a
 
 Then, you'll want to perform the conversion including a step to convert the taxonomy `string` from the classic OTU table to a taxonomy `list`, as it's represented in QIIME 1.4.0-dev and later::
 
-	biom convert -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --table-type="otu table" --process-obs-metadata taxonomy
+	biom convert -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --table-type="OTU table" --process-obs-metadata taxonomy
