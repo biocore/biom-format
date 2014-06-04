@@ -100,7 +100,7 @@ class TableConverter(Command):
         CommandIn(Name='process_obs_metadata', DataType=str,
                   Description='process metadata associated with observations '
                   'when converting from a classic table. Must be one of: %s' %
-                  ', '.join(ObservationMetadataTypes), Default='taxonomy'),
+                  ', '.join(ObservationMetadataTypes), Default=None),
         CommandIn(Name='tsv_metadata_formatter', DataType=str,
                   Description='Method for formatting the observation '
                   'metadata, must be one of: %s' %

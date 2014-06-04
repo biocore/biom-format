@@ -10,6 +10,7 @@
 
 from __future__ import division
 import json
+import sys
 from datetime import datetime
 from operator import and_
 from functools import reduce
@@ -44,8 +45,7 @@ class TableValidator(Command):
                   Required=False, Default=False),
         CommandIn(Name='format_version', DataType=str,
                   Description='the specific format version to validate '
-                  'against', Required=False,
-                  Default='1.0.0'),
+                  'against', Required=False, Default=None),
         CommandIn(Name='detailed_report', DataType=bool,
                   Description='include more details in the output report',
                   Required=False, Default=False)
@@ -71,6 +71,12 @@ class TableValidator(Command):
     def run(self, **kwargs):
         is_json = kwargs['is_json']
 
+        if kwargs['format_version'] in [None, 'None']:
+            if is_json:
+                kwargs['format_version'] = '1.0.0'
+            else:
+                kwargs['format_version'] = '2.0.0'
+
         # this is not pyqi-appriopriate, but how we parse this thing is
         # dependent on runtime options :(
         with biom_open(kwargs['table']) as f:
@@ -78,7 +84,13 @@ class TableValidator(Command):
                 kwargs['table'] = json.load(f)
                 return self._validate_json(**kwargs)
             elif HAVE_H5PY:
+                import h5py
                 kwargs['table'] = f
+
+                if not isinstance(f, h5py.File):
+                    print("Attempting to validate an HDF5 BIOM table, but the "
+                          "table does not appear to be in HDF5 format!")
+                    sys.exit(1)
                 return self._validate_hdf5(**kwargs)
             else:
                 raise IOError("h5py is not installed, can only validate JSON "
@@ -389,7 +401,9 @@ class TableValidator(Command):
 
     def _valid_format(self, table_json):
         """Format must be the expected version"""
-        if table_json['format'] != self._format_version:
+        formal = "Biological Observation Matrix %s" % self._format_version
+
+        if table_json['format'] not in [formal, self._format_version]:
             return "Invalid format '%s', must be '%s'" % (table_json['format'],
                                                           self._format_version)
         else:
