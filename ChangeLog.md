@@ -1,6 +1,23 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.0.1
+----------
+
+Bug fix release, released on June 3rd 2014
+
+Changes:
+
+* Light weight loading mechanism (`biom.load_table`) added
+* `Table.data` now has a default axis
+* Convert documentation updated
+* Quick start page added to documentation
+
+Bug fixes:
+
+* missing fields from JSON representation reintroduced
+* `TableConverter` works as expected
+
 biom 2.0.0
 ----------
 

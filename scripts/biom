@@ -15,7 +15,7 @@
 #                "Jai Ram Rideout"]
 # __license__ = "BSD"
 # __url__ = "http://biom-format.org"
-# __version__ = "2.0.0-dev"
+# __version__ = "2.0.1"
 # __maintainer__ = "Greg Caporaso"
 # __email__ = "gregcaporaso@gmail.com"
 
