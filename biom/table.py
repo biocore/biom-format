@@ -1956,7 +1956,7 @@ class Table(object):
             raise UnknownAxisError(axis)
 
         if axis == 'whole':
-            max_val = np.inf
+            max_val = -np.inf
             for data in self.iter_data(dense=False):
                 # only min over the actual nonzero values
                 max_val = max(max_val, data.data.max())
