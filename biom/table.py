@@ -1142,11 +1142,15 @@ class Table(object):
                               deepcopy(self.sample_metadata),
                               self.table_id)
 
-    def iter_data(self, axis='sample'):
+    def iter_data(self, dense=True, axis='sample'):
         """Yields axis values
 
         Parameters
         ----------
+        dense : bool, optional
+            Defaults to ``True``. If ``False``, yield compressed sparse row or
+            compressed sparse columns if `axis` is 'observation' or 'sample',
+            respectively.
         axis : {'sample', 'observation'}, optional
             Axis to iterate over.
 
@@ -1178,10 +1182,16 @@ class Table(object):
         """
         if axis == "sample":
             for samp_v in self._iter_samp():
-                yield self._to_dense(samp_v)
+                if dense:
+                    yield self._to_dense(samp_v)
+                else:
+                    yield samp_v
         elif axis == "observation":
             for obs_v in self._iter_obs():
-                yield self._to_dense(obs_v)
+                if dense:
+                    yield self._to_dense(obs_v)
+                else:
+                    yield obs_v
         else:
             raise UnknownAxisError(axis)
 
@@ -1876,6 +1886,92 @@ class Table(object):
             return 'sample'
         else:
             return UnknownAxisError(axis)
+
+    def min(self, axis='sample'):
+        """Get the minimum nonzero value over an axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation', 'whole'}, optional
+            Defaults to "sample". The axis over which to calculate minima.
+
+        Returns
+        -------
+        scalar of self.dtype or np.array of self.dtype
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> print example_table.min(axis='sample')
+        [ 3.  1.  2.]
+
+        """
+        if axis not in ['sample', 'observation', 'whole']:
+            raise UnknownAxisError(axis)
+
+        if axis == 'whole':
+            min_val = np.inf
+            for data in self.iter_data(dense=False):
+                # only min over the actual nonzero values
+                min_val = min(min_val, data.data.min())
+        else:
+            if axis == 'observation':
+                min_val = zeros(len(self.observation_ids), dtype=self.dtype)
+            else:
+                min_val = zeros(len(self.sample_ids), dtype=self.dtype)
+
+            for idx, data in enumerate(self.iter_data(dense=False, axis=axis)):
+                min_val[idx] = data.data.min()
+
+        return min_val
+
+    def max(self, axis='sample'):
+        """Get the maximum nonzero value over an axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation', 'whole'}, optional
+            Defaults to "sample". The axis over which to calculate maxima.
+
+        Returns
+        -------
+        scalar of self.dtype or np.array of self.dtype
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> print example_table.max(axis='observation')
+        [ 2.  5.]
+
+        """
+        if axis not in ['sample', 'observation', 'whole']:
+            raise UnknownAxisError(axis)
+
+        if axis == 'whole':
+            max_val = -np.inf
+            for data in self.iter_data(dense=False):
+                # only min over the actual nonzero values
+                max_val = max(max_val, data.data.max())
+        else:
+            if axis == 'observation':
+                max_val = np.empty(len(self.observation_ids), dtype=self.dtype)
+            else:
+                max_val = np.empty(len(self.sample_ids), dtype=self.dtype)
+
+            for idx, data in enumerate(self.iter_data(dense=False, axis=axis)):
+                max_val[idx] = data.data.max()
+
+        return max_val
 
     def subsample(self, n, axis='sample'):
         """Randomly subsample without replacement.

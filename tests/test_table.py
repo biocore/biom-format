@@ -240,6 +240,36 @@ class TableTests(TestCase):
         obs = Table(data, obs_ids, samp_ids)
         self.assertEqual(obs, exp)
 
+    def test_min_observation(self):
+        exp = np.array([5, 7])
+        obs = self.simple_derived.min('observation')
+        npt.assert_equal(obs, exp)
+
+    def test_min_sample(self):
+        exp = np.array([5, 6])
+        obs = self.simple_derived.min('sample')
+        npt.assert_equal(obs, exp)
+
+    def test_min_whole(self):
+        exp = 5
+        obs = self.simple_derived.min('whole')
+        npt.assert_equal(obs, exp)
+
+    def test_max_observation(self):
+        exp = np.array([6, 8])
+        obs = self.simple_derived.max('observation')
+        npt.assert_equal(obs, exp)
+
+    def test_max_sample(self):
+        exp = np.array([7, 8])
+        obs = self.simple_derived.max('sample')
+        npt.assert_equal(obs, exp)
+
+    def test_max_whole(self):
+        exp = 8
+        obs = self.simple_derived.max('whole')
+        npt.assert_equal(obs, exp)
+
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
@@ -1407,6 +1437,18 @@ class SparseTableTests(TestCase):
         exp = np.array([42.0])
         obs = self.st1._to_dense(input_vec)
         npt.assert_equal(obs, exp)
+
+    def test_iter_data_dense(self):
+        exp = [np.array([5, 7]), np.array([6, 8])]
+        obs = list(self.st1.iter_data())
+        npt.assert_equal(obs, exp)
+
+    def test_iter_data_sparse(self):
+        exp = [csr_matrix(np.array([5, 7])),
+               csr_matrix(np.array([6, 8]))]
+        obs = list(self.st1.iter_data(dense=False))
+        for o, e in zip(obs, exp):
+            self.assertTrue((o != e).nnz == 0)
 
     def test_iter(self):
         """Should iterate over samples"""
