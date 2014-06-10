@@ -1907,7 +1907,7 @@ class Table(object):
         --------
         >>> from biom import example_table
         >>> print example_table.min(axis='sample')
-        [ 0.  1.  2.]
+        [ 3.  1.  2.]
 
         """
         if axis not in ['sample', 'observation', 'whole']:
