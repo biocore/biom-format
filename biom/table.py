@@ -1892,7 +1892,8 @@ class Table(object):
 
         Parameters
         ----------
-        axis : str, {'sample', 'observation', 'whole'}
+        axis : {'sample', 'observation', 'whole'}, optional
+            Defaults to "sample". The axis over which to calculate minima.
 
         Returns
         -------
@@ -1934,7 +1935,8 @@ class Table(object):
 
         Parameters
         ----------
-        axis : str, {'sample', 'observation', 'whole'}
+        axis : {'sample', 'observation', 'whole'}, optional
+            Defaults to "sample". The axis over which to calculate maxima.
 
         Returns
         -------
