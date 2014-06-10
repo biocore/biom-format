@@ -217,6 +217,14 @@ class TableTests(TestCase):
             for f in self.to_remove:
                 os.remove(f)
 
+    def test_data_property(self):
+        exp = self.simple_derived._data
+        obs = self.simple_derived.matrix_data
+        self.assertEqual((obs != exp).nnz, 0)
+
+        with self.assertRaises(AttributeError):
+            self.simple_derived.matrix_data = 'foo'
+
     def test_repr(self):
         """__repr__ method of biom.table.Table"""
         # table

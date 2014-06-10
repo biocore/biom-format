@@ -453,7 +453,7 @@ class Table(object):
         return self._data.nnz
 
     @property
-    def data(self):
+    def matrix_data(self):
         """The sparse matrix object"""
         return self._data
 
