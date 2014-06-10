@@ -1142,11 +1142,15 @@ class Table(object):
                               deepcopy(self.sample_metadata),
                               self.table_id)
 
-    def iter_data(self, axis='sample'):
+    def iter_data(self, dense=True, axis='sample'):
         """Yields axis values
 
         Parameters
         ----------
+        dense : bool, optional
+            Defaults to ``True``. If ``False``, yield compressed sparse row or
+            compressed sparse columns if `axis` is 'observation' or 'sample',
+            respectively.
         axis : {'sample', 'observation'}, optional
             Axis to iterate over.
 
@@ -1178,10 +1182,16 @@ class Table(object):
         """
         if axis == "sample":
             for samp_v in self._iter_samp():
-                yield self._to_dense(samp_v)
+                if dense:
+                    yield self._to_dense(samp_v)
+                else:
+                    yield samp_v
         elif axis == "observation":
             for obs_v in self._iter_obs():
-                yield self._to_dense(obs_v)
+                if dense:
+                    yield self._to_dense(obs_v)
+                else:
+                    yield obs_v
         else:
             raise UnknownAxisError(axis)
 
@@ -1905,7 +1915,7 @@ class Table(object):
 
         if axis == 'whole':
             min_val = np.inf
-            for data, id_, md in self.iter(dense=False):
+            for data in self.iter_data(dense=False):
                 # only min over the actual nonzero values
                 min_val = min(min_val, data.data.min())
         else:
@@ -1914,7 +1924,7 @@ class Table(object):
             else:
                 min_val = zeros(len(self.sample_ids), dtype=self.dtype)
 
-            for idx, data in enumerate(self.iter(dense=False, axis=axis)):
+            for idx, data in enumerate(self.iter_data(dense=False, axis=axis)):
                 min_val[idx] = data.data.min()
 
         return min_val
@@ -1947,7 +1957,7 @@ class Table(object):
 
         if axis == 'whole':
             max_val = np.inf
-            for data, id_, md in self.iter(dense=False):
+            for data in self.iter_data(dense=False):
                 # only min over the actual nonzero values
                 max_val = max(max_val, data.data.max())
         else:
@@ -1956,10 +1966,10 @@ class Table(object):
             else:
                 max_val = np.empty(len(self.sample_ids), dtype=self.dtype)
 
-            for idx, data in enumerate(self.iter(dense=False, axis=axis)):
+            for idx, data in enumerate(self.iter_data(dense=False, axis=axis)):
                 max_val[idx] = data.data.max()
 
-        return min_val
+        return max_val
 
     def subsample(self, n, axis='sample'):
         """Randomly subsample without replacement.

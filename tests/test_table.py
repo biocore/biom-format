@@ -1438,6 +1438,18 @@ class SparseTableTests(TestCase):
         obs = self.st1._to_dense(input_vec)
         npt.assert_equal(obs, exp)
 
+    def test_iter_data_dense(self):
+        exp = [np.array([5, 7]), np.array([6, 8])]
+        obs = list(self.st1.iter_data())
+        npt.assert_equal(obs, exp)
+
+    def test_iter_data_sparse(self):
+        exp = [csr_matrix(np.array([5, 7])),
+               csr_matrix(np.array([6, 8]))]
+        obs = list(self.st1.iter_data(dense=False))
+        for o, e in zip(obs, exp):
+            self.assertTrue((o != e).nnz == 0)
+
     def test_iter(self):
         """Should iterate over samples"""
         exp = [(np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)]
