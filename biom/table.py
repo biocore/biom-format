@@ -1877,6 +1877,90 @@ class Table(object):
         else:
             return UnknownAxisError(axis)
 
+    def min(self, axis='sample'):
+        """Get the minimum nonzero value over an axis
+
+        Parameters
+        ----------
+        axis : str, {'sample', 'observation', 'whole'}
+
+        Returns
+        -------
+        scalar of self.dtype or np.array of self.dtype
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> print example_table.min(axis='sample')
+        [ 0.  1.  2.]
+
+        """
+        if axis not in ['sample', 'observation', 'whole']:
+            raise UnknownAxisError(axis)
+
+        if axis == 'whole':
+            min_val = np.inf
+            for data, id_, md in self.iter(dense=False):
+                # only min over the actual nonzero values
+                min_val = min(min_val, data.data.min())
+        else:
+            if axis == 'observation':
+                min_val = zeros(len(self.observation_ids), dtype=self.dtype)
+            else:
+                min_val = zeros(len(self.sample_ids), dtype=self.dtype)
+
+            for idx, data in enumerate(self.iter(dense=False, axis=axis)):
+                min_val[idx] = data.data.min()
+
+        return min_val
+
+    def max(self, axis='sample'):
+        """Get the maximum nonzero value over an axis
+
+        Parameters
+        ----------
+        axis : str, {'sample', 'observation', 'whole'}
+
+        Returns
+        -------
+        scalar of self.dtype or np.array of self.dtype
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> print example_table.max(axis='observation')
+        [ 2.  5.]
+
+        """
+        if axis not in ['sample', 'observation', 'whole']:
+            raise UnknownAxisError(axis)
+
+        if axis == 'whole':
+            max_val = np.inf
+            for data, id_, md in self.iter(dense=False):
+                # only min over the actual nonzero values
+                max_val = max(max_val, data.data.max())
+        else:
+            if axis == 'observation':
+                max_val = np.empty(len(self.observation_ids), dtype=self.dtype)
+            else:
+                max_val = np.empty(len(self.sample_ids), dtype=self.dtype)
+
+            for idx, data in enumerate(self.iter(dense=False, axis=axis)):
+                max_val[idx] = data.data.max()
+
+        return min_val
+
     def subsample(self, n, axis='sample'):
         """Randomly subsample without replacement.
 
