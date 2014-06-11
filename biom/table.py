@@ -452,6 +452,11 @@ class Table(object):
         """Number of non-zero elements of the underlying contingency matrix"""
         return self._data.nnz
 
+    @property
+    def matrix_data(self):
+        """The sparse matrix object"""
+        return self._data
+
     def add_metadata(self, md, axis='sample'):
         """Take a dict of metadata and add it to an axis.
 
