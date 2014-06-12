@@ -14,6 +14,7 @@ from types import FunctionType
 
 import numpy as np
 cimport numpy as cnp
+from cpython cimport bool
 
 from scipy.sparse import csr_matrix
 
@@ -57,7 +58,8 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
                                metadata,
                                func,
                                axis,
-                               cnp.uint8_t invert):
+                               cnp.uint8_t invert,
+                               compressed_vals):
     """Faster version of
     [func(vals_i, id_i, md_i) ^ invert for
     (vals_i, id_i, md_i) in zip(ids, metadata, rows/cols)]
@@ -70,14 +72,17 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
         cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
             np.empty(len(ids), dtype=np.uint8)
         cnp.int32_t start, end
+        bool compressed = compressed_vals
 
     for i in range(len(ids)):
         start, end = indptr[i], indptr[i+1]
-        row_or_col = csr_matrix((data[start:end],
-                                 indices[start:end],
-                                 [0, end-start]),
-                                shape=(1, n))
+        if compressed:
+            row_or_col = data[start:end]
+        else:
+            row_or_col = np.zeros(n)
+            row_or_col.put(indices[start:end], data[start:end])
         bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
+
     return bools
 
 cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
@@ -109,7 +114,7 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
 
-def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
+def _filter(arr, ids, metadata, ids_to_keep, axis, invert, compressed_vals,
             remove=True):
     """Filter row/columns of a sparse matrix according to the output of a
     boolean function.
@@ -122,6 +127,7 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
     ids_to_keep : function or iterable
     axis : int
     invert : bool
+    compressed_vals : bool
     remove : bool
         Whether to "compact" or not the filtered matrix (i.e., keep
         the original size if ``False``, else reduce the shape of the
@@ -154,7 +160,7 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
             metadata = (None,) * len(ids)
 
         bools = _make_filter_array_general(arr, ids, metadata, ids_to_keep,
-                                           axis, invert)
+                                           axis, invert, compressed_vals)
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
 

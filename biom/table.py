@@ -1381,27 +1381,37 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    def filter(self, ids_to_keep, axis='sample', invert=False, inplace=True):
+    def filter(self, ids_to_keep, axis='sample', invert=False, inplace=True,
+               compressed_vals=False):
         """Filter a table based on a function or iterable.
 
         Parameters
         ----------
         ids_to_keep : iterable, or function(values, id, metadata) -> bool
-            If a function, it will be called with the id (a string),
-            the dictionary of metadata of each sample/observation and
-            the nonzero values of the sample/observation, and must
-            return a boolean.
-            If it's an iterable, it will be converted to an array of
-            bools.
+            If a function, it will be called with the nonzero values
+            of the sample/observation (see also the `compressed_vals`
+            parameter), its id (a string) and the dictionary of
+            metadata of each sample/observation, and must return a
+            boolean. If it's an iterable, it will be converted to an
+            array of bools.
         axis : {'sample', 'observation'}, optional
-            It controls whether to filter samples or observations. Can
-            be "sample" or "observation".
+            It controls whether to filter samples or observations and
+            defaults to "sample".
         invert : bool, optional
             Defaults to ``False``. If set to ``True``, discard samples or
             observations where `ids_to_keep` returns True
         inplace : bool, optional
             Defaults to ``True``. Whether to return a new table or modify
             itself.
+        compressed_vals : bool, optional
+            Defaults to ``False``. If ``False``, `ids_to_keep` will
+            only receive the nonzero values of each
+            sample/observation, without information about the
+            positional information about the values. Else, it will
+            receive a dense vector (this is less memory efficient and
+            slower). E.g., if the numerical values for a sample are
+            [0, 1, 0, 3], the `ids_to_keep` function would receive [1,
+            3] or [0, 1, 0, 3] respectively.
 
         Returns
         -------
@@ -1487,7 +1497,8 @@ class Table(object):
                                      metadata,
                                      ids_to_keep,
                                      axis,
-                                     invert=invert)
+                                     invert=invert,
+                                     compressed_vals=compressed_vals)
 
         table._data = arr
         if axis == 1:
