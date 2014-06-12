@@ -1632,6 +1632,9 @@ class SparseTableTests(TestCase):
         f_2 = lambda vals, id_, md: np.all(vals == np.array([5, 7]))
         obs_table_2 = table.filter(f_2, 'sample', inplace=False)
         self.assertEqual(obs_table_2, exp_table)
+        obs_table_3 = table.filter(f_2, 'sample', inplace=False,
+                                   compressed_vals=False)
+        self.assertEqual(obs_table_3, exp_table)
 
     def test_filter_general_observation(self):
         f = lambda vals, id_, md: md['taxonomy'][1] == 'p__c'
