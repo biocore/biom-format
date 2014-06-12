@@ -73,10 +73,10 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
     for i in range(len(ids)):
         start, end = indptr[i], indptr[i+1]
         if compressed_vals:
+            row_or_col = data[start:end]
+        else:
             row_or_col = np.zeros(n)
             row_or_col.put(indices[start:end], data[start:end])
-        else:
-            row_or_col = data[start:end]
         bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
 
     return bools

@@ -1382,7 +1382,7 @@ class Table(object):
             raise UnknownAxisError(axis)
 
     def filter(self, ids_to_keep, axis='sample', invert=False, inplace=True,
-               compressed_vals=False):
+               compressed_vals=True):
         """Filter a table based on a function or iterable.
 
         Parameters
@@ -1404,7 +1404,7 @@ class Table(object):
             Defaults to ``True``. Whether to return a new table or modify
             itself.
         compressed_vals : bool, optional
-            Defaults to ``False``. If ``False``, `ids_to_keep` will
+            Defaults to ``True``. If ``True``, `ids_to_keep` will
             only receive the nonzero values of each
             sample/observation, without information about the
             positional information about the values. Else, it will
