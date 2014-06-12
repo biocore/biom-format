@@ -15,8 +15,6 @@ from types import FunctionType
 import numpy as np
 cimport numpy as cnp
 
-from scipy.sparse import csr_matrix
-
 from biom.exception import TableException
 
 
