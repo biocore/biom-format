@@ -14,7 +14,6 @@ from types import FunctionType
 
 import numpy as np
 cimport numpy as cnp
-from cpython cimport bool
 
 from scipy.sparse import csr_matrix
 
@@ -66,22 +65,23 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
     """
     cdef:
         Py_ssize_t i, n = arr.shape[::-1][axis]
-        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
+        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data, row_or_col
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr, \
                                          indices = arr.indices
         cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
             np.empty(len(ids), dtype=np.uint8)
         cnp.int32_t start, end
-        bool compressed = compressed_vals
 
-    for i in range(len(ids)):
-        start, end = indptr[i], indptr[i+1]
-        if compressed:
-            row_or_col = data[start:end]
-        else:
+    if compressed_vals:
+        for i in range(len(ids)):
+            start, end = indptr[i], indptr[i+1]
             row_or_col = np.zeros(n)
             row_or_col.put(indices[start:end], data[start:end])
-        bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
+            bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
+    else:
+        for i in range(len(ids)):
+            start, end = indptr[i], indptr[i+1]
+            bools[i] = bool(func(data[start:end], ids[i], metadata[i])) ^ invert
 
     return bools
 
