@@ -54,21 +54,26 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
                                ids,
                                metadata,
                                func,
+                               axis,
                                cnp.uint8_t invert):
     """Faster version of
     [func(vals_i, id_i, md_i) ^ invert for
     (vals_i, id_i, md_i) in zip(ids, metadata, rows/cols)]
     """
     cdef:
-        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
-        cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
+        Py_ssize_t i, n = arr.shape[::-1][axis]
+        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data, row_or_col
+        cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr, \
+                                         indices = arr.indices
         cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
             np.empty(len(ids), dtype=np.uint8)
         cnp.int32_t start, end
-        Py_ssize_t i
+
     for i in range(len(ids)):
         start, end = indptr[i], indptr[i+1]
-        bools[i] = bool(func(data[start:end], ids[i], metadata[i])) ^ invert
+        row_or_col = np.zeros(n)
+        row_or_col.put(indices[start:end], data[start:end])
+        bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
     return bools
 
 cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
@@ -127,8 +132,8 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
     invert = bool(invert)
     metadata_is_None = metadata is None
 
-    # General version (i.e., filter functions accepts ids, metadata
-    # and values) requires CSR for axis 0 and CSC for axis 1.
+    # General version (i.e., filter functions accepts values, ids and
+    # metadata) requires CSR for axis 0 and CSC for axis 1.
     if axis == 0:
         arr = arr.tocsr()
     elif axis == 1:
@@ -145,7 +150,7 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
             metadata = (None,) * len(ids)
 
         bools = _make_filter_array_general(arr, ids, metadata, ids_to_keep,
-                                           invert)
+                                           axis, invert)
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
 
