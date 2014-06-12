@@ -72,16 +72,14 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
             np.empty(len(ids), dtype=np.uint8)
         cnp.int32_t start, end
 
-    if compressed_vals:
-        for i in range(len(ids)):
-            start, end = indptr[i], indptr[i+1]
+    for i in range(len(ids)):
+        start, end = indptr[i], indptr[i+1]
+        if compressed_vals:
             row_or_col = np.zeros(n)
             row_or_col.put(indices[start:end], data[start:end])
-            bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
-    else:
-        for i in range(len(ids)):
-            start, end = indptr[i], indptr[i+1]
-            bools[i] = bool(func(data[start:end], ids[i], metadata[i])) ^ invert
+        else:
+            row_or_col = data[start:end]
+        bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
 
     return bools
 
