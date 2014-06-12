@@ -15,6 +15,8 @@ from types import FunctionType
 import numpy as np
 cimport numpy as cnp
 
+from scipy.sparse import csr_matrix
+
 from biom.exception import TableException
 
 
@@ -62,7 +64,7 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
     """
     cdef:
         Py_ssize_t i, n = arr.shape[::-1][axis]
-        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data, row_or_col
+        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr, \
                                          indices = arr.indices
         cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
@@ -71,8 +73,10 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
 
     for i in range(len(ids)):
         start, end = indptr[i], indptr[i+1]
-        row_or_col = np.zeros(n)
-        row_or_col.put(indices[start:end], data[start:end])
+        row_or_col = csr_matrix((data[start:end],
+                                 indices[start:end],
+                                 [0, end-start]),
+                                shape=(1, n))
         bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
     return bools
 
