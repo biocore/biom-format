@@ -6,7 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from __future__ import division
+from __future__ import division, print_function
 
 from itertools import compress
 from collections import Iterable
@@ -62,8 +62,9 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
     (vals_i, id_i, md_i) in zip(ids, metadata, rows/cols)]
     """
     cdef:
-        Py_ssize_t i, n = arr.shape[::-1][axis]
-        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data, row_or_col
+        Py_ssize_t i, j, k, n = arr.shape[::-1][axis]
+        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data, \
+                                           row_or_col = np.zeros(n)
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr, \
                                          indices = arr.indices
         cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
@@ -72,11 +73,13 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
 
     for i in range(len(ids)):
         start, end = indptr[i], indptr[i+1]
-        if compressed_vals:
-            row_or_col = data[start:end]
-        else:
-            row_or_col = np.zeros(n)
-            row_or_col.put(indices[start:end], data[start:end])
+        for j in range(n):
+            if start >= end or j < indices[start]:
+                row_or_col[j] = 0
+            elif j == indices[start]:
+                row_or_col[j] = data[start]
+                start += 1
+
         bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
 
     return bools
