@@ -1123,6 +1123,12 @@ class SparseTableTests(TestCase):
         self.single_obs_st = Table(np.array([[2.0, 0.0, 1.0]]),
                                    ['01'], ['S1', 'S2', 'S3'])
 
+        self.sparse_table = Table(np.array([[1, 0, 2, 0],
+                                            [0, 3, 4, 0],
+                                            [0, 5, 0, 0]]),
+                                  ['O1', 'O2', 'O3'],
+                                  ['S1', 'S2', 'S3', 'S4'])
+
     def test_sum(self):
         """Test of sum!"""
         self.assertEqual(self.st1.sum('whole'), 26)
@@ -1598,6 +1604,27 @@ class SparseTableTests(TestCase):
         copied_table = self.st_rich.copy()
         self.st_rich._data *= 2
         self.assertNotEqual(copied_table, self.st_rich)
+
+    def test_filter_table_with_zeros(self):
+        table = self.sparse_table
+        f_sample = lambda vals, id_, md: vals.size == table.shape[0]
+        f_obs = lambda vals, id_, md: vals.size == table.shape[1]
+
+        obs = table.filter(f_sample, inplace=False)
+        self.assertEqual(obs, table)
+
+        obs = table.filter(f_obs, 'observation', inplace=False)
+        self.assertEqual(obs, table)
+
+        f = lambda vals, id_, md: (np.all(vals == [1, 0, 0]) or
+                                   np.all(vals == [0, 0, 0]))
+        obs = table.filter(f, inplace=False)
+        exp = Table(np.array([[1, 0],
+                              [0, 0],
+                              [0, 0]]),
+                    ['O1', 'O2', 'O3'],
+                    ['S1', 'S4'])
+        self.assertEqual(obs, exp)
 
     def test_filter_id_state(self):
         f = lambda vals, id_, md: id_[0] == 'b'

@@ -1424,15 +1424,14 @@ class Table(object):
         Parameters
         ----------
         ids_to_keep : iterable, or function(values, id, metadata) -> bool
-            If a function, it will be called with the id (a string),
-            the dictionary of metadata of each sample/observation and
-            the nonzero values of the sample/observation, and must
-            return a boolean.
-            If it's an iterable, it will be converted to an array of
-            bools.
+            If a function, it will be called with the values of the
+            sample/observation, its id (a string) and the dictionary
+            of metadata of each sample/observation, and must return a
+            boolean. If it's an iterable, it will be converted to an
+            array of bools.
         axis : {'sample', 'observation'}, optional
-            It controls whether to filter samples or observations. Can
-            be "sample" or "observation".
+            It controls whether to filter samples or observations and
+            defaults to "sample".
         invert : bool, optional
             Defaults to ``False``. If set to ``True``, discard samples or
             observations where `ids_to_keep` returns True
@@ -1504,6 +1503,7 @@ class Table(object):
         1 x 2 <class 'biom.table.Table'> with 0 nonzero entries (0% dense)
         >>> print table.observation_ids
         ['O1']
+
         """
         table = self if inplace else self.copy()
 
@@ -2130,8 +2130,8 @@ class Table(object):
     def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
-        Only non null values can be modified  the density of the table can't
-        increase. However, zeroing values is fine.
+        Only non null values can be modified and the density of the
+        table can't increase. However, zeroing values is fine.
 
         Parameters
         ----------
@@ -2213,6 +2213,7 @@ class Table(object):
         #OTU ID S1  S2  S3
         O1  0.0 0.0 0.5
         O2  0.5 1.5 21.0
+
         """
         table = self if inplace else self.copy()
 

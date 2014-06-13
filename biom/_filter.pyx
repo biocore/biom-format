@@ -6,7 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from __future__ import division
+from __future__ import division, print_function
 
 from itertools import compress
 from collections import Iterable
@@ -54,21 +54,40 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
                                ids,
                                metadata,
                                func,
+                               axis,
                                cnp.uint8_t invert):
     """Faster version of
     [func(vals_i, id_i, md_i) ^ invert for
     (vals_i, id_i, md_i) in zip(ids, metadata, rows/cols)]
     """
     cdef:
-        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
-        cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
+        Py_ssize_t i, j, n = arr.shape[::-1][axis]
+        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data, \
+                                           row_or_col = np.zeros(n)
+        cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr, \
+                                         indices = arr.indices
         cnp.ndarray[cnp.uint8_t, ndim=1] bools = \
             np.empty(len(ids), dtype=np.uint8)
         cnp.int32_t start, end
-        Py_ssize_t i
+
     for i in range(len(ids)):
         start, end = indptr[i], indptr[i+1]
-        bools[i] = bool(func(data[start:end], ids[i], metadata[i])) ^ invert
+
+        # The following loop should be equivalent to
+        # row_or_col = np.zeros(n)
+        # row_or_col.put(indices[start:end], data[start:end])
+        for j in range(n):
+            if start >= end or j < indices[start]:
+                row_or_col[j] = 0
+            elif j == indices[start]:
+                row_or_col[j] = data[start]
+                start += 1
+
+        # After converting the output of the filtering function to a
+        # bool, we XOR it with invert (if invert is false it doesn't
+        # modify the function output, if it's true it inverts it).
+        bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
+
     return bools
 
 cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
@@ -100,8 +119,7 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
 
-def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
-            remove=True):
+def _filter(arr, ids, metadata, ids_to_keep, axis, invert, remove=True):
     """Filter row/columns of a sparse matrix according to the output of a
     boolean function.
 
@@ -127,8 +145,8 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
     invert = bool(invert)
     metadata_is_None = metadata is None
 
-    # General version (i.e., filter functions accepts ids, metadata
-    # and values) requires CSR for axis 0 and CSC for axis 1.
+    # General version (i.e., filter functions accepts values, ids and
+    # metadata) requires CSR for axis 0 and CSC for axis 1.
     if axis == 0:
         arr = arr.tocsr()
     elif axis == 1:
@@ -145,7 +163,7 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert,
             metadata = (None,) * len(ids)
 
         bools = _make_filter_array_general(arr, ids, metadata, ids_to_keep,
-                                           invert)
+                                           axis, invert)
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
 
