@@ -72,6 +72,10 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
 
     for i in range(len(ids)):
         start, end = indptr[i], indptr[i+1]
+
+        # The following loop should be equivalent to
+        # row_or_col = np.zeros(n)
+        # row_or_col.put(indices[start:end], data[start:end])
         for j in range(n):
             if start >= end or j < indices[start]:
                 row_or_col[j] = 0
