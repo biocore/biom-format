@@ -1381,17 +1381,15 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    def filter(self, ids_to_keep, axis='sample', invert=False, inplace=True,
-               compressed_vals=True):
+    def filter(self, ids_to_keep, axis='sample', invert=False, inplace=True):
         """Filter a table based on a function or iterable.
 
         Parameters
         ----------
         ids_to_keep : iterable, or function(values, id, metadata) -> bool
-            If a function, it will be called with the nonzero values
-            of the sample/observation (see also the `compressed_vals`
-            parameter), its id (a string) and the dictionary of
-            metadata of each sample/observation, and must return a
+            If a function, it will be called with the values of the
+            sample/observation, its id (a string) and the dictionary
+            of metadata of each sample/observation, and must return a
             boolean. If it's an iterable, it will be converted to an
             array of bools.
         axis : {'sample', 'observation'}, optional
@@ -1403,15 +1401,6 @@ class Table(object):
         inplace : bool, optional
             Defaults to ``True``. Whether to return a new table or modify
             itself.
-        compressed_vals : bool, optional
-            Defaults to ``True``. If ``True``, `ids_to_keep` will
-            only receive the nonzero values of each
-            sample/observation, without information about the
-            positional information about the values. Else, it will
-            receive a dense vector (this is less memory efficient and
-            slower). E.g., if the numerical values for a sample are
-            [0, 1, 0, 3], the `ids_to_keep` function would receive [1,
-            3] or [0, 1, 0, 3] respectively.
 
         Returns
         -------
@@ -1477,6 +1466,7 @@ class Table(object):
         1 x 2 <class 'biom.table.Table'> with 0 nonzero entries (0% dense)
         >>> print table.observation_ids
         ['O1']
+
         """
         table = self if inplace else self.copy()
 
@@ -1497,8 +1487,7 @@ class Table(object):
                                      metadata,
                                      ids_to_keep,
                                      axis,
-                                     invert=invert,
-                                     compressed_vals=compressed_vals)
+                                     invert=invert)
 
         table._data = arr
         if axis == 1:

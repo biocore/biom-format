@@ -55,14 +55,13 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
                                metadata,
                                func,
                                axis,
-                               cnp.uint8_t invert,
-                               compressed_vals):
+                               cnp.uint8_t invert):
     """Faster version of
     [func(vals_i, id_i, md_i) ^ invert for
     (vals_i, id_i, md_i) in zip(ids, metadata, rows/cols)]
     """
     cdef:
-        Py_ssize_t i, j, k, n = arr.shape[::-1][axis]
+        Py_ssize_t i, j, n = arr.shape[::-1][axis]
         cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data, \
                                            row_or_col = np.zeros(n)
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr, \
@@ -113,8 +112,7 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
 
-def _filter(arr, ids, metadata, ids_to_keep, axis, invert, compressed_vals,
-            remove=True):
+def _filter(arr, ids, metadata, ids_to_keep, axis, invert, remove=True):
     """Filter row/columns of a sparse matrix according to the output of a
     boolean function.
 
@@ -126,7 +124,6 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert, compressed_vals,
     ids_to_keep : function or iterable
     axis : int
     invert : bool
-    compressed_vals : bool
     remove : bool
         Whether to "compact" or not the filtered matrix (i.e., keep
         the original size if ``False``, else reduce the shape of the
@@ -159,7 +156,7 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert, compressed_vals,
             metadata = (None,) * len(ids)
 
         bools = _make_filter_array_general(arr, ids, metadata, ids_to_keep,
-                                           axis, invert, compressed_vals)
+                                           axis, invert)
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
 
