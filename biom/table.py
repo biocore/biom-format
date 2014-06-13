@@ -2093,8 +2093,8 @@ class Table(object):
     def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
-        Only non null values can be modified  the density of the table can't
-        increase. However, zeroing values is fine.
+        Only non null values can be modified and the density of the
+        table can't increase. However, zeroing values is fine.
 
         Parameters
         ----------
@@ -2176,6 +2176,7 @@ class Table(object):
         #OTU ID S1  S2  S3
         O1  0.0 0.0 0.5
         O2  0.5 1.5 21.0
+
         """
         table = self if inplace else self.copy()
 

@@ -83,6 +83,9 @@ cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
                 row_or_col[j] = data[start]
                 start += 1
 
+        # After converting the output of the filtering function to a
+        # bool, we XOR it with invert (if invert is false it doesn't
+        # modify the function output, if it's true it inverts it).
         bools[i] = bool(func(row_or_col, ids[i], metadata[i])) ^ invert
 
     return bools
