@@ -1816,6 +1816,24 @@ class SparseTableTests(TestCase):
         self.assertEqual(actual_o1, {(3, 1), (1, 2), (3, 2)})
         self.assertEqual(actual_o2, {(0, 3), (3, 4), (0, 4)}),
 
+    def test_filter_using_list_of_ids(self):
+        ids = ['S1', 'S4']
+        obs = self.sparse_table.filter(ids, inplace=False)
+        exp = Table(np.array([[1, 0],
+                              [0, 0],
+                              [0, 0]]),
+                    ['O1', 'O2', 'O3'],
+                    ['S1', 'S4'])
+        self.assertEqual(obs, exp)
+
+        ids = ['O1', 'O2']
+        obs = self.sparse_table.filter(ids, 'observation', invert=True,
+                                       inplace=False)
+        exp = Table(np.array([[0, 5, 0, 0]]),
+                    ['O3'],
+                    ['S1', 'S2', 'S3', 'S4'])
+        self.assertEqual(obs, exp)
+
     def test_subsample(self):
         table = Table(np.array([[0, 5, 0]]), ['O1'], ['S1', 'S2', 'S3'])
 
