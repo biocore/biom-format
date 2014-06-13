@@ -1275,6 +1275,42 @@ class Table(object):
         Table
             A table where the observations or samples are sorted according to
             `order`
+
+        Examples
+        --------
+
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[1, 0, 4], [1, 3, 0]])
+        >>> table = Table(data, ['O2', 'O1'], ['S2', 'S1', 'S3'])
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S2  S1  S3
+        O2  1.0 0.0 4.0
+        O1  1.0 3.0 0.0
+
+        Sort the table using a list of samples:
+
+        >>> sorted_table = table.sort_order(['S2', 'S3', 'S1'])
+        >>> print sorted_table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID	S2	S3	S1
+        O2	1.0	4.0	0.0
+        O1	1.0	0.0	3.0
+
+
+        Additionally you could sort the table's observations:
+
+        >>> sorted_table = table.sort_order(['O1', 'O2'], axis="observation")
+        >>> print sorted_table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID	S2	S1	S3
+        O1	1.0	3.0	0.0
+        O2	1.0	0.0	4.0
+
         """
         md = []
         vals = []
@@ -1293,7 +1329,7 @@ class Table(object):
                                                           transpose=True),
                                   self.observation_ids[:], order[:],
                                   self.observation_metadata, md,
-                                  self.table_id)
+                                  self.table_id, self.type)
         elif axis == 'observation':
             for id_ in order:
                 cur_idx = self.index(id_, 'observation')
@@ -1307,7 +1343,8 @@ class Table(object):
 
             return self.__class__(self._conv_to_self_type(vals),
                                   order[:], self.sample_ids[:],
-                                  md, self.sample_metadata, self.table_id)
+                                  md, self.sample_metadata, self.table_id,
+                                  self.type)
         else:
             raise UnknownAxisError(axis)
 
