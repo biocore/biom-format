@@ -1671,6 +1671,15 @@ class SparseTableTests(TestCase):
                     ['S1', 'S4'])
         self.assertEqual(obs, exp)
 
+        f = lambda vals, id_, md: (np.all(vals == [0, 3, 4, 0]) or
+                                   np.all(vals == [0, 5, 0, 0]))
+        obs = table.filter(f, 'observation', inplace=False)
+        exp = Table(np.array([[0, 3, 4, 0],
+                              [0, 5, 0, 0]]),
+                    ['O1', 'O2'],
+                    ['S1', 'S2', 'S3', 'S4'])
+        self.assertNotEqual(obs, exp)
+
     def test_filter_id_state(self):
         f = lambda vals, id_, md: id_[0] == 'b'
         filtered_table = self.st3.filter(f, inplace=False)
