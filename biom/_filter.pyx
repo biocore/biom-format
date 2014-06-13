@@ -88,7 +88,7 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr.indptr = indptr[:m-offset_rows+1]
     arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
 
-def _filter(arr, ids, metadata, ids_to_keep, axis, invert):
+def _filter(arr, ids, metadata, index, ids_to_keep, axis, invert):
     """Filter row/columns of a sparse matrix according to the output of a
     boolean function.
 
@@ -97,6 +97,8 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert):
     arr : sparse matrix
     ids : 1D array_like
     metadata : 1D array_like
+    index : dict
+        Maps id to index
     ids_to_keep : function or iterable
     axis : int
     invert : bool
@@ -120,13 +122,15 @@ def _filter(arr, ids, metadata, ids_to_keep, axis, invert):
 
     cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools
 
-    if isinstance(ids_to_keep, Iterable):
-        bools = np.bitwise_xor(np.asarray(ids_to_keep, dtype=bool),
-                               invert).view(np.uint8)
-    elif isinstance(ids_to_keep, FunctionType):
-        if metadata_is_None:
-            metadata = (None,) * len(ids)
+    if metadata_is_None:
+        metadata = (None,) * len(ids)
 
+    if isinstance(ids_to_keep, Iterable):
+        idx = [index[id_] for id_ in ids_to_keep]
+        ids_to_keep = np.zeros(len(ids), dtype=bool)
+        ids_to_keep.put(idx, True)
+        bools = np.bitwise_xor(ids_to_keep, invert).view(np.uint8)
+    elif isinstance(ids_to_keep, FunctionType):
         bools = _make_filter_array_general(arr, ids, metadata, ids_to_keep,
                                            axis, invert)
     else:
