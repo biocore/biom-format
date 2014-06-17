@@ -14,6 +14,7 @@ import numpy as np
 from biom import __version__
 from biom.exception import BiomParseException, UnknownAxisError
 from biom.table import Table
+from biom.util import biom_open
 import json
 
 __author__ = "Justin Kuczynski"
@@ -497,7 +498,7 @@ def biom_meta_to_string(metadata, replace_str=':'):
 def convert_biom_to_table(biom_f, header_key=None, header_value=None,
                           md_format=None):
     """Convert a biom table to a contigency table"""
-    table = parse_biom_table(biom_f)
+    table = load_table(biom_f)
     if md_format is None:
         md_format = biom_meta_to_string
 
@@ -510,3 +511,39 @@ def convert_biom_to_table(biom_f, header_key=None, header_value=None,
                                     metadata_formatter=md_format)
     else:
         return table.delimited_self()
+
+
+def load_table(f):
+    r"""Load a `Table` from a path
+
+    Parameters
+    ----------
+    f : str
+
+    Returns
+    -------
+    Table
+
+    Raises
+    ------
+    IOError
+        If the path does not exist
+    TypeError
+        If the data in the path does not appear to be a BIOM table
+
+    Examples
+    --------
+    Parse a table from a path. BIOM will attempt to determine if the fhe file
+    is either in TSV, HDF5, JSON, gzip'd JSON or gzip'd TSV and parse
+    accordingly:
+
+    >>> from biom import load_table
+    >>> table = load_table('path/to/table.biom') # doctest: +SKIP
+
+    """
+    with biom_open(f) as fp:
+        try:
+            table = parse_biom_table(fp)
+        except (IndexError, TypeError):
+            raise TypeError("%s does not appear to be a BIOM file!" % f)
+    return table
