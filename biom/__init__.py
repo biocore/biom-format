@@ -62,7 +62,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 from .table import Table
-from .parse import parse_biom_table as parse_table
+from .parse import parse_biom_table as parse_table, load_table
 
 example_table = Table([[0, 1, 2], [3, 4, 5]], ['O1', 'O2'],
                       ['S1', 'S2', 'S3'],
@@ -71,43 +71,6 @@ example_table = Table([[0, 1, 2], [3, 4, 5]], ['O1', 'O2'],
                       [{'environment': 'A'},
                        {'environment': 'B'},
                        {'environment': 'A'}], input_is_dense=True)
-
-
-def load_table(f):
-    r"""Load a `Table` from a path
-
-    Parameters
-    ----------
-    f : str
-
-    Returns
-    -------
-    Table
-
-    Raises
-    ------
-    IOError
-        If the path does not exist
-    TypeError
-        If the data in the path does not appear to be a BIOM table
-
-    Examples
-    --------
-    Parse a table from a path. BIOM will attempt to determine if the fhe file
-    is either in TSV, HDF5, JSON, gzip'd JSON or gzip'd TSV and parse
-    accordingly:
-
-    >>> from biom import load_table
-    >>> table = load_table('path/to/table.biom') # doctest: +SKIP
-
-    """
-    from biom.util import biom_open
-    with biom_open(f) as fp:
-        try:
-            table = parse_table(fp)
-        except (IndexError, TypeError):
-            raise TypeError("%s does not appear to be a BIOM file!" % f)
-    return table
 
 
 __all__ = ['Table', 'example_table', 'parse_table', 'load_table']
