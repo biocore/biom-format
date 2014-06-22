@@ -1138,6 +1138,12 @@ class Table(object):
         UnknownAxisError
             If provided an unrecognized axis.
 
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> example_table.data('S1', axis='sample')
+        array([ 0.,  3.])
+
         """
         if axis == 'sample':
             data = self[:, self.index(id, 'sample')]
