@@ -1275,6 +1275,94 @@ class Table(object):
 
         return izip(iter_, ids, metadata)
 
+    def iter_pairwise(self, dense=True, axis='sample', tri=True, diag=False):
+        """Pairwise iteration over self
+
+        Parameters
+        ----------
+        dense : bool, optional
+            Defaults to ``True``. If ``False``, yield compressed sparse row or
+            compressed sparse columns if `axis` is 'observation' or 'sample',
+            respectively.
+        axis : {'sample', 'observation'}, optional
+            The axis to iterate over.
+        tri : bool, optional
+            If ``True``, just yield [i, j] and not [j, i]
+        diag : bool, optional
+            If ``True``, yield [i, i]
+
+        Returns
+        -------
+        GeneratorType
+            Yields [(val_i, id_i, metadata_i), (val_j, id_j, metadata_j)]
+
+        Raises
+        ------
+        UnknownAxisError
+
+        Examples
+        --------
+        >>> from biom import example_table
+
+        By default, only the upper triangle without the diagonal  of the
+        resulting pairwise combinations is yielded.
+
+        >>> iter_ = example_table.iter_pairwise()
+        >>> for (val_i, id_i, md_i), (val_j, id_j, md_j) in iter_:
+        ...     print id_i, id_j
+        S1 S2
+        S1 S3
+        S2 S3
+
+        The full pairwise combinations can also be yielded though.
+
+        >>> iter_ = example_table.iter_pairwise(tri=False, diag=True)
+        >>> for (val_i, id_i, md_i), (val_j, id_j, md_j) in iter_:
+        ...     print id_i, id_j
+        S1 S1
+        S1 S2
+        S1 S3
+        S2 S1
+        S2 S2
+        S2 S3
+        S3 S1
+        S3 S2
+        S3 S3
+
+        """
+        if axis == 'sample':
+            ids = self.sample_ids
+            metadata = self.sample_metadata
+        elif axis == 'observation':
+            ids = self.observation_ids
+            metadata = self.observation_metadata
+        else:
+            raise UnknownAxisError(axis)
+
+
+        if metadata is None:
+            metadata = (None,) * len(ids)
+
+        ind = np.arange(len(ids))
+        diag_v = 1 - diag  # for offseting tri_f, where a 0 includes the diag
+
+        if tri:
+            tri_f = lambda idx: ind[idx+diag_v:]
+        else:
+            tri_f = lambda idx: np.hstack([ind[:idx], ind[idx+diag_v:]])
+
+        for idx, i in enumerate(ind):
+            id_i = ids[i]
+            md_i = metadata[i]
+            data_i = self.data(id_i, axis=axis, dense=dense)
+
+            for j in tri_f(idx):
+                id_j = ids[j]
+                md_j = metadata[j]
+                data_j = self.data(id_j, axis=axis, dense=dense)
+
+                yield ((data_i, id_i, md_i), (data_j, id_j, md_j))
+
     def sort_order(self, order, axis='sample'):
         """Return a new table with `axis` in `order`
 

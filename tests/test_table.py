@@ -1479,6 +1479,36 @@ class SparseTableTests(TestCase):
         for o, e in zip(obs, exp):
             self.assertTrue((o != e).nnz == 0)
 
+    def test_iter_pairwise_simple(self):
+        """Should iterate pairwise over samples"""
+        exp = [((np.array([5, 7]), 'a', None), (np.array([5, 7]), 'a', None)),
+               ((np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)),
+               ((np.array([6, 8]), 'b', None), (np.array([5, 7]), 'a', None)),
+               ((np.array([6, 8]), 'b', None), (np.array([6, 8]), 'b', None))]
+        obs = list(self.st1.iter_pairwise(dense=True, tri=False, diag=True))
+        npt.assert_equal(obs, exp)
+
+    def test_iter_pairwise_tri(self):
+        """Should iterate pairwise over samples"""
+        exp = [((np.array([5, 7]), 'a', None), (np.array([5, 7]), 'a', None)),
+               ((np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)),
+               ((np.array([6, 8]), 'b', None), (np.array([6, 8]), 'b', None))]
+        obs = list(self.st1.iter_pairwise(dense=True, tri=True, diag=True))
+        npt.assert_equal(obs, exp)
+
+    def test_iter_pairwise_tri_diag(self):
+        """Should iterate pairwise over samples"""
+        exp = [((np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None))]
+        obs = list(self.st1.iter_pairwise(dense=True, tri=True, diag=False))
+        npt.assert_equal(obs, exp)
+
+    def test_iter_pairwise_diag(self):
+        """Should iterate pairwise over samples"""
+        exp = [((np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)),
+               ((np.array([6, 8]), 'b', None), (np.array([5, 7]), 'a', None))]
+        obs = list(self.st1.iter_pairwise(dense=True, tri=False, diag=False))
+        npt.assert_equal(obs, exp)
+
     def test_iter(self):
         """Should iterate over samples"""
         exp = [(np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)]
