@@ -16,7 +16,7 @@ from StringIO import StringIO
 
 import numpy.testing as npt
 import numpy as np
-from scipy.sparse import lil_matrix, csr_matrix
+from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 
 from biom.exception import UnknownAxisError, UnknownIDError, TableException
 from biom.util import unzip, HAVE_H5PY
@@ -1373,6 +1373,21 @@ class SparseTableTests(TestCase):
         # Raises an error with unknown axis
         with self.assertRaises(UnknownAxisError):
             obs = self.st1.data('a', axis='foo')
+
+    def test_data_sparse(self):
+        # Returns observations for a given sample
+        exp = csc_matrix(np.array([[5], [7]]))
+        obs = self.st1.data('a', 'sample', dense=False)
+        self.assertEqual((obs != exp).nnz, 0)
+        with self.assertRaises(UnknownIDError):
+            self.st1.data('asdasd', 'sample')
+
+        # Returns samples for a given observation
+        exp = csr_matrix(np.array([5, 6]))
+        obs = self.st1.data('1', 'observation', dense=False)
+        self.assertEqual((obs != exp).nnz, 0)
+        with self.assertRaises(UnknownIDError):
+            self.st1.data('asdsad', 'observation')
 
     def test_delimited_self(self):
         """Print out self in a delimited form"""

@@ -1116,7 +1116,7 @@ class Table(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def data(self, id, axis='sample'):
+    def data(self, id, axis='sample', dense=True):
         """Returns data associated with an `id`
 
         Parameters
@@ -1125,18 +1125,31 @@ class Table(object):
             ID of the samples or observations whose data will be returned.
         axis : {'sample', 'observation'}
             Axis to search for `id`.
+        dense : bool, optional
+            If ``True``, return data as dense
+
+        Returns
+        -------
+        np.ndarray or scipy.sparse.spmatrix
+            np.ndarray if ``dense``, otherwise scipy.sparse.spmatrix
 
         Raises
         ------
         UnknownAxisError
             If provided an unrecognized axis.
+
         """
         if axis == 'sample':
-            return self._to_dense(self[:, self.index(id, 'sample')])
+            data = self[:, self.index(id, 'sample')]
         elif axis == 'observation':
-            return self._to_dense(self[self.index(id, 'observation'), :])
+            data = self[self.index(id, 'observation'), :]
         else:
             raise UnknownAxisError(axis)
+
+        if dense:
+            return self._to_dense(data)
+        else:
+            return data
 
     def copy(self):
         """Returns a copy of the table"""
