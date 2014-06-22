@@ -1,6 +1,22 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.0.1-dev
+--------------
+
+Changes:
+
+* added ``Table.iter_pairwise``
+* added ``Table.min`` and ``Table.max``, see #459
+* iter methods now support dense/sparse
+* added ``Table.matrix_data`` property
+* ``Table.filter`` yields a sparse vector, see #470
+
+Bug fixes:
+
+* ``Table.sort_order`` was not retaining ``Table.type``, see #474
+* ``convert_biom_to_table`` now uses ``load_table``, see #478
+
 biom 2.0.1
 ----------
 
