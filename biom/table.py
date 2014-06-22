@@ -1261,11 +1261,11 @@ class Table(object):
         """
         if axis == 'sample':
             ids = self.sample_ids
-            iter_ = self._iter_samp()
+            iter_ = self.iter_data(axis=axis, dense=dense)
             metadata = self.sample_metadata
         elif axis == 'observation':
             ids = self.observation_ids
-            iter_ = self._iter_obs()
+            iter_ = self.iter_data(axis=axis, dense=dense)
             metadata = self.observation_metadata
         else:
             raise UnknownAxisError(axis)
@@ -1273,11 +1273,7 @@ class Table(object):
         if metadata is None:
             metadata = (None,) * len(ids)
 
-        for vals, id_, md in izip(iter_, ids, metadata):
-            if dense:
-                vals = self._to_dense(vals)
-
-            yield (vals, id_, md)
+        return izip(iter_, ids, metadata)
 
     def sort_order(self, order, axis='sample'):
         """Return a new table with `axis` in `order`
