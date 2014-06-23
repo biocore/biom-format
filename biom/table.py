@@ -1339,7 +1339,6 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-
         if metadata is None:
             metadata = (None,) * len(ids)
 
