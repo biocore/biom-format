@@ -2689,9 +2689,6 @@ class Table(object):
             If `ids` are not a subset of the samples or observations ids
             present in the hdf5 biom table
 
-        See Also
-        --------
-        Table.format_hdf5
 
         References
         ----------
@@ -2708,17 +2705,19 @@ html
 
         Examples
         --------
-        >>> from h5py import File # doctest: +SKIP
         >>> from biom.table import Table
-        >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
-        >>> t = Table.from_hdf5(f) # doctest: +SKIP
+        >>> from biom.util import biom_open
+        >>> with biom_open('rich_sparse_otu_table_hdf5.biom') as f \
+# doctest: +SKIP
+        >>>     t = Table.from_hdf5(f) # doctest: +SKIP
 
         Parse a hdf5 biom table subsetting observations
-        >>> from h5py import File # doctest: +SKIP
+        >>> from biom.util import biom_open # doctest: +SKIP
         >>> from biom.parse import parse_biom_table
-        >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
-        >>> t = Table.from_hdf5(f, ids=["GG_OTU_1"],
-        ...                     axis='observation') # doctest: +SKIP
+        >>> with biom_open('rich_sparse_otu_table_hdf5.biom') as f \
+# doctest: +SKIP
+        >>>     t = Table.from_hdf5(f, ids=["GG_OTU_1"],
+        ...                         axis='observation') # doctest: +SKIP
         """
         if not HAVE_H5PY:
             raise RuntimeError("h5py is not in the environment, HDF5 support "
@@ -2903,11 +2902,11 @@ html
 
         Examples
         --------
-        >>> from h5py import File  # doctest: +SKIP
+        >>> from biom.util import biom_open  # doctest: +SKIP
         >>> from biom.table import Table
         >>> from numpy import array
         >>> t = Table(array([[1, 2], [3, 4]]), ['a', 'b'], ['x', 'y'])
-        >>> with File('foo.biom', 'w') as f:  # doctest: +SKIP
+        >>> with biom_open('foo.biom', 'w') as f:  # doctest: +SKIP
         ...     t.to_hdf5(f, "example")
 
         """
