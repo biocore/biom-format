@@ -2634,31 +2634,50 @@ class Table(object):
         The expected HDF5 group structure is below. An example of an HDF5 file
         in DDL can be found here [3]_.
 
-        ./id                         : str, an arbitrary ID
-        ./type                       : str, the table type (e.g, OTU table)
-        ./format-url                 : str, a URL that describes the format
-        ./format-version             : two element tuple of int32,
+        ./id                              : str, an arbitrary ID
+        ./type                            : str, the table type
+        (e.g, OTU table)
+        ./format-url                      : str, a URL that describes
+        the format
+        ./format-version                  : two element tuple of int32,
         major and minor
-        ./generated-by               : str, what generated this file
-        ./creation-date              : str, ISO format
-        ./shape                      : two element tuple of int32, N by M
-        ./nnz                        : int32 or int64, number of non zero elems
-        ./observation                : Group
-        ./observation/ids            : (N,) dataset of str or vlen str
-        ./observation/matrix         : Group
-        ./observation/matrix/data    : (nnz,) dataset of float64
-        ./observation/matrix/indices : (nnz,) dataset of int32
-        ./observation/matrix/indptr  : (M+1,) dataset of int32
-        [./observation/metadata]     : Optional, JSON str, in index order
-        with ids. See below for added detail.
+        ./generated-by                    : str, what generated this file
+        ./creation-date                   : str, ISO format
+        ./shape                           : two element tuple of int32, N by M
+        ./nnz                             : int32 or int64, number of non
+        zero elems
+        ./observation                     : Group
+        ./observation/ids                 : (N,) dataset of str or vlen str
+        ./observation/matrix              : Group
+        ./observation/matrix/data         : (nnz,) dataset of float64
+        ./observation/matrix/indices      : (nnz,) dataset of int32
+        ./observation/matrix/indptr       : (M+1,) dataset of int32
+        ./observation/metadata            : Group
+        [./observation/metadata/foo] : Optional, (N,) dataset of str or
+        vlen str in index order with ids.
+        [./observation/metadata/foo.attrs['data_type']] : attribute of the foo
+        dataset that describes contained type (e.g., int)
+        ./observation/group-metadata      : Group
+        [./observation/group-metadata/foo] : Optional, (?,) dataset of group
+        metadata that relates IDs
+        [./observation/group-metadata/foo.attrs['data_type']] : attribute of
+        the foo dataset that describes contained type (e.g., newick)
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
         ./sample/matrix/data         : (nnz,) dataset of float64
         ./sample/matrix/indices      : (nnz,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
-        [./sample/metadata]          : Optional, JSON str, in index order
-        with ids. See below for added detail.
+        ./sample/metadata            : Group
+        [./sample/metadata/foo] : Optional, (M,) dataset of str or vlen str in
+        index order with ids.
+        [./sample/metadata/foo.attrs['data_type']] : attribute of the foo
+        dataset that describes contained type (e.g., int)
+        ./sample/group-metadata      : Group
+        [./sample/group-metadata/foo] : Optional, (?,) dataset of group
+        metadata that relates IDs
+        [./sample/group-metadata/foo.attrs['data_type']] : attribute of the
+        foo dataset that describes contained type (e.g., newick)
 
         The expected structure (in JSON) for the optional metadata is a list of
         objects, where the index order of the list corresponds to the index
@@ -2844,31 +2863,50 @@ html
         The expected HDF5 group structure is below. An example of an HDF5 file
         in DDL can be found here [3]_.
 
-        ./id                         : str, an arbitrary ID
-        ./type                       : str, the table type (e.g, OTU table)
-        ./format-url                 : str, a URL that describes the format
-        ./format-version             : two element tuple of int32,
+        ./id                              : str, an arbitrary ID
+        ./type                            : str, the table type
+        (e.g, OTU table)
+        ./format-url                      : str, a URL that describes
+        the format
+        ./format-version                  : two element tuple of int32,
         major and minor
-        ./generated-by               : str, what generated this file
-        ./creation-date              : str, ISO format
-        ./shape                      : two element tuple of int32, N by M
-        ./nnz                        : int32 or int64, number of non zero elems
-        ./observation                : Group
-        ./observation/ids            : (N,) dataset of str or vlen str
-        ./observation/matrix         : Group
-        ./observation/matrix/data    : (nnz,) dataset of float64
-        ./observation/matrix/indices : (nnz,) dataset of int32
-        ./observation/matrix/indptr  : (M+1,) dataset of int32
-        [./observation/metadata]     : Optional, JSON str, in index order
-        with ids. See below for added detail.
+        ./generated-by                    : str, what generated this file
+        ./creation-date                   : str, ISO format
+        ./shape                           : two element tuple of int32, N by M
+        ./nnz                             : int32 or int64, number of non
+        zero elems
+        ./observation                     : Group
+        ./observation/ids                 : (N,) dataset of str or vlen str
+        ./observation/matrix              : Group
+        ./observation/matrix/data         : (nnz,) dataset of float64
+        ./observation/matrix/indices      : (nnz,) dataset of int32
+        ./observation/matrix/indptr       : (M+1,) dataset of int32
+        ./observation/metadata            : Group
+        [./observation/metadata/foo] : Optional, (N,) dataset of str or
+        vlen str in index order with ids.
+        [./observation/metadata/foo.attrs['data_type']] : attribute of the foo
+        dataset that describes contained type (e.g., int)
+        ./observation/group-metadata      : Group
+        [./observation/group-metadata/foo] : Optional, (?,) dataset of group
+        metadata that relates IDs
+        [./observation/group-metadata/foo.attrs['data_type']] : attribute of
+        the foo dataset that describes contained type (e.g., newick)
         ./sample                     : Group
         ./sample/ids                 : (M,) dataset of str or vlen str
         ./sample/matrix              : Group
         ./sample/matrix/data         : (nnz,) dataset of float64
         ./sample/matrix/indices      : (nnz,) dataset of int32
         ./sample/matrix/indptr       : (N+1,) dataset of int32
-        [./sample/metadata]          : Optional, JSON str, in index order
-        with ids. See below for added detail.
+        ./sample/metadata            : Group
+        [./sample/metadata/foo] : Optional, (M,) dataset of str or vlen str in
+        index order with ids.
+        [./sample/metadata/foo.attrs['data_type']] : attribute of the foo
+        dataset that describes contained type (e.g., int)
+        ./sample/group-metadata      : Group
+        [./sample/group-metadata/foo] : Optional, (?,) dataset of group
+        metadata that relates IDs
+        [./sample/group-metadata/foo.attrs['data_type']] : attribute of the
+        foo dataset that describes contained type (e.g., newick)
 
         The expected structure (in JSON) for the optional metadata is a list of
         objects, where the index order of the list corresponds to the index
