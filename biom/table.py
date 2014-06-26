@@ -1261,17 +1261,17 @@ class Table(object):
         """
         if axis == 'sample':
             ids = self.sample_ids
-            iter_ = self.iter_data(axis=axis, dense=dense)
             metadata = self.sample_metadata
         elif axis == 'observation':
             ids = self.observation_ids
-            iter_ = self.iter_data(axis=axis, dense=dense)
             metadata = self.observation_metadata
         else:
             raise UnknownAxisError(axis)
 
         if metadata is None:
             metadata = (None,) * len(ids)
+
+        iter_ = self.iter_data(axis=axis, dense=dense)
 
         return izip(iter_, ids, metadata)
 
