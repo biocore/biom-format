@@ -40,10 +40,10 @@ class TableConverterTests(TestCase):
     def test_classic_to_biom(self):
         """Correctly converts classic to biom."""
         obs = self.cmd(table=parse_biom_table(self.classic_lines1),
-                       to_json=True)
+                       to_json=True, table_type='OTU table')
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table'][0])
+        obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
@@ -54,10 +54,11 @@ class TableConverterTests(TestCase):
         """Correctly converts classic to biom with metadata."""
         # No processing of metadata.
         obs = self.cmd(table=parse_biom_table(self.classic_lines1),
-                       sample_metadata=self.sample_md1, to_json=True)
+                       sample_metadata=self.sample_md1, to_json=True,
+                       table_type='OTU table', process_obs_metadata='naive')
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table'][0])
+        obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
@@ -73,11 +74,11 @@ class TableConverterTests(TestCase):
 
         # With processing of metadata (currently only supports observation md).
         obs = self.cmd(table=parse_biom_table(self.classic_lines1),
-                       sample_metadata=self.sample_md1,
+                       sample_metadata=self.sample_md1, table_type='OTU table',
                        process_obs_metadata='sc_separated', to_json=True)
         self.assertEqual(obs.keys(), ['table'])
 
-        obs = parse_biom_table(obs['table'][0])
+        obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)

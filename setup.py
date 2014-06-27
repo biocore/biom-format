@@ -14,14 +14,17 @@ from setuptools import setup
 from setuptools.extension import Extension
 from glob import glob
 
-import numpy as np
+try:
+    import numpy as np
+except ImportError:
+    raise ImportError("numpy must be installed prior to installing biom")
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente",
                "Jai Ram Rideout", "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
-__version__ = "2.0.0-dev"
+__version__ = "2.0.1-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 

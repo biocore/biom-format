@@ -452,6 +452,11 @@ class Table(object):
         """Number of non-zero elements of the underlying contingency matrix"""
         return self._data.nnz
 
+    @property
+    def matrix_data(self):
+        """The sparse matrix object"""
+        return self._data
+
     def add_metadata(self, md, axis='sample'):
         """Take a dict of metadata and add it to an axis.
 
@@ -1111,9 +1116,8 @@ class Table(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def data(self, id, axis):
-        """Returns observations associated with sample id `id` or
-        samples associated with observation id `id`
+    def data(self, id, axis='sample'):
+        """Returns data associated with an `id`
 
         Parameters
         ----------
@@ -1143,11 +1147,15 @@ class Table(object):
                               deepcopy(self.sample_metadata),
                               self.table_id)
 
-    def iter_data(self, axis='sample'):
+    def iter_data(self, dense=True, axis='sample'):
         """Yields axis values
 
         Parameters
         ----------
+        dense : bool, optional
+            Defaults to ``True``. If ``False``, yield compressed sparse row or
+            compressed sparse columns if `axis` is 'observation' or 'sample',
+            respectively.
         axis : {'sample', 'observation'}, optional
             Axis to iterate over.
 
@@ -1179,10 +1187,16 @@ class Table(object):
         """
         if axis == "sample":
             for samp_v in self._iter_samp():
-                yield self._to_dense(samp_v)
+                if dense:
+                    yield self._to_dense(samp_v)
+                else:
+                    yield samp_v
         elif axis == "observation":
             for obs_v in self._iter_obs():
-                yield self._to_dense(obs_v)
+                if dense:
+                    yield self._to_dense(obs_v)
+                else:
+                    yield obs_v
         else:
             raise UnknownAxisError(axis)
 
@@ -1261,6 +1275,42 @@ class Table(object):
         Table
             A table where the observations or samples are sorted according to
             `order`
+
+        Examples
+        --------
+
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[1, 0, 4], [1, 3, 0]])
+        >>> table = Table(data, ['O2', 'O1'], ['S2', 'S1', 'S3'])
+        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S2  S1  S3
+        O2  1.0 0.0 4.0
+        O1  1.0 3.0 0.0
+
+        Sort the table using a list of samples:
+
+        >>> sorted_table = table.sort_order(['S2', 'S3', 'S1'])
+        >>> print sorted_table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID	S2	S3	S1
+        O2	1.0	4.0	0.0
+        O1	1.0	0.0	3.0
+
+
+        Additionally you could sort the table's observations:
+
+        >>> sorted_table = table.sort_order(['O1', 'O2'], axis="observation")
+        >>> print sorted_table # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID	S2	S1	S3
+        O1	1.0	3.0	0.0
+        O2	1.0	0.0	4.0
+
         """
         md = []
         vals = []
@@ -1279,7 +1329,7 @@ class Table(object):
                                                           transpose=True),
                                   self.observation_ids[:], order[:],
                                   self.observation_metadata, md,
-                                  self.table_id)
+                                  self.table_id, self.type)
         elif axis == 'observation':
             for id_ in order:
                 cur_idx = self.index(id_, 'observation')
@@ -1293,7 +1343,8 @@ class Table(object):
 
             return self.__class__(self._conv_to_self_type(vals),
                                   order[:], self.sample_ids[:],
-                                  md, self.sample_metadata, self.table_id)
+                                  md, self.sample_metadata, self.table_id,
+                                  self.type)
         else:
             raise UnknownAxisError(axis)
 
@@ -1373,15 +1424,14 @@ class Table(object):
         Parameters
         ----------
         ids_to_keep : iterable, or function(values, id, metadata) -> bool
-            If a function, it will be called with the id (a string),
-            the dictionary of metadata of each sample/observation and
-            the nonzero values of the sample/observation, and must
-            return a boolean.
-            If it's an iterable, it will be converted to an array of
-            bools.
+            If a function, it will be called with the values of the
+            sample/observation, its id (a string) and the dictionary
+            of metadata of each sample/observation, and must return a
+            boolean. If it's an iterable, it will be converted to an
+            array of bools.
         axis : {'sample', 'observation'}, optional
-            It controls whether to filter samples or observations. Can
-            be "sample" or "observation".
+            It controls whether to filter samples or observations and
+            defaults to "sample".
         invert : bool, optional
             Defaults to ``False``. If set to ``True``, discard samples or
             observations where `ids_to_keep` returns True
@@ -1453,6 +1503,7 @@ class Table(object):
         1 x 2 <class 'biom.table.Table'> with 0 nonzero entries (0% dense)
         >>> print table.observation_ids
         ['O1']
+
         """
         table = self if inplace else self.copy()
 
@@ -1878,6 +1929,92 @@ class Table(object):
         else:
             return UnknownAxisError(axis)
 
+    def min(self, axis='sample'):
+        """Get the minimum nonzero value over an axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation', 'whole'}, optional
+            Defaults to "sample". The axis over which to calculate minima.
+
+        Returns
+        -------
+        scalar of self.dtype or np.array of self.dtype
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> print example_table.min(axis='sample')
+        [ 3.  1.  2.]
+
+        """
+        if axis not in ['sample', 'observation', 'whole']:
+            raise UnknownAxisError(axis)
+
+        if axis == 'whole':
+            min_val = np.inf
+            for data in self.iter_data(dense=False):
+                # only min over the actual nonzero values
+                min_val = min(min_val, data.data.min())
+        else:
+            if axis == 'observation':
+                min_val = zeros(len(self.observation_ids), dtype=self.dtype)
+            else:
+                min_val = zeros(len(self.sample_ids), dtype=self.dtype)
+
+            for idx, data in enumerate(self.iter_data(dense=False, axis=axis)):
+                min_val[idx] = data.data.min()
+
+        return min_val
+
+    def max(self, axis='sample'):
+        """Get the maximum nonzero value over an axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation', 'whole'}, optional
+            Defaults to "sample". The axis over which to calculate maxima.
+
+        Returns
+        -------
+        scalar of self.dtype or np.array of self.dtype
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> print example_table.max(axis='observation')
+        [ 2.  5.]
+
+        """
+        if axis not in ['sample', 'observation', 'whole']:
+            raise UnknownAxisError(axis)
+
+        if axis == 'whole':
+            max_val = -np.inf
+            for data in self.iter_data(dense=False):
+                # only min over the actual nonzero values
+                max_val = max(max_val, data.data.max())
+        else:
+            if axis == 'observation':
+                max_val = np.empty(len(self.observation_ids), dtype=self.dtype)
+            else:
+                max_val = np.empty(len(self.sample_ids), dtype=self.dtype)
+
+            for idx, data in enumerate(self.iter_data(dense=False, axis=axis)):
+                max_val[idx] = data.data.max()
+
+        return max_val
+
     def subsample(self, n, axis='sample'):
         """Randomly subsample without replacement.
 
@@ -1993,8 +2130,8 @@ class Table(object):
     def transform(self, f, axis='sample', inplace=True):
         """Iterate over `axis`, applying a function `f` to each vector.
 
-        Only non null values can be modified  the density of the table can't
-        increase. However, zeroing values is fine.
+        Only non null values can be modified and the density of the
+        table can't increase. However, zeroing values is fine.
 
         Parameters
         ----------
@@ -2076,6 +2213,7 @@ class Table(object):
         #OTU ID S1  S2  S3
         O1  0.0 0.0 0.5
         O2  0.5 1.5 21.0
+
         """
         table = self if inplace else self.copy()
 
@@ -2834,24 +2972,87 @@ html
     @classmethod
     def from_json(self, json_table, data_pump=None,
                   input_is_dense=False):
-        """Parse a biom otu table type"""
+        """Parse a biom otu table type
+
+        Parameters
+        ----------
+        json_table : dict
+            A JSON object or dict that represents the BIOM table
+        data_pump : tuple or None
+            A secondary source of data
+        input_is_dense : bool
+            If `True`, the data contained will be interpretted as dense
+
+        Returns
+        -------
+        Table
+
+        Examples
+        --------
+        >>> from biom import Table
+        >>> json_obj = {"id": "None",
+        ...             "format": "Biological Observation Matrix 1.0.0",
+        ...             "format_url": "http://biom-format.org",
+        ...             "generated_by": "foo",
+        ...             "type": "OTU table",
+        ...             "date": "2014-06-03T14:24:40.884420",
+        ...             "matrix_element_type": "float",
+        ...             "shape": [5, 6],
+        ...             "data": [[0,2,1.0],
+        ...                      [1,0,5.0],
+        ...                      [1,1,1.0],
+        ...                      [1,3,2.0],
+        ...                      [1,4,3.0],
+        ...                      [1,5,1.0],
+        ...                      [2,2,1.0],
+        ...                      [2,3,4.0],
+        ...                      [2,5,2.0],
+        ...                      [3,0,2.0],
+        ...                      [3,1,1.0],
+        ...                      [3,2,1.0],
+        ...                      [3,5,1.0],
+        ...                      [4,1,1.0],
+        ...                      [4,2,1.0]],
+        ...             "rows": [{"id": "GG_OTU_1", "metadata": None},
+        ...                      {"id": "GG_OTU_2", "metadata": None},
+        ...                      {"id": "GG_OTU_3", "metadata": None},
+        ...                      {"id": "GG_OTU_4", "metadata": None},
+        ...                      {"id": "GG_OTU_5", "metadata": None}],
+        ...             "columns": [{"id": "Sample1", "metadata": None},
+        ...                         {"id": "Sample2", "metadata": None},
+        ...                         {"id": "Sample3", "metadata": None},
+        ...                         {"id": "Sample4", "metadata": None},
+        ...                         {"id": "Sample5", "metadata": None},
+        ...                         {"id": "Sample6", "metadata": None}]
+        ...             }
+        >>> t = Table.from_json(json_obj)
+
+        """
         sample_ids = [col['id'] for col in json_table['columns']]
         sample_metadata = [col['metadata'] for col in json_table['columns']]
         obs_ids = [row['id'] for row in json_table['rows']]
         obs_metadata = [row['metadata'] for row in json_table['rows']]
         dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
+        if 'matrix_type' in json_table:
+            if json_table['matrix_type'] == 'dense':
+                input_is_dense = True
+            else:
+                input_is_dense = False
+        type_ = json_table['type']
 
         if data_pump is None:
             table_obj = Table(json_table['data'], obs_ids, sample_ids,
                               obs_metadata, sample_metadata,
                               shape=json_table['shape'],
                               dtype=dtype,
+                              type=type_,
                               input_is_dense=input_is_dense)
         else:
             table_obj = Table(data_pump, obs_ids, sample_ids,
                               obs_metadata, sample_metadata,
                               shape=json_table['shape'],
                               dtype=dtype,
+                              type=type_,
                               input_is_dense=input_is_dense)
 
         return table_obj
@@ -2931,11 +3132,22 @@ html
                 matrix_element_type
             shape = '"shape": [%d, %d],' % (num_rows, num_cols)
 
-        # Fill in details about the rows in the table and fill in the matrix's
-        # data.
+        # Fill in the table type
+        if self.type is None:
+            type_ = '"type": null,'
+        else:
+            type_ = '"type": "%s",' % self.type
+
         if direct_io:
+            direct_io.write(type_)
+
+        # Fill in details about the rows in the table and fill in the matrix's
+        # data. BIOM 2.0+ is now only sparse
+        if direct_io:
+            direct_io.write('"matrix_type": "sparse",')
             direct_io.write('"data": [')
         else:
+            matrix_type = '"matrix_type": "sparse",'
             data = ['"data": [']
 
         max_row_idx = len(self.observation_ids) - 1
@@ -2998,8 +3210,8 @@ html
             direct_io.write(columns)
             direct_io.write('}')
         else:
-            return "{%s}" % ''.join([id_, format_, format_url,
-                                     generated_by, date,
+            return "{%s}" % ''.join([id_, format_, format_url, matrix_type,
+                                     generated_by, date, type_,
                                      matrix_element_type, shape,
                                      ''.join(data), rows, columns])
 

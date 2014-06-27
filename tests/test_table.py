@@ -217,6 +217,14 @@ class TableTests(TestCase):
             for f in self.to_remove:
                 os.remove(f)
 
+    def test_data_property(self):
+        exp = self.simple_derived._data
+        obs = self.simple_derived.matrix_data
+        self.assertEqual((obs != exp).nnz, 0)
+
+        with self.assertRaises(AttributeError):
+            self.simple_derived.matrix_data = 'foo'
+
     def test_repr(self):
         """__repr__ method of biom.table.Table"""
         # table
@@ -239,6 +247,36 @@ class TableTests(TestCase):
         exp = Table(data, obs_ids, samp_ids)
         obs = Table(data, obs_ids, samp_ids)
         self.assertEqual(obs, exp)
+
+    def test_min_observation(self):
+        exp = np.array([5, 7])
+        obs = self.simple_derived.min('observation')
+        npt.assert_equal(obs, exp)
+
+    def test_min_sample(self):
+        exp = np.array([5, 6])
+        obs = self.simple_derived.min('sample')
+        npt.assert_equal(obs, exp)
+
+    def test_min_whole(self):
+        exp = 5
+        obs = self.simple_derived.min('whole')
+        npt.assert_equal(obs, exp)
+
+    def test_max_observation(self):
+        exp = np.array([6, 8])
+        obs = self.simple_derived.max('observation')
+        npt.assert_equal(obs, exp)
+
+    def test_max_sample(self):
+        exp = np.array([7, 8])
+        obs = self.simple_derived.max('sample')
+        npt.assert_equal(obs, exp)
+
+    def test_max_whole(self):
+        exp = 8
+        obs = self.simple_derived.max('whole')
+        npt.assert_equal(obs, exp)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5(self):
@@ -1085,6 +1123,12 @@ class SparseTableTests(TestCase):
         self.single_obs_st = Table(np.array([[2.0, 0.0, 1.0]]),
                                    ['01'], ['S1', 'S2', 'S3'])
 
+        self.sparse_table = Table(np.array([[1, 0, 2, 0],
+                                            [0, 3, 4, 0],
+                                            [0, 5, 0, 0]]),
+                                  ['O1', 'O2', 'O3'],
+                                  ['S1', 'S2', 'S3', 'S4'])
+
     def test_sum(self):
         """Test of sum!"""
         self.assertEqual(self.st1.sum('whole'), 26)
@@ -1408,6 +1452,18 @@ class SparseTableTests(TestCase):
         obs = self.st1._to_dense(input_vec)
         npt.assert_equal(obs, exp)
 
+    def test_iter_data_dense(self):
+        exp = [np.array([5, 7]), np.array([6, 8])]
+        obs = list(self.st1.iter_data())
+        npt.assert_equal(obs, exp)
+
+    def test_iter_data_sparse(self):
+        exp = [csr_matrix(np.array([5, 7])),
+               csr_matrix(np.array([6, 8]))]
+        obs = list(self.st1.iter_data(dense=False))
+        for o, e in zip(obs, exp):
+            self.assertTrue((o != e).nnz == 0)
+
     def test_iter(self):
         """Should iterate over samples"""
         exp = [(np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)]
@@ -1548,6 +1604,27 @@ class SparseTableTests(TestCase):
         copied_table = self.st_rich.copy()
         self.st_rich._data *= 2
         self.assertNotEqual(copied_table, self.st_rich)
+
+    def test_filter_table_with_zeros(self):
+        table = self.sparse_table
+        f_sample = lambda vals, id_, md: vals.size == table.shape[0]
+        f_obs = lambda vals, id_, md: vals.size == table.shape[1]
+
+        obs = table.filter(f_sample, inplace=False)
+        self.assertEqual(obs, table)
+
+        obs = table.filter(f_obs, 'observation', inplace=False)
+        self.assertEqual(obs, table)
+
+        f = lambda vals, id_, md: (np.all(vals == [1, 0, 0]) or
+                                   np.all(vals == [0, 0, 0]))
+        obs = table.filter(f, inplace=False)
+        exp = Table(np.array([[1, 0],
+                              [0, 0],
+                              [0, 0]]),
+                    ['O1', 'O2', 'O3'],
+                    ['S1', 'S4'])
+        self.assertEqual(obs, exp)
 
     def test_filter_id_state(self):
         f = lambda vals, id_, md: id_[0] == 'b'
