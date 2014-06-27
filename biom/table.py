@@ -2071,11 +2071,11 @@ class Table(object):
         ['S2' 'S3']
 
         Subsample by IDs over the sample axis. For this example, we're going to
-        randomly select 2 samples and do this 10 times, and then print out the
+        randomly select 2 samples and do this 100 times, and then print out the
         set of IDs observed.
 
         >>> ids = set([tuple(table.subsample(2, by_id=True).sample_ids)
-        ...            for i in range(10)])
+        ...            for i in range(100)])
         >>> print sorted(ids)
         [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
 
