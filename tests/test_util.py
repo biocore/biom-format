@@ -14,13 +14,16 @@ from os.path import abspath, dirname, exists
 from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 
+import numpy as np
 import numpy.testing as npt
 
+from biom.table import Table
 from biom.parse import parse_biom_table
 from biom.util import (natsort, flatten, unzip, HAVE_H5PY,
                        get_biom_project_dir, parse_biom_config_files,
                        compute_counts_per_sample_stats, safe_md5, biom_open,
-                       get_data_path)
+                       get_data_path, generate_subsamples)
+
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -41,6 +44,20 @@ class UtilTests(TestCase):
 
     def setUp(self):
         self.biom_otu_table1_w_tax = parse_biom_table(biom_otu_table1_w_tax)
+
+    def test_generate_subsamples(self):
+        table = Table(np.array([[3, 1, 1], [0, 3, 3]]), ['O1', 'O2'],
+                      ['S1', 'S2', 'S3'])
+        actual_o1 = set()
+        actual_o2 = set()
+        for i, obs in zip(range(100), generate_subsamples(table, 3)):
+            actual_o1.add(tuple(obs.data('O1', 'observation')))
+            actual_o2.add(tuple(obs.data('O2', 'observation')))
+
+        self.assertEqual(actual_o1, {(3, 0, 0), (3, 1, 0), (3, 0, 1),
+                                     (3, 1, 1)})
+        self.assertEqual(actual_o2, {(0, 3, 3), (0, 2, 3), (0, 3, 2),
+                                     (0, 2, 2)})
 
     def test_natsort(self):
         """natsort should perform numeric comparisons on strings

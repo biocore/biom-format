@@ -42,6 +42,44 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
 
+def generate_subsamples(table, n, axis='sample', by_id=False):
+    """Indefinitely generate random subsamples
+
+    Parameters
+    ----------
+    table : Table
+        The table to subsample from
+    n : int
+        The size of the subsample
+    axis : {'sample', 'observation'}
+        The axis to operate on
+    by_id : bool
+        If `True`, operate on IDs, if `False`, operate on values
+
+    Returns
+    -------
+    GeneratorType
+        Each subsequent call to .next() will yield a new randomly subsampled
+        table
+
+    Examples
+    --------
+
+    Randomly subsample the samples in the example_table 10 times:
+
+    >>> from biom import example_table
+    >>> gen = generate_subsamples(example_table, 2, by_id=True)
+    >>> observed_ids = []
+    >>> for _, table in zip(range(10), gen):
+    ...     observed_ids.append(tuple(table.sample_ids))
+    >>> print sorted(set(observed_ids))
+    [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
+
+    """
+    while True:
+        yield table.subsample(n, axis, by_id)
+
+
 def get_biom_format_version_string():
     """Returns the current Biom file format version."""
     return "Biological Observation Matrix 1.0.0"
