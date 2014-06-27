@@ -2084,19 +2084,18 @@ class Table(object):
 
         if axis == 'sample':
             data = self._data.tocsc()
-            ids = self.sample_ids.copy()
+            ids = self.sample_ids
         elif axis == 'observation':
             data = self._data.tocsr()
-            ids = self.observation_ids.copy()
+            ids = self.observation_ids
         else:
             raise UnknownAxisError(axis)
 
         if by_id:
+            ids = ids.copy()
             np.random.shuffle(ids)
             subset = set(ids[:n])
             table = self.filter(lambda v, i, md: i in subset, inplace=False)
-            inv_axis = self._invert_axis(axis)
-            table.filter(lambda v, i, md: v.sum() > 0, axis=inv_axis)
         else:
             _subsample(data, n)
 
@@ -2106,9 +2105,10 @@ class Table(object):
             table = Table(data, self.observation_ids.copy(),
                           self.sample_ids.copy(), obs_md, samp_md)
 
-            inv_axis = self._invert_axis(axis)
-            table.filter(lambda v, i, md: v.sum() > 0, axis=inv_axis)
             table.filter(lambda v, i, md: v.sum() > 0, axis=axis)
+
+        inv_axis = self._invert_axis(axis)
+        table.filter(lambda v, i, md: v.sum() > 0, axis=inv_axis)
 
         return table
 
