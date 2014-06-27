@@ -19,6 +19,17 @@ try:
 except ImportError:
     raise ImportError("numpy must be installed prior to installing biom")
 
+# Hack to prevent stupid "TypeError: 'NoneType' object is not callable" error
+# in multiprocessing/util.py _exit_function when running `python
+# setup.py test` (see
+# http://www.eby-sarna.com/pipermail/peak/2010-May/003357.html),
+# borrowed from https://github.com/getsentry/sentry/blob/master/setup.py
+for m in ('multiprocessing', 'logging'):
+    try:
+        __import__(m)
+    except ImportError:
+        pass
+
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente",
@@ -93,8 +104,7 @@ setup(name='biom-format',
       install_requires=["numpy >= 1.3.0",
                         "pyqi == 0.3.2",
                         "scipy >= 0.13.0"],
-      extras_require={'test': ["nose >= 0.10.1",
-                               "tox >= 1.6.1"],
+      extras_require={'test': ["nose >= 0.10.1", "pep8", "flake8"],
                       'hdf5': ["h5py >= 2.2.0"]
                       },
       classifiers=classifiers

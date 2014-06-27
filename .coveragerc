@@ -4,7 +4,7 @@ omit =
     */__init__.py
 source = biom
 branch = True
-include = */skbio/*
+include = */biom/*
 
 [report]
 exclude_lines =
