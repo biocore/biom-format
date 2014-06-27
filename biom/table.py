@@ -2025,9 +2025,10 @@ class Table(object):
         axis : {'sample', 'observation'}, optional
             The axis to sample over
         by_id : boolean, optional
-            If `False`, the subsampling is based on the counts of contained in
-            the matrix (e.g., rarefaction). If `True`, the subsampling is
-            based on the IDs (e.g., fetch a random subset of samples)
+            If `False`, the subsampling is based on the counts contained in the
+            matrix (e.g., rarefaction). If `True`, the subsampling is based on
+            the IDs (e.g., fetch a random subset of samples). Default is
+            `False`.
 
         Returns
         -------
