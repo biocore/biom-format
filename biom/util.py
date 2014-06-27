@@ -51,10 +51,11 @@ def generate_subsamples(table, n, axis='sample', by_id=False):
         The table to subsample from
     n : int
         The size of the subsample
-    axis : {'sample', 'observation'}
-        The axis to operate on
-    by_id : bool
-        If `True`, operate on IDs, if `False`, operate on values
+    axis : {'sample', 'observation'}, optional
+        The axis to operate on, defaults to 'sample'.
+    by_id : bool, optional
+        If `True`, operate on IDs, if `False`, operate on values. Defaults to
+        `False`.
 
     Returns
     -------
