@@ -2015,7 +2015,7 @@ class Table(object):
 
         return max_val
 
-    def subsample(self, n, axis='sample'):
+    def subsample(self, n, axis='sample', by_id=False):
         """Randomly subsample without replacement.
 
         Parameters
@@ -2024,6 +2024,11 @@ class Table(object):
             Number of items to subsample from `counts`.
         axis : {'sample', 'observation'}, optional
             The axis to sample over
+        by_id : boolean, optional
+            If `False`, the subsampling is based on the counts contained in the
+            matrix (e.g., rarefaction). If `True`, the subsampling is based on
+            the IDs (e.g., fetch a random subset of samples). Default is
+            `False`.
 
         Returns
         -------
@@ -2043,7 +2048,7 @@ class Table(object):
         Adapted from `skbio.math.subsample`, see biom-format/licenses for more
         information about scikit-bio.
 
-        This code assumes absolute abundance.
+        This code assumes absolute abundance if `by_id` is False.
 
         Examples
         --------
@@ -2052,7 +2057,7 @@ class Table(object):
         >>> table = Table(np.array([[0, 2, 3], [1, 0, 2]]), ['O1', 'O2'],
         ...               ['S1', 'S2', 'S3'])
 
-        Subsample 1 item over the sample axis:
+        Subsample 1 item over the sample axis by value (e.g., rarefaction):
 
         >>> print table.subsample(1).sum(axis='sample')
         [ 1.  1.  1.]
@@ -2065,28 +2070,46 @@ class Table(object):
         >>> print ss.sample_ids
         ['S2' 'S3']
 
+        Subsample by IDs over the sample axis. For this example, we're going to
+        randomly select 2 samples and do this 100 times, and then print out the
+        set of IDs observed.
+
+        >>> ids = set([tuple(table.subsample(2, by_id=True).sample_ids)
+        ...            for i in range(100)])
+        >>> print sorted(ids)
+        [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
+
         """
         if n < 0:
             raise ValueError("n cannot be negative.")
 
         if axis == 'sample':
             data = self._data.tocsc()
+            ids = self.sample_ids
         elif axis == 'observation':
             data = self._data.tocsr()
+            ids = self.observation_ids
         else:
             raise UnknownAxisError(axis)
 
-        _subsample(data, n)
+        if by_id:
+            ids = ids.copy()
+            np.random.shuffle(ids)
+            subset = set(ids[:n])
+            table = self.filter(lambda v, i, md: i in subset, inplace=False)
+        else:
+            _subsample(data, n)
 
-        samp_md = deepcopy(self.sample_metadata)
-        obs_md = deepcopy(self.observation_metadata)
+            samp_md = deepcopy(self.sample_metadata)
+            obs_md = deepcopy(self.observation_metadata)
 
-        table = Table(data, self.observation_ids.copy(),
-                      self.sample_ids.copy(), obs_md, samp_md)
+            table = Table(data, self.observation_ids.copy(),
+                          self.sample_ids.copy(), obs_md, samp_md)
+
+            table.filter(lambda v, i, md: v.sum() > 0, axis=axis)
 
         inv_axis = self._invert_axis(axis)
         table.filter(lambda v, i, md: v.sum() > 0, axis=inv_axis)
-        table.filter(lambda v, i, md: v.sum() > 0, axis=axis)
 
         return table
 

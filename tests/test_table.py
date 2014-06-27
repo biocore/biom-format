@@ -1750,6 +1750,18 @@ class SparseTableTests(TestCase):
         with self.assertRaises(TableException):
             self.st_rich.filter(lambda vals, id_, md: False, 'observation')
 
+    def test_subsample_by_id(self):
+        table = Table(np.array([[3, 1, 2], [0, 3, 4]]), ['O1', 'O2'],
+                      ['S1', 'S2', 'S3'])
+        actual_o1 = set()
+        actual_o2 = set()
+        for i in range(100):
+            obs = table.subsample(2, by_id=True)
+            actual_o1.add(tuple(obs.data('O1', 'observation')))
+            actual_o2.add(tuple(obs.data('O2', 'observation')))
+        self.assertEqual(actual_o1, {(3, 1), (1, 2), (3, 2)})
+        self.assertEqual(actual_o2, {(0, 3), (3, 4), (0, 4)}),
+
     def test_subsample(self):
         table = Table(np.array([[0, 5, 0]]), ['O1'], ['S1', 'S2', 'S3'])
 
