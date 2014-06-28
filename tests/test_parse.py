@@ -13,7 +13,6 @@ from StringIO import StringIO
 import json
 from unittest import TestCase, main
 
-from numpy import array
 import numpy.testing as npt
 
 from biom.parse import generatedby, MetadataMap, parse_biom_table
@@ -25,7 +24,8 @@ if HAVE_H5PY:
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Adam Robbins-Pianka"]
+__credits__ = ["Justin Kuczynski", "Daniel McDonald", "Adam Robbins-Pianka",
+               "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Justin Kuczynski"
@@ -152,8 +152,8 @@ class ParseTests(TestCase):
         npt.assert_equal((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
                                                  'GG_OTU_3', 'GG_OTU_4',
                                                  'GG_OTU_5'))
-        self.assertEqual(tab.sample_metadata, None)
-        self.assertEqual(tab.observation_metadata, None)
+        self.assertEqual(tab.metadata(), None)
+        self.assertEqual(tab.metadata(axis='observation'), None)
 
         tab = parse_biom_table(StringIO(self.biom_minimal_sparse))
         npt.assert_equal((tab.sample_ids), ('Sample1', 'Sample2',
@@ -162,8 +162,8 @@ class ParseTests(TestCase):
         npt.assert_equal((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
                                                  'GG_OTU_3', 'GG_OTU_4',
                                                  'GG_OTU_5'))
-        self.assertEqual(tab.sample_metadata, None)
-        self.assertEqual(tab.observation_metadata, None)
+        self.assertEqual(tab.metadata(), None)
+        self.assertEqual(tab.metadata(axis='observation'), None)
 
         tablestring = '''{
             "id":null,
@@ -211,8 +211,8 @@ class ParseTests(TestCase):
         npt.assert_equal((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
                                                  'GG_OTU_3', 'GG_OTU_4',
                                                  'GG_OTU_5'))
-        self.assertEqual(tab.sample_metadata, None)
-        self.assertEqual(tab.observation_metadata, None)
+        self.assertEqual(tab.metadata(), None)
+        self.assertEqual(tab.metadata(axis='observation'), None)
 
         tab = parse_biom_table(StringIO(self.biom_minimal_sparse),
                                ids=['GG_OTU_2', 'GG_OTU_3', 'GG_OTU_5'],
@@ -222,8 +222,8 @@ class ParseTests(TestCase):
                                             'Sample6',))
         npt.assert_equal((tab.observation_ids), ('GG_OTU_2', 'GG_OTU_3',
                                                  'GG_OTU_5'))
-        self.assertEqual(tab.sample_metadata, None)
-        self.assertEqual(tab.observation_metadata, None)
+        self.assertEqual(tab.metadata(), None)
+        self.assertEqual(tab.metadata(axis='observation'), None)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_parse_biom_table_hdf5(self):
@@ -273,8 +273,8 @@ class ParseTests(TestCase):
 
         # These things are not round-trippable using the general-purpose
         # parse_biom_table function
-        t.sample_metadata = None
-        t.observation_metadata = None
+        t._sample_metadata = None
+        t._observation_metadata = None
         t.type = None
 
         # Test TSV as a list of lines

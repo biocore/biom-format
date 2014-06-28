@@ -18,7 +18,8 @@ from biom.parse import MetadataMap
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald",
-               "Jose Carlos Clemente Litran", "Jai Ram Rideout"]
+               "Jose Carlos Clemente Litran", "Jai Ram Rideout",
+               "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Greg Caporaso"
