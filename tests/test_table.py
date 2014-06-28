@@ -818,6 +818,37 @@ class TableTests(TestCase):
         self.assertEqual(t._observation_metadata[1]['non existent key'], None)
         self.assertEqual(t._observation_metadata[2]['non existent key'], None)
 
+    def test_add_group_metadata(self):
+        """add group metadata works correctly"""
+        obs_ids = [1, 2, 3]
+        samp_ids = [4, 5, 6, 7]
+        d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+        obs_g_md = {'tree': ('newick', '(1:0.2,(2:0.3,3:0.4):0.5);')}
+        sample_g_md = {'graph': ('edge_list', '(4,5), (4,6), (5,7), (6,7)')}
+        t = Table(d, obs_ids, samp_ids, observation_group_metadata=None,
+                  sample_group_metadata=sample_g_md)
+        t.add_group_metadata(obs_g_md, axis='observation')
+        self.assertEqual(t.group_metadata(axis='observation'),
+                         {'tree': ('newick', '(1:0.2,(2:0.3,3:0.4):0.5);')})
+
+    def test_add_group_metadata_w_existing_metadata(self):
+        """add group metadata works with existing metadata"""
+        obs_ids = [1, 2, 3]
+        samp_ids = [4, 5, 6, 7]
+        d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+        obs_g_md = {'tree': ('newick', '(1:0.2,(2:0.3,3:0.4):0.5);')}
+        sample_g_md = {'graph': ('edge_list', '(4,5), (4,6), (5,7), (6,7)')}
+        t = Table(d, obs_ids, samp_ids, observation_group_metadata=obs_g_md,
+                  sample_group_metadata=sample_g_md)
+        new_sample_md = {
+            'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')
+            }
+        t.add_group_metadata(new_sample_md)
+        self.assertEqual(
+            t.group_metadata(),
+            {'graph': ('edge_list', '(4,5), (4,6), (5,7), (6,7)'),
+             'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')})
+
     def test_add_metadata_two_entries(self):
         """ add_metadata functions with more than one md entry """
         obs_ids = [1, 2, 3]

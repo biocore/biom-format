@@ -461,6 +461,34 @@ class Table(object):
         """The sparse matrix object"""
         return self._data
 
+    def add_group_metadata(self, group_md, axis='sample'):
+        """Take a dict of group metadata and add it to an axis
+
+        Parameters
+        ----------
+        group_md : dict of tuples
+            `group_md` should be of the form ``{category: (data type, value)``
+        axis : {'sample', 'observation'}, optional
+            The axis to operate on
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+        """
+        if axis == 'sample':
+            if self._sample_group_metadata is not None:
+                self._sample_group_metadata.update(group_md)
+            else:
+                self._sample_group_metadata = group_md
+        elif axis == 'observation':
+            if self._observation_group_metadata is not None:
+                self._observation_group_metadata.update(group_md)
+            else:
+                self._observation_group_metadata = group_md
+        else:
+            raise UnknownAxisError(axis)
+
     def add_metadata(self, md, axis='sample'):
         """Take a dict of metadata and add it to an axis.
 
