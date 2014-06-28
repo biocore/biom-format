@@ -500,20 +500,20 @@ class Table(object):
             The axis to operate on
         """
         if axis == 'sample':
-            if self._sample_metadata is not None:
+            if self.metadata() is not None:
                 for id_, md_entry in md.iteritems():
                     if self.exists(id_):
                         idx = self.index(id_, 'sample')
-                        self._sample_metadata[idx].update(md_entry)
+                        self.metadata()[idx].update(md_entry)
             else:
                 self._sample_metadata = tuple([md[id_] if id_ in md else
                                               None for id_ in self.sample_ids])
         elif axis == 'observation':
-            if self._observation_metadata is not None:
+            if self.metadata(axis='observation') is not None:
                 for id_, md_entry in md.iteritems():
                     if self.exists(id_, axis="observation"):
                         idx = self.index(id_, 'observation')
-                        self._observation_metadata[idx].update(md_entry)
+                        self.metadata(axis='observation')[idx].update(md_entry)
             else:
                 self._observation_metadata = tuple([md[id_] if id_ in md else
                                                    None for id_ in
@@ -754,8 +754,8 @@ class Table(object):
         Table
             Return a new table that is the transpose of caller table.
         """
-        sample_md_copy = deepcopy(self._sample_metadata)
-        obs_md_copy = deepcopy(self._observation_metadata)
+        sample_md_copy = deepcopy(self.metadata())
+        obs_md_copy = deepcopy(self.metadata(axis='observation'))
 
         if self._data.getformat() == 'lil':
             # lil's transpose method doesn't have the copy kwarg, but all of
@@ -1069,8 +1069,8 @@ class Table(object):
         for obs_id, obs_values in zip(self.observation_ids, self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
 
-            if header_key and self._observation_metadata is not None:
-                md = self._observation_metadata[self._obs_index[obs_id]]
+            if header_key and self.metadata(axis='observation') is not None:
+                md = self.metadata(axis='observation')[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
                 output.append(
                     '%s%s%s\t%s' %
@@ -1136,10 +1136,10 @@ class Table(object):
             return "Observation IDs are not the same"
         if not np.array_equal(self.sample_ids, other.sample_ids):
             return "Sample IDs are not the same"
-        if not np.array_equal(self._observation_metadata,
-                              other._observation_metadata):
+        if not np.array_equal(self.metadata(axis='observation'),
+                              other.metadata(axis='observation')):
             return "Observation metadata are not the same"
-        if not np.array_equal(self._sample_metadata, other._sample_metadata):
+        if not np.array_equal(self.metadata(), other.metadata()):
             return "Sample metadata are not the same"
         if not self._data_equality(other._data):
             return "Data elements are not the same"
@@ -1156,10 +1156,10 @@ class Table(object):
             return False
         if not np.array_equal(self.sample_ids, other.sample_ids):
             return False
-        if not np.array_equal(self._observation_metadata,
-                              other._observation_metadata):
+        if not np.array_equal(self.metadata(axis='observation'),
+                              other.metadata(axis='observation')):
             return False
-        if not np.array_equal(self._sample_metadata, other._sample_metadata):
+        if not np.array_equal(self.metadata(), other.metadata()):
             return False
         if not self._data_equality(other._data):
             return False
@@ -1227,8 +1227,8 @@ class Table(object):
         return self.__class__(self._data.copy(),
                               self.observation_ids.copy(),
                               self.sample_ids.copy(),
-                              deepcopy(self._observation_metadata),
-                              deepcopy(self._sample_metadata),
+                              deepcopy(self.metadata(axis='observation')),
+                              deepcopy(self.metadata()),
                               self.table_id)
 
     def iter_data(self, dense=True, axis='sample'):
@@ -1403,8 +1403,8 @@ class Table(object):
                 cur_idx = self.index(id_, 'sample')
                 vals.append(self._to_dense(self[:, cur_idx]))
 
-                if self._sample_metadata is not None:
-                    md.append(self._sample_metadata[cur_idx])
+                if self.metadata() is not None:
+                    md.append(self.metadata()[cur_idx])
 
             if not md:
                 md = None
@@ -1412,22 +1412,22 @@ class Table(object):
             return self.__class__(self._conv_to_self_type(vals,
                                                           transpose=True),
                                   self.observation_ids[:], order[:],
-                                  self._observation_metadata, md,
+                                  self.metadata(axis='observation'), md,
                                   self.table_id, self.type)
         elif axis == 'observation':
             for id_ in order:
                 cur_idx = self.index(id_, 'observation')
                 vals.append(self[cur_idx, :])
 
-                if self._observation_metadata is not None:
-                    md.append(self._observation_metadata[cur_idx])
+                if self.metadata(axis='observation') is not None:
+                    md.append(self.metadata(axis='observation')[cur_idx])
 
             if not md:
                 md = None
 
             return self.__class__(self._conv_to_self_type(vals),
                                   order[:], self.sample_ids[:],
-                                  md, self._sample_metadata, self.table_id,
+                                  md, self.metadata(), self.table_id,
                                   self.type)
         else:
             raise UnknownAxisError(axis)
@@ -1696,8 +1696,8 @@ class Table(object):
                 samp_md = metadata
                 obs_ids = self.observation_ids[:]
 
-                if self._observation_metadata is not None:
-                    obs_md = self._observation_metadata[:]
+                if self.metadata(axis='observation') is not None:
+                    obs_md = self.metadata(axis='observation')[:]
                 else:
                     obs_md = None
 
@@ -1708,8 +1708,8 @@ class Table(object):
                 obs_md = metadata
                 samp_ids = self.sample_ids[:]
 
-                if self._sample_metadata is not None:
-                    samp_md = self._sample_metadata[:]
+                if self.metadata() is not None:
+                    samp_md = self.metadata()[:]
                 else:
                     samp_md = None
 
@@ -1862,13 +1862,13 @@ class Table(object):
         # new_data_shape is only necessary in the one-to-many case
         # axis_slice is only necessary in the one-to-many case
         if axis == 'sample':
-            axis_ids_md = lambda t: (t.sample_ids, t._sample_metadata)
+            axis_ids_md = lambda t: (t.sample_ids, t.metadata())
             transpose = True
             new_data_shape = lambda ids, collapsed: (len(ids), len(collapsed))
             axis_slice = lambda lookup, key: (slice(None), lookup[key])
         elif axis == 'observation':
             axis_ids_md = lambda t: (t.observation_ids,
-                                     t._observation_metadata)
+                                     t.metadata(axis='observation'))
             transpose = False
             new_data_shape = lambda ids, collapsed: (len(collapsed), len(ids))
             axis_slice = lambda lookup, key: (lookup[key], slice(None))
@@ -1988,16 +1988,16 @@ class Table(object):
             sample_ids = collapsed_ids
             sample_md = collapsed_md
             obs_ids = self.observation_ids[:]
-            if self._observation_metadata is not None:
-                obs_md = self._observation_metadata[:]
+            if self.metadata(axis='observation') is not None:
+                obs_md = self.metadata(axis='observation')[:]
             else:
                 obs_md = None
         else:
             sample_ids = self.sample_ids[:]
             obs_ids = collapsed_ids
             obs_md = collapsed_md
-            if self._sample_metadata is not None:
-                sample_md = self._sample_metadata[:]
+            if self.metadata() is not None:
+                sample_md = self.metadata()[:]
             else:
                 sample_md = None
 
@@ -2162,8 +2162,8 @@ class Table(object):
 
         _subsample(data, n)
 
-        samp_md = deepcopy(self._sample_metadata)
-        obs_md = deepcopy(self._observation_metadata)
+        samp_md = deepcopy(self.metadata())
+        obs_md = deepcopy(self.metadata(axis='observation'))
 
         table = Table(data, self.observation_ids.copy(),
                       self.sample_ids.copy(), obs_md, samp_md)
@@ -2593,16 +2593,16 @@ class Table(object):
             sample_ids.append(id_)
 
             # if we have sample metadata, grab it
-            if self._sample_metadata is None or not self.exists(id_):
+            if self.metadata() is None or not self.exists(id_):
                 self_md = None
             else:
-                self_md = self._sample_metadata[self_samp_idx[id_]]
+                self_md = self.metadata()[self_samp_idx[id_]]
 
             # if we have sample metadata, grab it
-            if other._sample_metadata is None or not other.exists(id_):
+            if other.metadata() is None or not other.exists(id_):
                 other_md = None
             else:
-                other_md = other._sample_metadata[other_samp_idx[id_]]
+                other_md = other.metadata()[other_samp_idx[id_]]
 
             sample_md.append(sample_metadata_f(self_md, other_md))
 
@@ -2614,18 +2614,19 @@ class Table(object):
             obs_ids.append(id_)
 
             # if we have observation metadata, grab it
-            if self._observation_metadata is None or \
+            if self.metadata(axis='observation') is None or \
                not self.exists(id_, axis="observation"):
                 self_md = None
             else:
-                self_md = self._observation_metadata[self_obs_idx[id_]]
+                self_md = self.metadata(axis='observation')[self_obs_idx[id_]]
 
             # if we have observation metadata, grab it
-            if other._observation_metadata is None or \
+            if other.metadata(axis='observation') is None or \
                     not other.exists(id_, axis="observation"):
                 other_md = None
             else:
-                other_md = other._observation_metadata[other_obs_idx[id_]]
+                other_md = other.metadata(
+                    axis='observation')[other_obs_idx[id_]]
 
             obs_md.append(observation_metadata_f(self_md, other_md))
 
@@ -3108,9 +3109,9 @@ html
         if compress is True:
             compression = 'gzip'
         axis_dump(h5grp.create_group('observation'), self.observation_ids,
-                  self._observation_metadata, 'csr', compression)
+                  self.metadata(axis='observation'), 'csr', compression)
         axis_dump(h5grp.create_group('sample'), self.sample_ids,
-                  self._sample_metadata, 'csc', compression)
+                  self.metadata(), 'csc', compression)
 
     @classmethod
     def from_json(self, json_table, data_pump=None,
