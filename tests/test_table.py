@@ -638,16 +638,16 @@ class TableTests(TestCase):
     def test_metadata_sample_id(self):
         """returns the sample metadata for a given id"""
         self.assertEqual({'barcode': 'aatt'},
-                         self.st_rich.metadata('a', 'sample'))
+                         self.st_rich.metadata('a'))
         self.assertEqual({'barcode': 'ttgg'},
-                         self.st_rich.metadata('b', 'sample'))
+                         self.st_rich.metadata('b'))
 
         with self.assertRaises(UnknownIDError):
             self.st_rich.metadata(3, 'sample')
 
     def test_metadata_sample(self):
         """Return the sample metadata"""
-        obs = sorted(self.st_rich.metadata(axis='sample'))
+        obs = sorted(self.st_rich.metadata())
         exp = sorted([{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
         for o, e in zip(obs, exp):
             self.assertEqual(o, e)
