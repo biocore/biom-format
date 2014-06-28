@@ -221,6 +221,7 @@ class Table(object):
     def __init__(self, data, observation_ids, sample_ids,
                  observation_metadata=None, sample_metadata=None,
                  table_id=None, type=None, create_date=None, generated_by=None,
+                 observation_group_metadata=None, sample_group_metadata=None,
                  **kwargs):
 
         self.type = type
@@ -249,6 +250,9 @@ class Table(object):
             self._observation_metadata = tuple(observation_metadata)
         else:
             self._observation_metadata = None
+
+        self._sample_group_metadata = sample_group_metadata
+        self._observation_group_metadata = observation_group_metadata
 
         # These will be set by _index_ids()
         self._sample_index = None
@@ -734,6 +738,55 @@ class Table(object):
         return self.__class__(self._data.transpose(copy=True),
                               self.sample_ids[:], self.observation_ids[:],
                               sample_md_copy, obs_md_copy, self.table_id)
+
+    def group_metadata(self, axis='sample'):
+        """Return the group metadata of the given axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}, optional
+            Axis to search for the group metadata. Defaults to 'sample'
+
+        Returns
+        -------
+        dict
+            The corresponding group metadata for the given axis
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table, with group observation metadata and no group
+        sample metadata:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> group_observation_md = {'tree': ('newick', '(O1:0.3,O2:0.4);')}
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               observation_group_metadata=group_observation_md)
+
+        Get the observation group metadata:
+
+        >>> table.group_metadata(axis='observation')
+        {'tree': ('newick', '(O1:0.3,O2:0.4);')}
+
+        Get the sample group metadata:
+
+        >> table.group_metadata()
+        None
+        """
+        if axis == 'sample':
+            group_md = self._sample_group_metadata
+        elif axis == 'observation':
+            group_md = self._observation_group_metadata
+        else:
+            raise UnknownAxisError(axis)
+        return group_md
 
     def metadata(self, id_=None, axis='sample'):
         """Return the metadata of the identified sample/observation.

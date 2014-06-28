@@ -155,6 +155,13 @@ class TableTests(TestCase):
                               {'taxonomy': ['k__a', 'p__c']}],
                              [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
                              )
+        self.st_group_rich = Table(
+            self.vals, ['1', '2'], ['a', 'b'],
+            [{'taxonomy': ['k__a', 'p__b']}, {'taxonomy': ['k__a', 'p__c']}],
+            [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
+            observation_group_metadata={'tree': ('newick', '(a:0.3,b:0.4);')},
+            sample_group_metadata={'category': ('newick', '(1:0.3,2:0.4);')}
+            )
 
         self.empty_st = Table([], [], [])
 
@@ -629,6 +636,23 @@ class TableTests(TestCase):
              "2\t7.0\t8.0"])
         obs = self.st1.to_tsv(observation_column_name='Taxon')
         self.assertEqual(obs, exp)
+
+    def test_group_metadata_sample(self):
+        """Returns the sample group metadata"""
+        self.assertEqual(self.st_group_rich.group_metadata(),
+                         {'category': ('newick', '(1:0.3,2:0.4);')})
+        self.assertEqual(self.st_rich.group_metadata(), None)
+
+    def test_group_metadata_observation(self):
+        """Returns the observation group metadata"""
+        self.assertEqual(self.st_group_rich.group_metadata(axis='observation'),
+                         {'tree': ('newick', '(a:0.3,b:0.4);')})
+        self.assertEqual(self.st_rich.group_metadata(axis='observation'), None)
+
+    def test_group_metadata_error(self):
+        """Handles invalid input"""
+        with self.assertRaises(UnknownAxisError):
+            self.simple_derived.group_metadata('bro-axis')
 
     def test_metadata_invalid_input(self):
         """Correctly handles invalid input."""
