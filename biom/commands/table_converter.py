@@ -13,8 +13,7 @@ from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
 from pyqi.core.exception import CommandError
 from biom.table import Table
-from biom.parse import (parse_biom_table, MetadataMap, convert_biom_to_table,
-                        convert_table_to_biom, generatedby)
+from biom.parse import MetadataMap
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -161,17 +160,17 @@ class TableConverter(Command):
                     "one of: %s" %
                     ', '.join(self.ObservationMetadataTypes.keys()))
 
-            if table.observation_metadata is None:
+            if table.metadata(axis='observation') is None:
                 raise CommandError("Obseration metadata processing requested "
                                    "but it doesn't appear that there is any "
                                    "metadata to operate on!")
 
             # and if this came in as TSV, then we expect only a single type of
             # metadata
-            md_key = table.observation_metadata[0].keys()[0]
+            md_key = table.metadata(axis='observation')[0].keys()[0]
 
             process_f = self.ObservationMetadataTypes[process_obs_metadata]
-            it = zip(table.observation_ids, table.observation_metadata)
+            it = zip(table.observation_ids, table.metadata(axis='observation'))
             new_md = {id_: {md_key: process_f(md[md_key])} for id_, md in it}
 
             if observation_metadata:

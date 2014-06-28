@@ -988,8 +988,8 @@ class Table(object):
         for obs_id, obs_values in zip(self.observation_ids, self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
 
-            if header_key and self.observation_metadata is not None:
-                md = self.observation_metadata[self._obs_index[obs_id]]
+            if header_key and self._observation_metadata is not None:
+                md = self._observation_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
                 output.append(
                     '%s%s%s\t%s' %

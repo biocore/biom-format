@@ -47,8 +47,8 @@ class TableConverterTests(TestCase):
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
-        self.assertEqual(obs.sample_metadata, None)
-        self.assertNotEqual(obs.observation_metadata, None)
+        self.assertEqual(obs.metadata(), None)
+        self.assertNotEqual(obs.metadata(axis='observation'), None)
 
     def test_classic_to_biom_with_metadata(self):
         """Correctly converts classic to biom with metadata."""
@@ -62,13 +62,13 @@ class TableConverterTests(TestCase):
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
-        self.assertNotEqual(obs.sample_metadata, None)
-        self.assertNotEqual(obs.observation_metadata, None)
-        self.assertEqual(obs.sample_metadata[obs.index('p2', 'sample')],
+        self.assertNotEqual(obs.metadata(), None)
+        self.assertNotEqual(obs.metadata(axis='observation'), None)
+        self.assertEqual(obs.metadata()[obs.index('p2', 'sample')],
                          {'foo': 'c;b;a'})
-        self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
+        self.assertEqual(obs.metadata()[obs.index('not16S.1', 'sample')],
                          {'foo': 'b;c;d'})
-        self.assertEqual(obs.observation_metadata[
+        self.assertEqual(obs.metadata(axis='observation')[
             obs.index('None11', 'observation')],
             {'taxonomy': 'Unclassified'})
 
@@ -82,13 +82,13 @@ class TableConverterTests(TestCase):
         self.assertEqual(type(obs), Table)
         self.assertEqual(len(obs.sample_ids), 9)
         self.assertEqual(len(obs.observation_ids), 14)
-        self.assertNotEqual(obs.sample_metadata, None)
-        self.assertNotEqual(obs.observation_metadata, None)
-        self.assertEqual(obs.sample_metadata[obs.index('p2', 'sample')],
+        self.assertNotEqual(obs.metadata(), None)
+        self.assertNotEqual(obs.metadata(axis='observation'), None)
+        self.assertEqual(obs.metadata()[obs.index('p2', 'sample')],
                          {'foo': 'c;b;a'})
-        self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
+        self.assertEqual(obs.metadata()[obs.index('not16S.1', 'sample')],
                          {'foo': 'b;c;d'})
-        self.assertEqual(obs.observation_metadata[
+        self.assertEqual(obs.metadata(axis='observation')[
             obs.index('None11', 'observation')],
             {'taxonomy': ['Unclassified']})
 
