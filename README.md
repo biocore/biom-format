@@ -1,7 +1,7 @@
 README
 ======
 
-[![Build Status](https://travis-ci.org/biocore/biom-format.png?branch=master)](https://travis-ci.org/biocore/biom-format)
+[![Build Status](https://travis-ci.org/biocore/biom-format.png?branch=master)](https://travis-ci.org/biocore/biom-format) [![Coverage Status](https://coveralls.io/repos/biocore/biom-format/badge.png)](https://coveralls.io/r/biocore/biom-format)
 
 **BIOM 2.1 with metadata structure updates are coming on June 30th**
 
