@@ -810,12 +810,12 @@ class Table(object):
             raise UnknownAxisError(axis)
         return group_md
 
-    def metadata(self, id_=None, axis='sample'):
+    def metadata(self, id=None, axis='sample'):
         """Return the metadata of the identified sample/observation.
 
         Parameters
         ----------
-        id_ : str
+        id : str
             ID of the sample or observation whose index will be returned.
         axis : {'sample', 'observation'}
             Axis to search for `id`.
@@ -863,10 +863,10 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-        if id_ is None:
+        if id is None:
             return md
 
-        idx = self.index(id_, axis=axis)
+        idx = self.index(id, axis=axis)
 
         return md[idx] if md is not None else None
 
