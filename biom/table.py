@@ -677,13 +677,7 @@ class Table(object):
 
         # np.apply_along_axis might reduce type conversions here and improve
         # speed. am opting for reduce right now as I think its more readable
-        if axis == 'sample':
-            return asarray([reduce(f, v) for v in self.iter_data()])
-        elif axis == 'observation':
-            return asarray([reduce(f, v) for v in
-                            self.iter_data(axis="observation")])
-        else:
-            raise UnknownAxisError(axis)
+        return asarray([reduce(f, v) for v in self.iter_data(axis=axis)])
 
     def sum(self, axis='whole'):
         """Returns the sum by axis
@@ -3754,11 +3748,9 @@ def list_sparse_to_sparse(data, dtype=float):
     """
     if isspmatrix(data[0]):
         if data[0].shape[0] > data[0].shape[1]:
-            is_col = True
             n_cols = len(data)
             n_rows = data[0].shape[0]
         else:
-            is_col = False
             n_rows = len(data)
             n_cols = data[0].shape[1]
     else:
@@ -3766,10 +3758,8 @@ def list_sparse_to_sparse(data, dtype=float):
         n_rows = max(all_keys, key=itemgetter(0))[0] + 1
         n_cols = max(all_keys, key=itemgetter(1))[1] + 1
         if n_rows > n_cols:
-            is_col = True
             n_cols = len(data)
         else:
-            is_col = False
             n_rows = len(data)
 
     data = vstack(data)
