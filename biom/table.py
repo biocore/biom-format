@@ -181,7 +181,7 @@ from functools import reduce
 from operator import itemgetter, add
 from itertools import izip
 from collections import defaultdict, Hashable
-from numpy import ndarray, asarray, zeros, empty, newaxis
+from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
 from biom.exception import TableException, UnknownAxisError, UnknownIDError
@@ -2853,9 +2853,25 @@ html
         samp_ids = h5grp['sample/ids'][:]
 
         # fetch all of the metadata
-        no_md = np.array(["[]"])
-        obs_md = loads(h5grp['observation'].get('metadata', no_md)[0])
-        samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
+        def get_metadata(grp, num_ids):
+            """Retrieves the metadata from the hdf5 group grp"""
+            md = []
+            for i in range(num_ids):
+                md.append({cat: loads(vals[i])
+                          for cat, vals in grp['metadata'].items()})
+            return md
+
+        obs_md = get_metadata(h5grp['observation'], len(obs_ids))
+        samp_md = get_metadata(h5grp['sample'], len(samp_ids))
+
+        # Fetch the group metadata
+        def get_group_metadata(grp):
+            """Retrieves the group metadata from the hdf5 group grp"""
+            return {(cat, loads(val))
+                    for cat, val in grp['group-metadata'].items()}
+
+        obs_grp_md = get_group_metadata(h5grp['observation'])
+        samp_grp_md = get_group_metadata(h5grp['sample'])
 
         # load the data
         data_grp = h5grp[axis]['matrix']
@@ -2936,7 +2952,9 @@ html
 
         t = Table(matrix, obs_ids, samp_ids, obs_md or None,
                   samp_md or None, type=type_, create_date=create_date,
-                  generated_by=generated_by, table_id=id_)
+                  generated_by=generated_by, table_id=id_,
+                  observation_group_metadata=obs_grp_md,
+                  sample_group_metadata=samp_grp_md)
 
         f = lambda vals, id_, md: np.any(vals)
         axis = 'observation' if axis == 'sample' else 'sample'
@@ -3059,7 +3077,7 @@ html
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
 
-        def axis_dump(grp, ids, md, order, compression=None):
+        def axis_dump(grp, ids, md, group_md, order, compression=None):
             """Store for an axis"""
             self._data = self._data.asformat(order)
 
@@ -3089,13 +3107,31 @@ html
                                data=[str(i) for i in ids],
                                compression=compression)
 
+            # Create the group for the metadata
+            grp.create_group('metadata')
+
             if md is not None:
-                md_str = empty(shape=(), dtype=object)
-                md_str[()] = dumps(md)
-                grp.create_dataset('metadata', shape=(1,),
-                                   dtype=H5PY_VLEN_STR,
-                                   data=md_str,
-                                   compression=compression)
+                # Loop through all the categories
+                for category in md[0]:
+                    # Create the dataset for the current category,
+                    # putting values in id order
+                    grp.create_dataset(
+                        'metadata/%s' % category, shape=(len_ids,),
+                        dtype=H5PY_VLEN_STR,
+                        data=[dumps(m[category]) for m in md],
+                        compression=compression)
+
+            # Create the group for the group metadata
+            grp.create_group('group-metadata')
+
+            if group_md is not None:
+                for key, value in group_md.items():
+                    datatype, val = value
+                    grp_dataset = grp.create_dataset(
+                        'group-metadata/%s' % key,
+                        shape=(1,), dtype=H5PY_VLEN_STR,
+                        data=dumps(val), compression=compression)
+                    grp_dataset.attrs['data_type'] = datatype
 
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
         h5grp.attrs['type'] = self.type if self.type else ""
@@ -3109,9 +3145,10 @@ html
         if compress is True:
             compression = 'gzip'
         axis_dump(h5grp.create_group('observation'), self.observation_ids,
-                  self.metadata(axis='observation'), 'csr', compression)
+                  self.metadata(axis='observation'),
+                  self.group_metadata(axis='observation'), 'csr', compression)
         axis_dump(h5grp.create_group('sample'), self.sample_ids,
-                  self.metadata(), 'csc', compression)
+                  self.metadata(), self.group_metadata(), 'csc', compression)
 
     @classmethod
     def from_json(self, json_table, data_pump=None,
