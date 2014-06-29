@@ -16,7 +16,7 @@ from StringIO import StringIO
 
 import numpy.testing as npt
 import numpy as np
-from scipy.sparse import lil_matrix, csr_matrix
+from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 
 from biom.exception import UnknownAxisError, UnknownIDError, TableException
 from biom.util import unzip, HAVE_H5PY
@@ -1444,6 +1444,21 @@ class SparseTableTests(TestCase):
         with self.assertRaises(UnknownAxisError):
             obs = self.st1.data('a', axis='foo')
 
+    def test_data_sparse(self):
+        # Returns observations for a given sample
+        exp = csc_matrix(np.array([[5], [7]]))
+        obs = self.st1.data('a', 'sample', dense=False)
+        self.assertEqual((obs != exp).nnz, 0)
+        with self.assertRaises(UnknownIDError):
+            self.st1.data('asdasd', 'sample')
+
+        # Returns samples for a given observation
+        exp = csr_matrix(np.array([5, 6]))
+        obs = self.st1.data('1', 'observation', dense=False)
+        self.assertEqual((obs != exp).nnz, 0)
+        with self.assertRaises(UnknownIDError):
+            self.st1.data('asdsad', 'observation')
+
     def test_delimited_self(self):
         """Print out self in a delimited form"""
         exp = '\n'.join(
@@ -1533,6 +1548,36 @@ class SparseTableTests(TestCase):
         obs = list(self.st1.iter_data(dense=False))
         for o, e in zip(obs, exp):
             self.assertTrue((o != e).nnz == 0)
+
+    def test_iter_pairwise_simple(self):
+        """Should iterate pairwise over samples"""
+        exp = [((np.array([5, 7]), 'a', None), (np.array([5, 7]), 'a', None)),
+               ((np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)),
+               ((np.array([6, 8]), 'b', None), (np.array([5, 7]), 'a', None)),
+               ((np.array([6, 8]), 'b', None), (np.array([6, 8]), 'b', None))]
+        obs = list(self.st1.iter_pairwise(dense=True, tri=False, diag=True))
+        npt.assert_equal(obs, exp)
+
+    def test_iter_pairwise_tri(self):
+        """Should iterate pairwise over samples"""
+        exp = [((np.array([5, 7]), 'a', None), (np.array([5, 7]), 'a', None)),
+               ((np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)),
+               ((np.array([6, 8]), 'b', None), (np.array([6, 8]), 'b', None))]
+        obs = list(self.st1.iter_pairwise(dense=True, tri=True, diag=True))
+        npt.assert_equal(obs, exp)
+
+    def test_iter_pairwise_tri_diag(self):
+        """Should iterate pairwise over samples"""
+        exp = [((np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None))]
+        obs = list(self.st1.iter_pairwise(dense=True, tri=True, diag=False))
+        npt.assert_equal(obs, exp)
+
+    def test_iter_pairwise_diag(self):
+        """Should iterate pairwise over samples"""
+        exp = [((np.array([5, 7]), 'a', None), (np.array([6, 8]), 'b', None)),
+               ((np.array([6, 8]), 'b', None), (np.array([5, 7]), 'a', None))]
+        obs = list(self.st1.iter_pairwise(dense=True, tri=False, diag=False))
+        npt.assert_equal(obs, exp)
 
     def test_iter(self):
         """Should iterate over samples"""
@@ -1870,7 +1915,6 @@ class SparseTableTests(TestCase):
         self.st7._data[0, 0] = 0
         self.st7.pa()
         self.assertEqual(self.st7, exp)
-
 
     def test_transform_return_type(self):
         f = lambda data, id_, md: data / 2.

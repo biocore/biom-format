@@ -1194,7 +1194,7 @@ class Table(object):
     def __ne__(self, other):
         return not (self == other)
 
-    def data(self, id, axis='sample'):
+    def data(self, id, axis='sample', dense=True):
         """Returns data associated with an `id`
 
         Parameters
@@ -1203,18 +1203,37 @@ class Table(object):
             ID of the samples or observations whose data will be returned.
         axis : {'sample', 'observation'}
             Axis to search for `id`.
+        dense : bool, optional
+            If ``True``, return data as dense
+
+        Returns
+        -------
+        np.ndarray or scipy.sparse.spmatrix
+            np.ndarray if ``dense``, otherwise scipy.sparse.spmatrix
 
         Raises
         ------
         UnknownAxisError
             If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> example_table.data('S1', axis='sample')
+        array([ 0.,  3.])
+
         """
         if axis == 'sample':
-            return self._to_dense(self[:, self.index(id, 'sample')])
+            data = self[:, self.index(id, 'sample')]
         elif axis == 'observation':
-            return self._to_dense(self[self.index(id, 'observation'), :])
+            data = self[self.index(id, 'observation'), :]
         else:
             raise UnknownAxisError(axis)
+
+        if dense:
+            return self._to_dense(data)
+        else:
+            return data
 
     def copy(self):
         """Returns a copy of the table"""
@@ -1332,11 +1351,95 @@ class Table(object):
         if metadata is None:
             metadata = (None,) * len(ids)
 
-        for vals, id_, md in izip(iter_, ids, metadata):
-            if dense:
-                vals = self._to_dense(vals)
+        iter_ = self.iter_data(axis=axis, dense=dense)
 
-            yield (vals, id_, md)
+        return izip(iter_, ids, metadata)
+
+    def iter_pairwise(self, dense=True, axis='sample', tri=True, diag=False):
+        """Pairwise iteration over self
+
+        Parameters
+        ----------
+        dense : bool, optional
+            Defaults to ``True``. If ``False``, yield compressed sparse row or
+            compressed sparse columns if `axis` is 'observation' or 'sample',
+            respectively.
+        axis : {'sample', 'observation'}, optional
+            The axis to iterate over.
+        tri : bool, optional
+            If ``True``, just yield [i, j] and not [j, i]
+        diag : bool, optional
+            If ``True``, yield [i, i]
+
+        Returns
+        -------
+        GeneratorType
+            Yields [(val_i, id_i, metadata_i), (val_j, id_j, metadata_j)]
+
+        Raises
+        ------
+        UnknownAxisError
+
+        Examples
+        --------
+        >>> from biom import example_table
+
+        By default, only the upper triangle without the diagonal  of the
+        resulting pairwise combinations is yielded.
+
+        >>> iter_ = example_table.iter_pairwise()
+        >>> for (val_i, id_i, md_i), (val_j, id_j, md_j) in iter_:
+        ...     print id_i, id_j
+        S1 S2
+        S1 S3
+        S2 S3
+
+        The full pairwise combinations can also be yielded though.
+
+        >>> iter_ = example_table.iter_pairwise(tri=False, diag=True)
+        >>> for (val_i, id_i, md_i), (val_j, id_j, md_j) in iter_:
+        ...     print id_i, id_j
+        S1 S1
+        S1 S2
+        S1 S3
+        S2 S1
+        S2 S2
+        S2 S3
+        S3 S1
+        S3 S2
+        S3 S3
+
+        """
+        metadata = self.metadata(axis=axis)
+        if axis == 'sample':
+            ids = self.sample_ids
+        elif axis == 'observation':
+            ids = self.observation_ids
+        else:
+            raise UnknownAxisError(axis)
+
+        if metadata is None:
+            metadata = (None,) * len(ids)
+
+        ind = np.arange(len(ids))
+        diag_v = 1 - diag  # for offseting tri_f, where a 0 includes the diag
+
+        if tri:
+            tri_f = lambda idx: ind[idx+diag_v:]
+        else:
+            tri_f = lambda idx: np.hstack([ind[:idx], ind[idx+diag_v:]])
+
+        for idx, i in enumerate(ind):
+            id_i = ids[i]
+            md_i = metadata[i]
+            data_i = self.data(id_i, axis=axis, dense=dense)
+
+            for j in tri_f(idx):
+                id_j = ids[j]
+                md_j = metadata[j]
+                data_j = self.data(id_j, axis=axis, dense=dense)
+
+                yield ((data_i, id_i, md_i), (data_j, id_j, md_j))
 
     def sort_order(self, order, axis='sample'):
         """Return a new table with `axis` in `order`
