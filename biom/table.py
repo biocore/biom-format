@@ -2848,30 +2848,22 @@ html
         shape = h5grp.attrs['shape']
         type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
-        # fetch all of the IDs
-        obs_ids = h5grp['observation/ids'][:]
-        samp_ids = h5grp['sample/ids'][:]
-
-        # fetch all of the metadata
-        def get_metadata(grp, num_ids):
-            """Retrieves the metadata from the hdf5 group grp"""
+        def axis_load(grp):
+            """Loads all the data of the given group"""
+            # fetch all of the IDs
+            ids = grp['ids'][:]
+            # fetch all of the metadata
             md = []
-            for i in range(num_ids):
+            for i in range(len(ids)):
                 md.append({cat: loads(vals[i])
                           for cat, vals in grp['metadata'].items()})
-            return md
+            # Fetch the group metadata
+            grp_md = {(cat, loads(val))
+                      for cat, val in grp['group-metadata'].items()}
+            return ids, md, grp_md
 
-        obs_md = get_metadata(h5grp['observation'], len(obs_ids))
-        samp_md = get_metadata(h5grp['sample'], len(samp_ids))
-
-        # Fetch the group metadata
-        def get_group_metadata(grp):
-            """Retrieves the group metadata from the hdf5 group grp"""
-            return {(cat, loads(val))
-                    for cat, val in grp['group-metadata'].items()}
-
-        obs_grp_md = get_group_metadata(h5grp['observation'])
-        samp_grp_md = get_group_metadata(h5grp['sample'])
+        obs_ids, obs_md, obs_grp_md = axis_load(h5grp['observation'])
+        samp_ids, samp_md, samp_grp_md = axis_load(h5grp['sample'])
 
         # load the data
         data_grp = h5grp[axis]['matrix']
