@@ -16,6 +16,7 @@ Bug fixes:
 
 * ``Table.sort_order`` was not retaining ``Table.type``, see #474
 * ``convert_biom_to_table`` now uses ``load_table``, see #478
+* ``Table.pa`` now handles negative values, see #492
 
 biom 2.0.1
 ----------
