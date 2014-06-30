@@ -1164,7 +1164,8 @@ class Table(object):
                               self.sample_ids.copy(),
                               deepcopy(self.observation_metadata),
                               deepcopy(self.sample_metadata),
-                              self.table_id)
+                              self.table_id,
+                              type=self.type)
 
     def iter_data(self, dense=True, axis='sample'):
         """Yields axis values
