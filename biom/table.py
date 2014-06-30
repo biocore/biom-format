@@ -2248,7 +2248,7 @@ class Table(object):
         [ 1.  1.  1.]
         """
         def transform_f(data, id_, metadata):
-            return np.where(data > 0, 1., 0.)
+            return np.where(data != 0, 1., 0.)
 
         return self.transform(transform_f, inplace=inplace)
 
