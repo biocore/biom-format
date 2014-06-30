@@ -11,6 +11,10 @@ Changes:
 * iter methods now support dense/sparse
 * added ``Table.matrix_data`` property
 * ``Table.filter`` yields a sparse vector, see #470
+* `Table.subsample` can now sample by IDs (e.g., get a random subset of samples
+    or observations from a `Table`).
+* `biom.util.generate_subsamples` will generate an infinite number of 
+    subsamples and can be used for rarefaction.
 
 Bug fixes:
 
@@ -24,10 +28,6 @@ Bug fix release, released on June 3rd 2014
 
 Changes:
 
-* `Table.subsample` can now sample by IDs (e.g., get a random subset of samples
-    or observations from a `Table`).
-* `biom.util.generate_subsamples` will generate an infinite number of 
-    subsamples and can be used for rarefaction.
 * Light weight loading mechanism (`biom.load_table`) added
 * `Table.data` now has a default axis
 * Convert documentation updated
