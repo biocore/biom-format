@@ -71,7 +71,7 @@ class TableSummarizer(Command):
 
         min_counts, max_counts, median_counts, mean_counts, counts_per_samp =\
             compute_counts_per_sample_stats(table, qualitative)
-        num_observations = len(table.observation_ids)
+        num_observations = len(table.ids(axis='observation'))
 
         counts_per_sample_values = counts_per_samp.values()
 
@@ -87,7 +87,7 @@ class TableSummarizer(Command):
 
         lines = []
 
-        num_samples = len(table.sample_ids)
+        num_samples = len(table.ids())
         lines.append('Num samples: %d' % num_samples)
         lines.append('Num observations: %d' % num_observations)
 
