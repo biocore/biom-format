@@ -62,9 +62,9 @@ O6  24.0    25.0    26.0    27.0
 O7  28.0    29.0    30.0    31.0
 O8  32.0    33.0    34.0    35.0
 O9  36.0    37.0    38.0    39.0
->>> print table.sample_ids # doctest: +NORMALIZE_WHITESPACE
+>>> print table.ids() # doctest: +NORMALIZE_WHITESPACE
 ['S0' 'S1' 'S2' 'S3']
->>> print table.observation_ids # doctest: +NORMALIZE_WHITESPACE
+>>> print table.ids(axis='observation') # doctest: +NORMALIZE_WHITESPACE
 ['O0' 'O1' 'O2' 'O3' 'O4' 'O5' 'O6' 'O7' 'O8' 'O9']
 >>> print table.nnz  # number of nonzero entries
 39
@@ -833,13 +833,13 @@ class Table(object):
 
         Get the ids along the observation axis:
 
-        >>> table.ids(axis=observation')
-        ['O1', 'O2']
+        >>> print table.ids(axis='observation')
+        ['O1' 'O2']
 
         Get the ids along the sample axis:
 
-        >>> table.ids()
-        ['S1', 'S2', 'S3']
+        >>> print table.ids()
+        ['S1' 'S2' 'S3']
         """
         if axis == 'sample':
             return self._sample_ids
@@ -1683,18 +1683,18 @@ class Table(object):
         untouched:
 
         >>> new_table = table.filter(filter_fn, inplace=False)
-        >>> print table.sample_ids
+        >>> print table.ids()
         ['S1' 'S2' 'S3']
-        >>> print new_table.sample_ids
+        >>> print new_table.ids()
         ['S1' 'S2']
 
         Using the same filtering function, discard all samples with sample_type
         'a'. This will keep only sample S3, which has sample_type 'b':
 
         >>> new_table = table.filter(filter_fn, inplace=False, invert=True)
-        >>> print table.sample_ids
+        >>> print table.ids()
         ['S1' 'S2' 'S3']
-        >>> print new_table.sample_ids
+        >>> print new_table.ids()
         ['S3']
 
         Filter the table in-place using the same function (drop all samples
@@ -1702,7 +1702,7 @@ class Table(object):
 
         >>> table.filter(filter_fn)
         2 x 2 <class 'biom.table.Table'> with 2 nonzero entries (50% dense)
-        >>> print table.sample_ids
+        >>> print table.ids()
         ['S1' 'S2']
 
         Filter out all observations in the table that do not have
@@ -1711,7 +1711,7 @@ class Table(object):
         >>> filter_fn = lambda val, id_, md: md['full_genome_available']
         >>> table.filter(filter_fn, axis='observation')
         1 x 2 <class 'biom.table.Table'> with 0 nonzero entries (0% dense)
-        >>> print table.observation_ids
+        >>> print table.ids(axis='observation')
         ['O1']
 
         """
@@ -2272,14 +2272,14 @@ class Table(object):
         >>> ss = table.subsample(2)
         >>> print ss.sum(axis='sample')
         [ 2.  2.]
-        >>> print ss.sample_ids
+        >>> print ss.ids()
         ['S2' 'S3']
 
         Subsample by IDs over the sample axis. For this example, we're going to
         randomly select 2 samples and do this 100 times, and then print out the
         set of IDs observed.
 
-        >>> ids = set([tuple(table.subsample(2, by_id=True).sample_ids)
+        >>> ids = set([tuple(table.subsample(2, by_id=True).ids())
         ...            for i in range(100)])
         >>> print sorted(ids)
         [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
