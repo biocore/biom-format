@@ -397,49 +397,30 @@ class Table(object):
         Should be called after any modifications to sample/observation
         metadata.
         """
-        default_samp_md = []
-        default_obs_md = []
+        def cast_metadata(md):
+            """Do the actual casting"""
+            default_md = []
+            # if we have a list of [None], set to None
+            if md is not None:
+                if md.count(None) == len(md):
+                    return None
+            if md is not None:
+                for item in md:
+                    d = defaultdict(lambda: None)
 
-        # if we have a list of [None], set to None
-        if self._sample_metadata is not None:
-            if self._sample_metadata.count(None) == len(self._sample_metadata):
-                self._sample_metadata = None
+                    if isinstance(item, dict):
+                        d.update(item)
+                    elif item is None:
+                        pass
+                    else:
+                        raise TableException("Unable to cast metadata: %s" %
+                                             repr(item))
+                    default_md.append(d)
+                return tuple(default_md)
+            return md
 
-        if self._sample_metadata is not None:
-            for samp_md in self._sample_metadata:
-                d = defaultdict(lambda: None)
-
-                if isinstance(samp_md, dict):
-                    d.update(samp_md)
-                elif samp_md is None:
-                    pass
-                else:
-                    raise TableException("Unable to cast metadata: %s" %
-                                         repr(samp_md))
-
-                default_samp_md.append(d)
-            self._sample_metadata = tuple(default_samp_md)
-
-        # if we have a list of [None], set to None
-        if self._observation_metadata is not None:
-            none_count = self._observation_metadata.count(None)
-            if none_count == len(self._observation_metadata):
-                self._observation_metadata = None
-
-        if self._observation_metadata is not None:
-            for obs_md in self._observation_metadata:
-                d = defaultdict(lambda: None)
-
-                if isinstance(obs_md, dict):
-                    d.update(obs_md)
-                elif obs_md is None:
-                    pass
-                else:
-                    raise TableException("Unable to cast metadata: %s" %
-                                         repr(obs_md))
-
-                default_obs_md.append(d)
-            self._observation_metadata = tuple(default_obs_md)
+        self._sample_metadata = cast_metadata(self._sample_metadata)
+        self._observation_metadata = cast_metadata(self._observation_metadata)
 
     @property
     def shape(self):
