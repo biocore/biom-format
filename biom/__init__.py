@@ -33,7 +33,7 @@ Parse a table from an open file object:
 >>> with open('path/to/table.biom') as f: # doctest: +SKIP
 ...     table = parse_table(f)
 
-Parse a table from a path. BIOM will attempt to determine if the fhe file is
+Parse a table from a path. BIOM will attempt to determine if the file is
 either in TSV, HDF5, JSON, gzip'd JSON or gzip'd TSV and parse accordingly:
 
 >>> from biom import load_table

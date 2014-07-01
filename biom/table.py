@@ -1242,7 +1242,8 @@ class Table(object):
                               self.sample_ids.copy(),
                               deepcopy(self.metadata(axis='observation')),
                               deepcopy(self.metadata()),
-                              self.table_id)
+                              self.table_id,
+                              type=self.type)
 
     def iter_data(self, dense=True, axis='sample'):
         """Yields axis values
@@ -2327,7 +2328,7 @@ class Table(object):
         [ 1.  1.  1.]
         """
         def transform_f(data, id_, metadata):
-            return np.where(data > 0, 1., 0.)
+            return np.where(data != 0, 1., 0.)
 
         return self.transform(transform_f, inplace=inplace)
 
