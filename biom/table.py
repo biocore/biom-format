@@ -751,7 +751,7 @@ class Table(object):
 
         # sample ids and observations are reversed becuase we trasposed
         return self.__class__(self._data.transpose(copy=True),
-                              self.sample_ids[:], self.observation_ids[:],
+                              self.ids()[:], self.ids(axis='observation')[:],
                               sample_md_copy, obs_md_copy, self.table_id)
 
     def group_metadata(self, axis='sample'):
@@ -3464,8 +3464,8 @@ html
             matrix_type = '"matrix_type": "sparse",'
             data = ['"data": [']
 
-        max_row_idx = len(self.observation_ids) - 1
-        max_col_idx = len(self.sample_ids) - 1
+        max_row_idx = len(self.ids(axis='observation')) - 1
+        max_col_idx = len(self.ids()) - 1
         rows = ['"rows": [']
         have_written = False
         for obs_index, obs in enumerate(self.iter(axis='observation')):

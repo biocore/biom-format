@@ -1222,8 +1222,8 @@ class SparseTableTests(TestCase):
         """Should transpose a sparse table"""
         obs = self.st1.transpose()
 
-        npt.assert_equal(obs.sample_ids, self.st1.observation_ids)
-        npt.assert_equal(obs.observation_ids, self.st1.sample_ids)
+        npt.assert_equal(obs.ids(), self.st1.ids(axis='observation'))
+        npt.assert_equal(obs.ids(axis='observation'), self.st1.ids())
         npt.assert_equal(obs.data('1', 'sample'),
                          self.st1.data('1', 'observation'))
         npt.assert_equal(obs.data('2', 'sample'),
@@ -1232,8 +1232,8 @@ class SparseTableTests(TestCase):
 
         obs = self.st_rich.transpose()
 
-        npt.assert_equal(obs.sample_ids, self.st_rich.observation_ids)
-        npt.assert_equal(obs.observation_ids, self.st_rich.sample_ids)
+        npt.assert_equal(obs.ids(), self.st_rich.ids(axis='observation'))
+        npt.assert_equal(obs.ids(axis='observation'), self.st_rich.ids())
         self.assertEqual(obs._sample_metadata,
                          self.st_rich._observation_metadata)
         self.assertEqual(obs._observation_metadata,
@@ -1290,10 +1290,10 @@ class SparseTableTests(TestCase):
     def test_eq(self):
         """sparse equality"""
         self.assertTrue(self.st1 == self.st2)
-        self.st1.observation_ids = np.array(["1", "2", "3"], dtype=object)
+        self.st1._observation_ids = np.array(["1", "2", "3"], dtype=object)
         self.assertFalse(self.st1 == self.st2)
 
-        self.st1.observation_ids = self.st2.observation_ids
+        self.st1._observation_ids = self.st2._observation_ids
         self.st1._data = nparray_to_sparse(np.array([[1, 2], [10, 20]]))
         self.assertFalse(self.st1 == self.st2)
 
@@ -1881,7 +1881,7 @@ class SparseTableTests(TestCase):
 
         obs = table.subsample(5, axis='observation')
         npt.assert_equal(obs.data('O1', 'observation'), np.array([5]))
-        self.assertEqual(obs.sample_ids, ['S2'])
+        self.assertEqual(obs.ids(), ['S2'])
 
         table = Table(np.array([[3, 1, 1], [0, 3, 3]]), ['O1', 'O2'],
                       ['S1', 'S2', 'S3'])
