@@ -1379,16 +1379,14 @@ class Table(object):
         >>> sum(col)
         46.0
         """
+        ids = self.ids(axis=axis)
+        metadata = self.metadata(axis=axis)
         if axis == 'sample':
-            ids = self.sample_ids
             iter_ = self._iter_samp()
         elif axis == 'observation':
-            ids = self.observation_ids
             iter_ = self._iter_obs()
         else:
             raise UnknownAxisError(axis)
-
-        metadata = self.metadata(axis=axis)
 
         if metadata is None:
             metadata = (None,) * len(ids)
@@ -1453,12 +1451,7 @@ class Table(object):
 
         """
         metadata = self.metadata(axis=axis)
-        if axis == 'sample':
-            ids = self.sample_ids
-        elif axis == 'observation':
-            ids = self.observation_ids
-        else:
-            raise UnknownAxisError(axis)
+        ids = self.ids(axis=axis)
 
         if metadata is None:
             metadata = (None,) * len(ids)
@@ -1550,7 +1543,7 @@ class Table(object):
 
             return self.__class__(self._conv_to_self_type(vals,
                                                           transpose=True),
-                                  self.observation_ids[:], order[:],
+                                  self.ids(axis='observation')[:], order[:],
                                   self.metadata(axis='observation'), md,
                                   self.table_id, self.type)
         elif axis == 'observation':
@@ -1565,7 +1558,7 @@ class Table(object):
                 md = None
 
             return self.__class__(self._conv_to_self_type(vals),
-                                  order[:], self.sample_ids[:],
+                                  order[:], self.ids()[:],
                                   md, self.metadata(), self.table_id,
                                   self.type)
         else:
@@ -1633,13 +1626,7 @@ class Table(object):
         O2  4.0 1.0 0.0
         O1  0.0 1.0 3.0
         """
-        if axis == 'sample':
-            return self.sort_order(sort_f(self.sample_ids))
-        elif axis == 'observation':
-            return self.sort_order(sort_f(self.observation_ids),
-                                   axis='observation')
-        else:
-            raise UnknownAxisError(axis)
+        return self.sort_order(sort_f(self.ids(axis=axis)), axis=axis)
 
     def filter(self, ids_to_keep, axis='sample', invert=False, inplace=True):
         """Filter a table based on a function or iterable.
@@ -1827,7 +1814,7 @@ class Table(object):
 
                 samp_ids = ids
                 samp_md = metadata
-                obs_ids = self.observation_ids[:]
+                obs_ids = self.ids(axis='observation')[:]
 
                 if self.metadata(axis='observation') is not None:
                     obs_md = self.metadata(axis='observation')[:]
@@ -1839,7 +1826,7 @@ class Table(object):
 
                 obs_ids = ids
                 obs_md = metadata
-                samp_ids = self.sample_ids[:]
+                samp_ids = self.ids()[:]
 
                 if self.metadata() is not None:
                     samp_md = self.metadata()[:]
@@ -1994,14 +1981,12 @@ class Table(object):
         # transpose is only necessary in the one-to-one case
         # new_data_shape is only necessary in the one-to-many case
         # axis_slice is only necessary in the one-to-many case
+        axis_ids_md = lambda t: (t.ids(axis=axis), t.metadata(axis=axis))
         if axis == 'sample':
-            axis_ids_md = lambda t: (t.sample_ids, t.metadata())
             transpose = True
             new_data_shape = lambda ids, collapsed: (len(ids), len(collapsed))
             axis_slice = lambda lookup, key: (slice(None), lookup[key])
         elif axis == 'observation':
-            axis_ids_md = lambda t: (t.observation_ids,
-                                     t.metadata(axis='observation'))
             transpose = False
             new_data_shape = lambda ids, collapsed: (len(collapsed), len(ids))
             axis_slice = lambda lookup, key: (lookup[key], slice(None))
@@ -2120,13 +2105,13 @@ class Table(object):
         if axis == 'sample':
             sample_ids = collapsed_ids
             sample_md = collapsed_md
-            obs_ids = self.observation_ids[:]
+            obs_ids = self.ids(axis='observation')[:]
             if self.metadata(axis='observation') is not None:
                 obs_md = self.metadata(axis='observation')[:]
             else:
                 obs_md = None
         else:
-            sample_ids = self.sample_ids[:]
+            sample_ids = self.ids()[:]
             obs_ids = collapsed_ids
             obs_md = collapsed_md
             if self.metadata() is not None:
@@ -2303,12 +2288,11 @@ class Table(object):
         if n < 0:
             raise ValueError("n cannot be negative.")
 
+        ids = self.ids(axis=axis)
         if axis == 'sample':
             data = self._data.tocsc()
-            ids = self.sample_ids
         elif axis == 'observation':
             data = self._data.tocsr()
-            ids = self.observation_ids
         else:
             raise UnknownAxisError(axis)
 
@@ -2323,8 +2307,8 @@ class Table(object):
             samp_md = deepcopy(self.metadata())
             obs_md = deepcopy(self.metadata(axis='observation'))
 
-            table = Table(data, self.observation_ids.copy(),
-                          self.sample_ids.copy(), obs_md, samp_md)
+            table = Table(data, self.ids(axis='observation').copy(),
+                          self.ids().copy(), obs_md, samp_md)
 
             table.filter(lambda v, i, md: v.sum() > 0, axis=axis)
 
@@ -2461,16 +2445,15 @@ class Table(object):
         table = self if inplace else self.copy()
 
         metadata = table.metadata(axis=axis)
+        ids = table.ids(axis=axis)
         if axis == 'sample':
-            axis = 1
-            ids = table.sample_ids
             arr = table._data.tocsc()
         elif axis == 'observation':
-            axis = 0
-            ids = table.observation_ids
             arr = table._data.tocsr()
         else:
             raise UnknownAxisError(axis)
+
+        axis = table._axis_to_num(axis)
 
         _transform(arr, ids, metadata, f, axis)
         arr.eliminate_zeros()
@@ -2563,7 +2546,7 @@ class Table(object):
         # methods can be written to hit against the underlying types directly
         for o_idx, samp_vals in enumerate(self.iter_data(axis="observation")):
             for s_idx in samp_vals.nonzero()[0]:
-                yield (self.observation_ids[o_idx], self.sample_ids[s_idx])
+                yield (self.ids(axis='observation')[o_idx], self.ids()[s_idx])
 
     def nonzero_counts(self, axis, binary=False):
         """Get nonzero summaries about an axis
@@ -2590,12 +2573,12 @@ class Table(object):
 
         if axis is 'sample':
             # can use np.bincount for CSMat or ScipySparse
-            result = zeros(len(self.sample_ids), dtype=dtype)
+            result = zeros(len(self.ids()), dtype=dtype)
             for idx, vals in enumerate(self.iter_data()):
                 result[idx] = op(vals)
         elif axis is 'observation':
             # can use np.bincount for CSMat or ScipySparse
-            result = zeros(len(self.observation_ids), dtype=dtype)
+            result = zeros(len(self.ids(axis='observation')), dtype=dtype)
             for idx, vals in enumerate(self.iter_data(axis="observation")):
                 result[idx] = op(vals)
         else:
@@ -2693,21 +2676,19 @@ class Table(object):
         """
         # determine the sample order in the resulting table
         if sample is 'union':
-            new_samp_order = self._union_id_order(self.sample_ids,
-                                                  other.sample_ids)
+            new_samp_order = self._union_id_order(self.ids(), other.ids())
         elif sample is 'intersection':
-            new_samp_order = self._intersect_id_order(self.sample_ids,
-                                                      other.sample_ids)
+            new_samp_order = self._intersect_id_order(self.ids(), other.ids())
         else:
             raise TableException("Unknown sample merge type: %s" % sample)
 
         # determine the observation order in the resulting table
         if observation is 'union':
-            new_obs_order = self._union_id_order(self.observation_ids,
-                                                 other.observation_ids)
+            new_obs_order = self._union_id_order(
+                self.ids(axis='observation'), other.ids(axis='observation'))
         elif observation is 'intersection':
-            new_obs_order = self._intersect_id_order(self.observation_ids,
-                                                     other.observation_ids)
+            new_obs_order = self._intersect_id_order(
+                self.ids(axis='observation'), other.ids(axis='observation'))
         else:
             raise TableException(
                 "Unknown observation merge type: %s" %

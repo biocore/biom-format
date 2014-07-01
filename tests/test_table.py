@@ -1708,10 +1708,10 @@ class SparseTableTests(TestCase):
 
     def test_copy_ids(self):
         copied_table = self.st_rich.copy()
-        self.st_rich.sample_ids[0] = 'a different id'
+        self.st_rich._sample_ids[0] = 'a different id'
         self.assertNotEqual(copied_table, self.st_rich)
         copied_table = self.st_rich.copy()
-        self.st_rich.observation_ids[0] = 'a different id'
+        self.st_rich._observation_ids[0] = 'a different id'
         self.assertNotEqual(copied_table, self.st_rich)
 
     def test_copy_data(self):
