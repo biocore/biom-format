@@ -1840,12 +1840,17 @@ class SparseTableTests(TestCase):
         self.st7.pa()
         self.assertEqual(self.st7, exp)
 
+    def test_pa_with_neg(self):
+        t = Table(np.array([[-10, 7], [0, -0.1]]), ['5', '6'], ['a', 'b'])
+        exp = Table(np.array([[1, 1], [0, 1]]), ['5', '6'], ['a', 'b'])
+        t.pa()
+        self.assertEqual(t, exp)
+
     def test_pa_works_if_something_has_been_zeroed(self):
         exp = Table(np.array([[0, 1], [1, 0]]), ['5', '6'], ['a', 'b'])
         self.st7._data[0, 0] = 0
         self.st7.pa()
         self.assertEqual(self.st7, exp)
-
 
     def test_transform_return_type(self):
         f = lambda data, id_, md: data / 2.
