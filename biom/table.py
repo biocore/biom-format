@@ -238,8 +238,8 @@ class Table(object):
             self._data = data
 
         # using object to allow for variable length strings
-        self.sample_ids = np.asarray(sample_ids, dtype=object)
-        self.observation_ids = np.asarray(observation_ids, dtype=object)
+        self._sample_ids = np.asarray(sample_ids, dtype=object)
+        self._observation_ids = np.asarray(observation_ids, dtype=object)
 
         if sample_metadata is not None:
             self._sample_metadata = tuple(sample_metadata)
@@ -367,18 +367,18 @@ class Table(object):
         except:
             n_obs = n_samp = 0
 
-        if n_obs != len(self.observation_ids):
+        if n_obs != len(self._observation_ids):
             raise TableException(
                 "Number of observation_ids differs from matrix size!")
 
-        if n_obs != len(set(self.observation_ids)):
+        if n_obs != len(set(self._observation_ids)):
             raise TableException("Duplicate observation_ids")
 
-        if n_samp != len(self.sample_ids):
+        if n_samp != len(self._sample_ids):
             raise TableException(
                 "Number of sample_ids differs from matrix size!")
 
-        if n_samp != len(set(self.sample_ids)):
+        if n_samp != len(set(self._sample_ids)):
             raise TableException("Duplicate sample_ids")
 
         if self._sample_metadata is not None and \
@@ -809,6 +809,51 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
         return group_md
+
+    def ids(self, axis='sample'):
+        """Return the ids along the given axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}, optional
+            Axis to search for `id`. Defaults to 'sample'
+
+        Returns
+        -------
+        1-D numpy array
+            The ids along the given axis
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Get the ids along the observation axis:
+
+        >>> table.ids(axis=observation')
+        ['O1', 'O2']
+
+        Get the ids along the sample axis:
+
+        >>> table.ids()
+        ['S1', 'S2', 'S3']
+        """
+        if axis == 'sample':
+            return self._sample_ids
+        elif axis == 'observation':
+            return self._observation_ids
+        else:
+            raise UnknownAxisError(axis)
 
     def metadata(self, id=None, axis='sample'):
         """Return the metadata of the identified sample/observation.
