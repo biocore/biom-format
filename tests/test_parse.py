@@ -146,22 +146,20 @@ class ParseTests(TestCase):
         # parse_biom_table methods
         tab1_fh = json.load(StringIO(self.biom_minimal_sparse))
         tab = Table.from_json(tab1_fh)
-        npt.assert_equal((tab.sample_ids), ('Sample1', 'Sample2',
-                                            'Sample3', 'Sample4', 'Sample5',
-                                            'Sample6',))
-        npt.assert_equal((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
-                                                 'GG_OTU_3', 'GG_OTU_4',
-                                                 'GG_OTU_5'))
+        npt.assert_equal(tab.ids(), ('Sample1', 'Sample2', 'Sample3',
+                                     'Sample4', 'Sample5', 'Sample6'))
+        npt.assert_equal(tab.ids(axis='observation'),
+                         ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
+                          'GG_OTU_4', 'GG_OTU_5'))
         self.assertEqual(tab.metadata(), None)
         self.assertEqual(tab.metadata(axis='observation'), None)
 
         tab = parse_biom_table(StringIO(self.biom_minimal_sparse))
-        npt.assert_equal((tab.sample_ids), ('Sample1', 'Sample2',
-                                            'Sample3', 'Sample4', 'Sample5',
-                                            'Sample6',))
-        npt.assert_equal((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
-                                                 'GG_OTU_3', 'GG_OTU_4',
-                                                 'GG_OTU_5'))
+        npt.assert_equal(tab.ids(), ('Sample1', 'Sample2', 'Sample3',
+                                     'Sample4', 'Sample5', 'Sample6'))
+        npt.assert_equal(tab.ids(axis='observation'),
+                         ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
+                          'GG_OTU_4', 'GG_OTU_5'))
         self.assertEqual(tab.metadata(), None)
         self.assertEqual(tab.metadata(axis='observation'), None)
 
@@ -206,22 +204,21 @@ class ParseTests(TestCase):
         tab = parse_biom_table(StringIO(self.biom_minimal_sparse),
                                ids=['Sample1', 'Sample3', 'Sample5',
                                     'Sample6'])
-        npt.assert_equal((tab.sample_ids), ('Sample1', 'Sample3', 'Sample5',
-                                            'Sample6',))
-        npt.assert_equal((tab.observation_ids), ('GG_OTU_1', 'GG_OTU_2',
-                                                 'GG_OTU_3', 'GG_OTU_4',
-                                                 'GG_OTU_5'))
+        npt.assert_equal(tab.ids(), ('Sample1', 'Sample3', 'Sample5',
+                                     'Sample6'))
+        npt.assert_equal(tab.ids(axis='observation'),
+                         ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3', 'GG_OTU_4',
+                          'GG_OTU_5'))
         self.assertEqual(tab.metadata(), None)
         self.assertEqual(tab.metadata(axis='observation'), None)
 
         tab = parse_biom_table(StringIO(self.biom_minimal_sparse),
                                ids=['GG_OTU_2', 'GG_OTU_3', 'GG_OTU_5'],
                                axis='observation')
-        npt.assert_equal((tab.sample_ids), ('Sample1', 'Sample2',
-                                            'Sample3', 'Sample4', 'Sample5',
-                                            'Sample6',))
-        npt.assert_equal((tab.observation_ids), ('GG_OTU_2', 'GG_OTU_3',
-                                                 'GG_OTU_5'))
+        npt.assert_equal(tab.ids(), ('Sample1', 'Sample2', 'Sample3',
+                                     'Sample4', 'Sample5', 'Sample6',))
+        npt.assert_equal(tab.ids(axis='observation'),
+                         ('GG_OTU_2', 'GG_OTU_3', 'GG_OTU_5'))
         self.assertEqual(tab.metadata(), None)
         self.assertEqual(tab.metadata(axis='observation'), None)
 
