@@ -267,8 +267,8 @@ class Table(object):
 
         Should only be called in constructor as this modifies state.
         """
-        self._sample_index = index_list(self.sample_ids)
-        self._obs_index = index_list(self.observation_ids)
+        self._sample_index = index_list(self._sample_ids)
+        self._obs_index = index_list(self._observation_ids)
 
     def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
@@ -499,28 +499,21 @@ class Table(object):
         axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
-        if axis == 'sample':
-            if self.metadata() is not None:
-                for id_, md_entry in md.iteritems():
-                    if self.exists(id_):
-                        idx = self.index(id_, 'sample')
-                        self.metadata()[idx].update(md_entry)
-            else:
-                self._sample_metadata = tuple([md[id_] if id_ in md else
-                                              None for id_ in self.sample_ids])
-        elif axis == 'observation':
-            if self.metadata(axis='observation') is not None:
-                for id_, md_entry in md.iteritems():
-                    if self.exists(id_, axis="observation"):
-                        idx = self.index(id_, 'observation')
-                        self.metadata(axis='observation')[idx].update(md_entry)
-            else:
-                self._observation_metadata = tuple([md[id_] if id_ in md else
-                                                   None for id_ in
-                                                   self.observation_ids])
+        if self.metadata(axis=axis) is not None:
+            for id_, md_entry in md.iteritems():
+                if self.exists(id_, axis=axis):
+                    idx = self.index(id_, axis=axis)
+                    self.metadata(axis=axis)[idx].update(md_entry)
         else:
-            raise UnknownAxisError(axis)
-
+            if axis == 'sample':
+                self._sample_metadata = tuple([md[id_] if id_ in md else
+                                               None for id_ in self.ids()])
+            elif axis == 'observation':
+                self._observation_metadata = tuple(
+                    [md[id_] if id_ in md else None
+                     for id_ in self.ids(axis='observation')])
+            else:
+                raise UnknownAxisError(axis)
         self._cast_metadata()
 
     def __getitem__(self, args):
@@ -1084,7 +1077,7 @@ class Table(object):
         if self.is_empty():
             raise TableException("Cannot delimit self if I don't have data...")
 
-        samp_ids = delim.join(map(str, self.sample_ids))
+        samp_ids = delim.join(map(str, self.ids()))
 
         # 17 hrs of straight programming later...
         if header_key is not None:
@@ -1105,7 +1098,8 @@ class Table(object):
             output = ['# Constructed from biom file',
                       '%s%s%s' % (observation_column_name, delim, samp_ids)]
 
-        for obs_id, obs_values in zip(self.observation_ids, self._iter_obs()):
+        for obs_id, obs_values in zip(self.ids(axis='observation'),
+                                      self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
 
             if header_key and self.metadata(axis='observation') is not None:
@@ -1127,7 +1121,7 @@ class Table(object):
         bool
             ``True`` if the table is empty, ``False`` otherwise
         """
-        if not self.sample_ids.size or not self.observation_ids.size:
+        if not self.ids().size or not self.ids(axis='observation').size:
             return True
         else:
             return False
@@ -1161,7 +1155,7 @@ class Table(object):
 
         if not self.is_empty():
             density = (self.nnz /
-                       (len(self.sample_ids) * len(self.observation_ids)))
+                       (len(self.ids()) * len(self.ids(axis='observation'))))
 
         return density
 
@@ -1171,9 +1165,10 @@ class Table(object):
             return "Tables are not of comparable classes"
         if not self.type == other.type:
             return "Tables are not the same type"
-        if not np.array_equal(self.observation_ids, other.observation_ids):
+        if not np.array_equal(self.ids(axis='observation'),
+                              other.ids(axis='observation')):
             return "Observation IDs are not the same"
-        if not np.array_equal(self.sample_ids, other.sample_ids):
+        if not np.array_equal(self.ids(), other.ids()):
             return "Sample IDs are not the same"
         if not np.array_equal(self.metadata(axis='observation'),
                               other.metadata(axis='observation')):
@@ -1191,9 +1186,10 @@ class Table(object):
             return False
         if self.type != other.type:
             return False
-        if not np.array_equal(self.observation_ids, other.observation_ids):
+        if not np.array_equal(self.ids(axis='observation'),
+                              other.ids(axis='observation')):
             return False
-        if not np.array_equal(self.sample_ids, other.sample_ids):
+        if not np.array_equal(self.ids(), other.ids()):
             return False
         if not np.array_equal(self.metadata(axis='observation'),
                               other.metadata(axis='observation')):
@@ -1283,8 +1279,8 @@ class Table(object):
     def copy(self):
         """Returns a copy of the table"""
         return self.__class__(self._data.copy(),
-                              self.observation_ids.copy(),
-                              self.sample_ids.copy(),
+                              self.ids(axis='observation').copy(),
+                              self.ids().copy(),
                               deepcopy(self.metadata(axis='observation')),
                               deepcopy(self.metadata()),
                               self.table_id,
@@ -1735,14 +1731,8 @@ class Table(object):
         table = self if inplace else self.copy()
 
         metadata = table.metadata(axis=axis)
-        if axis == 'sample':
-            axis = 1
-            ids = table.sample_ids
-        elif axis == 'observation':
-            axis = 0
-            ids = table.observation_ids
-        else:
-            raise UnknownAxisError(axis)
+        ids = table.ids(axis=axis)
+        axis = table._axis_to_num(axis=axis)
 
         arr = table._data
         arr, ids, metadata = _filter(arr,
@@ -1754,10 +1744,10 @@ class Table(object):
 
         table._data = arr
         if axis == 1:
-            table.sample_ids = ids
+            table._sample_ids = ids
             table._sample_metadata = metadata
         elif axis == 0:
-            table.observation_ids = ids
+            table._observation_ids = ids
             table._observation_metadata = metadata
 
         table._index_ids()
@@ -2156,6 +2146,15 @@ class Table(object):
         else:
             return UnknownAxisError(axis)
 
+    def _axis_to_num(self, axis):
+        """Convert str axis to numerical axis"""
+        if axis == 'sample':
+            return 1
+        elif axis == 'observation':
+            return 0
+        else:
+            raise UnknownAxisError(axis)
+
     def min(self, axis='sample'):
         """Get the minimum nonzero value over an axis
 
@@ -2189,10 +2188,7 @@ class Table(object):
                 # only min over the actual nonzero values
                 min_val = min(min_val, data.data.min())
         else:
-            if axis == 'observation':
-                min_val = zeros(len(self.observation_ids), dtype=self.dtype)
-            else:
-                min_val = zeros(len(self.sample_ids), dtype=self.dtype)
+            min_val = zeros(len(self.ids(axis=axis)), dtype=self.dtype)
 
             for idx, data in enumerate(self.iter_data(dense=False, axis=axis)):
                 min_val[idx] = data.data.min()
@@ -2232,10 +2228,7 @@ class Table(object):
                 # only min over the actual nonzero values
                 max_val = max(max_val, data.data.max())
         else:
-            if axis == 'observation':
-                max_val = np.empty(len(self.observation_ids), dtype=self.dtype)
-            else:
-                max_val = np.empty(len(self.sample_ids), dtype=self.dtype)
+            max_val = np.empty(len(self.ids(axis=axis)), dtype=self.dtype)
 
             for idx, data in enumerate(self.iter_data(dense=False, axis=axis)):
                 max_val[idx] = data.data.max()
@@ -3302,10 +3295,11 @@ html
         compression = None
         if compress is True:
             compression = 'gzip'
-        axis_dump(h5grp.create_group('observation'), self.observation_ids,
+        axis_dump(h5grp.create_group('observation'),
+                  self.ids(axis='observation'),
                   self.metadata(axis='observation'),
                   self.group_metadata(axis='observation'), 'csr', compression)
-        axis_dump(h5grp.create_group('sample'), self.sample_ids,
+        axis_dump(h5grp.create_group('sample'), self.ids(),
                   self.metadata(), self.group_metadata(), 'csc', compression)
 
     @classmethod

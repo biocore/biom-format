@@ -294,11 +294,11 @@ class TableTests(TestCase):
         t = Table.from_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
-        npt.assert_equal(t.sample_ids, ('Sample1', 'Sample2', 'Sample3',
-                                        'Sample4', 'Sample5', 'Sample6'))
-        npt.assert_equal(t.observation_ids, ('GG_OTU_1', 'GG_OTU_2',
-                                             'GG_OTU_3', 'GG_OTU_4',
-                                             'GG_OTU_5'))
+        npt.assert_equal(t.ids(), ('Sample1', 'Sample2', 'Sample3',
+                                   'Sample4', 'Sample5', 'Sample6'))
+        npt.assert_equal(t.ids(axis='observation'),
+                         ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
+                          'GG_OTU_4', 'GG_OTU_5'))
         exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
                                      u'p__Proteobacteria',
                                      u'c__Gammaproteobacteria',
@@ -380,9 +380,9 @@ class TableTests(TestCase):
         t = Table.from_hdf5(h5py.File('test_data/test.biom'), ids=samples)
         os.chdir(cwd)
 
-        npt.assert_equal(t.sample_ids, ['Sample2', 'Sample4', 'Sample6'])
-        npt.assert_equal(t.observation_ids, ['GG_OTU_2', 'GG_OTU_3',
-                                             'GG_OTU_4', 'GG_OTU_5'])
+        npt.assert_equal(t.ids(), ['Sample2', 'Sample4', 'Sample6'])
+        npt.assert_equal(t.ids(axis='observation'),
+                         ['GG_OTU_2', 'GG_OTU_3', 'GG_OTU_4', 'GG_OTU_5'])
         exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
                                      u'p__Cyanobacteria',
                                      u'c__Nostocophycideae',
@@ -445,10 +445,9 @@ class TableTests(TestCase):
                             ids=observations, axis='observation')
         os.chdir(cwd)
 
-        npt.assert_equal(t.sample_ids, ['Sample2', 'Sample3',
-                                        'Sample4', 'Sample6'])
-        npt.assert_equal(t.observation_ids, ['GG_OTU_1', 'GG_OTU_3',
-                                             'GG_OTU_5'])
+        npt.assert_equal(t.ids(), ['Sample2', 'Sample3', 'Sample4', 'Sample6'])
+        npt.assert_equal(t.ids(axis='observation'),
+                         ['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'])
         exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
                                      u'p__Proteobacteria',
                                      u'c__Gammaproteobacteria',
@@ -540,11 +539,11 @@ class TableTests(TestCase):
         tab1_fh = StringIO(otu_table1)
         sparse_rich = Table.from_tsv(tab1_fh, None, None,
                                      OBS_META_TYPES['naive'])
-        self.assertEqual(sorted(sparse_rich.sample_ids),
+        self.assertEqual(sorted(sparse_rich.ids()),
                          sorted(['Fing', 'Key', 'NA']))
-        self.assertEqual(sorted(sparse_rich.observation_ids),
+        self.assertEqual(sorted(sparse_rich.ids(axis='observation')),
                          map(str, [0, 1, 3, 4, 7]))
-        for i, obs_id in enumerate(sparse_rich.observation_ids):
+        for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
             if obs_id == '0':
                 self.assertEqual(sparse_rich._observation_metadata[i],
                                  {'Consensus Lineage': 'Bacteria; '
@@ -571,8 +570,8 @@ class TableTests(TestCase):
 
         self.assertEquals(sparse_rich._sample_metadata, None)
 
-        for i, obs_id in enumerate(sparse_rich.observation_ids):
-            for j, sample_id in enumerate(sparse_rich.sample_ids):
+        for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
+            for j, sample_id in enumerate(sparse_rich.ids()):
                 if obs_id == '1' and sample_id == 'Key':
                     # should test some abundance data
                     self.assertEqual(True, True)
@@ -581,11 +580,11 @@ class TableTests(TestCase):
         tab1_fh = StringIO(otu_table1)
         sparse_rich = Table.from_tsv(tab1_fh.readlines(), None, None,
                                      OBS_META_TYPES['naive'])
-        self.assertEqual(sorted(sparse_rich.sample_ids),
+        self.assertEqual(sorted(sparse_rich.ids()),
                          sorted(['Fing', 'Key', 'NA']))
-        self.assertEqual(sorted(sparse_rich.observation_ids),
+        self.assertEqual(sorted(sparse_rich.ids(axis='observation')),
                          map(str, [0, 1, 3, 4, 7]))
-        for i, obs_id in enumerate(sparse_rich.observation_ids):
+        for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
             if obs_id == '0':
                 self.assertEqual(sparse_rich._observation_metadata[i],
                                  {'Consensus Lineage': 'Bacteria; '
@@ -612,8 +611,8 @@ class TableTests(TestCase):
 
         self.assertEquals(sparse_rich._sample_metadata, None)
 
-        for i, obs_id in enumerate(sparse_rich.observation_ids):
-            for j, sample_id in enumerate(sparse_rich.sample_ids):
+        for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
+            for j, sample_id in enumerate(sparse_rich.ids()):
                 if obs_id == '1' and sample_id == 'Key':
                     self.assertEqual(True, True)
                     # should test some abundance data
