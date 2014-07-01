@@ -1530,8 +1530,8 @@ class Table(object):
             If a function, it will be called with the values of the
             sample/observation, its id (a string) and the dictionary
             of metadata of each sample/observation, and must return a
-            boolean. If it's an iterable, it will be converted to an
-            array of bools.
+            boolean. If it's an iterable, it must be a list of ids to
+            keep.
         axis : {'sample', 'observation'}, optional
             It controls whether to filter samples or observations and
             defaults to "sample".
@@ -1614,10 +1614,12 @@ class Table(object):
             axis = 1
             ids = table.sample_ids
             metadata = table.sample_metadata
+            index = self._sample_index
         elif axis == 'observation':
             axis = 0
             ids = table.observation_ids
             metadata = table.observation_metadata
+            index = self._obs_index
         else:
             raise UnknownAxisError(axis)
 
@@ -1625,6 +1627,7 @@ class Table(object):
         arr, ids, metadata = _filter(arr,
                                      ids,
                                      metadata,
+                                     index,
                                      ids_to_keep,
                                      axis,
                                      invert=invert)

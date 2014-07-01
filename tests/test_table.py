@@ -1671,6 +1671,15 @@ class SparseTableTests(TestCase):
                     ['S1', 'S4'])
         self.assertEqual(obs, exp)
 
+        f = lambda vals, id_, md: (np.all(vals == [0, 3, 4, 0]) or
+                                   np.all(vals == [0, 5, 0, 0]))
+        obs = table.filter(f, 'observation', inplace=False)
+        exp = Table(np.array([[0, 3, 4, 0],
+                              [0, 5, 0, 0]]),
+                    ['O1', 'O2'],
+                    ['S1', 'S2', 'S3', 'S4'])
+        self.assertNotEqual(obs, exp)
+
     def test_filter_id_state(self):
         f = lambda vals, id_, md: id_[0] == 'b'
         filtered_table = self.st3.filter(f, inplace=False)
@@ -1806,6 +1815,24 @@ class SparseTableTests(TestCase):
             actual_o2.add(tuple(obs.data('O2', 'observation')))
         self.assertEqual(actual_o1, {(3, 1), (1, 2), (3, 2)})
         self.assertEqual(actual_o2, {(0, 3), (3, 4), (0, 4)}),
+
+    def test_filter_using_list_of_ids(self):
+        ids = ['S1', 'S4']
+        obs = self.sparse_table.filter(ids, inplace=False)
+        exp = Table(np.array([[1, 0],
+                              [0, 0],
+                              [0, 0]]),
+                    ['O1', 'O2', 'O3'],
+                    ['S1', 'S4'])
+        self.assertEqual(obs, exp)
+
+        ids = ['O1', 'O2']
+        obs = self.sparse_table.filter(ids, 'observation', invert=True,
+                                       inplace=False)
+        exp = Table(np.array([[0, 5, 0, 0]]),
+                    ['O3'],
+                    ['S1', 'S2', 'S3', 'S4'])
+        self.assertEqual(obs, exp)
 
     def test_subsample(self):
         table = Table(np.array([[0, 5, 0]]), ['O1'], ['S1', 'S2', 'S3'])
