@@ -24,6 +24,7 @@ Projects using the BIOM format
 * `MEGAN <http://ab.inf.uni-tuebingen.de/software/megan5/>`_
 * `VAMPS <http://vamps.mbl.edu/>`_
 * `metagenomeSeq <http://www.bioconductor.org/packages/release/bioc/html/metagenomeSeq.html>`_
+* `Phinch <http://phinch.org>`_
 
 If you are using BIOM in your project, and would like your project to be listed, please submit a `pull request <https://github.com/biocore/biom-format/pulls>`_ to the BIOM project. More information on `submitting pull requests can be found here <https://help.github.com/articles/using-pull-requests>`_.
 
