@@ -1808,8 +1808,8 @@ class Table(object):
         norm : bool, optional
             Defaults to ``True``. If ``True``, normalize the resulting table
         min_group_size : int, optional
-            Defaults to ``2``. The minimum size of a partition of performing a
-            one-to-many collapse
+            Defaults to ``2``. The minimum size of a partition when performing
+            a one-to-one collapse
         include_collapsed_metadata : bool, optional
             Defaults to ``True``. If ``True``, retain the collapsed metadata
             keyed by the original IDs of the associated vectors
