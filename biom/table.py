@@ -1736,7 +1736,7 @@ class Table(object):
             yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
                               self.table_id, type=self.type)
 
-    def collapse(self, f, reduce_f=add, norm=True, min_group_size=2,
+    def collapse(self, f, reduce_f=add, norm=True, min_group_size=1,
                  include_collapsed_metadata=True, one_to_many=False,
                  one_to_many_mode='add', one_to_many_md_key='Path',
                  strict=False, axis='sample'):
