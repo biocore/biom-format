@@ -45,8 +45,8 @@ class TableConverterTests(TestCase):
 
         obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
-        self.assertEqual(len(obs.sample_ids), 9)
-        self.assertEqual(len(obs.observation_ids), 14)
+        self.assertEqual(len(obs.ids()), 9)
+        self.assertEqual(len(obs.ids(axis='observation')), 14)
         self.assertEqual(obs.metadata(), None)
         self.assertNotEqual(obs.metadata(axis='observation'), None)
 
@@ -60,8 +60,8 @@ class TableConverterTests(TestCase):
 
         obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
-        self.assertEqual(len(obs.sample_ids), 9)
-        self.assertEqual(len(obs.observation_ids), 14)
+        self.assertEqual(len(obs.ids()), 9)
+        self.assertEqual(len(obs.ids(axis='observation')), 14)
         self.assertNotEqual(obs.metadata(), None)
         self.assertNotEqual(obs.metadata(axis='observation'), None)
         self.assertEqual(obs.metadata()[obs.index('p2', 'sample')],
@@ -80,8 +80,8 @@ class TableConverterTests(TestCase):
 
         obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
-        self.assertEqual(len(obs.sample_ids), 9)
-        self.assertEqual(len(obs.observation_ids), 14)
+        self.assertEqual(len(obs.ids()), 9)
+        self.assertEqual(len(obs.ids(axis='observation')), 14)
         self.assertNotEqual(obs.metadata(), None)
         self.assertNotEqual(obs.metadata(axis='observation'), None)
         self.assertEqual(obs.metadata()[obs.index('p2', 'sample')],

@@ -171,7 +171,8 @@ class TableConverter(Command):
             md_key = table.metadata(axis='observation')[0].keys()[0]
 
             process_f = self.ObservationMetadataTypes[process_obs_metadata]
-            it = zip(table.observation_ids, table.metadata(axis='observation'))
+            it = zip(table.ids(axis='observation'),
+                     table.metadata(axis='observation'))
             new_md = {id_: {md_key: process_f(md[md_key])} for id_, md in it}
 
             if observation_metadata:
