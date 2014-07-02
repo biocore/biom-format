@@ -2844,70 +2844,70 @@ class Table(object):
         The expected HDF5 group structure is below. An example of an HDF5 file
         in DDL can be found here [3]_.
 
-        ./id                                                  : str, an \
+        - ./id                                                  : str, an \
 arbitrary ID
-        ./type                                                : str, the table\
- type (e.g, OTU table)
-        ./format-url                                          : str, a URL \
+        - ./type                                                : str, the \
+table type (e.g, OTU table)
+        - ./format-url                                          : str, a URL \
 that describes the format
-        ./format-version                                      : two element \
+        - ./format-version                                      : two element \
 tuple of int32, major and minor
-        ./generated-by                                        : str, what \
+        - ./generated-by                                        : str, what \
 generated this file
-        ./creation-date                                       : str, ISO format
-        ./shape                                               : two element \
+        - ./creation-date                                       : str, ISO \
+format
+        - ./shape                                               : two element \
 tuple of int32, N by M
-        ./nnz                                                 : int32 or int64\
-, number of non zero elems
-        ./observation                                         : Group
-        ./observation/ids                                     : (N,) dataset \
-of str or vlen str
-        ./observation/matrix                                  : Group
-        ./observation/matrix/data                             : (nnz,) dataset\
- of float64
-        ./observation/matrix/indices                          : (nnz,) dataset\
- of int32
-        ./observation/matrix/indptr                           : (M+1,) dataset\
- of int32
-        ./observation/metadata                                : Group
-        [./observation/metadata/foo]                          : Optional, (N,)\
- dataset of str or vlen str in index order with ids.
-        [./observation/metadata/foo.attrs['data_type']]       : attribute of \
-the foo dataset that describes contained type (e.g., int)
-        ./observation/group-metadata                          : Group
-        [./observation/group-metadata/foo]                    : Optional, (?,)\
- dataset of group metadata that relates IDs
-        [./observation/group-metadata/foo.attrs['data_type']] : attribute of \
-the foo dataset that describes contained type (e.g., newick)
-        ./sample                                              : Group
-        ./sample/ids                                          : (M,) dataset \
-of str or vlen str
-        ./sample/matrix                                       : Group
-        ./sample/matrix/data                                  : (nnz,) dataset\
- of float64
-        ./sample/matrix/indices                               : (nnz,) dataset\
- of int32
-        ./sample/matrix/indptr                                : (N+1,) dataset\
- of int32
-        ./sample/metadata                                     : Group
-        [./sample/metadata/foo]                               : Optional, (M,)\
- dataset of str or vlen str in index order with ids.
-        [./sample/metadata/foo.attrs['data_type']]            : attribute of \
-the foo dataset that describes contained type (e.g., int)
-        ./sample/group-metadata                               : Group
-        [./sample/group-metadata/foo]                         : Optional, (?,)\
- dataset of group metadata that relates IDs
-        [./sample/group-metadata/foo.attrs['data_type']]      : attribute of \
-the foo dataset that describes contained type (e.g., newick)
+        - ./nnz                                                 : int32 or \
+int64, number of non zero elems
+        - ./observation                                         : Group
+        - ./observation/ids                                     : (N,) dataset\
+ of str or vlen str
+        - ./observation/matrix                                  : Group
+        - ./observation/matrix/data                             : (nnz,) \
+dataset of float64
+        - ./observation/matrix/indices                          : (nnz,) \
+dataset of int32
+        - ./observation/matrix/indptr                           : (M+1,) \
+dataset of int32
+        - ./observation/metadata                                : Group
+        - [./observation/metadata/foo]                          : Optional, \
+(N,) dataset of str or vlen str in index order with ids.
+        - ./observation/group-metadata                          : Group
+        - [./observation/group-metadata/foo]                    : Optional, \
+(?,) dataset of group metadata that relates IDs
+        - [./observation/group-metadata/foo.attrs['data_type']] : attribute of\
+ the foo dataset that describes contained type (e.g., newick)
+        - ./sample                                              : Group
+        - ./sample/ids                                          : (M,) dataset\
+ of str or vlen str
+        - ./sample/matrix                                       : Group
+        - ./sample/matrix/data                                  : (nnz,) \
+dataset of float64
+        - ./sample/matrix/indices                               : (nnz,) \
+dataset of int32
+        - ./sample/matrix/indptr                                : (N+1,) \
+dataset of int32
+        - ./sample/metadata                                     : Group
+        - [./sample/metadata/foo]                               : Optional, \
+(M,) dataset of str or vlen str in index order with ids.
+        - ./sample/group-metadata                               : Group
+        - [./sample/group-metadata/foo]                         : Optional, \
+(?,) dataset of group metadata that relates IDs
+        - [./sample/group-metadata/foo.attrs['data_type']]      : attribute of\
+ the foo dataset that describes contained type (e.g., newick)
 
-        The expected structure (in JSON) for the optional metadata is a list of
-        objects, where the index order of the list corresponds to the index
-        order of the relevant axis IDs. The metadata are parsed directly by
-        JSON, and there are no constraints on the contained metadata with the
-        exception of the outer list, and that the order of the list matters.
-        Below is an example of observational metadata for two observations:
 
-        [{"taxonomy": ["foo", "bar"]}, {"taxonomy": ["foo", "foobar"]}]
+        The '?' character on the dataset size means that it can be of arbitrary
+        length.
+
+        The expected structure for each of the metadata datasets is a list of
+        atomic type objects (int, float, str, ...), where the index order of
+        the list corresponds to the index order of the relevant axis IDs.
+        Special metadata fields have been defined, and they are stored in a
+        specific way. Currently, the available special metadata fields are:
+
+        - taxonomy: (N, 7) dataset of str or vlen str
 
         Parameters
         ----------
@@ -3094,70 +3094,70 @@ html
         The expected HDF5 group structure is below. An example of an HDF5 file
         in DDL can be found here [3]_.
 
-        ./id                                                  : str, an \
+        - ./id                                                  : str, an \
 arbitrary ID
-        ./type                                                : str, the table\
- type (e.g, OTU table)
-        ./format-url                                          : str, a URL \
+        - ./type                                                : str, the \
+table type (e.g, OTU table)
+        - ./format-url                                          : str, a URL \
 that describes the format
-        ./format-version                                      : two element \
+        - ./format-version                                      : two element \
 tuple of int32, major and minor
-        ./generated-by                                        : str, what \
+        - ./generated-by                                        : str, what \
 generated this file
-        ./creation-date                                       : str, ISO format
-        ./shape                                               : two element \
+        - ./creation-date                                       : str, ISO \
+format
+        - ./shape                                               : two element \
 tuple of int32, N by M
-        ./nnz                                                 : int32 or int64\
-, number of non zero elems
-        ./observation                                         : Group
-        ./observation/ids                                     : (N,) dataset \
-of str or vlen str
-        ./observation/matrix                                  : Group
-        ./observation/matrix/data                             : (nnz,) dataset\
- of float64
-        ./observation/matrix/indices                          : (nnz,) dataset\
- of int32
-        ./observation/matrix/indptr                           : (M+1,) dataset\
- of int32
-        ./observation/metadata                                : Group
-        [./observation/metadata/foo]                          : Optional, (N,)\
- dataset of str or vlen str in index order with ids.
-        [./observation/metadata/foo.attrs['data_type']]       : attribute of \
-the foo dataset that describes contained type (e.g., int)
-        ./observation/group-metadata                          : Group
-        [./observation/group-metadata/foo]                    : Optional, (?,)\
- dataset of group metadata that relates IDs
-        [./observation/group-metadata/foo.attrs['data_type']] : attribute of \
-the foo dataset that describes contained type (e.g., newick)
-        ./sample                                              : Group
-        ./sample/ids                                          : (M,) dataset \
-of str or vlen str
-        ./sample/matrix                                       : Group
-        ./sample/matrix/data                                  : (nnz,) dataset\
- of float64
-        ./sample/matrix/indices                               : (nnz,) dataset\
- of int32
-        ./sample/matrix/indptr                                : (N+1,) dataset\
- of int32
-        ./sample/metadata                                     : Group
-        [./sample/metadata/foo]                               : Optional, (M,)\
- dataset of str or vlen str in index order with ids.
-        [./sample/metadata/foo.attrs['data_type']]            : attribute of \
-the foo dataset that describes contained type (e.g., int)
-        ./sample/group-metadata                               : Group
-        [./sample/group-metadata/foo]                         : Optional, (?,)\
- dataset of group metadata that relates IDs
-        [./sample/group-metadata/foo.attrs['data_type']]      : attribute of \
-the foo dataset that describes contained type (e.g., newick)
+        - ./nnz                                                 : int32 or \
+int64, number of non zero elems
+        - ./observation                                         : Group
+        - ./observation/ids                                     : (N,) dataset\
+ of str or vlen str
+        - ./observation/matrix                                  : Group
+        - ./observation/matrix/data                             : (nnz,) \
+dataset of float64
+        - ./observation/matrix/indices                          : (nnz,) \
+dataset of int32
+        - ./observation/matrix/indptr                           : (M+1,) \
+dataset of int32
+        - ./observation/metadata                                : Group
+        - [./observation/metadata/foo]                          : Optional, \
+(N,) dataset of str or vlen str in index order with ids.
+        - ./observation/group-metadata                          : Group
+        - [./observation/group-metadata/foo]                    : Optional, \
+(?,) dataset of group metadata that relates IDs
+        - [./observation/group-metadata/foo.attrs['data_type']] : attribute of\
+ the foo dataset that describes contained type (e.g., newick)
+        - ./sample                                              : Group
+        - ./sample/ids                                          : (M,) dataset\
+ of str or vlen str
+        - ./sample/matrix                                       : Group
+        - ./sample/matrix/data                                  : (nnz,) \
+dataset of float64
+        - ./sample/matrix/indices                               : (nnz,) \
+dataset of int32
+        - ./sample/matrix/indptr                                : (N+1,) \
+dataset of int32
+        - ./sample/metadata                                     : Group
+        - [./sample/metadata/foo]                               : Optional, \
+(M,) dataset of str or vlen str in index order with ids.
+        - ./sample/group-metadata                               : Group
+        - [./sample/group-metadata/foo]                         : Optional, \
+(?,) dataset of group metadata that relates IDs
+        - [./sample/group-metadata/foo.attrs['data_type']]      : attribute of\
+ the foo dataset that describes contained type (e.g., newick)
 
-        The expected structure (in JSON) for the optional metadata is a list of
-        objects, where the index order of the list corresponds to the index
-        order of the relevant axis IDs. The metadata are parsed directly by
-        JSON, and there are no constraints on the contained metadata with the
-        exception of the outer list, and that the order of the list matters.
-        Below is an example of observational metadata for two observations:
 
-        [{"taxonomy": ["foo", "bar"]}, {"taxonomy": ["foo", "foobar"]}]
+        The '?' character on the dataset size means that it can be of arbitrary
+        length.
+
+        The expected structure for each of the metadata datasets is a list of
+        atomic type objects (int, float, str, ...), where the index order of
+        the list corresponds to the index order of the relevant axis IDs.
+        Special metadata fields have been defined, and they are stored in a
+        specific way. Currently, the available special metadata fields are:
+
+        - taxonomy: (N, 7) dataset of str or vlen str
 
         Parameters
         ----------
