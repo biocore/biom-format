@@ -24,11 +24,13 @@ try:
     import h5py
     HAVE_H5PY = True
     H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
+    H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=unicode)
 
 except ImportError:
     warn("h5py is not available")
     HAVE_H5PY = False
     H5PY_VLEN_STR = None
+    H5PY_VLEN_UNICODE = None
 
 from numpy import mean, median, min, max
 

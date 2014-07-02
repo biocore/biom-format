@@ -187,7 +187,8 @@ from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 from biom.exception import TableException, UnknownAxisError, UnknownIDError
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
-                       prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
+                       prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
+                       H5PY_VLEN_UNICODE)
 
 from ._filter import _filter
 from ._transform import _transform
@@ -421,6 +422,9 @@ class Table(object):
 
         self._sample_metadata = cast_metadata(self._sample_metadata)
         self._observation_metadata = cast_metadata(self._observation_metadata)
+
+        self._sample_group_metadata = self._sample_group_metadata if self._sample_group_metadata else None
+        self._observation_group_metadata = self._observation_group_metadata if self._observation_group_metadata else None
 
     @property
     def shape(self):
@@ -2826,6 +2830,140 @@ class Table(object):
         return self.__class__(self._conv_to_self_type(vals), obs_ids[:],
                               sample_ids[:], obs_md, sample_md)
 
+
+
+
+
+    @classmethod
+    def from_hdf5_old(cls, h5grp, ids=None, axis='sample'):
+        if not HAVE_H5PY:
+            raise RuntimeError("h5py is not in the environment, HDF5 support "
+                               "is not available")
+
+        if axis not in ['sample', 'observation']:
+            raise UnknownAxisError(axis)
+
+        id_ = h5grp.attrs['id']
+        create_date = h5grp.attrs['creation-date']
+        generated_by = h5grp.attrs['generated-by']
+
+        shape = h5grp.attrs['shape']
+        type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
+
+        def axis_load(grp):
+            """Loads all the data of the given group"""
+            # fetch all of the IDs
+            ids = grp['ids'][:]
+            # fetch all of the metadata
+            md = []
+            for i in range(len(ids)):
+                md.append({cat: loads(vals[i])
+                          for cat, vals in grp['metadata'].items()})
+            # Fetch the group metadata
+            grp_md = {(cat, loads(val))
+                      for cat, val in grp['group-metadata'].items()}
+            return ids, md, grp_md
+
+        obs_ids, obs_md, obs_grp_md = axis_load(h5grp['observation'])
+        samp_ids, samp_md, samp_grp_md = axis_load(h5grp['sample'])
+
+        # load the data
+        data_grp = h5grp[axis]['matrix']
+        h5_data = data_grp["data"]
+        h5_indices = data_grp["indices"]
+        h5_indptr = data_grp["indptr"]
+
+        # Check if we need to subset the biom table
+        if ids is not None:
+            def _get_ids(source_ids, desired_ids):
+                """If desired_ids is not None, makes sure that it is a subset
+                of source_ids and returns the desired_ids array-like and a
+                boolean array indicating where the desired_ids can be found in
+                source_ids"""
+                if desired_ids is None:
+                    ids = source_ids[:]
+                    idx = np.ones(source_ids.shape, dtype=bool)
+                else:
+                    desired_ids = np.asarray(desired_ids)
+                    # Get the index of the source ids to include
+                    idx = np.in1d(source_ids, desired_ids)
+                    # Retrieve only the ids that we are interested on
+                    ids = source_ids[idx]
+                    # Check that all desired ids have been found on source ids
+                    if ids.shape != desired_ids.shape:
+                        raise ValueError("The following ids could not be "
+                                         "found in the biom table: %s" %
+                                         (set(desired_ids) - set(ids)))
+                return ids, idx
+
+            # Get the observation and sample ids that we are interested in
+            samp, obs = (ids, None) if axis == 'sample' else (None, ids)
+            obs_ids, obs_idx = _get_ids(obs_ids, obs)
+            samp_ids, samp_idx = _get_ids(samp_ids, samp)
+
+            # Get the new matrix shape
+            shape = (len(obs_ids), len(samp_ids))
+
+            # Fetch the metadata that we are interested in
+            def _subset_metadata(md, idx):
+                """If md has data, returns the subset indicated by idx, a
+                boolean array"""
+                if md:
+                    md = list(np.asarray(md)[np.where(idx)])
+                return md
+
+            obs_md = _subset_metadata(obs_md, obs_idx)
+            samp_md = _subset_metadata(samp_md, samp_idx)
+
+            # load the subset of the data
+            idx = samp_idx if axis == 'sample' else obs_idx
+            keep = np.where(idx)[0]
+            indptr_indices = sorted([(h5_indptr[i], h5_indptr[i+1])
+                                     for i in keep])
+            # Create the new indptr
+            indptr_subset = np.array([end - start
+                                     for start, end in indptr_indices])
+            indptr = np.empty(len(keep) + 1, dtype=np.int32)
+            indptr[0] = 0
+            indptr[1:] = indptr_subset.cumsum()
+
+            data = np.hstack(h5_data[start:end]
+                             for start, end in indptr_indices)
+            indices = np.hstack(h5_indices[start:end]
+                                for start, end in indptr_indices)
+        else:
+            # no subset need, just pass all data to scipy
+            data = h5_data
+            indices = h5_indices
+            indptr = h5_indptr
+
+        cs = (data, indices, indptr)
+
+        if axis == 'sample':
+            matrix = csc_matrix(cs, shape=shape)
+        else:
+            matrix = csr_matrix(cs, shape=shape)
+
+        t = Table(matrix, obs_ids, samp_ids, obs_md or None,
+                  samp_md or None, type=type_, create_date=create_date,
+                  generated_by=generated_by, table_id=id_,
+                  observation_group_metadata=obs_grp_md,
+                  sample_group_metadata=samp_grp_md)
+
+        f = lambda vals, id_, md: np.any(vals)
+        axis = 'observation' if axis == 'sample' else 'sample'
+        t.filter(f, axis=axis)
+
+        return t
+
+
+
+
+
+
+
+
+
     @classmethod
     def from_hdf5(cls, h5grp, ids=None, axis='sample'):
         """Parse an HDF5 formatted BIOM table
@@ -2978,13 +3116,25 @@ html
             """Loads all the data of the given group"""
             # fetch all of the IDs
             ids = grp['ids'][:]
+
+            # define functions for parsing the hdf5 metadata
+            general_parser = lambda x: x
+
+            def taxonomy_parser(value):
+                """Parses the taxonomy value"""
+                # Remove the empty string values and return the results as list
+                return value[np.where(
+                    value == np.array(""), False, True)].tolist()
+
+            parser = defaultdict(lambda: general_parser)
+            parser['taxonomy'] = taxonomy_parser
             # fetch all of the metadata
             md = []
             for i in range(len(ids)):
-                md.append({cat: loads(vals[i])
+                md.append({cat: parser[cat](vals[i])
                           for cat, vals in grp['metadata'].items()})
             # Fetch the group metadata
-            grp_md = {(cat, loads(val))
+            grp_md = {cat: val
                       for cat, val in grp['group-metadata'].items()}
             return ids, md, grp_md
 
@@ -3229,26 +3379,59 @@ html
             grp.create_group('metadata')
 
             if md is not None:
+                # Define functions for writing to hdf5
+                def general_formatter(grp, header, md, compression):
+                    """Creates a dataset for a general atomic type category"""
+                    test_val = md[0][header]
+                    shape = (len(md),)
+                    name = 'metadata/%s' % category
+                    if isinstance(test_val, unicode):
+                        grp.create_dataset(name, shape=shape,
+                                           dtype=H5PY_VLEN_UNICODE,
+                                           compression=compression)
+                        grp[name][:] = [m[header] for m in md]
+                    elif isinstance(test_val, str):
+                        grp.create_dataset(name, shape=shape,
+                                           dtype=H5PY_VLEN_STR,
+                                           data=[m[header] for m in md],
+                                           compression=compression)
+                    else:
+                        grp.create_dataset(
+                            'metadata/%s' % category, shape=(len(md),),
+                            data=[m[header] for m in md],
+                            compression=compression)
+
+                def taxonomy_formatter(grp, header, md, compression):
+                    """Creates a taxonomy dataset: (N, 7) vlen str"""
+                    data = np.empty((len(md), 7), dtype=object)
+                    for i, m in enumerate(md):
+                        value = np.asarray(m[header])
+                        data[i, :len(value)] = value
+                    # Change the None entries on data to empty strings ""
+                    data = np.where(data == np.array(None), "", data)
+                    grp.create_dataset(
+                        'metadata/taxonomy', shape=(len(md), 7),
+                        dtype=H5PY_VLEN_STR, data=data,
+                        compression=compression)
+
+                formatter = defaultdict(lambda: general_formatter)
+                formatter['taxonomy'] = taxonomy_formatter
                 # Loop through all the categories
                 for category in md[0]:
                     # Create the dataset for the current category,
                     # putting values in id order
-                    grp.create_dataset(
-                        'metadata/%s' % category, shape=(len_ids,),
-                        dtype=H5PY_VLEN_STR,
-                        data=[dumps(m[category]) for m in md],
-                        compression=compression)
+                    formatter[category](grp, category, md, compression)
 
             # Create the group for the group metadata
             grp.create_group('group-metadata')
 
-            if group_md is not None:
+            if group_md:
                 for key, value in group_md.items():
                     datatype, val = value
                     grp_dataset = grp.create_dataset(
                         'group-metadata/%s' % key,
                         shape=(1,), dtype=H5PY_VLEN_STR,
-                        data=dumps(val), compression=compression)
+                        data=val, compression=compression)
                     grp_dataset.attrs['data_type'] = datatype
 
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
