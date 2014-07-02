@@ -980,12 +980,7 @@ class Table(object):
         >>> table.index('S1', 'sample')
         0
         """
-        if axis == 'sample':
-            idx_lookup = self._sample_index
-        elif axis == 'observation':
-            idx_lookup = self._obs_index
-        else:
-            raise UnknownAxisError(axis)
+        idx_lookup = self._index(axis=axis)
 
         if id not in idx_lookup:
             raise UnknownIDError(id, axis)
@@ -1071,12 +1066,7 @@ class Table(object):
         >>> table.exists('O3', 'observation')
         False
         """
-        if axis == "sample":
-            return id in self._sample_index
-        elif axis == "observation":
-            return id in self._obs_index
-        else:
-            raise UnknownAxisError(axis)
+        return id in self._index(axis=axis)
 
     def delimited_self(self, delim='\t', header_key=None, header_value=None,
                        metadata_formatter=str,
