@@ -271,6 +271,31 @@ class Table(object):
         self._sample_index = index_list(self._sample_ids)
         self._obs_index = index_list(self._observation_ids)
 
+    def _index(self, axis='sample'):
+        """Return the index lookups of the given axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}, optional
+            Axis to get the index dict. Defaults to 'sample'
+
+        Returns
+        -------
+        dict
+            lookups {id:index in _data}
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+        """
+        if axis == 'sample':
+            return self._sample_index
+        elif axis == 'observation':
+            return self._obs_index
+        else:
+            raise UnknownAxisError(axis)
+
     def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
         if dtype is None:
@@ -1642,8 +1667,8 @@ class Table(object):
             If a function, it will be called with the values of the
             sample/observation, its id (a string) and the dictionary
             of metadata of each sample/observation, and must return a
-            boolean. If it's an iterable, it will be converted to an
-            array of bools.
+            boolean. If it's an iterable, it must be a list of ids to
+            keep.
         axis : {'sample', 'observation'}, optional
             It controls whether to filter samples or observations and
             defaults to "sample".
@@ -1724,12 +1749,14 @@ class Table(object):
 
         metadata = table.metadata(axis=axis)
         ids = table.ids(axis=axis)
+        index = self._index(axis=axis)
         axis = table._axis_to_num(axis=axis)
 
         arr = table._data
         arr, ids, metadata = _filter(arr,
                                      ids,
                                      metadata,
+                                     index,
                                      ids_to_keep,
                                      axis,
                                      invert=invert)
@@ -1841,7 +1868,7 @@ class Table(object):
             yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
                               self.table_id, type=self.type)
 
-    def collapse(self, f, reduce_f=add, norm=True, min_group_size=2,
+    def collapse(self, f, reduce_f=add, norm=True, min_group_size=1,
                  include_collapsed_metadata=True, one_to_many=False,
                  one_to_many_mode='add', one_to_many_md_key='Path',
                  strict=False, axis='sample'):
@@ -1913,8 +1940,8 @@ class Table(object):
         norm : bool, optional
             Defaults to ``True``. If ``True``, normalize the resulting table
         min_group_size : int, optional
-            Defaults to ``2``. The minimum size of a partition of performing a
-            one-to-many collapse
+            Defaults to ``1``. The minimum size of a partition when performing
+            a one-to-one collapse
         include_collapsed_metadata : bool, optional
             Defaults to ``True``. If ``True``, retain the collapsed metadata
             keyed by the original IDs of the associated vectors
@@ -2933,9 +2960,6 @@ dataset of int32
             If `ids` are not a subset of the samples or observations ids
             present in the hdf5 biom table
 
-        See Also
-        --------
-        Table.format_hdf5
 
         References
         ----------
@@ -2952,17 +2976,19 @@ html
 
         Examples
         --------
-        >>> from h5py import File # doctest: +SKIP
         >>> from biom.table import Table
-        >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
-        >>> t = Table.from_hdf5(f) # doctest: +SKIP
+        >>> from biom.util import biom_open
+        >>> with biom_open('rich_sparse_otu_table_hdf5.biom') as f \
+# doctest: +SKIP
+        >>>     t = Table.from_hdf5(f) # doctest: +SKIP
 
         Parse a hdf5 biom table subsetting observations
-        >>> from h5py import File # doctest: +SKIP
+        >>> from biom.util import biom_open # doctest: +SKIP
         >>> from biom.parse import parse_biom_table
-        >>> f = File('rich_sparse_otu_table_hdf5.biom') # doctest: +SKIP
-        >>> t = Table.from_hdf5(f, ids=["GG_OTU_1"],
-        ...                     axis='observation') # doctest: +SKIP
+        >>> with biom_open('rich_sparse_otu_table_hdf5.biom') as f \
+# doctest: +SKIP
+        >>>     t = Table.from_hdf5(f, ids=["GG_OTU_1"],
+        ...                         axis='observation') # doctest: +SKIP
         """
         if not HAVE_H5PY:
             raise RuntimeError("h5py is not in the environment, HDF5 support "
@@ -3199,11 +3225,11 @@ html
 
         Examples
         --------
-        >>> from h5py import File  # doctest: +SKIP
+        >>> from biom.util import biom_open  # doctest: +SKIP
         >>> from biom.table import Table
         >>> from numpy import array
         >>> t = Table(array([[1, 2], [3, 4]]), ['a', 'b'], ['x', 'y'])
-        >>> with File('foo.biom', 'w') as f:  # doctest: +SKIP
+        >>> with biom_open('foo.biom', 'w') as f:  # doctest: +SKIP
         ...     t.to_hdf5(f, "example")
 
         """
