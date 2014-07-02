@@ -282,7 +282,7 @@ class Table(object):
         Returns
         -------
         dict
-            lookups {id:index in _data}
+            lookups {id:index}
 
         Raises
         ------
@@ -513,11 +513,12 @@ class Table(object):
         axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
-        if self.metadata(axis=axis) is not None:
+        metadata = self.metadata(axis=axis)
+        if metadata is not None:
             for id_, md_entry in md.iteritems():
                 if self.exists(id_, axis=axis):
                     idx = self.index(id_, axis=axis)
-                    self.metadata(axis=axis)[idx].update(md_entry)
+                    metadata[idx].update(md_entry)
         else:
             if axis == 'sample':
                 self._sample_metadata = tuple([md[id_] if id_ in md else
@@ -2922,7 +2923,6 @@ dataset of int32
         - [./sample/group-metadata/foo.attrs['data_type']]      : attribute of\
  the foo dataset that describes contained type (e.g., newick)
 
-
         The '?' character on the dataset size means that it can be of arbitrary
         length.
 
@@ -3182,7 +3182,6 @@ dataset of int32
 (?,) dataset of group metadata that relates IDs
         - [./sample/group-metadata/foo.attrs['data_type']]      : attribute of\
  the foo dataset that describes contained type (e.g., newick)
-
 
         The '?' character on the dataset size means that it can be of arbitrary
         length.
