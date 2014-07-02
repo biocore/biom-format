@@ -55,7 +55,11 @@ class TableSummarizer(Command):
                                'observation ids per sample, rather than '
                                'counts of observations per sample.'),
                   Required=False,
-                  Default=False)
+                  Default=False),
+        CommandIn(Name='observations',
+                  DataType=bool,
+                  Default=False,
+                  Description=('Summarize over observations'))
     ])
 
     CommandOuts = ParameterCollection([
@@ -67,7 +71,11 @@ class TableSummarizer(Command):
     def run(self, **kwargs):
         result = {}
         qualitative = kwargs['qualitative']
+        by_observations = kwargs['observations']
         table, table_lines = kwargs['table']
+
+        if by_observations:
+            table = table.transpose()
 
         min_counts, max_counts, median_counts, mean_counts, counts_per_samp =\
             compute_counts_per_sample_stats(table, qualitative)
@@ -88,8 +96,14 @@ class TableSummarizer(Command):
         lines = []
 
         num_samples = len(table.ids())
-        lines.append('Num samples: %d' % num_samples)
-        lines.append('Num observations: %d' % num_observations)
+
+        if by_observations:
+            # as this is a transpose of the original table...
+            lines.append('Num samples: %d' % num_observations)
+            lines.append('Num observations: %d' % num_samples)
+        else:
+            lines.append('Num samples: %d' % num_samples)
+            lines.append('Num observations: %d' % num_observations)
 
         if not qualitative:
             total_count = sum(counts_per_sample_values)
@@ -100,7 +114,10 @@ class TableSummarizer(Command):
         lines.append('')
 
         if qualitative:
-            lines.append('Observations/sample summary:')
+            if by_observations:
+                lines.append('Sample/observations summary:')
+            else:
+                lines.append('Observations/sample summary:')
         else:
             lines.append('Counts/sample summary:')
 
@@ -109,13 +126,24 @@ class TableSummarizer(Command):
         lines.append(' Median: %1.3f' % median_counts)
         lines.append(' Mean: %1.3f' % mean_counts)
         lines.append(' Std. dev.: %1.3f' % std(counts_per_sample_values))
-        lines.append(
-            ' Sample Metadata Categories: %s' %
-            '; '.join(sample_md_keys))
-        lines.append(
-            ' Observation Metadata Categories: %s' %
-            '; '.join(observation_md_keys))
-        lines.append('')
+
+        if by_observations:
+            # since this is a transpose...
+            lines.append(
+                ' Sample Metadata Categories: %s' %
+                '; '.join(observation_md_keys))
+            lines.append(
+                ' Observation Metadata Categories: %s' %
+                '; '.join(sample_md_keys))
+            lines.append('')
+        else:
+            lines.append(
+                ' Sample Metadata Categories: %s' %
+                '; '.join(sample_md_keys))
+            lines.append(
+                ' Observation Metadata Categories: %s' %
+                '; '.join(observation_md_keys))
+            lines.append('')
 
         if qualitative:
             lines.append('Observations/sample detail:')
