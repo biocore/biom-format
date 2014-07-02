@@ -176,7 +176,7 @@ from __future__ import division
 import numpy as np
 from copy import deepcopy
 from datetime import datetime
-from json import dumps, loads
+from json import dumps
 from functools import reduce
 from operator import itemgetter, add
 from itertools import izip
@@ -448,8 +448,12 @@ class Table(object):
         self._sample_metadata = cast_metadata(self._sample_metadata)
         self._observation_metadata = cast_metadata(self._observation_metadata)
 
-        self._sample_group_metadata = self._sample_group_metadata if self._sample_group_metadata else None
-        self._observation_group_metadata = self._observation_group_metadata if self._observation_group_metadata else None
+        self._sample_group_metadata = (
+            self._sample_group_metadata
+            if self._sample_group_metadata else None)
+        self._observation_group_metadata = (
+            self._observation_group_metadata
+            if self._observation_group_metadata else None)
 
     @property
     def shape(self):
