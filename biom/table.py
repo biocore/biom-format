@@ -777,12 +777,11 @@ class Table(object):
         None
         """
         if axis == 'sample':
-            group_md = self._sample_group_metadata
+            return self._sample_group_metadata
         elif axis == 'observation':
-            group_md = self._observation_group_metadata
+            return self._observation_group_metadata
         else:
             raise UnknownAxisError(axis)
-        return group_md
 
     def ids(self, axis='sample'):
         """Return the ids along the given axis
@@ -826,6 +825,47 @@ class Table(object):
             return self._sample_ids
         elif axis == 'observation':
             return self._observation_ids
+        else:
+            raise UnknownAxisError(axis)
+
+    def _get_sparse_data(self, axis='sample'):
+        """Returns the internal data in the correct sparse representation
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}, optional
+            Axis to search for `id`. Defaults to 'sample'
+
+        Returns
+        -------
+        sparse matrix
+            The data in csc (axis='sample') or csr (axis='observation')
+            representation
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Get the ids along the observation axis:
+
+        >>> print table._get_sparse_data(axis='observation')
+        ['O1' 'O2']
+
+        Get the ids along the sample axis:
+
+        >>> print table._get_sparse_data()
+        ['S1' 'S2' 'S3']
+        """
+        if axis == 'sample':
+            return self._data.tocsc()
+        elif axis == 'observation':
+            return self._data.tocsr()
         else:
             raise UnknownAxisError(axis)
 
@@ -2270,12 +2310,7 @@ class Table(object):
             raise ValueError("n cannot be negative.")
 
         ids = self.ids(axis=axis)
-        if axis == 'sample':
-            data = self._data.tocsc()
-        elif axis == 'observation':
-            data = self._data.tocsr()
-        else:
-            raise UnknownAxisError(axis)
+        data = self._get_sparse_data(axis=axis)
 
         if by_id:
             ids = ids.copy()
@@ -2427,12 +2462,7 @@ class Table(object):
 
         metadata = table.metadata(axis=axis)
         ids = table.ids(axis=axis)
-        if axis == 'sample':
-            arr = table._data.tocsc()
-        elif axis == 'observation':
-            arr = table._data.tocsr()
-        else:
-            raise UnknownAxisError(axis)
+        arr = table._get_sparse_data(axis=axis)
 
         axis = table._axis_to_num(axis)
 
@@ -2552,15 +2582,10 @@ class Table(object):
             dtype = self.dtype
             op = lambda x: x.sum()
 
-        if axis is 'sample':
+        if axis in ('sample', 'observation'):
             # can use np.bincount for CSMat or ScipySparse
-            result = zeros(len(self.ids()), dtype=dtype)
-            for idx, vals in enumerate(self.iter_data()):
-                result[idx] = op(vals)
-        elif axis is 'observation':
-            # can use np.bincount for CSMat or ScipySparse
-            result = zeros(len(self.ids(axis='observation')), dtype=dtype)
-            for idx, vals in enumerate(self.iter_data(axis="observation")):
+            result = zeros(len(self.ids(axis=axis)), dtype=dtype)
+            for idx, vals in enumerate(self.iter_data(axis=axis)):
                 result[idx] = op(vals)
         else:
             result = zeros(1, dtype=dtype)
