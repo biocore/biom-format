@@ -2932,7 +2932,8 @@ dataset of int32
         Special metadata fields have been defined, and they are stored in a
         specific way. Currently, the available special metadata fields are:
 
-        - taxonomy: (N, 7) dataset of str or vlen str
+        - taxonomy: (N, ?) dataset of str or vlen str
+        - kegg_pathway: (N, ?) dataset of str or vlen str
 
         Parameters
         ----------
@@ -3006,14 +3007,15 @@ html
             # define functions for parsing the hdf5 metadata
             general_parser = lambda x: x
 
-            def taxonomy_parser(value):
+            def vlen_list_of_str_parser(value):
                 """Parses the taxonomy value"""
                 # Remove the empty string values and return the results as list
                 return value[np.where(
                     value == np.array(""), False, True)].tolist()
 
             parser = defaultdict(lambda: general_parser)
-            parser['taxonomy'] = taxonomy_parser
+            parser['taxonomy'] = vlen_list_of_str_parser
+            parser['kegg_pathway'] = vlen_list_of_str_parser
             # fetch all of the metadata
             md = []
             for i in range(len(ids)):
@@ -3192,7 +3194,8 @@ dataset of int32
         Special metadata fields have been defined, and they are stored in a
         specific way. Currently, the available special metadata fields are:
 
-        - taxonomy: (N, 7) dataset of str or vlen str
+        - taxonomy: (N, ?) dataset of str or vlen str
+        - kegg_pathway: (N, ?) dataset of str or vlen str
 
         Parameters
         ----------
@@ -3286,21 +3289,24 @@ html
                             data=[m[header] for m in md],
                             compression=compression)
 
-                def taxonomy_formatter(grp, header, md, compression):
-                    """Creates a taxonomy dataset: (N, 7) vlen str"""
-                    data = np.empty((len(md), 7), dtype=object)
+                def vlen_list_of_str_formatter(grp, header, md, compression):
+                    """Creates a (N, ?) vlen str dataset"""
+                    max_list_len = max(len(m[header]) for m in md)
+                    shape = (len(md), max_list_len)
+                    data = np.empty(shape, dtype=object)
                     for i, m in enumerate(md):
                         value = np.asarray(m[header])
                         data[i, :len(value)] = value
                     # Change the None entries on data to empty strings ""
                     data = np.where(data == np.array(None), "", data)
                     grp.create_dataset(
-                        'metadata/taxonomy', shape=(len(md), 7),
+                        'metadata/%s' % header, shape=shape,
                         dtype=H5PY_VLEN_STR, data=data,
                         compression=compression)
 
                 formatter = defaultdict(lambda: general_formatter)
-                formatter['taxonomy'] = taxonomy_formatter
+                formatter['taxonomy'] = vlen_list_of_str_formatter
+                formatter['kegg_pathway'] = vlen_list_of_str_formatter
                 # Loop through all the categories
                 for category in md[0]:
                     # Create the dataset for the current category,
