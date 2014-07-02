@@ -1739,7 +1739,7 @@ class Table(object):
             yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
                               self.table_id, type=self.type)
 
-    def collapse(self, f, reduce_f=add, norm=True, min_group_size=2,
+    def collapse(self, f, reduce_f=add, norm=True, min_group_size=1,
                  include_collapsed_metadata=True, one_to_many=False,
                  one_to_many_mode='add', one_to_many_md_key='Path',
                  strict=False, axis='sample'):
@@ -1811,8 +1811,8 @@ class Table(object):
         norm : bool, optional
             Defaults to ``True``. If ``True``, normalize the resulting table
         min_group_size : int, optional
-            Defaults to ``2``. The minimum size of a partition of performing a
-            one-to-many collapse
+            Defaults to ``2``. The minimum size of a partition when performing
+            a one-to-one collapse
         include_collapsed_metadata : bool, optional
             Defaults to ``True``. If ``True``, retain the collapsed metadata
             keyed by the original IDs of the associated vectors
