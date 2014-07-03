@@ -155,6 +155,13 @@ class TableTests(TestCase):
                               {'taxonomy': ['k__a', 'p__c']}],
                              [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
                              )
+        self.st_group_rich = Table(
+            self.vals, ['1', '2'], ['a', 'b'],
+            [{'taxonomy': ['k__a', 'p__b']}, {'taxonomy': ['k__a', 'p__c']}],
+            [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
+            observation_group_metadata={'tree': ('newick', '(a:0.3,b:0.4);')},
+            sample_group_metadata={'category': ('newick', '(1:0.3,2:0.4);')}
+            )
 
         self.empty_st = Table([], [], [])
 
@@ -287,11 +294,11 @@ class TableTests(TestCase):
         t = Table.from_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
-        npt.assert_equal(t.sample_ids, ('Sample1', 'Sample2', 'Sample3',
-                                        'Sample4', 'Sample5', 'Sample6'))
-        npt.assert_equal(t.observation_ids, ('GG_OTU_1', 'GG_OTU_2',
-                                             'GG_OTU_3', 'GG_OTU_4',
-                                             'GG_OTU_5'))
+        npt.assert_equal(t.ids(), ('Sample1', 'Sample2', 'Sample3',
+                                   'Sample4', 'Sample5', 'Sample6'))
+        npt.assert_equal(t.ids(axis='observation'),
+                         ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
+                          'GG_OTU_4', 'GG_OTU_5'))
         exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
                                      u'p__Proteobacteria',
                                      u'c__Gammaproteobacteria',
@@ -327,7 +334,7 @@ class TableTests(TestCase):
                                      u'f__Enterobacteriaceae',
                                      u'g__Escherichia',
                                      u's__']})
-        self.assertEqual(t.observation_metadata, exp_obs_md)
+        self.assertEqual(t._observation_metadata, exp_obs_md)
 
         exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
                         u'BarcodeSequence': u'CGCTTATCGAGA',
@@ -353,7 +360,7 @@ class TableTests(TestCase):
                         u'BarcodeSequence': u'CTAACTACCAAT',
                         u'Description': u'human skin',
                         u'BODY_SITE': u'skin'})
-        self.assertEqual(t.sample_metadata, exp_samp_md)
+        self.assertEqual(t._sample_metadata, exp_samp_md)
 
         exp = [np.array([0., 0., 1., 0., 0., 0.]),
                np.array([5., 1., 0., 2., 3., 1.]),
@@ -373,9 +380,9 @@ class TableTests(TestCase):
         t = Table.from_hdf5(h5py.File('test_data/test.biom'), ids=samples)
         os.chdir(cwd)
 
-        npt.assert_equal(t.sample_ids, ['Sample2', 'Sample4', 'Sample6'])
-        npt.assert_equal(t.observation_ids, ['GG_OTU_2', 'GG_OTU_3',
-                                             'GG_OTU_4', 'GG_OTU_5'])
+        npt.assert_equal(t.ids(), ['Sample2', 'Sample4', 'Sample6'])
+        npt.assert_equal(t.ids(axis='observation'),
+                         ['GG_OTU_2', 'GG_OTU_3', 'GG_OTU_4', 'GG_OTU_5'])
         exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
                                      u'p__Cyanobacteria',
                                      u'c__Nostocophycideae',
@@ -404,7 +411,7 @@ class TableTests(TestCase):
                                      u'f__Enterobacteriaceae',
                                      u'g__Escherichia',
                                      u's__']})
-        self.assertEqual(t.observation_metadata, exp_obs_md)
+        self.assertEqual(t._observation_metadata, exp_obs_md)
 
         exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
                         u'BarcodeSequence': u'CATACCAGTAGC',
@@ -418,7 +425,7 @@ class TableTests(TestCase):
                         u'BarcodeSequence': u'CTAACTACCAAT',
                         u'Description': u'human skin',
                         u'BODY_SITE': u'skin'})
-        self.assertEqual(t.sample_metadata, exp_samp_md)
+        self.assertEqual(t._sample_metadata, exp_samp_md)
 
         exp = [np.array([1., 2., 1.]),
                np.array([0., 4., 2.]),
@@ -438,10 +445,9 @@ class TableTests(TestCase):
                             ids=observations, axis='observation')
         os.chdir(cwd)
 
-        npt.assert_equal(t.sample_ids, ['Sample2', 'Sample3',
-                                        'Sample4', 'Sample6'])
-        npt.assert_equal(t.observation_ids, ['GG_OTU_1', 'GG_OTU_3',
-                                             'GG_OTU_5'])
+        npt.assert_equal(t.ids(), ['Sample2', 'Sample3', 'Sample4', 'Sample6'])
+        npt.assert_equal(t.ids(axis='observation'),
+                         ['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'])
         exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
                                      u'p__Proteobacteria',
                                      u'c__Gammaproteobacteria',
@@ -463,7 +469,7 @@ class TableTests(TestCase):
                                      u'f__Enterobacteriaceae',
                                      u'g__Escherichia',
                                      u's__']})
-        self.assertEqual(t.observation_metadata, exp_obs_md)
+        self.assertEqual(t._observation_metadata, exp_obs_md)
 
         exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
                         u'BarcodeSequence': u'CATACCAGTAGC',
@@ -481,7 +487,7 @@ class TableTests(TestCase):
                         u'BarcodeSequence': u'CTAACTACCAAT',
                         u'Description': u'human skin',
                         u'BODY_SITE': u'skin'})
-        self.assertEqual(t.sample_metadata, exp_samp_md)
+        self.assertEqual(t._sample_metadata, exp_samp_md)
 
         exp = [np.array([0., 1., 0., 0.]),
                np.array([0., 1., 4., 2.]),
@@ -533,26 +539,26 @@ class TableTests(TestCase):
         tab1_fh = StringIO(otu_table1)
         sparse_rich = Table.from_tsv(tab1_fh, None, None,
                                      OBS_META_TYPES['naive'])
-        self.assertEqual(sorted(sparse_rich.sample_ids),
+        self.assertEqual(sorted(sparse_rich.ids()),
                          sorted(['Fing', 'Key', 'NA']))
-        self.assertEqual(sorted(sparse_rich.observation_ids),
+        self.assertEqual(sorted(sparse_rich.ids(axis='observation')),
                          map(str, [0, 1, 3, 4, 7]))
-        for i, obs_id in enumerate(sparse_rich.observation_ids):
+        for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
             if obs_id == '0':
-                self.assertEqual(sparse_rich.observation_metadata[i],
+                self.assertEqual(sparse_rich._observation_metadata[i],
                                  {'Consensus Lineage': 'Bacteria; '
                                   'Actinobacteria; Actinobacteridae; '
                                   'Propionibacterineae; '
                                   'Propionibacterium'})
             elif obs_id == '1':
-                self.assertEqual(sparse_rich.observation_metadata[i],
+                self.assertEqual(sparse_rich._observation_metadata[i],
                                  {'Consensus Lineage': 'Bacteria; Firmicutes; '
                                   'Alicyclobacillaceae; Bacilli; '
                                   'Lactobacillales; Lactobacillales; '
                                   'Streptococcaceae; '
                                   'Streptococcus'})
             elif obs_id == '7':
-                self.assertEqual(sparse_rich.observation_metadata[i],
+                self.assertEqual(sparse_rich._observation_metadata[i],
                                  {'Consensus Lineage': 'Bacteria; '
                                   'Actinobacteria; Actinobacteridae; '
                                   'Gordoniaceae; '
@@ -562,10 +568,10 @@ class TableTests(TestCase):
             else:
                 raise RuntimeError('obs_id incorrect?')
 
-        self.assertEquals(sparse_rich.sample_metadata, None)
+        self.assertEquals(sparse_rich._sample_metadata, None)
 
-        for i, obs_id in enumerate(sparse_rich.observation_ids):
-            for j, sample_id in enumerate(sparse_rich.sample_ids):
+        for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
+            for j, sample_id in enumerate(sparse_rich.ids()):
                 if obs_id == '1' and sample_id == 'Key':
                     # should test some abundance data
                     self.assertEqual(True, True)
@@ -574,26 +580,26 @@ class TableTests(TestCase):
         tab1_fh = StringIO(otu_table1)
         sparse_rich = Table.from_tsv(tab1_fh.readlines(), None, None,
                                      OBS_META_TYPES['naive'])
-        self.assertEqual(sorted(sparse_rich.sample_ids),
+        self.assertEqual(sorted(sparse_rich.ids()),
                          sorted(['Fing', 'Key', 'NA']))
-        self.assertEqual(sorted(sparse_rich.observation_ids),
+        self.assertEqual(sorted(sparse_rich.ids(axis='observation')),
                          map(str, [0, 1, 3, 4, 7]))
-        for i, obs_id in enumerate(sparse_rich.observation_ids):
+        for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
             if obs_id == '0':
-                self.assertEqual(sparse_rich.observation_metadata[i],
+                self.assertEqual(sparse_rich._observation_metadata[i],
                                  {'Consensus Lineage': 'Bacteria; '
                                   'Actinobacteria; Actinobacteridae; '
                                   'Propionibacterineae; '
                                   'Propionibacterium'})
             elif obs_id == '1':
-                self.assertEqual(sparse_rich.observation_metadata[i],
+                self.assertEqual(sparse_rich._observation_metadata[i],
                                  {'Consensus Lineage': 'Bacteria; Firmicutes; '
                                   'Alicyclobacillaceae; Bacilli; '
                                   'Lactobacillales; Lactobacillales; '
                                   'Streptococcaceae; '
                                   'Streptococcus'})
             elif obs_id == '7':
-                self.assertEqual(sparse_rich.observation_metadata[i],
+                self.assertEqual(sparse_rich._observation_metadata[i],
                                  {'Consensus Lineage': 'Bacteria; '
                                   'Actinobacteria; Actinobacteridae; '
                                   'Gordoniaceae; '
@@ -603,10 +609,10 @@ class TableTests(TestCase):
             else:
                 raise RuntimeError('obs_id incorrect?')
 
-        self.assertEquals(sparse_rich.sample_metadata, None)
+        self.assertEquals(sparse_rich._sample_metadata, None)
 
-        for i, obs_id in enumerate(sparse_rich.observation_ids):
-            for j, sample_id in enumerate(sparse_rich.sample_ids):
+        for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
+            for j, sample_id in enumerate(sparse_rich.ids()):
                 if obs_id == '1' and sample_id == 'Key':
                     self.assertEqual(True, True)
                     # should test some abundance data
@@ -630,23 +636,47 @@ class TableTests(TestCase):
         obs = self.st1.to_tsv(observation_column_name='Taxon')
         self.assertEqual(obs, exp)
 
+    def test_group_metadata_sample(self):
+        """Returns the sample group metadata"""
+        self.assertEqual(self.st_group_rich.group_metadata(),
+                         {'category': ('newick', '(1:0.3,2:0.4);')})
+        self.assertEqual(self.st_rich.group_metadata(), None)
+
+    def test_group_metadata_observation(self):
+        """Returns the observation group metadata"""
+        self.assertEqual(self.st_group_rich.group_metadata(axis='observation'),
+                         {'tree': ('newick', '(a:0.3,b:0.4);')})
+        self.assertEqual(self.st_rich.group_metadata(axis='observation'), None)
+
+    def test_group_metadata_error(self):
+        """Handles invalid input"""
+        with self.assertRaises(UnknownAxisError):
+            self.simple_derived.group_metadata('bro-axis')
+
     def test_metadata_invalid_input(self):
         """Correctly handles invalid input."""
         with self.assertRaises(UnknownAxisError):
             self.simple_derived.metadata(1, 'brofist')
 
-    def test_metadata_sample(self):
-        """returns the sample metadata"""
+    def test_metadata_sample_id(self):
+        """returns the sample metadata for a given id"""
         self.assertEqual({'barcode': 'aatt'},
-                         self.st_rich.metadata('a', 'sample'))
+                         self.st_rich.metadata('a'))
         self.assertEqual({'barcode': 'ttgg'},
-                         self.st_rich.metadata('b', 'sample'))
+                         self.st_rich.metadata('b'))
 
         with self.assertRaises(UnknownIDError):
             self.st_rich.metadata(3, 'sample')
 
-    def test_metadata_observation(self):
-        """returns the observation metadata"""
+    def test_metadata_sample(self):
+        """Return the sample metadata"""
+        obs = sorted(self.st_rich.metadata())
+        exp = sorted([{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+        for o, e in zip(obs, exp):
+            self.assertEqual(o, e)
+
+    def test_metadata_observation_id(self):
+        """returns the observation metadata for a given id"""
         self.assertEqual({'taxonomy': ['k__a', 'p__b']},
                          self.st_rich.metadata('1', 'observation'))
         self.assertEqual({'taxonomy': ['k__a', 'p__c']},
@@ -654,6 +684,14 @@ class TableTests(TestCase):
 
         with self.assertRaises(UnknownIDError):
             self.simple_derived.metadata('3', 'observation')
+
+    def test_metadata_observation(self):
+        """returns the observation metadata"""
+        obs = sorted(self.st_rich.metadata(axis='observation'))
+        exp = sorted([{'taxonomy': ['k__a', 'p__b']},
+                      {'taxonomy': ['k__a', 'p__c']}])
+        for o, e in zip(obs, exp):
+            self.assertEqual(o, e)
 
     def test_index_invalid_input(self):
         """Correctly handles invalid input."""
@@ -771,13 +809,44 @@ class TableTests(TestCase):
         d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         t = Table(d, obs_ids, samp_ids, obs_md, samp_md)
 
-        self.assertEqual(t.sample_metadata[0]['non existent key'], None)
-        self.assertEqual(t.sample_metadata[1]['non existent key'], None)
-        self.assertEqual(t.sample_metadata[2]['non existent key'], None)
-        self.assertEqual(t.sample_metadata[3]['non existent key'], None)
-        self.assertEqual(t.observation_metadata[0]['non existent key'], None)
-        self.assertEqual(t.observation_metadata[1]['non existent key'], None)
-        self.assertEqual(t.observation_metadata[2]['non existent key'], None)
+        self.assertEqual(t._sample_metadata[0]['non existent key'], None)
+        self.assertEqual(t._sample_metadata[1]['non existent key'], None)
+        self.assertEqual(t._sample_metadata[2]['non existent key'], None)
+        self.assertEqual(t._sample_metadata[3]['non existent key'], None)
+        self.assertEqual(t._observation_metadata[0]['non existent key'], None)
+        self.assertEqual(t._observation_metadata[1]['non existent key'], None)
+        self.assertEqual(t._observation_metadata[2]['non existent key'], None)
+
+    def test_add_group_metadata(self):
+        """add group metadata works correctly"""
+        obs_ids = [1, 2, 3]
+        samp_ids = [4, 5, 6, 7]
+        d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+        obs_g_md = {'tree': ('newick', '(1:0.2,(2:0.3,3:0.4):0.5);')}
+        sample_g_md = {'graph': ('edge_list', '(4,5), (4,6), (5,7), (6,7)')}
+        t = Table(d, obs_ids, samp_ids, observation_group_metadata=None,
+                  sample_group_metadata=sample_g_md)
+        t.add_group_metadata(obs_g_md, axis='observation')
+        self.assertEqual(t.group_metadata(axis='observation'),
+                         {'tree': ('newick', '(1:0.2,(2:0.3,3:0.4):0.5);')})
+
+    def test_add_group_metadata_w_existing_metadata(self):
+        """add group metadata works with existing metadata"""
+        obs_ids = [1, 2, 3]
+        samp_ids = [4, 5, 6, 7]
+        d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+        obs_g_md = {'tree': ('newick', '(1:0.2,(2:0.3,3:0.4):0.5);')}
+        sample_g_md = {'graph': ('edge_list', '(4,5), (4,6), (5,7), (6,7)')}
+        t = Table(d, obs_ids, samp_ids, observation_group_metadata=obs_g_md,
+                  sample_group_metadata=sample_g_md)
+        new_sample_md = {
+            'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')
+            }
+        t.add_group_metadata(new_sample_md)
+        self.assertEqual(
+            t.group_metadata(),
+            {'graph': ('edge_list', '(4,5), (4,6), (5,7), (6,7)'),
+             'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')})
 
     def test_add_metadata_two_entries(self):
         """ add_metadata functions with more than one md entry """
@@ -791,19 +860,19 @@ class TableTests(TestCase):
         t = Table(d, obs_ids, samp_ids, observation_metadata=None,
                   sample_metadata=samp_md)
         t.add_metadata(obs_md, axis='observation')
-        self.assertEqual(t.observation_metadata[0]['taxonomy'], ['A', 'B'])
-        self.assertEqual(t.observation_metadata[1]['taxonomy'], ['B', 'C'])
-        self.assertEqual(t.observation_metadata[2]['taxonomy'],
+        self.assertEqual(t._observation_metadata[0]['taxonomy'], ['A', 'B'])
+        self.assertEqual(t._observation_metadata[1]['taxonomy'], ['B', 'C'])
+        self.assertEqual(t._observation_metadata[2]['taxonomy'],
                          ['E', 'D', 'F'])
-        self.assertEqual(t.observation_metadata[0]['other'], 'h1')
-        self.assertEqual(t.observation_metadata[1]['other'], 'h2')
-        self.assertEqual(t.observation_metadata[2]['other'], 'h3')
+        self.assertEqual(t._observation_metadata[0]['other'], 'h1')
+        self.assertEqual(t._observation_metadata[1]['other'], 'h2')
+        self.assertEqual(t._observation_metadata[2]['other'], 'h3')
 
         samp_md = {4: {'x': 'y', 'foo': 'bar'}, 5: {'x': 'z'}}
         t.add_metadata(samp_md, axis='sample')
-        self.assertEqual(t.sample_metadata[0]['x'], 'y')
-        self.assertEqual(t.sample_metadata[0]['foo'], 'bar')
-        self.assertEqual(t.sample_metadata[1]['x'], 'z')
+        self.assertEqual(t._sample_metadata[0]['x'], 'y')
+        self.assertEqual(t._sample_metadata[0]['foo'], 'bar')
+        self.assertEqual(t._sample_metadata[1]['x'], 'z')
 
     def test_add_metadata_one_w_existing_metadata(self):
         """ add_sample_metadata functions with existing metadata """
@@ -817,10 +886,10 @@ class TableTests(TestCase):
         d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         t = Table(d, obs_ids, samp_ids, observation_metadata=obs_md,
                   sample_metadata=samp_md)
-        self.assertEqual(t.sample_metadata[0]['Treatment'], 'Control')
-        self.assertEqual(t.sample_metadata[1]['Treatment'], 'Fasting')
-        self.assertEqual(t.sample_metadata[2]['Treatment'], 'Fasting')
-        self.assertEqual(t.sample_metadata[3]['Treatment'], 'Control')
+        self.assertEqual(t._sample_metadata[0]['Treatment'], 'Control')
+        self.assertEqual(t._sample_metadata[1]['Treatment'], 'Fasting')
+        self.assertEqual(t._sample_metadata[2]['Treatment'], 'Fasting')
+        self.assertEqual(t._sample_metadata[3]['Treatment'], 'Control')
 
         samp_md = {4: {'barcode': 'TTTT'},
                    6: {'barcode': 'AAAA'},
@@ -828,20 +897,20 @@ class TableTests(TestCase):
                    7: {'barcode': 'CCCC'},
                    10: {'ignore': 'me'}}
         t.add_metadata(samp_md, 'sample')
-        self.assertEqual(t.sample_metadata[0]['Treatment'], 'Control')
-        self.assertEqual(t.sample_metadata[1]['Treatment'], 'Fasting')
-        self.assertEqual(t.sample_metadata[2]['Treatment'], 'Fasting')
-        self.assertEqual(t.sample_metadata[3]['Treatment'], 'Control')
-        self.assertEqual(t.sample_metadata[0]['barcode'], 'TTTT')
-        self.assertEqual(t.sample_metadata[1]['barcode'], 'GGGG')
-        self.assertEqual(t.sample_metadata[2]['barcode'], 'AAAA')
-        self.assertEqual(t.sample_metadata[3]['barcode'], 'CCCC')
+        self.assertEqual(t._sample_metadata[0]['Treatment'], 'Control')
+        self.assertEqual(t._sample_metadata[1]['Treatment'], 'Fasting')
+        self.assertEqual(t._sample_metadata[2]['Treatment'], 'Fasting')
+        self.assertEqual(t._sample_metadata[3]['Treatment'], 'Control')
+        self.assertEqual(t._sample_metadata[0]['barcode'], 'TTTT')
+        self.assertEqual(t._sample_metadata[1]['barcode'], 'GGGG')
+        self.assertEqual(t._sample_metadata[2]['barcode'], 'AAAA')
+        self.assertEqual(t._sample_metadata[3]['barcode'], 'CCCC')
 
         obs_md = {1: {'foo': 'bar'}}
         t.add_metadata(obs_md, axis='observation')
-        self.assertEqual(t.observation_metadata[0]['foo'], 'bar')
-        self.assertEqual(t.observation_metadata[1]['foo'], None)
-        self.assertEqual(t.observation_metadata[2]['foo'], None)
+        self.assertEqual(t._observation_metadata[0]['foo'], 'bar')
+        self.assertEqual(t._observation_metadata[1]['foo'], None)
+        self.assertEqual(t._observation_metadata[2]['foo'], None)
 
     def test_add_metadata_one_entry(self):
         """ add_sample_metadata functions with single md entry """
@@ -855,10 +924,10 @@ class TableTests(TestCase):
         d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         t = Table(d, obs_ids, samp_ids, obs_md=obs_md, samp_md=None)
         t.add_metadata(samp_md, axis='sample')
-        self.assertEqual(t.sample_metadata[0]['Treatment'], 'Control')
-        self.assertEqual(t.sample_metadata[1]['Treatment'], 'Fasting')
-        self.assertEqual(t.sample_metadata[2]['Treatment'], 'Fasting')
-        self.assertEqual(t.sample_metadata[3]['Treatment'], 'Control')
+        self.assertEqual(t._sample_metadata[0]['Treatment'], 'Control')
+        self.assertEqual(t._sample_metadata[1]['Treatment'], 'Fasting')
+        self.assertEqual(t._sample_metadata[2]['Treatment'], 'Fasting')
+        self.assertEqual(t._sample_metadata[3]['Treatment'], 'Control')
 
     def test_add_sample_metadata_two_entries(self):
         """ add_sample_metadata functions with more than one md entry """
@@ -872,14 +941,14 @@ class TableTests(TestCase):
         d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
         t = Table(d, obs_ids, samp_ids, obs_md=obs_md, samp_md=None)
         t.add_metadata(samp_md, axis='sample')
-        self.assertEqual(t.sample_metadata[0]['Treatment'], 'Control')
-        self.assertEqual(t.sample_metadata[1]['Treatment'], 'Fasting')
-        self.assertEqual(t.sample_metadata[2]['Treatment'], 'Fasting')
-        self.assertEqual(t.sample_metadata[3]['Treatment'], 'Control')
-        self.assertEqual(t.sample_metadata[0]['D'], ['A', 'A'])
-        self.assertEqual(t.sample_metadata[1]['D'], ['A', 'B'])
-        self.assertEqual(t.sample_metadata[2]['D'], ['A', 'C'])
-        self.assertEqual(t.sample_metadata[3]['D'], ['A', 'D'])
+        self.assertEqual(t._sample_metadata[0]['Treatment'], 'Control')
+        self.assertEqual(t._sample_metadata[1]['Treatment'], 'Fasting')
+        self.assertEqual(t._sample_metadata[2]['Treatment'], 'Fasting')
+        self.assertEqual(t._sample_metadata[3]['Treatment'], 'Control')
+        self.assertEqual(t._sample_metadata[0]['D'], ['A', 'A'])
+        self.assertEqual(t._sample_metadata[1]['D'], ['A', 'B'])
+        self.assertEqual(t._sample_metadata[2]['D'], ['A', 'C'])
+        self.assertEqual(t._sample_metadata[3]['D'], ['A', 'D'])
 
     def test_get_value_by_ids(self):
         """Return the value located in the matrix by the ids"""
@@ -1153,8 +1222,8 @@ class SparseTableTests(TestCase):
         """Should transpose a sparse table"""
         obs = self.st1.transpose()
 
-        npt.assert_equal(obs.sample_ids, self.st1.observation_ids)
-        npt.assert_equal(obs.observation_ids, self.st1.sample_ids)
+        npt.assert_equal(obs.ids(), self.st1.ids(axis='observation'))
+        npt.assert_equal(obs.ids(axis='observation'), self.st1.ids())
         npt.assert_equal(obs.data('1', 'sample'),
                          self.st1.data('1', 'observation'))
         npt.assert_equal(obs.data('2', 'sample'),
@@ -1163,12 +1232,12 @@ class SparseTableTests(TestCase):
 
         obs = self.st_rich.transpose()
 
-        npt.assert_equal(obs.sample_ids, self.st_rich.observation_ids)
-        npt.assert_equal(obs.observation_ids, self.st_rich.sample_ids)
-        self.assertEqual(obs.sample_metadata,
-                         self.st_rich.observation_metadata)
-        self.assertEqual(obs.observation_metadata,
-                         self.st_rich.sample_metadata)
+        npt.assert_equal(obs.ids(), self.st_rich.ids(axis='observation'))
+        npt.assert_equal(obs.ids(axis='observation'), self.st_rich.ids())
+        self.assertEqual(obs._sample_metadata,
+                         self.st_rich._observation_metadata)
+        self.assertEqual(obs._observation_metadata,
+                         self.st_rich._sample_metadata)
         npt.assert_equal(obs.data('1', 'sample'),
                          self.st_rich.data('1', 'observation'))
         npt.assert_equal(obs.data('2', 'sample'),
@@ -1221,10 +1290,10 @@ class SparseTableTests(TestCase):
     def test_eq(self):
         """sparse equality"""
         self.assertTrue(self.st1 == self.st2)
-        self.st1.observation_ids = np.array(["1", "2", "3"], dtype=object)
+        self.st1._observation_ids = np.array(["1", "2", "3"], dtype=object)
         self.assertFalse(self.st1 == self.st2)
 
-        self.st1.observation_ids = self.st2.observation_ids
+        self.st1._observation_ids = self.st2._observation_ids
         self.st1._data = nparray_to_sparse(np.array([[1, 2], [10, 20]]))
         self.assertFalse(self.st1 == self.st2)
 
@@ -1628,21 +1697,21 @@ class SparseTableTests(TestCase):
             self.assertEqual(o, e)
 
     def test_copy_metadata(self):
-        self.st_rich.sample_metadata[0]['foo'] = ['bar']
+        self.st_rich._sample_metadata[0]['foo'] = ['bar']
         copied_table = self.st_rich.copy()
-        copied_table.sample_metadata[0]['foo'].append('bar2')
+        copied_table._sample_metadata[0]['foo'].append('bar2')
         self.assertNotEqual(copied_table, self.st_rich)
-        self.st_rich.observation_metadata[0]['foo'] = ['bar']
+        self.st_rich._observation_metadata[0]['foo'] = ['bar']
         copied_table = self.st_rich.copy()
-        copied_table.observation_metadata[0]['foo'].append('bar2')
+        copied_table._observation_metadata[0]['foo'].append('bar2')
         self.assertNotEqual(copied_table, self.st_rich)
 
     def test_copy_ids(self):
         copied_table = self.st_rich.copy()
-        self.st_rich.sample_ids[0] = 'a different id'
+        self.st_rich._sample_ids[0] = 'a different id'
         self.assertNotEqual(copied_table, self.st_rich)
         copied_table = self.st_rich.copy()
-        self.st_rich.observation_ids[0] = 'a different id'
+        self.st_rich._observation_ids[0] = 'a different id'
         self.assertNotEqual(copied_table, self.st_rich)
 
     def test_copy_data(self):
@@ -1839,7 +1908,7 @@ class SparseTableTests(TestCase):
 
         obs = table.subsample(5, axis='observation')
         npt.assert_equal(obs.data('O1', 'observation'), np.array([5]))
-        self.assertEqual(obs.sample_ids, ['S2'])
+        self.assertEqual(obs.ids(), ['S2'])
 
         table = Table(np.array([[3, 1, 1], [0, 3, 3]]), ['O1', 'O2'],
                       ['S1', 'S2', 'S3'])

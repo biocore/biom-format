@@ -24,11 +24,13 @@ try:
     import h5py
     HAVE_H5PY = True
     H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
+    H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=unicode)
 
 except ImportError:
     warn("h5py is not available")
     HAVE_H5PY = False
     H5PY_VLEN_STR = None
+    H5PY_VLEN_UNICODE = None
 
 from numpy import mean, median, min, max
 
@@ -72,7 +74,7 @@ def generate_subsamples(table, n, axis='sample', by_id=False):
     >>> gen = generate_subsamples(example_table, 2, by_id=True)
     >>> observed_ids = []
     >>> for _, table in zip(range(100), gen):
-    ...     observed_ids.append(tuple(table.sample_ids))
+    ...     observed_ids.append(tuple(table.ids()))
     >>> print sorted(set(observed_ids))
     [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
 

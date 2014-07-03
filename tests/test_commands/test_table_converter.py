@@ -10,7 +10,7 @@
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Jai Ram Rideout"]
+__credits__ = ["Jai Ram Rideout", "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Jai Ram Rideout"
@@ -45,10 +45,10 @@ class TableConverterTests(TestCase):
 
         obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
-        self.assertEqual(len(obs.sample_ids), 9)
-        self.assertEqual(len(obs.observation_ids), 14)
-        self.assertEqual(obs.sample_metadata, None)
-        self.assertNotEqual(obs.observation_metadata, None)
+        self.assertEqual(len(obs.ids()), 9)
+        self.assertEqual(len(obs.ids(axis='observation')), 14)
+        self.assertEqual(obs.metadata(), None)
+        self.assertNotEqual(obs.metadata(axis='observation'), None)
 
     def test_classic_to_biom_with_metadata(self):
         """Correctly converts classic to biom with metadata."""
@@ -60,15 +60,15 @@ class TableConverterTests(TestCase):
 
         obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
-        self.assertEqual(len(obs.sample_ids), 9)
-        self.assertEqual(len(obs.observation_ids), 14)
-        self.assertNotEqual(obs.sample_metadata, None)
-        self.assertNotEqual(obs.observation_metadata, None)
-        self.assertEqual(obs.sample_metadata[obs.index('p2', 'sample')],
+        self.assertEqual(len(obs.ids()), 9)
+        self.assertEqual(len(obs.ids(axis='observation')), 14)
+        self.assertNotEqual(obs.metadata(), None)
+        self.assertNotEqual(obs.metadata(axis='observation'), None)
+        self.assertEqual(obs.metadata()[obs.index('p2', 'sample')],
                          {'foo': 'c;b;a'})
-        self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
+        self.assertEqual(obs.metadata()[obs.index('not16S.1', 'sample')],
                          {'foo': 'b;c;d'})
-        self.assertEqual(obs.observation_metadata[
+        self.assertEqual(obs.metadata(axis='observation')[
             obs.index('None11', 'observation')],
             {'taxonomy': 'Unclassified'})
 
@@ -80,15 +80,15 @@ class TableConverterTests(TestCase):
 
         obs = parse_biom_table(obs['table'][0].to_json('testing'))
         self.assertEqual(type(obs), Table)
-        self.assertEqual(len(obs.sample_ids), 9)
-        self.assertEqual(len(obs.observation_ids), 14)
-        self.assertNotEqual(obs.sample_metadata, None)
-        self.assertNotEqual(obs.observation_metadata, None)
-        self.assertEqual(obs.sample_metadata[obs.index('p2', 'sample')],
+        self.assertEqual(len(obs.ids()), 9)
+        self.assertEqual(len(obs.ids(axis='observation')), 14)
+        self.assertNotEqual(obs.metadata(), None)
+        self.assertNotEqual(obs.metadata(axis='observation'), None)
+        self.assertEqual(obs.metadata()[obs.index('p2', 'sample')],
                          {'foo': 'c;b;a'})
-        self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
+        self.assertEqual(obs.metadata()[obs.index('not16S.1', 'sample')],
                          {'foo': 'b;c;d'})
-        self.assertEqual(obs.observation_metadata[
+        self.assertEqual(obs.metadata(axis='observation')[
             obs.index('None11', 'observation')],
             {'taxonomy': ['Unclassified']})
 
