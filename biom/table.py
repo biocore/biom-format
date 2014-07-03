@@ -520,13 +520,13 @@ class Table(object):
                     idx = self.index(id_, axis=axis)
                     metadata[idx].update(md_entry)
         else:
+            ids = self.ids(axis=axis)
             if axis == 'sample':
-                self._sample_metadata = tuple([md[id_] if id_ in md else
-                                               None for id_ in self.ids()])
+                self._sample_metadata = tuple(
+                    [md[id_] if id_ in md else None for id_ in ids])
             elif axis == 'observation':
                 self._observation_metadata = tuple(
-                    [md[id_] if id_ in md else None
-                     for id_ in self.ids(axis='observation')])
+                    [md[id_] if id_ in md else None for id_ in ids])
             else:
                 raise UnknownAxisError(axis)
         self._cast_metadata()
