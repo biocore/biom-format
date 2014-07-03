@@ -10,7 +10,7 @@
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Jai Ram Rideout"]
+__credits__ = ["Jai Ram Rideout", "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Jai Ram Rideout"
@@ -41,11 +41,11 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(obs.keys(), ['table'])
 
         obs, fmt = obs['table']
-        self.assertEqual(obs.sample_metadata[obs.index('f4', 'sample')],
+        self.assertEqual(obs.metadata()[obs.index('f4', 'sample')],
                          {'bar': '0.23', 'foo': '9', 'baz': 'abc;123'})
-        self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
+        self.assertEqual(obs.metadata()[obs.index('not16S.1', 'sample')],
                          {'bar': '-4.2', 'foo': '0', 'baz': '123;abc'})
-        self.assertEqual(obs.sample_metadata[obs.index('f2', 'sample')], {})
+        self.assertEqual(obs.metadata()[obs.index('f2', 'sample')], {})
         self.assertEqual(fmt, 'hdf5')
 
     def test_add_sample_metadata_with_casting(self):
@@ -57,11 +57,11 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(obs.keys(), ['table'])
 
         obs, fmt = obs['table']
-        self.assertEqual(obs.sample_metadata[obs.index('f4', 'sample')],
+        self.assertEqual(obs.metadata()[obs.index('f4', 'sample')],
                          {'bar': 0.23, 'foo': 9, 'baz': ['abc', '123']})
-        self.assertEqual(obs.sample_metadata[obs.index('not16S.1', 'sample')],
+        self.assertEqual(obs.metadata()[obs.index('not16S.1', 'sample')],
                          {'bar': -4.2, 'foo': 0, 'baz': ['123', 'abc']})
-        self.assertEqual(obs.sample_metadata[obs.index('f2', 'sample')], {})
+        self.assertEqual(obs.metadata()[obs.index('f2', 'sample')], {})
         self.assertEqual(fmt, 'hdf5')
 
     def test_add_observation_metadata_no_casting(self):
@@ -76,14 +76,15 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(obs.keys(), ['table'])
 
         obs, fmt = obs['table']
+        metadata = obs.metadata(axis='observation')
         self.assertEqual(
-            obs.observation_metadata[obs.index('None7', 'observation')],
+            metadata[obs.index('None7', 'observation')],
             {'foo': '6', 'taxonomy': 'abc;123|def;456'})
         self.assertEqual(
-            obs.observation_metadata[obs.index('879972', 'observation')],
+            metadata[obs.index('879972', 'observation')],
             {'foo': '3', 'taxonomy': '123;abc|456;def'})
         self.assertEqual(
-            obs.observation_metadata[obs.index('None8', 'observation')],
+            metadata[obs.index('None8', 'observation')],
             {'taxonomy': ['k__Bacteria']})
         self.assertEqual(fmt, 'json')
 
@@ -95,14 +96,15 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(obs.keys(), ['table'])
 
         obs, fmt = obs['table']
+        metadata = obs.metadata(axis='observation')
         self.assertEqual(
-            obs.observation_metadata[obs.index('None7', 'observation')],
+            metadata[obs.index('None7', 'observation')],
             {'foo': 6, 'taxonomy': [['abc', '123'], ['def', '456']]})
         self.assertEqual(
-            obs.observation_metadata[obs.index('879972', 'observation')],
+            metadata[obs.index('879972', 'observation')],
             {'foo': 3, 'taxonomy': [['123', 'abc'], ['456', 'def']]})
         self.assertEqual(
-            obs.observation_metadata[obs.index('None8', 'observation')],
+            metadata[obs.index('None8', 'observation')],
             {'taxonomy': ['k__Bacteria']})
         self.assertEqual(fmt, 'hdf5')
 

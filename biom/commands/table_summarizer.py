@@ -18,7 +18,7 @@ from biom.util import compute_counts_per_sample_stats
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Greg Caporaso", "Daniel McDonald"]
+__credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Antonio Navas Molina"]
 __license__ = "BSD"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
@@ -79,23 +79,23 @@ class TableSummarizer(Command):
 
         min_counts, max_counts, median_counts, mean_counts, counts_per_samp =\
             compute_counts_per_sample_stats(table, qualitative)
-        num_observations = len(table.observation_ids)
+        num_observations = len(table.ids(axis='observation'))
 
         counts_per_sample_values = counts_per_samp.values()
 
-        if table.sample_metadata is None:
+        if table.metadata() is None:
             sample_md_keys = ["None provided"]
         else:
-            sample_md_keys = table.sample_metadata[0].keys()
+            sample_md_keys = table.metadata()[0].keys()
 
-        if table.observation_metadata is None:
+        if table.metadata(axis='observation') is None:
             observation_md_keys = ["None provided"]
         else:
-            observation_md_keys = table.observation_metadata[0].keys()
+            observation_md_keys = table.metadata(axis='observation')[0].keys()
 
         lines = []
 
-        num_samples = len(table.sample_ids)
+        num_samples = len(table.ids())
 
         if by_observations:
             # as this is a transpose of the original table...

@@ -62,9 +62,9 @@ O6  24.0    25.0    26.0    27.0
 O7  28.0    29.0    30.0    31.0
 O8  32.0    33.0    34.0    35.0
 O9  36.0    37.0    38.0    39.0
->>> print table.sample_ids # doctest: +NORMALIZE_WHITESPACE
+>>> print table.ids() # doctest: +NORMALIZE_WHITESPACE
 ['S0' 'S1' 'S2' 'S3']
->>> print table.observation_ids # doctest: +NORMALIZE_WHITESPACE
+>>> print table.ids(axis='observation') # doctest: +NORMALIZE_WHITESPACE
 ['O0' 'O1' 'O2' 'O3' 'O4' 'O5' 'O6' 'O7' 'O8' 'O9']
 >>> print table.nnz  # number of nonzero entries
 39
@@ -176,18 +176,19 @@ from __future__ import division
 import numpy as np
 from copy import deepcopy
 from datetime import datetime
-from json import dumps, loads
+from json import dumps
 from functools import reduce
 from operator import itemgetter, add
 from itertools import izip
 from collections import defaultdict, Hashable
-from numpy import ndarray, asarray, zeros, empty, newaxis
+from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
 from biom.exception import TableException, UnknownAxisError, UnknownIDError
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
-                       prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY)
+                       prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
+                       H5PY_VLEN_UNICODE)
 
 from ._filter import _filter
 from ._transform import _transform
@@ -221,6 +222,7 @@ class Table(object):
     def __init__(self, data, observation_ids, sample_ids,
                  observation_metadata=None, sample_metadata=None,
                  table_id=None, type=None, create_date=None, generated_by=None,
+                 observation_group_metadata=None, sample_group_metadata=None,
                  **kwargs):
 
         self.type = type
@@ -237,18 +239,21 @@ class Table(object):
             self._data = data
 
         # using object to allow for variable length strings
-        self.sample_ids = np.asarray(sample_ids, dtype=object)
-        self.observation_ids = np.asarray(observation_ids, dtype=object)
+        self._sample_ids = np.asarray(sample_ids, dtype=object)
+        self._observation_ids = np.asarray(observation_ids, dtype=object)
 
         if sample_metadata is not None:
-            self.sample_metadata = tuple(sample_metadata)
+            self._sample_metadata = tuple(sample_metadata)
         else:
-            self.sample_metadata = None
+            self._sample_metadata = None
 
         if observation_metadata is not None:
-            self.observation_metadata = tuple(observation_metadata)
+            self._observation_metadata = tuple(observation_metadata)
         else:
-            self.observation_metadata = None
+            self._observation_metadata = None
+
+        self._sample_group_metadata = sample_group_metadata
+        self._observation_group_metadata = observation_group_metadata
 
         # These will be set by _index_ids()
         self._sample_index = None
@@ -263,8 +268,33 @@ class Table(object):
 
         Should only be called in constructor as this modifies state.
         """
-        self._sample_index = index_list(self.sample_ids)
-        self._obs_index = index_list(self.observation_ids)
+        self._sample_index = index_list(self._sample_ids)
+        self._obs_index = index_list(self._observation_ids)
+
+    def _index(self, axis='sample'):
+        """Return the index lookups of the given axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}, optional
+            Axis to get the index dict. Defaults to 'sample'
+
+        Returns
+        -------
+        dict
+            lookups {id:index}
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+        """
+        if axis == 'sample':
+            return self._sample_index
+        elif axis == 'observation':
+            return self._obs_index
+        else:
+            raise UnknownAxisError(axis)
 
     def _conv_to_self_type(self, vals, transpose=False, dtype=None):
         """For converting vectors to a compatible self type"""
@@ -363,27 +393,27 @@ class Table(object):
         except:
             n_obs = n_samp = 0
 
-        if n_obs != len(self.observation_ids):
+        if n_obs != len(self._observation_ids):
             raise TableException(
                 "Number of observation_ids differs from matrix size!")
 
-        if n_obs != len(set(self.observation_ids)):
+        if n_obs != len(set(self._observation_ids)):
             raise TableException("Duplicate observation_ids")
 
-        if n_samp != len(self.sample_ids):
+        if n_samp != len(self._sample_ids):
             raise TableException(
                 "Number of sample_ids differs from matrix size!")
 
-        if n_samp != len(set(self.sample_ids)):
+        if n_samp != len(set(self._sample_ids)):
             raise TableException("Duplicate sample_ids")
 
-        if self.sample_metadata is not None and \
-           n_samp != len(self.sample_metadata):
+        if self._sample_metadata is not None and \
+           n_samp != len(self._sample_metadata):
             raise TableException("sample_metadata not in a compatible shape"
                                  "with data matrix!")
 
-        if self.observation_metadata is not None and \
-           n_obs != len(self.observation_metadata):
+        if self._observation_metadata is not None and \
+           n_obs != len(self._observation_metadata):
             raise TableException("observation_metadata not in a compatible"
                                  "shape with data matrix!")
 
@@ -393,49 +423,37 @@ class Table(object):
         Should be called after any modifications to sample/observation
         metadata.
         """
-        default_samp_md = []
-        default_obs_md = []
+        def cast_metadata(md):
+            """Do the actual casting"""
+            default_md = []
+            # if we have a list of [None], set to None
+            if md is not None:
+                if md.count(None) == len(md):
+                    return None
+            if md is not None:
+                for item in md:
+                    d = defaultdict(lambda: None)
 
-        # if we have a list of [None], set to None
-        if self.sample_metadata is not None:
-            if self.sample_metadata.count(None) == len(self.sample_metadata):
-                self.sample_metadata = None
+                    if isinstance(item, dict):
+                        d.update(item)
+                    elif item is None:
+                        pass
+                    else:
+                        raise TableException("Unable to cast metadata: %s" %
+                                             repr(item))
+                    default_md.append(d)
+                return tuple(default_md)
+            return md
 
-        if self.sample_metadata is not None:
-            for samp_md in self.sample_metadata:
-                d = defaultdict(lambda: None)
+        self._sample_metadata = cast_metadata(self._sample_metadata)
+        self._observation_metadata = cast_metadata(self._observation_metadata)
 
-                if isinstance(samp_md, dict):
-                    d.update(samp_md)
-                elif samp_md is None:
-                    pass
-                else:
-                    raise TableException("Unable to cast metadata: %s" %
-                                         repr(samp_md))
-
-                default_samp_md.append(d)
-            self.sample_metadata = tuple(default_samp_md)
-
-        # if we have a list of [None], set to None
-        if self.observation_metadata is not None:
-            none_count = self.observation_metadata.count(None)
-            if none_count == len(self.observation_metadata):
-                self.observation_metadata = None
-
-        if self.observation_metadata is not None:
-            for obs_md in self.observation_metadata:
-                d = defaultdict(lambda: None)
-
-                if isinstance(obs_md, dict):
-                    d.update(obs_md)
-                elif obs_md is None:
-                    pass
-                else:
-                    raise TableException("Unable to cast metadata: %s" %
-                                         repr(obs_md))
-
-                default_obs_md.append(d)
-            self.observation_metadata = tuple(default_obs_md)
+        self._sample_group_metadata = (
+            self._sample_group_metadata
+            if self._sample_group_metadata else None)
+        self._observation_group_metadata = (
+            self._observation_group_metadata
+            if self._observation_group_metadata else None)
 
     @property
     def shape(self):
@@ -457,6 +475,34 @@ class Table(object):
         """The sparse matrix object"""
         return self._data
 
+    def add_group_metadata(self, group_md, axis='sample'):
+        """Take a dict of group metadata and add it to an axis
+
+        Parameters
+        ----------
+        group_md : dict of tuples
+            `group_md` should be of the form ``{category: (data type, value)``
+        axis : {'sample', 'observation'}, optional
+            The axis to operate on
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+        """
+        if axis == 'sample':
+            if self._sample_group_metadata is not None:
+                self._sample_group_metadata.update(group_md)
+            else:
+                self._sample_group_metadata = group_md
+        elif axis == 'observation':
+            if self._observation_group_metadata is not None:
+                self._observation_group_metadata.update(group_md)
+            else:
+                self._observation_group_metadata = group_md
+        else:
+            raise UnknownAxisError(axis)
+
     def add_metadata(self, md, axis='sample'):
         """Take a dict of metadata and add it to an axis.
 
@@ -467,28 +513,22 @@ class Table(object):
         axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
-        if axis == 'sample':
-            if self.sample_metadata is not None:
-                for id_, md_entry in md.iteritems():
-                    if self.exists(id_):
-                        idx = self.index(id_, 'sample')
-                        self.sample_metadata[idx].update(md_entry)
-            else:
-                self.sample_metadata = tuple([md[id_] if id_ in md else
-                                              None for id_ in self.sample_ids])
-        elif axis == 'observation':
-            if self.observation_metadata is not None:
-                for id_, md_entry in md.iteritems():
-                    if self.exists(id_, axis="observation"):
-                        idx = self.index(id_, 'observation')
-                        self.observation_metadata[idx].update(md_entry)
-            else:
-                self.observation_metadata = tuple([md[id_] if id_ in md else
-                                                   None for id_ in
-                                                   self.observation_ids])
+        metadata = self.metadata(axis=axis)
+        if metadata is not None:
+            for id_, md_entry in md.iteritems():
+                if self.exists(id_, axis=axis):
+                    idx = self.index(id_, axis=axis)
+                    metadata[idx].update(md_entry)
         else:
-            raise UnknownAxisError(axis)
-
+            ids = self.ids(axis=axis)
+            if axis == 'sample':
+                self._sample_metadata = tuple(
+                    [md[id_] if id_ in md else None for id_ in ids])
+            elif axis == 'observation':
+                self._observation_metadata = tuple(
+                    [md[id_] if id_ in md else None for id_ in ids])
+            else:
+                raise UnknownAxisError(axis)
         self._cast_metadata()
 
     def __getitem__(self, args):
@@ -645,13 +685,7 @@ class Table(object):
 
         # np.apply_along_axis might reduce type conversions here and improve
         # speed. am opting for reduce right now as I think its more readable
-        if axis == 'sample':
-            return asarray([reduce(f, v) for v in self.iter_data()])
-        elif axis == 'observation':
-            return asarray([reduce(f, v) for v in
-                            self.iter_data(axis="observation")])
-        else:
-            raise UnknownAxisError(axis)
+        return asarray([reduce(f, v) for v in self.iter_data(axis=axis)])
 
     def sum(self, axis='whole'):
         """Returns the sum by axis
@@ -722,8 +756,8 @@ class Table(object):
         Table
             Return a new table that is the transpose of caller table.
         """
-        sample_md_copy = deepcopy(self.sample_metadata)
-        obs_md_copy = deepcopy(self.observation_metadata)
+        sample_md_copy = deepcopy(self.metadata())
+        obs_md_copy = deepcopy(self.metadata(axis='observation'))
 
         if self._data.getformat() == 'lil':
             # lil's transpose method doesn't have the copy kwarg, but all of
@@ -732,10 +766,124 @@ class Table(object):
 
         # sample ids and observations are reversed becuase we trasposed
         return self.__class__(self._data.transpose(copy=True),
-                              self.sample_ids[:], self.observation_ids[:],
+                              self.ids()[:], self.ids(axis='observation')[:],
                               sample_md_copy, obs_md_copy, self.table_id)
 
-    def metadata(self, id, axis):
+    def group_metadata(self, axis='sample'):
+        """Return the group metadata of the given axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}, optional
+            Axis to search for the group metadata. Defaults to 'sample'
+
+        Returns
+        -------
+        dict
+            The corresponding group metadata for the given axis
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table, with group observation metadata and no group
+        sample metadata:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> group_observation_md = {'tree': ('newick', '(O1:0.3,O2:0.4);')}
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
+        ...               observation_group_metadata=group_observation_md)
+
+        Get the observation group metadata:
+
+        >>> table.group_metadata(axis='observation')
+        {'tree': ('newick', '(O1:0.3,O2:0.4);')}
+
+        Get the sample group metadata:
+
+        >> table.group_metadata()
+        None
+        """
+        if axis == 'sample':
+            return self._sample_group_metadata
+        elif axis == 'observation':
+            return self._observation_group_metadata
+        else:
+            raise UnknownAxisError(axis)
+
+    def ids(self, axis='sample'):
+        """Return the ids along the given axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}, optional
+            Axis to search for `id`. Defaults to 'sample'
+
+        Returns
+        -------
+        1-D numpy array
+            The ids along the given axis
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Get the ids along the observation axis:
+
+        >>> print table.ids(axis='observation')
+        ['O1' 'O2']
+
+        Get the ids along the sample axis:
+
+        >>> print table.ids()
+        ['S1' 'S2' 'S3']
+        """
+        if axis == 'sample':
+            return self._sample_ids
+        elif axis == 'observation':
+            return self._observation_ids
+        else:
+            raise UnknownAxisError(axis)
+
+    def _get_sparse_data(self, axis='sample'):
+        """Returns the internal data in the correct sparse representation
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}, optional
+            Axis to search for `id`. Defaults to 'sample'
+
+        Returns
+        -------
+        sparse matrix
+            The data in csc (axis='sample') or csr (axis='observation')
+            representation
+        """
+        if axis == 'sample':
+            return self._data.tocsc()
+        elif axis == 'observation':
+            return self._data.tocsr()
+        else:
+            raise UnknownAxisError(axis)
+
+    def metadata(self, id=None, axis='sample'):
         """Return the metadata of the identified sample/observation.
 
         Parameters
@@ -782,11 +930,14 @@ class Table(object):
         True
         """
         if axis == 'sample':
-            md = self.sample_metadata
+            md = self._sample_metadata
         elif axis == 'observation':
-            md = self.observation_metadata
+            md = self._observation_metadata
         else:
             raise UnknownAxisError(axis)
+
+        if id is None:
+            return md
 
         idx = self.index(id, axis=axis)
 
@@ -834,12 +985,7 @@ class Table(object):
         >>> table.index('S1', 'sample')
         0
         """
-        if axis == 'sample':
-            idx_lookup = self._sample_index
-        elif axis == 'observation':
-            idx_lookup = self._obs_index
-        else:
-            raise UnknownAxisError(axis)
+        idx_lookup = self._index(axis=axis)
 
         if id not in idx_lookup:
             raise UnknownIDError(id, axis)
@@ -925,12 +1071,7 @@ class Table(object):
         >>> table.exists('O3', 'observation')
         False
         """
-        if axis == "sample":
-            return id in self._sample_index
-        elif axis == "observation":
-            return id in self._obs_index
-        else:
-            raise UnknownAxisError(axis)
+        return id in self._index(axis=axis)
 
     def delimited_self(self, delim='\t', header_key=None, header_value=None,
                        metadata_formatter=str,
@@ -961,7 +1102,7 @@ class Table(object):
         if self.is_empty():
             raise TableException("Cannot delimit self if I don't have data...")
 
-        samp_ids = delim.join(map(str, self.sample_ids))
+        samp_ids = delim.join(map(str, self.ids()))
 
         # 17 hrs of straight programming later...
         if header_key is not None:
@@ -982,11 +1123,13 @@ class Table(object):
             output = ['# Constructed from biom file',
                       '%s%s%s' % (observation_column_name, delim, samp_ids)]
 
-        for obs_id, obs_values in zip(self.observation_ids, self._iter_obs()):
+        obs_metadata = self.metadata(axis='observation')
+        for obs_id, obs_values in zip(self.ids(axis='observation'),
+                                      self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
 
-            if header_key and self.observation_metadata is not None:
-                md = self.observation_metadata[self._obs_index[obs_id]]
+            if header_key and obs_metadata is not None:
+                md = obs_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
                 output.append(
                     '%s%s%s\t%s' %
@@ -1004,7 +1147,7 @@ class Table(object):
         bool
             ``True`` if the table is empty, ``False`` otherwise
         """
-        if not self.sample_ids.size or not self.observation_ids.size:
+        if not self.ids().size or not self.ids(axis='observation').size:
             return True
         else:
             return False
@@ -1038,7 +1181,7 @@ class Table(object):
 
         if not self.is_empty():
             density = (self.nnz /
-                       (len(self.sample_ids) * len(self.observation_ids)))
+                       (len(self.ids()) * len(self.ids(axis='observation'))))
 
         return density
 
@@ -1048,14 +1191,15 @@ class Table(object):
             return "Tables are not of comparable classes"
         if not self.type == other.type:
             return "Tables are not the same type"
-        if not np.array_equal(self.observation_ids, other.observation_ids):
+        if not np.array_equal(self.ids(axis='observation'),
+                              other.ids(axis='observation')):
             return "Observation IDs are not the same"
-        if not np.array_equal(self.sample_ids, other.sample_ids):
+        if not np.array_equal(self.ids(), other.ids()):
             return "Sample IDs are not the same"
-        if not np.array_equal(self.observation_metadata,
-                              other.observation_metadata):
+        if not np.array_equal(self.metadata(axis='observation'),
+                              other.metadata(axis='observation')):
             return "Observation metadata are not the same"
-        if not np.array_equal(self.sample_metadata, other.sample_metadata):
+        if not np.array_equal(self.metadata(), other.metadata()):
             return "Sample metadata are not the same"
         if not self._data_equality(other._data):
             return "Data elements are not the same"
@@ -1068,14 +1212,15 @@ class Table(object):
             return False
         if self.type != other.type:
             return False
-        if not np.array_equal(self.observation_ids, other.observation_ids):
+        if not np.array_equal(self.ids(axis='observation'),
+                              other.ids(axis='observation')):
             return False
-        if not np.array_equal(self.sample_ids, other.sample_ids):
+        if not np.array_equal(self.ids(), other.ids()):
             return False
-        if not np.array_equal(self.observation_metadata,
-                              other.observation_metadata):
+        if not np.array_equal(self.metadata(axis='observation'),
+                              other.metadata(axis='observation')):
             return False
-        if not np.array_equal(self.sample_metadata, other.sample_metadata):
+        if not np.array_equal(self.metadata(), other.metadata()):
             return False
         if not self._data_equality(other._data):
             return False
@@ -1160,10 +1305,10 @@ class Table(object):
     def copy(self):
         """Returns a copy of the table"""
         return self.__class__(self._data.copy(),
-                              self.observation_ids.copy(),
-                              self.sample_ids.copy(),
-                              deepcopy(self.observation_metadata),
-                              deepcopy(self.sample_metadata),
+                              self.ids(axis='observation').copy(),
+                              self.ids().copy(),
+                              deepcopy(self.metadata(axis='observation')),
+                              deepcopy(self.metadata()),
                               self.table_id,
                               type=self.type)
 
@@ -1260,12 +1405,12 @@ class Table(object):
         >>> sum(col)
         46.0
         """
+        ids = self.ids(axis=axis)
+        metadata = self.metadata(axis=axis)
         if axis == 'sample':
-            ids = self.sample_ids
-            metadata = self.sample_metadata
+            iter_ = self._iter_samp()
         elif axis == 'observation':
-            ids = self.observation_ids
-            metadata = self.observation_metadata
+            iter_ = self._iter_obs()
         else:
             raise UnknownAxisError(axis)
 
@@ -1331,14 +1476,8 @@ class Table(object):
         S3 S3
 
         """
-        if axis == 'sample':
-            ids = self.sample_ids
-            metadata = self.sample_metadata
-        elif axis == 'observation':
-            ids = self.observation_ids
-            metadata = self.observation_metadata
-        else:
-            raise UnknownAxisError(axis)
+        metadata = self.metadata(axis=axis)
+        ids = self.ids(axis=axis)
 
         if metadata is None:
             metadata = (None,) * len(ids)
@@ -1417,36 +1556,37 @@ class Table(object):
         """
         md = []
         vals = []
+        metadata = self.metadata(axis=axis)
         if axis == 'sample':
             for id_ in order:
                 cur_idx = self.index(id_, 'sample')
                 vals.append(self._to_dense(self[:, cur_idx]))
 
-                if self.sample_metadata is not None:
-                    md.append(self.sample_metadata[cur_idx])
+                if metadata is not None:
+                    md.append(metadata[cur_idx])
 
             if not md:
                 md = None
 
             return self.__class__(self._conv_to_self_type(vals,
                                                           transpose=True),
-                                  self.observation_ids[:], order[:],
-                                  self.observation_metadata, md,
+                                  self.ids(axis='observation')[:], order[:],
+                                  self.metadata(axis='observation'), md,
                                   self.table_id, self.type)
         elif axis == 'observation':
             for id_ in order:
                 cur_idx = self.index(id_, 'observation')
                 vals.append(self[cur_idx, :])
 
-                if self.observation_metadata is not None:
-                    md.append(self.observation_metadata[cur_idx])
+                if metadata is not None:
+                    md.append(metadata[cur_idx])
 
             if not md:
                 md = None
 
             return self.__class__(self._conv_to_self_type(vals),
-                                  order[:], self.sample_ids[:],
-                                  md, self.sample_metadata, self.table_id,
+                                  order[:], self.ids()[:],
+                                  md, self.metadata(), self.table_id,
                                   self.type)
         else:
             raise UnknownAxisError(axis)
@@ -1513,13 +1653,7 @@ class Table(object):
         O2  4.0 1.0 0.0
         O1  0.0 1.0 3.0
         """
-        if axis == 'sample':
-            return self.sort_order(sort_f(self.sample_ids))
-        elif axis == 'observation':
-            return self.sort_order(sort_f(self.observation_ids),
-                                   axis='observation')
-        else:
-            raise UnknownAxisError(axis)
+        return self.sort_order(sort_f(self.ids(axis=axis)), axis=axis)
 
     def filter(self, ids_to_keep, axis='sample', invert=False, inplace=True):
         """Filter a table based on a function or iterable.
@@ -1576,18 +1710,18 @@ class Table(object):
         untouched:
 
         >>> new_table = table.filter(filter_fn, inplace=False)
-        >>> print table.sample_ids
+        >>> print table.ids()
         ['S1' 'S2' 'S3']
-        >>> print new_table.sample_ids
+        >>> print new_table.ids()
         ['S1' 'S2']
 
         Using the same filtering function, discard all samples with sample_type
         'a'. This will keep only sample S3, which has sample_type 'b':
 
         >>> new_table = table.filter(filter_fn, inplace=False, invert=True)
-        >>> print table.sample_ids
+        >>> print table.ids()
         ['S1' 'S2' 'S3']
-        >>> print new_table.sample_ids
+        >>> print new_table.ids()
         ['S3']
 
         Filter the table in-place using the same function (drop all samples
@@ -1595,7 +1729,7 @@ class Table(object):
 
         >>> table.filter(filter_fn)
         2 x 2 <class 'biom.table.Table'> with 2 nonzero entries (50% dense)
-        >>> print table.sample_ids
+        >>> print table.ids()
         ['S1' 'S2']
 
         Filter out all observations in the table that do not have
@@ -1604,24 +1738,16 @@ class Table(object):
         >>> filter_fn = lambda val, id_, md: md['full_genome_available']
         >>> table.filter(filter_fn, axis='observation')
         1 x 2 <class 'biom.table.Table'> with 0 nonzero entries (0% dense)
-        >>> print table.observation_ids
+        >>> print table.ids(axis='observation')
         ['O1']
 
         """
         table = self if inplace else self.copy()
 
-        if axis == 'sample':
-            axis = 1
-            ids = table.sample_ids
-            metadata = table.sample_metadata
-            index = self._sample_index
-        elif axis == 'observation':
-            axis = 0
-            ids = table.observation_ids
-            metadata = table.observation_metadata
-            index = self._obs_index
-        else:
-            raise UnknownAxisError(axis)
+        metadata = table.metadata(axis=axis)
+        ids = table.ids(axis=axis)
+        index = self._index(axis=axis)
+        axis = table._axis_to_num(axis=axis)
 
         arr = table._data
         arr, ids, metadata = _filter(arr,
@@ -1634,11 +1760,11 @@ class Table(object):
 
         table._data = arr
         if axis == 1:
-            table.sample_ids = ids
-            table.sample_metadata = metadata
+            table._sample_ids = ids
+            table._sample_metadata = metadata
         elif axis == 0:
-            table.observation_ids = ids
-            table.observation_metadata = metadata
+            table._observation_ids = ids
+            table._observation_metadata = metadata
 
         table._index_ids()
 
@@ -1711,30 +1837,22 @@ class Table(object):
             partitions[part][1].append(vals)
             partitions[part][2].append(md)
 
+        md = self.metadata(axis=self._invert_axis(axis))
+
         for part, (ids, values, metadata) in partitions.iteritems():
             if axis == 'sample':
                 data = self._conv_to_self_type(values, transpose=True)
-
                 samp_ids = ids
                 samp_md = metadata
-                obs_ids = self.observation_ids[:]
-
-                if self.observation_metadata is not None:
-                    obs_md = self.observation_metadata[:]
-                else:
-                    obs_md = None
+                obs_ids = self.ids(axis='observation')[:]
+                obs_md = md[:] if md is not None else None
 
             elif axis == 'observation':
                 data = self._conv_to_self_type(values, transpose=False)
-
                 obs_ids = ids
                 obs_md = metadata
-                samp_ids = self.sample_ids[:]
-
-                if self.sample_metadata is not None:
-                    samp_md = self.sample_metadata[:]
-                else:
-                    samp_md = None
+                samp_ids = self.ids()[:]
+                samp_md = md[:] if md is not None else None
 
             yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
                               self.table_id, type=self.type)
@@ -1884,13 +2002,12 @@ class Table(object):
         # transpose is only necessary in the one-to-one case
         # new_data_shape is only necessary in the one-to-many case
         # axis_slice is only necessary in the one-to-many case
+        axis_ids_md = lambda t: (t.ids(axis=axis), t.metadata(axis=axis))
         if axis == 'sample':
-            axis_ids_md = lambda t: (t.sample_ids, t.sample_metadata)
             transpose = True
             new_data_shape = lambda ids, collapsed: (len(ids), len(collapsed))
             axis_slice = lambda lookup, key: (slice(None), lookup[key])
         elif axis == 'observation':
-            axis_ids_md = lambda t: (t.observation_ids, t.observation_metadata)
             transpose = False
             new_data_shape = lambda ids, collapsed: (len(collapsed), len(ids))
             axis_slice = lambda lookup, key: (lookup[key], slice(None))
@@ -2006,22 +2123,17 @@ class Table(object):
         if 0 in data.shape:
             raise TableException("Collapsed table is empty!")
 
+        md = self.metadata(axis=self._invert_axis(axis))
         if axis == 'sample':
             sample_ids = collapsed_ids
             sample_md = collapsed_md
-            obs_ids = self.observation_ids[:]
-            if self.observation_metadata is not None:
-                obs_md = self.observation_metadata[:]
-            else:
-                obs_md = None
+            obs_ids = self.ids(axis='observation')[:]
+            obs_md = md if md is not None else None
         else:
-            sample_ids = self.sample_ids[:]
+            sample_ids = self.ids()[:]
             obs_ids = collapsed_ids
             obs_md = collapsed_md
-            if self.sample_metadata is not None:
-                sample_md = self.sample_metadata[:]
-            else:
-                sample_md = None
+            sample_md = md if md is not None else None
 
         return Table(data, obs_ids, sample_ids, obs_md, sample_md,
                      self.table_id, type=self.type)
@@ -2034,6 +2146,15 @@ class Table(object):
             return 'sample'
         else:
             return UnknownAxisError(axis)
+
+    def _axis_to_num(self, axis):
+        """Convert str axis to numerical axis"""
+        if axis == 'sample':
+            return 1
+        elif axis == 'observation':
+            return 0
+        else:
+            raise UnknownAxisError(axis)
 
     def min(self, axis='sample'):
         """Get the minimum nonzero value over an axis
@@ -2068,10 +2189,7 @@ class Table(object):
                 # only min over the actual nonzero values
                 min_val = min(min_val, data.data.min())
         else:
-            if axis == 'observation':
-                min_val = zeros(len(self.observation_ids), dtype=self.dtype)
-            else:
-                min_val = zeros(len(self.sample_ids), dtype=self.dtype)
+            min_val = zeros(len(self.ids(axis=axis)), dtype=self.dtype)
 
             for idx, data in enumerate(self.iter_data(dense=False, axis=axis)):
                 min_val[idx] = data.data.min()
@@ -2111,10 +2229,7 @@ class Table(object):
                 # only min over the actual nonzero values
                 max_val = max(max_val, data.data.max())
         else:
-            if axis == 'observation':
-                max_val = np.empty(len(self.observation_ids), dtype=self.dtype)
-            else:
-                max_val = np.empty(len(self.sample_ids), dtype=self.dtype)
+            max_val = np.empty(len(self.ids(axis=axis)), dtype=self.dtype)
 
             for idx, data in enumerate(self.iter_data(dense=False, axis=axis)):
                 max_val[idx] = data.data.max()
@@ -2173,14 +2288,14 @@ class Table(object):
         >>> ss = table.subsample(2)
         >>> print ss.sum(axis='sample')
         [ 2.  2.]
-        >>> print ss.sample_ids
+        >>> print ss.ids()
         ['S2' 'S3']
 
         Subsample by IDs over the sample axis. For this example, we're going to
         randomly select 2 samples and do this 100 times, and then print out the
         set of IDs observed.
 
-        >>> ids = set([tuple(table.subsample(2, by_id=True).sample_ids)
+        >>> ids = set([tuple(table.subsample(2, by_id=True).ids())
         ...            for i in range(100)])
         >>> print sorted(ids)
         [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
@@ -2189,14 +2304,8 @@ class Table(object):
         if n < 0:
             raise ValueError("n cannot be negative.")
 
-        if axis == 'sample':
-            data = self._data.tocsc()
-            ids = self.sample_ids
-        elif axis == 'observation':
-            data = self._data.tocsr()
-            ids = self.observation_ids
-        else:
-            raise UnknownAxisError(axis)
+        ids = self.ids(axis=axis)
+        data = self._get_sparse_data(axis=axis)
 
         if by_id:
             ids = ids.copy()
@@ -2206,11 +2315,11 @@ class Table(object):
         else:
             _subsample(data, n)
 
-            samp_md = deepcopy(self.sample_metadata)
-            obs_md = deepcopy(self.observation_metadata)
+            samp_md = deepcopy(self.metadata())
+            obs_md = deepcopy(self.metadata(axis='observation'))
 
-            table = Table(data, self.observation_ids.copy(),
-                          self.sample_ids.copy(), obs_md, samp_md)
+            table = Table(data, self.ids(axis='observation').copy(),
+                          self.ids().copy(), obs_md, samp_md)
 
             table.filter(lambda v, i, md: v.sum() > 0, axis=axis)
 
@@ -2346,18 +2455,11 @@ class Table(object):
         """
         table = self if inplace else self.copy()
 
-        if axis == 'sample':
-            axis = 1
-            ids = table.sample_ids
-            metadata = table.sample_metadata
-            arr = table._data.tocsc()
-        elif axis == 'observation':
-            axis = 0
-            ids = table.observation_ids
-            metadata = table.observation_metadata
-            arr = table._data.tocsr()
-        else:
-            raise UnknownAxisError(axis)
+        metadata = table.metadata(axis=axis)
+        ids = table.ids(axis=axis)
+        arr = table._get_sparse_data(axis=axis)
+
+        axis = table._axis_to_num(axis)
 
         _transform(arr, ids, metadata, f, axis)
         arr.eliminate_zeros()
@@ -2450,7 +2552,7 @@ class Table(object):
         # methods can be written to hit against the underlying types directly
         for o_idx, samp_vals in enumerate(self.iter_data(axis="observation")):
             for s_idx in samp_vals.nonzero()[0]:
-                yield (self.observation_ids[o_idx], self.sample_ids[s_idx])
+                yield (self.ids(axis='observation')[o_idx], self.ids()[s_idx])
 
     def nonzero_counts(self, axis, binary=False):
         """Get nonzero summaries about an axis
@@ -2475,15 +2577,10 @@ class Table(object):
             dtype = self.dtype
             op = lambda x: x.sum()
 
-        if axis is 'sample':
+        if axis in ('sample', 'observation'):
             # can use np.bincount for CSMat or ScipySparse
-            result = zeros(len(self.sample_ids), dtype=dtype)
-            for idx, vals in enumerate(self.iter_data()):
-                result[idx] = op(vals)
-        elif axis is 'observation':
-            # can use np.bincount for CSMat or ScipySparse
-            result = zeros(len(self.observation_ids), dtype=dtype)
-            for idx, vals in enumerate(self.iter_data(axis="observation")):
+            result = zeros(len(self.ids(axis=axis)), dtype=dtype)
+            for idx, vals in enumerate(self.iter_data(axis=axis)):
                 result[idx] = op(vals)
         else:
             result = zeros(1, dtype=dtype)
@@ -2580,21 +2677,19 @@ class Table(object):
         """
         # determine the sample order in the resulting table
         if sample is 'union':
-            new_samp_order = self._union_id_order(self.sample_ids,
-                                                  other.sample_ids)
+            new_samp_order = self._union_id_order(self.ids(), other.ids())
         elif sample is 'intersection':
-            new_samp_order = self._intersect_id_order(self.sample_ids,
-                                                      other.sample_ids)
+            new_samp_order = self._intersect_id_order(self.ids(), other.ids())
         else:
             raise TableException("Unknown sample merge type: %s" % sample)
 
         # determine the observation order in the resulting table
         if observation is 'union':
-            new_obs_order = self._union_id_order(self.observation_ids,
-                                                 other.observation_ids)
+            new_obs_order = self._union_id_order(
+                self.ids(axis='observation'), other.ids(axis='observation'))
         elif observation is 'intersection':
-            new_obs_order = self._intersect_id_order(self.observation_ids,
-                                                     other.observation_ids)
+            new_obs_order = self._intersect_id_order(
+                self.ids(axis='observation'), other.ids(axis='observation'))
         else:
             raise TableException(
                 "Unknown observation merge type: %s" %
@@ -2635,20 +2730,22 @@ class Table(object):
         # resulting sample ids and sample metadata
         sample_ids = []
         sample_md = []
+        self_sample_md = self.metadata()
+        other_sample_md = other.metadata()
         for id_, idx in new_samp_order:
             sample_ids.append(id_)
 
             # if we have sample metadata, grab it
-            if self.sample_metadata is None or not self.exists(id_):
+            if self_sample_md is None or not self.exists(id_):
                 self_md = None
             else:
-                self_md = self.sample_metadata[self_samp_idx[id_]]
+                self_md = self_sample_md[self_samp_idx[id_]]
 
             # if we have sample metadata, grab it
-            if other.sample_metadata is None or not other.exists(id_):
+            if other_sample_md is None or not other.exists(id_):
                 other_md = None
             else:
-                other_md = other.sample_metadata[other_samp_idx[id_]]
+                other_md = other_sample_md[other_samp_idx[id_]]
 
             sample_md.append(sample_metadata_f(self_md, other_md))
 
@@ -2656,22 +2753,23 @@ class Table(object):
         # resulting observation ids and sample metadata
         obs_ids = []
         obs_md = []
+        self_obs_md = self.metadata(axis='observation')
+        other_obs_md = other.metadata(axis='observation')
         for id_, idx in new_obs_order:
             obs_ids.append(id_)
 
             # if we have observation metadata, grab it
-            if self.observation_metadata is None or \
-               not self.exists(id_, axis="observation"):
+            if self_obs_md is None or not self.exists(id_, axis="observation"):
                 self_md = None
             else:
-                self_md = self.observation_metadata[self_obs_idx[id_]]
+                self_md = self_obs_md[self_obs_idx[id_]]
 
             # if we have observation metadata, grab it
-            if other.observation_metadata is None or \
+            if other_obs_md is None or \
                     not other.exists(id_, axis="observation"):
                 other_md = None
             else:
-                other_md = other.observation_metadata[other_obs_idx[id_]]
+                other_md = other_obs_md[other_obs_idx[id_]]
 
             obs_md.append(observation_metadata_f(self_md, other_md))
 
@@ -2763,40 +2861,70 @@ class Table(object):
         The expected HDF5 group structure is below. An example of an HDF5 file
         in DDL can be found here [3]_.
 
-        ./id                         : str, an arbitrary ID
-        ./type                       : str, the table type (e.g, OTU table)
-        ./format-url                 : str, a URL that describes the format
-        ./format-version             : two element tuple of int32,
-        major and minor
-        ./generated-by               : str, what generated this file
-        ./creation-date              : str, ISO format
-        ./shape                      : two element tuple of int32, N by M
-        ./nnz                        : int32 or int64, number of non zero elems
-        ./observation                : Group
-        ./observation/ids            : (N,) dataset of str or vlen str
-        ./observation/matrix         : Group
-        ./observation/matrix/data    : (nnz,) dataset of float64
-        ./observation/matrix/indices : (nnz,) dataset of int32
-        ./observation/matrix/indptr  : (M+1,) dataset of int32
-        [./observation/metadata]     : Optional, JSON str, in index order
-        with ids. See below for added detail.
-        ./sample                     : Group
-        ./sample/ids                 : (M,) dataset of str or vlen str
-        ./sample/matrix              : Group
-        ./sample/matrix/data         : (nnz,) dataset of float64
-        ./sample/matrix/indices      : (nnz,) dataset of int32
-        ./sample/matrix/indptr       : (N+1,) dataset of int32
-        [./sample/metadata]          : Optional, JSON str, in index order
-        with ids. See below for added detail.
+        - ./id                                                  : str, an \
+arbitrary ID
+        - ./type                                                : str, the \
+table type (e.g, OTU table)
+        - ./format-url                                          : str, a URL \
+that describes the format
+        - ./format-version                                      : two element \
+tuple of int32, major and minor
+        - ./generated-by                                        : str, what \
+generated this file
+        - ./creation-date                                       : str, ISO \
+format
+        - ./shape                                               : two element \
+tuple of int32, N by M
+        - ./nnz                                                 : int32 or \
+int64, number of non zero elems
+        - ./observation                                         : Group
+        - ./observation/ids                                     : (N,) dataset\
+ of str or vlen str
+        - ./observation/matrix                                  : Group
+        - ./observation/matrix/data                             : (nnz,) \
+dataset of float64
+        - ./observation/matrix/indices                          : (nnz,) \
+dataset of int32
+        - ./observation/matrix/indptr                           : (M+1,) \
+dataset of int32
+        - ./observation/metadata                                : Group
+        - [./observation/metadata/foo]                          : Optional, \
+(N,) dataset of str or vlen str in index order with ids.
+        - ./observation/group-metadata                          : Group
+        - [./observation/group-metadata/foo]                    : Optional, \
+(?,) dataset of group metadata that relates IDs
+        - [./observation/group-metadata/foo.attrs['data_type']] : attribute of\
+ the foo dataset that describes contained type (e.g., newick)
+        - ./sample                                              : Group
+        - ./sample/ids                                          : (M,) dataset\
+ of str or vlen str
+        - ./sample/matrix                                       : Group
+        - ./sample/matrix/data                                  : (nnz,) \
+dataset of float64
+        - ./sample/matrix/indices                               : (nnz,) \
+dataset of int32
+        - ./sample/matrix/indptr                                : (N+1,) \
+dataset of int32
+        - ./sample/metadata                                     : Group
+        - [./sample/metadata/foo]                               : Optional, \
+(M,) dataset of str or vlen str in index order with ids.
+        - ./sample/group-metadata                               : Group
+        - [./sample/group-metadata/foo]                         : Optional, \
+(?,) dataset of group metadata that relates IDs
+        - [./sample/group-metadata/foo.attrs['data_type']]      : attribute of\
+ the foo dataset that describes contained type (e.g., newick)
 
-        The expected structure (in JSON) for the optional metadata is a list of
-        objects, where the index order of the list corresponds to the index
-        order of the relevant axis IDs. The metadata are parsed directly by
-        JSON, and there are no constraints on the contained metadata with the
-        exception of the outer list, and that the order of the list matters.
-        Below is an example of observational metadata for two observations:
+        The '?' character on the dataset size means that it can be of arbitrary
+        length.
 
-        [{"taxonomy": ["foo", "bar"]}, {"taxonomy": ["foo", "foobar"]}]
+        The expected structure for each of the metadata datasets is a list of
+        atomic type objects (int, float, str, ...), where the index order of
+        the list corresponds to the index order of the relevant axis IDs.
+        Special metadata fields have been defined, and they are stored in a
+        specific way. Currently, the available special metadata fields are:
+
+        - taxonomy: (N, ?) dataset of str or vlen str
+        - KEGG_Pathways: (N, ?) dataset of str or vlen str
 
         Parameters
         ----------
@@ -2862,14 +2990,35 @@ html
         shape = h5grp.attrs['shape']
         type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
-        # fetch all of the IDs
-        obs_ids = h5grp['observation/ids'][:]
-        samp_ids = h5grp['sample/ids'][:]
+        def axis_load(grp):
+            """Loads all the data of the given group"""
+            # fetch all of the IDs
+            ids = grp['ids'][:]
 
-        # fetch all of the metadata
-        no_md = np.array(["[]"])
-        obs_md = loads(h5grp['observation'].get('metadata', no_md)[0])
-        samp_md = loads(h5grp['sample'].get('metadata', no_md)[0])
+            # define functions for parsing the hdf5 metadata
+            general_parser = lambda x: x
+
+            def vlen_list_of_str_parser(value):
+                """Parses the taxonomy value"""
+                # Remove the empty string values and return the results as list
+                return value[np.where(
+                    value == np.array(""), False, True)].tolist()
+
+            parser = defaultdict(lambda: general_parser)
+            parser['taxonomy'] = vlen_list_of_str_parser
+            parser['KEGG_Pathways'] = vlen_list_of_str_parser
+            # fetch all of the metadata
+            md = []
+            for i in range(len(ids)):
+                md.append({cat: parser[cat](vals[i])
+                          for cat, vals in grp['metadata'].items()})
+            # Fetch the group metadata
+            grp_md = {cat: val
+                      for cat, val in grp['group-metadata'].items()}
+            return ids, md, grp_md
+
+        obs_ids, obs_md, obs_grp_md = axis_load(h5grp['observation'])
+        samp_ids, samp_md, samp_grp_md = axis_load(h5grp['sample'])
 
         # load the data
         data_grp = h5grp[axis]['matrix']
@@ -2950,7 +3099,9 @@ html
 
         t = Table(matrix, obs_ids, samp_ids, obs_md or None,
                   samp_md or None, type=type_, create_date=create_date,
-                  generated_by=generated_by, table_id=id_)
+                  generated_by=generated_by, table_id=id_,
+                  observation_group_metadata=obs_grp_md,
+                  sample_group_metadata=samp_grp_md)
 
         f = lambda vals, id_, md: np.any(vals)
         axis = 'observation' if axis == 'sample' else 'sample'
@@ -2972,40 +3123,70 @@ html
         The expected HDF5 group structure is below. An example of an HDF5 file
         in DDL can be found here [3]_.
 
-        ./id                         : str, an arbitrary ID
-        ./type                       : str, the table type (e.g, OTU table)
-        ./format-url                 : str, a URL that describes the format
-        ./format-version             : two element tuple of int32,
-        major and minor
-        ./generated-by               : str, what generated this file
-        ./creation-date              : str, ISO format
-        ./shape                      : two element tuple of int32, N by M
-        ./nnz                        : int32 or int64, number of non zero elems
-        ./observation                : Group
-        ./observation/ids            : (N,) dataset of str or vlen str
-        ./observation/matrix         : Group
-        ./observation/matrix/data    : (nnz,) dataset of float64
-        ./observation/matrix/indices : (nnz,) dataset of int32
-        ./observation/matrix/indptr  : (M+1,) dataset of int32
-        [./observation/metadata]     : Optional, JSON str, in index order
-        with ids. See below for added detail.
-        ./sample                     : Group
-        ./sample/ids                 : (M,) dataset of str or vlen str
-        ./sample/matrix              : Group
-        ./sample/matrix/data         : (nnz,) dataset of float64
-        ./sample/matrix/indices      : (nnz,) dataset of int32
-        ./sample/matrix/indptr       : (N+1,) dataset of int32
-        [./sample/metadata]          : Optional, JSON str, in index order
-        with ids. See below for added detail.
+        - ./id                                                  : str, an \
+arbitrary ID
+        - ./type                                                : str, the \
+table type (e.g, OTU table)
+        - ./format-url                                          : str, a URL \
+that describes the format
+        - ./format-version                                      : two element \
+tuple of int32, major and minor
+        - ./generated-by                                        : str, what \
+generated this file
+        - ./creation-date                                       : str, ISO \
+format
+        - ./shape                                               : two element \
+tuple of int32, N by M
+        - ./nnz                                                 : int32 or \
+int64, number of non zero elems
+        - ./observation                                         : Group
+        - ./observation/ids                                     : (N,) dataset\
+ of str or vlen str
+        - ./observation/matrix                                  : Group
+        - ./observation/matrix/data                             : (nnz,) \
+dataset of float64
+        - ./observation/matrix/indices                          : (nnz,) \
+dataset of int32
+        - ./observation/matrix/indptr                           : (M+1,) \
+dataset of int32
+        - ./observation/metadata                                : Group
+        - [./observation/metadata/foo]                          : Optional, \
+(N,) dataset of str or vlen str in index order with ids.
+        - ./observation/group-metadata                          : Group
+        - [./observation/group-metadata/foo]                    : Optional, \
+(?,) dataset of group metadata that relates IDs
+        - [./observation/group-metadata/foo.attrs['data_type']] : attribute of\
+ the foo dataset that describes contained type (e.g., newick)
+        - ./sample                                              : Group
+        - ./sample/ids                                          : (M,) dataset\
+ of str or vlen str
+        - ./sample/matrix                                       : Group
+        - ./sample/matrix/data                                  : (nnz,) \
+dataset of float64
+        - ./sample/matrix/indices                               : (nnz,) \
+dataset of int32
+        - ./sample/matrix/indptr                                : (N+1,) \
+dataset of int32
+        - ./sample/metadata                                     : Group
+        - [./sample/metadata/foo]                               : Optional, \
+(M,) dataset of str or vlen str in index order with ids.
+        - ./sample/group-metadata                               : Group
+        - [./sample/group-metadata/foo]                         : Optional, \
+(?,) dataset of group metadata that relates IDs
+        - [./sample/group-metadata/foo.attrs['data_type']]      : attribute of\
+ the foo dataset that describes contained type (e.g., newick)
 
-        The expected structure (in JSON) for the optional metadata is a list of
-        objects, where the index order of the list corresponds to the index
-        order of the relevant axis IDs. The metadata are parsed directly by
-        JSON, and there are no constraints on the contained metadata with the
-        exception of the outer list, and that the order of the list matters.
-        Below is an example of observational metadata for two observations:
+        The '?' character on the dataset size means that it can be of arbitrary
+        length.
 
-        [{"taxonomy": ["foo", "bar"]}, {"taxonomy": ["foo", "foobar"]}]
+        The expected structure for each of the metadata datasets is a list of
+        atomic type objects (int, float, str, ...), where the index order of
+        the list corresponds to the index order of the relevant axis IDs.
+        Special metadata fields have been defined, and they are stored in a
+        specific way. Currently, the available special metadata fields are:
+
+        - taxonomy: (N, ?) dataset of str or vlen str
+        - KEGG_Pathways: (N, ?) dataset of str or vlen str
 
         Parameters
         ----------
@@ -3043,7 +3224,7 @@ html
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
 
-        def axis_dump(grp, ids, md, order, compression=None):
+        def axis_dump(grp, ids, md, group_md, order, compression=None):
             """Store for an axis"""
             self._data = self._data.asformat(order)
 
@@ -3073,13 +3254,67 @@ html
                                data=[str(i) for i in ids],
                                compression=compression)
 
+            # Create the group for the metadata
+            grp.create_group('metadata')
+
             if md is not None:
-                md_str = empty(shape=(), dtype=object)
-                md_str[()] = dumps(md)
-                grp.create_dataset('metadata', shape=(1,),
-                                   dtype=H5PY_VLEN_STR,
-                                   data=md_str,
-                                   compression=compression)
+                # Define functions for writing to hdf5
+                def general_formatter(grp, header, md, compression):
+                    """Creates a dataset for a general atomic type category"""
+                    test_val = md[0][header]
+                    shape = (len(md),)
+                    name = 'metadata/%s' % category
+                    if isinstance(test_val, unicode):
+                        grp.create_dataset(name, shape=shape,
+                                           dtype=H5PY_VLEN_UNICODE,
+                                           compression=compression)
+                        grp[name][:] = [m[header] for m in md]
+                    elif isinstance(test_val, str):
+                        grp.create_dataset(name, shape=shape,
+                                           dtype=H5PY_VLEN_STR,
+                                           data=[m[header] for m in md],
+                                           compression=compression)
+                    else:
+                        grp.create_dataset(
+                            'metadata/%s' % category, shape=(len(md),),
+                            data=[m[header] for m in md],
+                            compression=compression)
+
+                def vlen_list_of_str_formatter(grp, header, md, compression):
+                    """Creates a (N, ?) vlen str dataset"""
+                    max_list_len = max(len(m[header]) for m in md)
+                    shape = (len(md), max_list_len)
+                    data = np.empty(shape, dtype=object)
+                    for i, m in enumerate(md):
+                        value = np.asarray(m[header])
+                        data[i, :len(value)] = value
+                    # Change the None entries on data to empty strings ""
+                    data = np.where(data == np.array(None), "", data)
+                    grp.create_dataset(
+                        'metadata/%s' % header, shape=shape,
+                        dtype=H5PY_VLEN_STR, data=data,
+                        compression=compression)
+
+                formatter = defaultdict(lambda: general_formatter)
+                formatter['taxonomy'] = vlen_list_of_str_formatter
+                formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
+                # Loop through all the categories
+                for category in md[0]:
+                    # Create the dataset for the current category,
+                    # putting values in id order
+                    formatter[category](grp, category, md, compression)
+
+            # Create the group for the group metadata
+            grp.create_group('group-metadata')
+
+            if group_md:
+                for key, value in group_md.items():
+                    datatype, val = value
+                    grp_dataset = grp.create_dataset(
+                        'group-metadata/%s' % key,
+                        shape=(1,), dtype=H5PY_VLEN_STR,
+                        data=val, compression=compression)
+                    grp_dataset.attrs['data_type'] = datatype
 
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
         h5grp.attrs['type'] = self.type if self.type else ""
@@ -3092,10 +3327,12 @@ html
         compression = None
         if compress is True:
             compression = 'gzip'
-        axis_dump(h5grp.create_group('observation'), self.observation_ids,
-                  self.observation_metadata, 'csr', compression)
-        axis_dump(h5grp.create_group('sample'), self.sample_ids,
-                  self.sample_metadata, 'csc', compression)
+        axis_dump(h5grp.create_group('observation'),
+                  self.ids(axis='observation'),
+                  self.metadata(axis='observation'),
+                  self.group_metadata(axis='observation'), 'csr', compression)
+        axis_dump(h5grp.create_group('sample'), self.ids(),
+                  self.metadata(), self.group_metadata(), 'csc', compression)
 
     @classmethod
     def from_json(self, json_table, data_pump=None,
@@ -3278,8 +3515,8 @@ html
             matrix_type = '"matrix_type": "sparse",'
             data = ['"data": [']
 
-        max_row_idx = len(self.observation_ids) - 1
-        max_col_idx = len(self.sample_ids) - 1
+        max_row_idx = len(self.ids(axis='observation')) - 1
+        max_col_idx = len(self.ids()) - 1
         rows = ['"rows": [']
         have_written = False
         for obs_index, obs in enumerate(self.iter(axis='observation')):
@@ -3709,11 +3946,9 @@ def list_sparse_to_sparse(data, dtype=float):
     """
     if isspmatrix(data[0]):
         if data[0].shape[0] > data[0].shape[1]:
-            is_col = True
             n_cols = len(data)
             n_rows = data[0].shape[0]
         else:
-            is_col = False
             n_rows = len(data)
             n_cols = data[0].shape[1]
     else:
@@ -3721,10 +3956,8 @@ def list_sparse_to_sparse(data, dtype=float):
         n_rows = max(all_keys, key=itemgetter(0))[0] + 1
         n_cols = max(all_keys, key=itemgetter(1))[1] + 1
         if n_rows > n_cols:
-            is_col = True
             n_cols = len(data)
         else:
-            is_col = False
             n_rows = len(data)
 
     data = vstack(data)

@@ -22,7 +22,7 @@ from biom.commands.table_subsetter import TableSubsetter
 from biom.parse import parse_biom_table
 from unittest import TestCase, main
 import numpy.testing as npt
-from biom.util import HAVE_H5PY, biom_open
+from biom.util import HAVE_H5PY
 
 
 class TableSubsetterTests(TestCase):
@@ -38,10 +38,10 @@ class TableSubsetterTests(TestCase):
                        ids=['f4', 'f2'])
         self.assertEqual(obs.keys(), ['subsetted_table'])
         obs = parse_biom_table(list(obs['subsetted_table'][0]))
-        self.assertEqual(len(obs.sample_ids), 2)
-        self.assertEqual(len(obs.observation_ids), 14)
-        self.assertTrue('f4' in obs.sample_ids)
-        self.assertTrue('f2' in obs.sample_ids)
+        self.assertEqual(len(obs.ids()), 2)
+        self.assertEqual(len(obs.ids(axis='observation')), 14)
+        self.assertTrue('f4' in obs.ids())
+        self.assertTrue('f2' in obs.ids())
 
     def test_subset_observations(self):
         """Correctly subsets observations in a table."""
@@ -49,10 +49,10 @@ class TableSubsetterTests(TestCase):
                        ids=['None2', '879972'])
         self.assertEqual(obs.keys(), ['subsetted_table'])
         obs = parse_biom_table(list(obs['subsetted_table'][0]))
-        self.assertEqual(len(obs.sample_ids), 9)
-        self.assertEqual(len(obs.observation_ids), 2)
-        self.assertTrue('None2' in obs.observation_ids)
-        self.assertTrue('879972' in obs.observation_ids)
+        self.assertEqual(len(obs.ids()), 9)
+        self.assertEqual(len(obs.ids(axis='observation')), 2)
+        self.assertTrue('None2' in obs.ids(axis='observation'))
+        self.assertTrue('879972' in obs.ids(axis='observation'))
 
     def test_invalid_input(self):
         """Correctly raises politically correct error upon invalid input."""
@@ -78,11 +78,11 @@ class TableSubsetterTests(TestCase):
         os.chdir(cwd)
         self.assertEqual(obs.keys(), ['subsetted_table'])
         obs = obs['subsetted_table'][0]
-        self.assertEqual(len(obs.sample_ids), 3)
-        self.assertEqual(len(obs.observation_ids), 5)
-        self.assertTrue('Sample1' in obs.sample_ids)
-        self.assertTrue('Sample2' in obs.sample_ids)
-        self.assertTrue('Sample3' in obs.sample_ids)
+        self.assertEqual(len(obs.ids()), 3)
+        self.assertEqual(len(obs.ids(axis='observation')), 5)
+        self.assertTrue('Sample1' in obs.ids())
+        self.assertTrue('Sample2' in obs.ids())
+        self.assertTrue('Sample3' in obs.ids())
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_subset_observations_hdf5(self):
@@ -95,11 +95,11 @@ class TableSubsetterTests(TestCase):
         os.chdir(cwd)
         self.assertEqual(obs.keys(), ['subsetted_table'])
         obs = obs['subsetted_table'][0]
-        self.assertEqual(len(obs.sample_ids), 4)
-        self.assertEqual(len(obs.observation_ids), 3)
-        self.assertTrue('GG_OTU_1' in obs.observation_ids)
-        self.assertTrue('GG_OTU_3' in obs.observation_ids)
-        self.assertTrue('GG_OTU_5' in obs.observation_ids)
+        self.assertEqual(len(obs.ids()), 4)
+        self.assertEqual(len(obs.ids(axis='observation')), 3)
+        self.assertTrue('GG_OTU_1' in obs.ids(axis='observation'))
+        self.assertTrue('GG_OTU_3' in obs.ids(axis='observation'))
+        self.assertTrue('GG_OTU_5' in obs.ids(axis='observation'))
 
 
 biom1 = ('{"id": "None","format": "Biological Observation Matrix 1.0.0",'
