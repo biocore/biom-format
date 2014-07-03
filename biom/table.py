@@ -1123,12 +1123,13 @@ class Table(object):
             output = ['# Constructed from biom file',
                       '%s%s%s' % (observation_column_name, delim, samp_ids)]
 
+        obs_metadata = self.metadata(axis='observation')
         for obs_id, obs_values in zip(self.ids(axis='observation'),
                                       self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
 
-            if header_key and self.metadata(axis='observation') is not None:
-                md = self.metadata(axis='observation')[self._obs_index[obs_id]]
+            if header_key and obs_metadata is not None:
+                md = obs_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
                 output.append(
                     '%s%s%s\t%s' %
@@ -1555,13 +1556,14 @@ class Table(object):
         """
         md = []
         vals = []
+        metadata = self.metadata(axis=axis)
         if axis == 'sample':
             for id_ in order:
                 cur_idx = self.index(id_, 'sample')
                 vals.append(self._to_dense(self[:, cur_idx]))
 
-                if self.metadata() is not None:
-                    md.append(self.metadata()[cur_idx])
+                if metadata is not None:
+                    md.append(metadata[cur_idx])
 
             if not md:
                 md = None
@@ -1576,8 +1578,8 @@ class Table(object):
                 cur_idx = self.index(id_, 'observation')
                 vals.append(self[cur_idx, :])
 
-                if self.metadata(axis='observation') is not None:
-                    md.append(self.metadata(axis='observation')[cur_idx])
+                if metadata is not None:
+                    md.append(metadata[cur_idx])
 
             if not md:
                 md = None
@@ -1835,30 +1837,22 @@ class Table(object):
             partitions[part][1].append(vals)
             partitions[part][2].append(md)
 
+        md = self.metadata(axis=self._invert_axis(axis))
+
         for part, (ids, values, metadata) in partitions.iteritems():
             if axis == 'sample':
                 data = self._conv_to_self_type(values, transpose=True)
-
                 samp_ids = ids
                 samp_md = metadata
                 obs_ids = self.ids(axis='observation')[:]
-
-                if self.metadata(axis='observation') is not None:
-                    obs_md = self.metadata(axis='observation')[:]
-                else:
-                    obs_md = None
+                obs_md = md[:] if md is not None else None
 
             elif axis == 'observation':
                 data = self._conv_to_self_type(values, transpose=False)
-
                 obs_ids = ids
                 obs_md = metadata
                 samp_ids = self.ids()[:]
-
-                if self.metadata() is not None:
-                    samp_md = self.metadata()[:]
-                else:
-                    samp_md = None
+                samp_md = md[:] if md is not None else None
 
             yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
                               self.table_id, type=self.type)
@@ -2129,22 +2123,17 @@ class Table(object):
         if 0 in data.shape:
             raise TableException("Collapsed table is empty!")
 
+        md = self.metadata(axis=self._invert_axis(axis))
         if axis == 'sample':
             sample_ids = collapsed_ids
             sample_md = collapsed_md
             obs_ids = self.ids(axis='observation')[:]
-            if self.metadata(axis='observation') is not None:
-                obs_md = self.metadata(axis='observation')[:]
-            else:
-                obs_md = None
+            obs_md = md if md is not None else None
         else:
             sample_ids = self.ids()[:]
             obs_ids = collapsed_ids
             obs_md = collapsed_md
-            if self.metadata() is not None:
-                sample_md = self.metadata()[:]
-            else:
-                sample_md = None
+            sample_md = md if md is not None else None
 
         return Table(data, obs_ids, sample_ids, obs_md, sample_md,
                      self.table_id, type=self.type)
@@ -2741,20 +2730,22 @@ class Table(object):
         # resulting sample ids and sample metadata
         sample_ids = []
         sample_md = []
+        self_sample_md = self.metadata()
+        other_sample_md = other.metadata()
         for id_, idx in new_samp_order:
             sample_ids.append(id_)
 
             # if we have sample metadata, grab it
-            if self.metadata() is None or not self.exists(id_):
+            if self_sample_md is None or not self.exists(id_):
                 self_md = None
             else:
-                self_md = self.metadata()[self_samp_idx[id_]]
+                self_md = self_sample_md[self_samp_idx[id_]]
 
             # if we have sample metadata, grab it
-            if other.metadata() is None or not other.exists(id_):
+            if other_sample_md is None or not other.exists(id_):
                 other_md = None
             else:
-                other_md = other.metadata()[other_samp_idx[id_]]
+                other_md = other_sample_md[other_samp_idx[id_]]
 
             sample_md.append(sample_metadata_f(self_md, other_md))
 
@@ -2762,23 +2753,23 @@ class Table(object):
         # resulting observation ids and sample metadata
         obs_ids = []
         obs_md = []
+        self_obs_md = self.metadata(axis='observation')
+        other_obs_md = other.metadata(axis='observation')
         for id_, idx in new_obs_order:
             obs_ids.append(id_)
 
             # if we have observation metadata, grab it
-            if self.metadata(axis='observation') is None or \
-               not self.exists(id_, axis="observation"):
+            if self_obs_md is None or not self.exists(id_, axis="observation"):
                 self_md = None
             else:
-                self_md = self.metadata(axis='observation')[self_obs_idx[id_]]
+                self_md = self_obs_md[self_obs_idx[id_]]
 
             # if we have observation metadata, grab it
-            if other.metadata(axis='observation') is None or \
+            if other_obs_md is None or \
                     not other.exists(id_, axis="observation"):
                 other_md = None
             else:
-                other_md = other.metadata(
-                    axis='observation')[other_obs_idx[id_]]
+                other_md = other_obs_md[other_obs_idx[id_]]
 
             obs_md.append(observation_metadata_f(self_md, other_md))
 
@@ -2933,7 +2924,7 @@ dataset of int32
         specific way. Currently, the available special metadata fields are:
 
         - taxonomy: (N, ?) dataset of str or vlen str
-        - kegg_pathway: (N, ?) dataset of str or vlen str
+        - KEGG_Pathways: (N, ?) dataset of str or vlen str
 
         Parameters
         ----------
@@ -3015,7 +3006,7 @@ html
 
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
-            parser['kegg_pathway'] = vlen_list_of_str_parser
+            parser['KEGG_Pathways'] = vlen_list_of_str_parser
             # fetch all of the metadata
             md = []
             for i in range(len(ids)):
@@ -3195,7 +3186,7 @@ dataset of int32
         specific way. Currently, the available special metadata fields are:
 
         - taxonomy: (N, ?) dataset of str or vlen str
-        - kegg_pathway: (N, ?) dataset of str or vlen str
+        - KEGG_Pathways: (N, ?) dataset of str or vlen str
 
         Parameters
         ----------
@@ -3306,7 +3297,7 @@ html
 
                 formatter = defaultdict(lambda: general_formatter)
                 formatter['taxonomy'] = vlen_list_of_str_formatter
-                formatter['kegg_pathway'] = vlen_list_of_str_formatter
+                formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
                 # Loop through all the categories
                 for category in md[0]:
                     # Create the dataset for the current category,
