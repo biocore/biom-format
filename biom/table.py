@@ -3616,6 +3616,9 @@ html
             t_md_name) = Table._extract_data_from_tsv(lines, **kwargs)
 
         # if we have it, keep it
+        if t_md_name == 'taxonomy':
+            process_func = lambda x: [e.strip() for e in x.split(';')]
+
         if t_md is None:
             obs_metadata = None
         else:
