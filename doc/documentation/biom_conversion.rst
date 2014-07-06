@@ -39,13 +39,13 @@ In specific cases, see `this comment <https://groups.google.com/forum/#!msg/qiim
 
 - Convert from biom to txt::
 
-	biom convert -i otu_table.biom -o otu_table.txt -b --header_key='taxonomy"
+	biom convert -i otu_table.biom -o otu_table.txt --to-tsv --header-key taxonomy
 
 - Make your changes in Excel.
 
 - Convert back to biom::
 
-	biom convert -i otu_table.txt -o new_otu_table.biom --biom_table_type="otu table" --process_obs_metadata="taxonomy" 
+	biom convert -i otu_table.txt -o new_otu_table.biom --to-hdf5 --table-type="OTU table" --process-obs-metadata taxonomy 
 
 
 Converting QIIME 1.4.0 and earlier OTU tables to BIOM format
