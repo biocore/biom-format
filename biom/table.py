@@ -143,14 +143,14 @@ this to `Table.collapse`, and since we want to collapse over the observations,
 we'll need to specify 'observation' as the axis.
 
 >>> phylum_idx = 1
->>> collapse_f = lambda id_, md: md['taxonomy'][phylum_idx]
+>>> collapse_f = lambda id_, md: '; '.join(md['taxonomy'][:phylum_idx + 1])
 >>> collapsed = mult_of_three.collapse(collapse_f, axis='observation')
 >>> print collapsed # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S1  S2  S3
-Firmicutes  7.2 6.6 7.2 8.4
-Bacteroidetes   12.0    10.5    0.0 13.5
-Proteobacteria  4.0 3.0 6.0 5.0
+Bacteria; Firmicutes  7.2 6.6 7.2 8.4
+Bacteria; Bacteroidetes   12.0    10.5    0.0 13.5
+Bacteria; Proteobacteria  4.0 3.0 6.0 5.0
 
 Finally, let's convert the table to presence/absence data.
 
@@ -158,9 +158,9 @@ Finally, let's convert the table to presence/absence data.
 >>> print pa # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S1  S2  S3
-Firmicutes  1.0 1.0 1.0 1.0
-Bacteroidetes   1.0 1.0 0.0 1.0
-Proteobacteria  1.0 1.0 1.0 1.0
+Bacteria; Firmicutes  1.0 1.0 1.0 1.0
+Bacteria; Bacteroidetes   1.0 1.0 0.0 1.0
+Bacteria; Proteobacteria  1.0 1.0 1.0 1.0
 
 """
 
