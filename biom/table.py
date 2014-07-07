@@ -3287,13 +3287,21 @@ html
 
                 def vlen_list_of_str_formatter(grp, header, md, compression):
                     """Creates a (N, ?) vlen str dataset"""
-                    if not np.all([isinstance(m[header], Iterable)
-                                  if m[header] is not None else True
-                                  for m in md]):
+                    # It is possible that the value for some sample/observation
+                    # is None. In that case, we still need to see them as
+                    # iterables, but their length will be 0
+                    # Thus in the list comprehension, we are looping through
+                    # the all the metadata values an testing that they are
+                    # either Iterables or None
+                    if not np.all([isinstance(m.get(header, []), Iterable)
+                                  or m[header] is None for m in md]):
                         raise TypeError(
                             "Category %s not formatted correctly. Did you pass"
                             " --process-obs-metadata taxonomy when converting "
                             " from tsv?")
+                    # We need to get the max length among all the metaddata
+                    # values. If some of them are None, asking for len will
+                    # break, so add an specific test in case it is None
                     max_list_len = max(len(m[header])
                                        if m[header] is not None else 0
                                        for m in md)
