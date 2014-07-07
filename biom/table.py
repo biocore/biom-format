@@ -3003,8 +3003,9 @@ html
             def vlen_list_of_str_parser(value):
                 """Parses the taxonomy value"""
                 # Remove the empty string values and return the results as list
-                return value[np.where(
+                new_value = value[np.where(
                     value == np.array(""), False, True)].tolist()
+                return new_value if new_value else None
 
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
@@ -3286,8 +3287,6 @@ html
 
                 def vlen_list_of_str_formatter(grp, header, md, compression):
                     """Creates a (N, ?) vlen str dataset"""
-                    for m in md:
-                        print m[header]
                     if not np.all([isinstance(m[header], Iterable)
                                   if m[header] is not None else True
                                   for m in md]):

@@ -594,6 +594,30 @@ class TableTests(TestCase):
              {'collapsed_ids': ['b']}])
         self.assertEqual(obs, exp)
 
+        # Test with table having a None on taxonomy
+        fname = mktemp()
+        self.to_remove.append(fname)
+        h5 = h5py.File(fname, 'w')
+        t = Table(self.vals, ['1', '2'], ['a', 'b'],
+                  [{'taxonomy': ['k__a', 'p__b']},
+                   {'taxonomy': None}],
+                  [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+        t.to_hdf5(h5, 'tests')
+        h5.close()
+
+        h5 = h5py.File(fname, 'r')
+        self.assertIn('observation', h5)
+        self.assertIn('sample', h5)
+        self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
+                                                          'format-url',
+                                                          'format-version',
+                                                          'generated-by',
+                                                          'creation-date',
+                                                          'shape', 'nnz']))
+
+        obs = Table.from_hdf5(h5)
+        self.assertEqual(obs, t)
+
     def test_from_tsv(self):
         tab1_fh = StringIO(otu_table1)
         sparse_rich = Table.from_tsv(tab1_fh, None, None,
