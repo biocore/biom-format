@@ -3286,16 +3286,23 @@ html
 
                 def vlen_list_of_str_formatter(grp, header, md, compression):
                     """Creates a (N, ?) vlen str dataset"""
-                    if not np.all([isinstance(m[header], Iterable)]
-                                  for m in md):
+                    for m in md:
+                        print m[header]
+                    if not np.all([isinstance(m[header], Iterable)
+                                  if m[header] is not None else True
+                                  for m in md]):
                         raise TypeError(
                             "Category %s not formatted correctly. Did you pass"
                             " --process-obs-metadata taxonomy when converting "
                             " from tsv?")
-                    max_list_len = max(len(m[header]) for m in md)
+                    max_list_len = max(len(m[header])
+                                       if m[header] is not None else 0
+                                       for m in md)
                     shape = (len(md), max_list_len)
                     data = np.empty(shape, dtype=object)
                     for i, m in enumerate(md):
+                        if m[header] is None:
+                            continue
                         value = np.asarray(m[header])
                         data[i, :len(value)] = value
                     # Change the None entries on data to empty strings ""
