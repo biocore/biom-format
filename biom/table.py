@@ -180,7 +180,7 @@ from json import dumps
 from functools import reduce
 from operator import itemgetter, add
 from itertools import izip
-from collections import defaultdict, Hashable
+from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
@@ -3003,8 +3003,9 @@ html
             def vlen_list_of_str_parser(value):
                 """Parses the taxonomy value"""
                 # Remove the empty string values and return the results as list
-                return value[np.where(
+                new_value = value[np.where(
                     value == np.array(""), False, True)].tolist()
+                return new_value if new_value else None
 
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
@@ -3286,10 +3287,31 @@ html
 
                 def vlen_list_of_str_formatter(grp, header, md, compression):
                     """Creates a (N, ?) vlen str dataset"""
-                    max_list_len = max(len(m[header]) for m in md)
+                    # It is possible that the value for some sample/observation
+                    # is None. In that case, we still need to see them as
+                    # iterables, but their length will be 0
+                    iterable_checks = []
+                    lengths = []
+                    for m in md:
+                        if m[header] is None:
+                            iterable_checks.append(True)
+                        else:
+                            iterable_checks.append(
+                                isinstance(m.get(header, []), Iterable))
+                            lengths.append(len(m[header]))
+
+                    if not np.all(iterable_checks):
+                        raise TypeError(
+                            "Category %s not formatted correctly. Did you pass"
+                            " --process-obs-metadata taxonomy when converting "
+                            " from tsv?")
+
+                    max_list_len = max(lengths)
                     shape = (len(md), max_list_len)
                     data = np.empty(shape, dtype=object)
                     for i, m in enumerate(md):
+                        if m[header] is None:
+                            continue
                         value = np.asarray(m[header])
                         data[i, :len(value)] = value
                     # Change the None entries on data to empty strings ""

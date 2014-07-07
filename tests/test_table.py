@@ -514,6 +514,24 @@ class TableTests(TestCase):
         os.chdir(cwd)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_to_hdf5_error(self):
+        """Errors if a controlled category is not correctly formatted"""
+        fname = mktemp()
+        self.to_remove.append(fname)
+        h5 = h5py.File(fname, 'w')
+        t = Table(
+            np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
+            ['1', '2', '3'], ['a', 'b', 'c'],
+            [{'taxonomy': 'k__a; p__b'},
+             {'taxonomy': 'k__a; p__c'},
+             {'taxonomy': 'k__a; p__c'}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
+        with self.assertRaises(TypeError):
+            t.to_hdf5(h5, 'tests')
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5(self):
         """Write a file"""
         fname = mktemp()
@@ -575,6 +593,30 @@ class TableTests(TestCase):
             [{'collapsed_ids': ['a', 'c']},
              {'collapsed_ids': ['b']}])
         self.assertEqual(obs, exp)
+
+        # Test with table having a None on taxonomy
+        fname = mktemp()
+        self.to_remove.append(fname)
+        h5 = h5py.File(fname, 'w')
+        t = Table(self.vals, ['1', '2'], ['a', 'b'],
+                  [{'taxonomy': ['k__a', 'p__b']},
+                   {'taxonomy': None}],
+                  [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+        t.to_hdf5(h5, 'tests')
+        h5.close()
+
+        h5 = h5py.File(fname, 'r')
+        self.assertIn('observation', h5)
+        self.assertIn('sample', h5)
+        self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
+                                                          'format-url',
+                                                          'format-version',
+                                                          'generated-by',
+                                                          'creation-date',
+                                                          'shape', 'nnz']))
+
+        obs = Table.from_hdf5(h5)
+        self.assertEqual(obs, t)
 
     def test_from_tsv(self):
         tab1_fh = StringIO(otu_table1)
