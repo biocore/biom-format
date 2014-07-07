@@ -180,7 +180,7 @@ from json import dumps
 from functools import reduce
 from operator import itemgetter, add
 from itertools import izip
-from collections import defaultdict, Hashable
+from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
@@ -3286,6 +3286,12 @@ html
 
                 def vlen_list_of_str_formatter(grp, header, md, compression):
                     """Creates a (N, ?) vlen str dataset"""
+                    if not np.all([isinstance(m[header], Iterable)]
+                                  for m in md):
+                        raise TypeError(
+                            "Category %s not formatted correctly. Did you pass"
+                            " --process-obs-metadata taxonomy when converting "
+                            " from tsv?")
                     max_list_len = max(len(m[header]) for m in md)
                     shape = (len(md), max_list_len)
                     data = np.empty(shape, dtype=object)

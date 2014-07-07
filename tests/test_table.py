@@ -514,6 +514,24 @@ class TableTests(TestCase):
         os.chdir(cwd)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_to_hdf5_error(self):
+        """Errors if a controlled category is not correctly formatted"""
+        fname = mktemp()
+        self.to_remove.append(fname)
+        h5 = h5py.File(fname, 'w')
+        t = Table(
+            np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
+            ['1', '2', '3'], ['a', 'b', 'c'],
+            [{'taxonomy': 'k__a; p__b'},
+             {'taxonomy': 'k__a; p__c'},
+             {'taxonomy': 'k__a; p__c'}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
+        with self.assertRaises(TypeError):
+            t.to_hdf5(h5, 'tests')
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5(self):
         """Write a file"""
         fname = mktemp()
