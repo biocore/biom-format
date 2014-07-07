@@ -2187,9 +2187,8 @@ class SparseTableTests(TestCase):
              {'barcode': 'aatt'}])
         exp_phy = Table(np.array([[5, 6, 7], [19, 21, 23]]),
                         ['p__b', 'p__c'], ['a', 'b', 'c'],
-                        [{'1': {'taxonomy': ['k__a', 'p__b']}},
-                         {'2': {'taxonomy': ['k__a', 'p__c']},
-                          '3':{'taxonomy': ['k__a', 'p__c']}}],
+                        [{'collapsed_ids': ['1']},
+                         {'collapsed_ids': ['2', '3']}],
                         [{'barcode': 'aatt'},
                          {'barcode': 'ttgg'},
                          {'barcode': 'aatt'}])
@@ -2201,9 +2200,7 @@ class SparseTableTests(TestCase):
 
         exp_king = Table(np.array([[24, 27, 30]]),
                          ['k__a'], ['a', 'b', 'c'],
-                         [{'1': {'taxonomy': ['k__a', 'p__b']},
-                           '2':{'taxonomy': ['k__a', 'p__c']},
-                           '3':{'taxonomy': ['k__a', 'p__c']}}],
+                         [{'collapsed_ids': ['1', '2', '3']}],
                          [{'barcode': 'aatt'},
                           {'barcode': 'ttgg'},
                           {'barcode': 'aatt'}])
@@ -2251,9 +2248,8 @@ class SparseTableTests(TestCase):
             [{'taxonomy': ['k__a', 'p__b']},
              {'taxonomy': ['k__a', 'p__c']},
              {'taxonomy': ['k__a', 'p__c']}],
-            [{'a': {'barcode': 'aatt'},
-              'c': {'barcode': 'aatt'}},
-             {'b': {'barcode': 'ttgg'}}])
+            [{'collapsed_ids': ['a', 'c']},
+             {'collapsed_ids': ['b']}])
         bin_f = lambda id_, x: x['barcode']
         obs_bc = dt_rich.collapse(
             bin_f, norm=False, min_group_size=1,
