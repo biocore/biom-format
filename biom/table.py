@@ -1866,9 +1866,9 @@ class Table(object):
         Partition data by metadata or IDs and then collapse each partition into
         a single vector.
 
-        If `include_collapsed_metadata` is ``True``, metadata for the collapsed
-        partition are retained and can be referred to by the corresponding ID
-        from each vector within the partition.
+        If `include_collapsed_metadata` is ``True``, the metadata for the
+        collapsed partition will be a category named 'collapsed_ids', in which
+        a list of the original ids that made up the partition is retained
 
         The remainder is only relevant to setting `one_to_many` to ``True``.
 
@@ -2112,10 +2112,11 @@ class Table(object):
 
                 if include_collapsed_metadata:
                     # retain metadata but store by original id
-                    tmp_md = {}
-                    for id_, md in izip(axis_ids, axis_md):
-                        tmp_md[id_] = md
-                    collapsed_md.append(tmp_md)
+                    collapsed_md.append({'collapsed_ids': axis_ids.tolist()})
+                    # tmp_md = {}
+                    # for id_, md in izip(axis_ids, axis_md):
+                    #     tmp_md[id_] = md
+                    # collapsed_md.append(tmp_md)
 
             data = self._conv_to_self_type(collapsed_data, transpose=transpose)
 
@@ -2925,6 +2926,7 @@ dataset of int32
 
         - taxonomy: (N, ?) dataset of str or vlen str
         - KEGG_Pathways: (N, ?) dataset of str or vlen str
+        - collapsed_ids: (N, ?) dataset of str or vlen str
 
         Parameters
         ----------
@@ -3007,6 +3009,7 @@ html
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
             parser['KEGG_Pathways'] = vlen_list_of_str_parser
+            parser['collapsed_ids'] = vlen_list_of_str_parser
             # fetch all of the metadata
             md = []
             for i in range(len(ids)):
@@ -3187,6 +3190,7 @@ dataset of int32
 
         - taxonomy: (N, ?) dataset of str or vlen str
         - KEGG_Pathways: (N, ?) dataset of str or vlen str
+        - collapsed_ids: (N, ?) dataset of str or vlen str
 
         Parameters
         ----------
@@ -3298,6 +3302,7 @@ html
                 formatter = defaultdict(lambda: general_formatter)
                 formatter['taxonomy'] = vlen_list_of_str_formatter
                 formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
+                formatter['collapsed_ids'] = vlen_list_of_str_formatter
                 # Loop through all the categories
                 for category in md[0]:
                     # Create the dataset for the current category,
