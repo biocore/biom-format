@@ -2926,6 +2926,7 @@ dataset of int32
 
         - taxonomy: (N, ?) dataset of str or vlen str
         - KEGG_Pathways: (N, ?) dataset of str or vlen str
+        - collapsed_ids: (N, ?) dataset of str or vlen str
 
         Parameters
         ----------
@@ -3008,6 +3009,7 @@ html
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
             parser['KEGG_Pathways'] = vlen_list_of_str_parser
+            parser['collapsed_ids'] = vlen_list_of_str_parser
             # fetch all of the metadata
             md = []
             for i in range(len(ids)):
@@ -3188,6 +3190,7 @@ dataset of int32
 
         - taxonomy: (N, ?) dataset of str or vlen str
         - KEGG_Pathways: (N, ?) dataset of str or vlen str
+        - collapsed_ids: (N, ?) dataset of str or vlen str
 
         Parameters
         ----------
@@ -3299,6 +3302,7 @@ html
                 formatter = defaultdict(lambda: general_formatter)
                 formatter['taxonomy'] = vlen_list_of_str_formatter
                 formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
+                formatter['collapsed_ids'] = vlen_list_of_str_formatter
                 # Loop through all the categories
                 for category in md[0]:
                     # Create the dataset for the current category,

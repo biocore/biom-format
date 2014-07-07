@@ -535,6 +535,47 @@ class TableTests(TestCase):
         obs = Table.from_hdf5(h5)
         self.assertEqual(obs, self.st_rich)
 
+        # Test with a collapsed table
+        fname = mktemp()
+        self.to_remove.append(fname)
+        h5 = h5py.File(fname, 'w')
+        dt_rich = Table(
+            np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
+            ['1', '2', '3'], ['a', 'b', 'c'],
+            [{'taxonomy': ['k__a', 'p__b']},
+             {'taxonomy': ['k__a', 'p__c']},
+             {'taxonomy': ['k__a', 'p__c']}],
+            [{'barcode': 'aatt'},
+             {'barcode': 'ttgg'},
+             {'barcode': 'aatt'}])
+        bin_f = lambda id_, x: x['barcode']
+        collapsed = dt_rich.collapse(
+            bin_f, norm=False, min_group_size=1,
+            axis='sample').sort(axis='sample')
+        collapsed.to_hdf5(h5, 'tests')
+        h5.close()
+
+        h5 = h5py.File(fname, 'r')
+        self.assertIn('observation', h5)
+        self.assertIn('sample', h5)
+        self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
+                                                          'format-url',
+                                                          'format-version',
+                                                          'generated-by',
+                                                          'creation-date',
+                                                          'shape', 'nnz']))
+
+        obs = Table.from_hdf5(h5)
+        exp = Table(
+            np.array([[12, 6], [18, 9], [24, 12]]),
+            ['1', '2', '3'], ['aatt', 'ttgg'],
+            [{'taxonomy': ['k__a', 'p__b']},
+             {'taxonomy': ['k__a', 'p__c']},
+             {'taxonomy': ['k__a', 'p__c']}],
+            [{'collapsed_ids': ['a', 'c']},
+             {'collapsed_ids': ['b']}])
+        self.assertEqual(obs, exp)
+
     def test_from_tsv(self):
         tab1_fh = StringIO(otu_table1)
         sparse_rich = Table.from_tsv(tab1_fh, None, None,
