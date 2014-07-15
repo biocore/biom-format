@@ -186,6 +186,7 @@ from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
 from biom.exception import TableException, UnknownAxisError, UnknownIDError
 from biom.util import (get_biom_format_version_string,
+                       parse_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
                        H5PY_VLEN_UNICODE)
@@ -223,12 +224,13 @@ class Table(object):
                  observation_metadata=None, sample_metadata=None,
                  table_id=None, type=None, create_date=None, generated_by=None,
                  observation_group_metadata=None, sample_group_metadata=None,
-                 **kwargs):
+                 version=(2, 1), **kwargs):
 
         self.type = type
         self.table_id = table_id
         self.create_date = create_date
         self.generated_by = generated_by
+        self.version = version
 
         if not isspmatrix(data):
             shape = (len(observation_ids), len(sample_ids))
@@ -2991,6 +2993,8 @@ html
 
         shape = h5grp.attrs['shape']
         type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
+        version = (None if h5grp.attrs['format-version'] == ''
+                   else h5grp.attrs['format-version'])
 
         def axis_load(grp):
             """Loads all the data of the given group"""
@@ -3105,7 +3109,7 @@ html
                   samp_md or None, type=type_, create_date=create_date,
                   generated_by=generated_by, table_id=id_,
                   observation_group_metadata=obs_grp_md,
-                  sample_group_metadata=samp_grp_md)
+                  sample_group_metadata=samp_grp_md, version=version)
 
         f = lambda vals, id_, md: np.any(vals)
         axis = 'observation' if axis == 'sample' else 'sample'
@@ -3346,7 +3350,7 @@ html
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
         h5grp.attrs['type'] = self.type if self.type else ""
         h5grp.attrs['format-url'] = "http://biom-format.org"
-        h5grp.attrs['format-version'] = (2, 0)
+        h5grp.attrs['format-version'] = self.version
         h5grp.attrs['generated-by'] = generated_by
         h5grp.attrs['creation-date'] = datetime.now().isoformat()
         h5grp.attrs['shape'] = self.shape
@@ -3425,6 +3429,7 @@ html
         obs_ids = [row['id'] for row in json_table['rows']]
         obs_metadata = [row['metadata'] for row in json_table['rows']]
         dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
+        version = parse_biom_format_version_string(json_table['format'])
         if 'matrix_type' in json_table:
             if json_table['matrix_type'] == 'dense':
                 input_is_dense = True
@@ -3438,14 +3443,16 @@ html
                               shape=json_table['shape'],
                               dtype=dtype,
                               type=type_,
-                              input_is_dense=input_is_dense)
+                              input_is_dense=input_is_dense,
+                              version=version)
         else:
             table_obj = Table(data_pump, obs_ids, sample_ids,
                               obs_metadata, sample_metadata,
                               shape=json_table['shape'],
                               dtype=dtype,
                               type=type_,
-                              input_is_dense=input_is_dense)
+                              input_is_dense=input_is_dense,
+                              version=version)
 
         return table_obj
 
@@ -3476,7 +3483,7 @@ html
             direct_io.write('"id": "%s",' % str(self.table_id))
             direct_io.write(
                 '"format": "%s",' %
-                get_biom_format_version_string())
+                get_biom_format_version_string(self.version))
             direct_io.write(
                 '"format_url": "%s",' %
                 get_biom_format_url_string())
@@ -3484,7 +3491,8 @@ html
             direct_io.write('"date": "%s",' % datetime.now().isoformat())
         else:
             id_ = '"id": "%s",' % str(self.table_id)
-            format_ = '"format": "%s",' % get_biom_format_version_string()
+            format_ = '"format": "%s",' % get_biom_format_version_string(
+                self.version)
             format_url = '"format_url": "%s",' % get_biom_format_url_string()
             generated_by = '"generated_by": "%s",' % generated_by
             date = '"date": "%s",' % datetime.now().isoformat()
@@ -3658,7 +3666,8 @@ html
         if obs_mapping is not None:
             obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
 
-        return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata)
+        return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata,
+                     version=(0, 0))
 
     @staticmethod
     def _extract_data_from_tsv(lines, delim='\t', dtype=float,
