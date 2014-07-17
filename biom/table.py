@@ -186,7 +186,6 @@ from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
 from biom.exception import TableException, UnknownAxisError, UnknownIDError
 from biom.util import (get_biom_format_version_string,
-                       parse_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
                        H5PY_VLEN_UNICODE)
@@ -2993,8 +2992,6 @@ html
 
         shape = h5grp.attrs['shape']
         type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
-        version = (None if h5grp.attrs['format-version'] == ''
-                   else h5grp.attrs['format-version'])
 
         def axis_load(grp):
             """Loads all the data of the given group"""
@@ -3109,7 +3106,7 @@ html
                   samp_md or None, type=type_, create_date=create_date,
                   generated_by=generated_by, table_id=id_,
                   observation_group_metadata=obs_grp_md,
-                  sample_group_metadata=samp_grp_md, version=version)
+                  sample_group_metadata=samp_grp_md)
 
         f = lambda vals, id_, md: np.any(vals)
         axis = 'observation' if axis == 'sample' else 'sample'
@@ -3429,7 +3426,6 @@ html
         obs_ids = [row['id'] for row in json_table['rows']]
         obs_metadata = [row['metadata'] for row in json_table['rows']]
         dtype = MATRIX_ELEMENT_TYPE[json_table['matrix_element_type']]
-        version = parse_biom_format_version_string(json_table['format'])
         if 'matrix_type' in json_table:
             if json_table['matrix_type'] == 'dense':
                 input_is_dense = True
@@ -3443,16 +3439,14 @@ html
                               shape=json_table['shape'],
                               dtype=dtype,
                               type=type_,
-                              input_is_dense=input_is_dense,
-                              version=version)
+                              input_is_dense=input_is_dense)
         else:
             table_obj = Table(data_pump, obs_ids, sample_ids,
                               obs_metadata, sample_metadata,
                               shape=json_table['shape'],
                               dtype=dtype,
                               type=type_,
-                              input_is_dense=input_is_dense,
-                              version=version)
+                              input_is_dense=input_is_dense)
 
         return table_obj
 
@@ -3666,8 +3660,7 @@ html
         if obs_mapping is not None:
             obs_metadata = [obs_mapping[obs_id] for obs_id in obs_ids]
 
-        return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata,
-                     version=(0, 0))
+        return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata)
 
     @staticmethod
     def _extract_data_from_tsv(lines, delim='\t', dtype=float,

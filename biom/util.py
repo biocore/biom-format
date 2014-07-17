@@ -99,23 +99,6 @@ def get_biom_format_version_string(version=None):
                                                           version[1])
 
 
-def parse_biom_format_version_string(versionstring):
-    """Takes a Biom format version string and returns the  version tuple
-
-    Parameters
-    ----------
-    versionstring : string
-        string of biom format version 'Biological Observation Matrix X.Y.0'
-
-    Returns
-    --------
-    tuple
-        (X,Y)
-    """
-    version = versionstring.split()[-1].split('.')
-    return (version[0], version[1])
-
-
 def get_biom_format_url_string():
     """Returns the current Biom file format description URL."""
     return __url__
