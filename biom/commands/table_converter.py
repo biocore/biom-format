@@ -74,6 +74,16 @@ class TableConverter(Command):
                   Description='Output as a HDF5 table', Default=False),
         CommandIn(Name='to_tsv', DataType=bool,
                   Description='Output as a TSV table', Default=False),
+        CommandIn(Name='collapsed_samples', DataType=bool,
+                  Description='If to_hdf5 and the original table is a '
+                              'collapsed by samples biom table, this will '
+                              'update the sample metadata of the table to '
+                              'the supported HDF5 collapsed format'),
+        CommandIn(Name='collapsed_observations', DataType=bool,
+                  Description='If to_hdf5 and the original table is a '
+                              'collapsed by observations biom table, this will'
+                              ' update the observation metadata of the table '
+                              'to the supported HDF5 collapsed format'),
         CommandIn(Name='sample_metadata', DataType=MetadataMap,
                   Description='the sample metadata map (will add sample '
                   'metadata to the BIOM table, if provided). Only applies '
@@ -125,6 +135,8 @@ class TableConverter(Command):
         to_tsv = kwargs['to_tsv']
         to_hdf5 = kwargs['to_hdf5']
         to_json = kwargs['to_json']
+        collapsed_observations = kwargs['collapsed_observations']
+        collapsed_samples = kwargs['collapsed_samples']
 
         if sum([to_tsv, to_hdf5, to_json]) == 0:
             raise CommandError("Must specify an output format")
@@ -190,6 +202,18 @@ class TableConverter(Command):
             fmt = 'json'
         elif to_hdf5:
             result = table
+            if collapsed_observations:
+                metadata = [{'collapsed_ids': md.keys()}
+                            for md in result.metadata(axis='observation')]
+                result._observation_metadata = metadata
+            if collapsed_samples:
+                metadata = [{'collapsed_ids': md.keys()}
+                            for md in result.metadata()]
+                result._sample_metadata = metadata
+            if collapsed_observations or collapsed_samples:
+                # We have changed the metadata, it is safer to make sure that
+                # it is correct
+                result._cast_metadata()
             fmt = 'hdf5'
 
         return {'table': (result, fmt)}
