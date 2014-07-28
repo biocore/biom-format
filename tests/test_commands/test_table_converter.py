@@ -16,10 +16,15 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Jai Ram Rideout"
 __email__ = "jai.rideout@gmail.com"
 
+from os.path import abspath, dirname, join
+
+import numpy as np
+
 from pyqi.core.exception import CommandError
 from biom.commands.table_converter import TableConverter
 from biom.parse import MetadataMap, parse_biom_table
 from biom.table import Table
+from biom.util import biom_open
 from unittest import TestCase, main
 from StringIO import StringIO
 
@@ -36,6 +41,12 @@ class TableConverterTests(TestCase):
         self.classic_lines1 = classic1.split('\n')
 
         self.sample_md1 = MetadataMap.from_file(sample_md1.split('\n'))
+
+        test_data_dir = join(dirname(abspath(__file__)), 'test_data')
+        self.json_collapsed_obs = join(test_data_dir,
+                                       'json_obs_collapsed.biom')
+        self.json_collapsed_samples = join(test_data_dir,
+                                           'json_sample_collapsed.biom')
 
     def test_classic_to_biom(self):
         """Correctly converts classic to biom."""
@@ -137,6 +148,96 @@ class TableConverterTests(TestCase):
         with self.assertRaises(CommandError):
             self.cmd(table_file=StringIO(self.biom_lines1),
                      process_obs_metadata='sc_separated')
+
+    def test_json_to_hdf5_collapsed_samples(self):
+        """Correctly converts json to HDF5 changing the sample metadata"""
+        with biom_open(self.json_collapsed_samples) as f:
+            obs = self.cmd(table=parse_biom_table(f), to_hdf5=True,
+                           collapsed_samples=True)
+        self.assertEqual(obs.keys(), ['table'])
+        exp = Table(np.array([[0., 1.], [6., 6.], [6., 1.],
+                              [1., 4.], [0., 2.]]),
+                    observation_ids=['GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
+                                     'GG_OTU_4', 'GG_OTU_5'],
+                    sample_ids=['skin', 'gut'],
+                    observation_metadata=[
+                        {'taxonomy': ['k__Bacteria', 'p__Proteobacteria',
+                                      'c__Gammaproteobacteria',
+                                      'o__Enterobacteriales',
+                                      'f__Enterobacteriaceae',
+                                      'g__Escherichia', 's__']},
+                        {'taxonomy': ['k__Bacteria', 'p__Cyanobacteria',
+                                      'c__Nostocophycideae', 'o__Nostocales',
+                                      'f__Nostocaceae', 'g__Dolichospermum',
+                                      's__']},
+                        {'taxonomy': ['k__Archaea', 'p__Euryarchaeota',
+                                      'c__Methanomicrobia',
+                                      'o__Methanosarcinales',
+                                      'f__Methanosarcinaceae',
+                                      'g__Methanosarcina', 's__']},
+                        {'taxonomy': ['k__Bacteria', 'p__Firmicutes',
+                                      'c__Clostridia', 'o__Halanaerobiales',
+                                      'f__Halanaerobiaceae',
+                                      'g__Halanaerobium',
+                                      's__Halanaerobiumsaccharolyticum']},
+                        {'taxonomy': ['k__Bacteria', 'p__Proteobacteria',
+                                      'c__Gammaproteobacteria',
+                                      'o__Enterobacteriales',
+                                      'f__Enterobacteriaceae',
+                                      'g__Escherichia', 's__']}],
+                    sample_metadata=[
+                        {'collapsed_ids': ['Sample5', 'Sample4', 'Sample6']},
+                        {'collapsed_ids': ['Sample1', 'Sample3', 'Sample2']}
+                        ],
+                    type='OTU table')
+        self.assertEqual(obs['table'][0], exp)
+
+    def test_json_to_hdf5_collapsed_metadata(self):
+        """Correctly converts json to HDF5 changing the observation metadata"""
+        with biom_open(self.json_collapsed_obs) as f:
+            obs = self.cmd(table=parse_biom_table(f), to_hdf5=True,
+                           collapsed_observations=True)
+        self.assertEqual(obs.keys(), ['table'])
+        exp = Table(np.array([[2., 1., 1., 0., 0., 1.],
+                              [0., 0., 1., 4., 0., 2.],
+                              [5., 1., 0., 2., 3., 1.],
+                              [0., 1., 2., 0., 0., 0.]]),
+                    observation_ids=['p__Firmicutes', 'p__Euryarchaeota',
+                                     'p__Cyanobacteria', 'p__Proteobacteria'],
+                    sample_ids=['Sample1', 'Sample2', 'Sample3',
+                                'Sample4', 'Sample5', 'Sample6'],
+                    observation_metadata=[
+                        {'collapsed_ids': ['GG_OTU_4']},
+                        {'collapsed_ids': ['GG_OTU_3']},
+                        {'collapsed_ids': ['GG_OTU_2']},
+                        {'collapsed_ids': ['GG_OTU_1', 'GG_OTU_5']}],
+                    sample_metadata=[
+                        {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                         'BarcodeSequence': 'CGCTTATCGAGA',
+                         'Description': 'human gut',
+                         'BODY_SITE': 'gut'},
+                        {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                         'BarcodeSequence': 'CATACCAGTAGC',
+                         'Description': 'human gut',
+                         'BODY_SITE': 'gut'},
+                        {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                         'BarcodeSequence': 'CTCTCTACCTGT',
+                         'Description': 'human gut',
+                         'BODY_SITE': 'gut'},
+                        {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                         'BarcodeSequence': 'CTCTCGGCCTGT',
+                         'Description': 'human skin',
+                         'BODY_SITE': 'skin'},
+                        {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                         'BarcodeSequence': 'CTCTCTACCAAT',
+                         'Description': 'human skin',
+                         'BODY_SITE': 'skin'},
+                        {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                         'BarcodeSequence': 'CTAACTACCAAT',
+                         'Description': 'human skin',
+                         'BODY_SITE': 'skin'}],
+                    type='OTU table')
+        self.assertEqual(obs['table'][0], exp)
 
 
 biom1 = """
