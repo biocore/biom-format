@@ -11,6 +11,7 @@ The BIOM project consists of two independent tools: the `biom-format` software p
 
    ./format_versions/biom-1.0.rst
    ./format_versions/biom-2.0.rst
+   ./format_versions/biom-2.1.rst
 
 Release versions contain three integers in the following format: ``major-version.minor-version.micro-version``. When ``-dev`` is appended to the end of a version string that indicates a development (or between-release version). For example, ``1.0.0-dev`` would refer to the development version following the 1.0.0 release. 
 
