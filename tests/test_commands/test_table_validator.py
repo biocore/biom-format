@@ -21,6 +21,7 @@ import json
 from unittest import TestCase, main
 from shutil import copy
 
+import numpy as np
 import numpy.testing as npt
 
 from biom.commands.table_validator import TableValidator
@@ -46,10 +47,47 @@ class TableValidatorTests(TestCase):
         examples_path = os.path.join(cur_path.rsplit('/', 2)[0], 'examples')
         self.hdf5_file_valid = os.path.join(examples_path,
                                             'min_sparse_otu_table_hdf5.biom')
+        self.hdf5_file_valid_md = os.path.join(examples_path,
+                                               ('rich_sparse_otu_table_hdf5'
+                                                '.biom'))
 
     def tearDown(self):
         for f in self.to_remove:
             os.remove(f)
+
+    @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
+    def test_valid_hdf5_metadata_v210(self):
+        exp = {'valid_table': True, 'report_lines': []}
+        obs = self.cmd(table=self.hdf5_file_valid, is_json=False,
+                       format_version='2.1')
+        self.assertEqual(obs, exp)
+        obs = self.cmd(table=self.hdf5_file_valid_md, is_json=False,
+                       format_version='2.1')
+        self.assertEqual(obs, exp)
+        obs = self.cmd(table=self.hdf5_file_valid_md, is_json=False,
+                       format_version='2.0')
+        self.assertFalse(obs['valid_table'])
+
+    @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
+    def test_valid_hdf5_metadata_v200(self):
+        # create a v2.0 like table
+        del self.hdf5_file_valid['observation/metadata']
+        del self.hdf5_file_valid['sample/metadata']
+        del self.hdf5_file_valid_md['observation/metadata']
+        del self.hdf5_file_valid_md['sample/metadata']
+        self.hdf5_file_valid_md['observation/metadata'] = np.array(["{}"])
+        self.hdf5_file_valid_md['sample/metadata'] = np.array(["{}"])
+
+        exp = {'valid_table': True, 'report_lines': []}
+        obs = self.cmd(table=self.hdf5_file_valid, is_json=False,
+                       format_version='2.0')
+        self.assertEqual(obs, exp)
+        obs = self.cmd(table=self.hdf5_file_valid_md, is_json=False,
+                       format_version='2.0')
+        self.assertEqual(obs, exp)
+        obs = self.cmd(table=self.hdf5_file_valid_md, is_json=False,
+                       format_version='2.1')
+        self.assertFalse(obs['valid_table'])
 
     @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
     def test_valid_hdf5(self):
