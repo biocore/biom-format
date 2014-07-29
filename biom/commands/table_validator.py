@@ -203,7 +203,7 @@ class TableValidator(Command):
 
         if 'format-version' in table.attrs:
             t_ver = '.'.join([str(v) for v in table.attrs['format-version']])
-            if table.attrs['format-version'] in ['2.0', '2.0.0']:
+            if (table.attrs['format-version'] == (2, 0)).all():
                 if t_ver != '2.0':
                     error = "Table indicates it is version %s" % t_ver
                 else:
