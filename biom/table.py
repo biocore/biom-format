@@ -189,7 +189,7 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
                        H5PY_VLEN_UNICODE)
-
+from biom import __format_version__
 from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
@@ -223,13 +223,13 @@ class Table(object):
                  observation_metadata=None, sample_metadata=None,
                  table_id=None, type=None, create_date=None, generated_by=None,
                  observation_group_metadata=None, sample_group_metadata=None,
-                 version=(2, 1), **kwargs):
+                 **kwargs):
 
         self.type = type
         self.table_id = table_id
         self.create_date = create_date
         self.generated_by = generated_by
-        self.version = version
+        self.version = __format_version__
 
         if not isspmatrix(data):
             shape = (len(observation_ids), len(sample_ids))

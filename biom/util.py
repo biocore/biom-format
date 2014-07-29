@@ -91,7 +91,6 @@ def get_biom_format_version_string(version=None):
     version : tuple
         a tuple containing the version number of the biom table
     """
-
     if version is None:
         return "Biological Observation Matrix 1.0.0"
     else:
