@@ -33,9 +33,6 @@ __author__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
 
-HDF5_VERSIONS = {'2.0', '2.0.0', '2.1', '2.1.0'}
-
-
 class TableValidator(Command):
     BriefDescription = "Validate a BIOM-formatted file"
     LongDescription = ("Test a file for adherence to the Biological "
@@ -72,7 +69,7 @@ class TableValidator(Command):
                       'taxon table'])
     MatrixTypes = set(['sparse', 'dense'])
     ElementTypes = {'int': int, 'str': str, 'float': float, 'unicode': unicode}
-    HDF5FormatVersions = set([(2, 0)])
+    HDF5FormatVersions = set([(2, 0), (2, 0, 0), (2, 1), (2, 1, 0)])
 
     def run(self, **kwargs):
         is_json = kwargs['is_json']
@@ -86,7 +83,8 @@ class TableValidator(Command):
             if is_json:
                 raise ValueError("Only format 1.0.0 is valid for JSON")
 
-            if kwargs['format_version'] not in HDF5_VERSIONS:
+            fmt_ver = [int(v) for v in kwargs['format_version'].split('.')]
+            if tuple(fmt_ver) not in self.HDF5FormatVersions:
                 raise ValueError("Unrecognized format version: %s" %
                                  kwargs['format_version'])
 
@@ -213,6 +211,7 @@ class TableValidator(Command):
 
                 if error is not None:
                     report_lines.append(error)
+                report_lines.append("WARNING: 2.0 is not actively supported!")
             else:
                 if t_ver != '2.1':
                     error = "Table indicates it is version %s" % t_ver
@@ -250,11 +249,11 @@ class TableValidator(Command):
 
         n_obs_ids = len(table['observation/ids'])
         n_samp_ids = len(table['sample/ids'])
-        for name, ds in table['observation']:
+        for name, ds in table['observation/metadata'].items():
             if len(ds) != n_obs_ids:
                 return "%s has %d entries, but expected %d" % (name, len(ds),
                                                                n_obs_ids)
-        for name, ds in table['sample']:
+        for name, ds in table['sample/metadata'].items():
             if len(ds) != n_samp_ids:
                 return "%s has %d entries, but expected %d" % (name, len(ds),
                                                                n_samp_ids)
