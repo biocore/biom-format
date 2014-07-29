@@ -78,7 +78,7 @@ class TableValidator(Command):
             if is_json:
                 kwargs['format_version'] = '1.0.0'
             else:
-                kwargs['format_version'] = '2.0.0'
+                kwargs['format_version'] = '2.1'
         else:
             if is_json:
                 raise ValueError("Only format 1.0.0 is valid for JSON")
@@ -203,15 +203,16 @@ class TableValidator(Command):
 
         if 'format-version' in table.attrs:
             t_ver = '.'.join([str(v) for v in table.attrs['format-version']])
-            if (table.attrs['format-version'] == (2, 0)).all():
+            if kwargs['format_version'] in ['2.0', '2.0.0']:
                 if t_ver != '2.0':
                     error = "Table indicates it is version %s" % t_ver
                 else:
+                    report_lines.append("WARNING: 2.0 is not actively "
+                                        "supported!")
                     error = self._valid_hdf5_metadata_v200(table)
 
                 if error is not None:
                     report_lines.append(error)
-                report_lines.append("WARNING: 2.0 is not actively supported!")
             else:
                 if t_ver != '2.1':
                     error = "Table indicates it is version %s" % t_ver

@@ -72,7 +72,9 @@ class TableValidatorTests(TestCase):
     @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
     def test_valid_hdf5(self):
         """Test a valid HDF5 table"""
-        exp = {'valid_table': True, 'report_lines': []}
+        exp = {'valid_table': True,
+               'report_lines': []}
+
         obs = self.cmd(table=self.hdf5_file_valid, is_json=False)
         self.assertEqual(obs, exp)
 
@@ -87,8 +89,8 @@ class TableValidatorTests(TestCase):
 
         f = h5py.File('invalid.hdf5', 'a')
         del f.attrs['creation-date']
-        f.close()
 
+        f.close()
         obs = self.cmd(table='invalid.hdf5', is_json=False)
         self.assertEqual(obs, exp)
 
