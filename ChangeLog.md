@@ -6,6 +6,7 @@ biom 2.0.1-dev
 
 Changes:
 
+* dropped old, unused scripts
 * added ``Table.iter_pairwise``
 * added ``Table.min`` and ``Table.max``, see #459
 * iter methods now support dense/sparse

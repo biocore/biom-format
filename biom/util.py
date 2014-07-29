@@ -83,9 +83,19 @@ def generate_subsamples(table, n, axis='sample', by_id=False):
         yield table.subsample(n, axis, by_id)
 
 
-def get_biom_format_version_string():
-    """Returns the current Biom file format version."""
-    return "Biological Observation Matrix 1.0.0"
+def get_biom_format_version_string(version=None):
+    """Returns the current Biom file format version.
+
+    Parameters
+    ----------
+    version : tuple
+        a tuple containing the version number of the biom table
+    """
+    if version is None:
+        return "Biological Observation Matrix 1.0.0"
+    else:
+        return "Biological Observation Matrix %s.%s.0" % (version[0],
+                                                          version[1])
 
 
 def get_biom_format_url_string():

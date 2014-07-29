@@ -189,7 +189,7 @@ from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
                        H5PY_VLEN_UNICODE)
-
+from biom import __format_version__
 from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
@@ -229,6 +229,7 @@ class Table(object):
         self.table_id = table_id
         self.create_date = create_date
         self.generated_by = generated_by
+        self.format_version = __format_version__
 
         if not isspmatrix(data):
             shape = (len(observation_ids), len(sample_ids))
@@ -3346,7 +3347,7 @@ html
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
         h5grp.attrs['type'] = self.type if self.type else ""
         h5grp.attrs['format-url'] = "http://biom-format.org"
-        h5grp.attrs['format-version'] = (2, 0)
+        h5grp.attrs['format-version'] = self.format_version
         h5grp.attrs['generated-by'] = generated_by
         h5grp.attrs['creation-date'] = datetime.now().isoformat()
         h5grp.attrs['shape'] = self.shape
@@ -3476,7 +3477,7 @@ html
             direct_io.write('"id": "%s",' % str(self.table_id))
             direct_io.write(
                 '"format": "%s",' %
-                get_biom_format_version_string())
+                get_biom_format_version_string(self.format_version))
             direct_io.write(
                 '"format_url": "%s",' %
                 get_biom_format_url_string())
@@ -3484,7 +3485,8 @@ html
             direct_io.write('"date": "%s",' % datetime.now().isoformat())
         else:
             id_ = '"id": "%s",' % str(self.table_id)
-            format_ = '"format": "%s",' % get_biom_format_version_string()
+            format_ = '"format": "%s",' % get_biom_format_version_string(
+                self.format_version)
             format_url = '"format_url": "%s",' % get_biom_format_url_string()
             generated_by = '"generated_by": "%s",' % generated_by
             date = '"date": "%s",' % datetime.now().isoformat()
