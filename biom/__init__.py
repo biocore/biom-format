@@ -59,7 +59,7 @@ __url__ = "http://biom-format.org"
 __version__ = "2.0.1-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-
+__format_version__ = (2, 1)
 
 from .table import Table
 from .parse import parse_biom_table as parse_table, load_table
