@@ -54,6 +54,8 @@ Under the ``observation/metadata`` and ``sample/metadata`` groups, the user can 
     observation/metadata/collapsed_ids : <string> or <variable length string> A (N, ?) dataset containing the observation ids of the original table that have been collapsed in the given observation
     sample/metadata/collapsed_ids      : <string> or <variable length string> A (M, ?) dataset containing the sample ids of the original table that have been collapsed in the given sample
 
+Under the ``observation/group-metadata`` and ``sample/group-metadata`` groups, the user can specify an arbitrary number of datasets that represents a relationship between the ids for that axis. The expected structure for each of these group metadata datasets is a single string or variable length string. Each of these datasets should have defined an attribute called ``data_type``, which specifies how the string should be interpreted. One example of such group metadata dataset is ``observation/group-metadata/phylogeny``, with the attribute ``observation/group-metadata/phylogeny.attrs['data_type'] = "newick"``, which stores a single string with the newick format of the phylogenetic tree for the observations.
+
 
 Example biom files
 ==================
