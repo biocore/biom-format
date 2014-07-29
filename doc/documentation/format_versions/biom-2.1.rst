@@ -76,7 +76,7 @@ BIOM 2.1 OTU table in the HDF5 data description langauge (DDL)
           }
           DATASPACE  SCALAR
           DATA {
-          (0): "2014-07-02T14:00:49.911339"
+          (0): "2014-07-29T16:16:36.617320"
           }
        }
        ATTRIBUTE "format-url" {
@@ -95,7 +95,7 @@ BIOM 2.1 OTU table in the HDF5 data description langauge (DDL)
           DATATYPE  H5T_STD_I64LE
           DATASPACE  SIMPLE { ( 2 ) / ( 2 ) }
           DATA {
-          (0): 2, 0
+          (0): 2, 1
           }
        }
        ATTRIBUTE "generated-by" {
