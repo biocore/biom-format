@@ -2891,7 +2891,7 @@ dataset of int32
 dataset of int32
         - ./observation/metadata                                : Group
         - [./observation/metadata/foo]                          : Optional, \
-(N,) dataset of str or vlen str in index order with ids.
+(N,) dataset of any valid HDF5 type in index order with IDs.
         - ./observation/group-metadata                          : Group
         - [./observation/group-metadata/foo]                    : Optional, \
 (?,) dataset of group metadata that relates IDs
@@ -2909,7 +2909,7 @@ dataset of int32
 dataset of int32
         - ./sample/metadata                                     : Group
         - [./sample/metadata/foo]                               : Optional, \
-(M,) dataset of str or vlen str in index order with ids.
+(M,) dataset of any valid HDF5 type in index order with IDs.
         - ./sample/group-metadata                               : Group
         - [./sample/group-metadata/foo]                         : Optional, \
 (?,) dataset of group metadata that relates IDs
@@ -3156,7 +3156,7 @@ dataset of int32
 dataset of int32
         - ./observation/metadata                                : Group
         - [./observation/metadata/foo]                          : Optional, \
-(N,) dataset of str or vlen str in index order with ids.
+(N,) dataset of any valid HDF5 type in index order with IDs.
         - ./observation/group-metadata                          : Group
         - [./observation/group-metadata/foo]                    : Optional, \
 (?,) dataset of group metadata that relates IDs
@@ -3174,7 +3174,7 @@ dataset of int32
 dataset of int32
         - ./sample/metadata                                     : Group
         - [./sample/metadata/foo]                               : Optional, \
-(M,) dataset of str or vlen str in index order with ids.
+(M,) dataset of any valid HDF5 type in index order with IDs.
         - ./sample/group-metadata                               : Group
         - [./sample/group-metadata/foo]                         : Optional, \
 (?,) dataset of group metadata that relates IDs
@@ -3196,7 +3196,8 @@ dataset of int32
 
         Parameters
         ----------
-        h5grp : {`h5py.Group`, `h5py.File`}
+        h5grp : `h5py.Group` or `h5py.File`
+            The HDF5 entity in which to write the BIOM formatted data.
         generated_by : str
             A description of what generated the table
         compress : bool, optional
