@@ -14,8 +14,11 @@ import sys
 from datetime import datetime
 from operator import and_
 from functools import reduce
+
+import numpy as np
 from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
+
 from biom.util import HAVE_H5PY, biom_open
 
 
@@ -66,7 +69,7 @@ class TableValidator(Command):
                       'taxon table'])
     MatrixTypes = set(['sparse', 'dense'])
     ElementTypes = {'int': int, 'str': str, 'float': float, 'unicode': unicode}
-    HDF5FormatVersions = set([(2, 0)])
+    HDF5FormatVersions = set([(2, 0), (2, 0, 0), (2, 1), (2, 1, 0)])
 
     def run(self, **kwargs):
         is_json = kwargs['is_json']
@@ -75,7 +78,15 @@ class TableValidator(Command):
             if is_json:
                 kwargs['format_version'] = '1.0.0'
             else:
-                kwargs['format_version'] = '2.0.0'
+                kwargs['format_version'] = '2.1'
+        else:
+            if is_json:
+                raise ValueError("Only format 1.0.0 is valid for JSON")
+
+            fmt_ver = [int(v) for v in kwargs['format_version'].split('.')]
+            if tuple(fmt_ver) not in self.HDF5FormatVersions:
+                raise ValueError("Unrecognized format version: %s" %
+                                 kwargs['format_version'])
 
         # this is not pyqi-appriopriate, but how we parse this thing is
         # dependent on runtime options :(
@@ -187,8 +198,66 @@ class TableValidator(Command):
                 valid_table = False
                 report_lines.append("Number of sample IDs is not equal "
                                     "to the described shape")
+        else:
+            valid_table = False
+
+        if 'format-version' in table.attrs:
+            t_ver = '.'.join([str(v) for v in table.attrs['format-version']])
+            if kwargs['format_version'] in ['2.0', '2.0.0']:
+                if t_ver != '2.0':
+                    error = "Table indicates it is version %s" % t_ver
+                else:
+                    report_lines.append("WARNING: 2.0 is not actively "
+                                        "supported!")
+                    error = self._valid_hdf5_metadata_v200(table)
+
+                if error is not None:
+                    report_lines.append(error)
+            else:
+                if t_ver != '2.1':
+                    error = "Table indicates it is version %s" % t_ver
+                else:
+                    error = self._valid_hdf5_metadata_v210(table)
+
+                if error is not None:
+                    report_lines.append(error)
 
         return {'valid_table': valid_table, 'report_lines': report_lines}
+
+    def _valid_hdf5_metadata_v200(self, table):
+        no_md = np.array(["[]"])
+        try:
+            json.loads(table['observation'].get('metadata', no_md)[0])
+        except ValueError:
+            return ("Observation metadata do not appear to be formatted"
+                    " correctly")
+
+        try:
+            json.loads(table['sample'].get('metadata', no_md)[0])
+        except ValueError:
+            return ("Sample metadata do not appear to be formatted"
+                    " correctly")
+
+    def _valid_hdf5_metadata_v210(self, table):
+        if 'observation/metadata' not in table:
+            return "Observation/metadata group is missing"
+        if 'observation/group-metadata' not in table:
+            return "Observation/group-metadata is missing"
+        if 'sample/metadata' not in table:
+            return "Sample/metadata group is missing"
+        if 'sample/group-metadata' not in table:
+            return "Sample/group-metadata is missing"
+
+        n_obs_ids = len(table['observation/ids'])
+        n_samp_ids = len(table['sample/ids'])
+        for name, ds in table['observation/metadata'].items():
+            if len(ds) != n_obs_ids:
+                return "%s has %d entries, but expected %d" % (name, len(ds),
+                                                               n_obs_ids)
+        for name, ds in table['sample/metadata'].items():
+            if len(ds) != n_samp_ids:
+                return "%s has %d entries, but expected %d" % (name, len(ds),
+                                                               n_samp_ids)
 
     def _validate_json(self, **kwargs):
         table_json = kwargs['table']
