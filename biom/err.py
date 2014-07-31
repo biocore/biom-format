@@ -48,7 +48,7 @@ class _ErrorProfile(object):
     def test(self, item):
         """Test an item for error"""
         for errtype, test_func in self._test:
-            if test_func(item):
+            if self._state[errtype] != 'ignore' and test_func(item):
                 self._handle_error(errtype)
 
     def _handle_error(self, errtype):
@@ -57,9 +57,15 @@ class _ErrorProfile(object):
         self._profile[errtype][state]()
 
     def setcall(self, errtype, func):
+        """Set a function callback"""
         old_call = self._profile[errtype]['call']
         self._profile[errtype]['call'] = func
         return old_call
+
+    def getcall(self, errtype):
+        """Get a function callback"""
+        return self._profile[errtype]['call']
+
 
 __error_profile = _ErrorProfile()
 
@@ -159,9 +165,7 @@ def seterrcall(errtype, func):
     if errtype not in __error_profile:
         raise KeyError("Unknown error type: %s" % errtype)
     else:
-        old_func = __error_profile[errtype]['call']
-        __error_profile[errtype]['call'] = func
-        return old_func
+        return __error_profile.setcall(errtype, func)
 
 
 def geterrcall(errtype):
@@ -186,8 +190,7 @@ def geterrcall(errtype):
     if errtype not in __error_profile:
         raise KeyError("Unknown error type: %s" % errtype)
     else:
-        old_func = __error_profile[errtype]['call']
-        return old_func
+        return __error_profile.getcall(errtype)
 
 
 def check_error(table):
