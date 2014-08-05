@@ -114,7 +114,7 @@ def _test_sampmdsize(t):
 
 
 def _create_error_states(msg, callback, exception):
-    """Create an error states"""
+    """Create error states"""
     return {'ignore': lambda x: None,
             'warn': lambda x: warn(msg),
             'raise': lambda x: exception(msg),
@@ -126,7 +126,7 @@ class ErrorProfile(object):
     """An error profile
 
     The error profile defines the types of errors that can be optionally
-    handled, how those errors are handled, and the actual handling of the
+    handled, how those errors are handled, and performs the handling of the
     errors.
     """
     _valid_states = frozenset(['raise', 'ignore', 'call', 'print', 'warn'])
