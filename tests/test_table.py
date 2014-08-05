@@ -527,7 +527,7 @@ class TableTests(TestCase):
         npt.assert_equal(t.ids(axis='observation'), [])
         self.assertEqual(t._observation_metadata, None)
         self.assertEqual(t._sample_metadata, None)
-        # npt.assert_equal(list(t.iter_data(axis='observation')), exp)
+        npt.assert_equal(list(t.iter_data(axis='observation')), [])
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_empty_table(self):
