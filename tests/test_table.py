@@ -514,6 +514,21 @@ class TableTests(TestCase):
         os.chdir(cwd)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_from_hdf5_empty_table(self):
+        """HDF5 biom parse successfully loads an empty table"""
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        t = Table.from_hdf5(h5py.File('test_data/empty.biom'))
+        os.chdir(cwd)
+
+        npt.assert_equal(t.ids(), [])
+        npt.assert_equal(t.ids(axis='observation'), [])
+        self.assertEqual(t._observation_metadata, None)
+        self.assertEqual(t._sample_metadata, None)
+        # npt.assert_equal(list(t.iter_data(axis='observation')), exp)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_empty_table(self):
         """Successfully writes an empty OTU table in HDF5 format"""
         # Create an empty OTU table
