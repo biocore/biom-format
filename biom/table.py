@@ -3225,12 +3225,17 @@ html
                                data=self._data.indptr,
                                compression=compression)
 
-            # if we store IDs in the table as numpy arrays then this store
-            # is cleaner, as is the parse
-            grp.create_dataset('ids', shape=(len_ids,),
-                               dtype=H5PY_VLEN_STR,
-                               data=[str(i) for i in ids],
-                               compression=compression)
+            if len_ids > 0:
+                # if we store IDs in the table as numpy arrays then this store
+                # is cleaner, as is the parse
+                grp.create_dataset('ids', shape=(len_ids,),
+                                   dtype=H5PY_VLEN_STR,
+                                   data=[str(i) for i in ids],
+                                   compression=compression)
+            else:
+                # Empty H5PY_VLEN_STR datasets are not supported.
+                grp.create_dataset('ids', shape=(0, ), data=[],
+                                   compression=compression)
 
             # Create the group for the metadata
             grp.create_group('metadata')
