@@ -275,7 +275,9 @@ class ErrorProfile(object):
             the handler.
 
         Raises
-
+        ------
+        KeyError
+            If an unknown error type is specified.
 
         Examples
         --------
@@ -479,18 +481,16 @@ def errstate(**kwargs):
 
     Using an instance of `errstate` as a context manager allows statements in
     that context to execute with a known error handling behavior. Upon entering
-    the context the error handling is set with `seterr` and `seterrcall`, and
-    upon exiting it is reset to what it was before. Please note, this text was
-    taken verbatim from numpy's errstate method.
+    the context the error handling is set with `seterr`, and upon exiting it is
+    reset to what it was before. Please note, this text was taken near verbatim
+    from numpy's errstate method.
 
     Parameters
     ----------
     kwargs : {empty}
         Keyword arguments. The valid error types that are defined. Each keyword
-        should have a string or callable for the particular error. If the value
-        is a callable, it implies a callback is to be specified for the error
-        type. Values are: {'ignore', 'warn', 'raise', 'call', 'print',
-                           callable}
+        should have a string or callable for the particular error. Values are:
+        {'ignore', 'warn', 'raise', 'call', 'print'}
 
     See Also
     --------
