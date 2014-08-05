@@ -190,6 +190,7 @@ from biom.util import (get_biom_format_version_string,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
                        H5PY_VLEN_UNICODE)
 from biom import __format_version__
+from biom.err import errcheck
 from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
@@ -256,11 +257,12 @@ class Table(object):
         self._sample_group_metadata = sample_group_metadata
         self._observation_group_metadata = observation_group_metadata
 
+        errcheck(self)
+
         # These will be set by _index_ids()
         self._sample_index = None
         self._obs_index = None
 
-        self._verify_metadata()
         self._cast_metadata()
         self._index_ids()
 
@@ -386,37 +388,6 @@ class Table(object):
             return mat
         else:
             raise TableException("Unknown input type")
-
-    def _verify_metadata(self):
-        """Obtain some notion of sanity on object construction with inputs"""
-        try:
-            n_obs, n_samp = self._data.shape
-        except:
-            n_obs = n_samp = 0
-
-        if n_obs != len(self._observation_ids):
-            raise TableException(
-                "Number of observation_ids differs from matrix size!")
-
-        if n_obs != len(set(self._observation_ids)):
-            raise TableException("Duplicate observation_ids")
-
-        if n_samp != len(self._sample_ids):
-            raise TableException(
-                "Number of sample_ids differs from matrix size!")
-
-        if n_samp != len(set(self._sample_ids)):
-            raise TableException("Duplicate sample_ids")
-
-        if self._sample_metadata is not None and \
-           n_samp != len(self._sample_metadata):
-            raise TableException("sample_metadata not in a compatible shape"
-                                 "with data matrix!")
-
-        if self._observation_metadata is not None and \
-           n_obs != len(self._observation_metadata):
-            raise TableException("observation_metadata not in a compatible"
-                                 "shape with data matrix!")
 
     def _cast_metadata(self):
         """Casts all metadata to defaultdict to support default values.
@@ -1768,6 +1739,7 @@ class Table(object):
             table._observation_metadata = metadata
 
         table._index_ids()
+        errcheck(table, 'empty')
 
         return table
 
@@ -2122,8 +2094,7 @@ class Table(object):
             data = self._conv_to_self_type(collapsed_data, transpose=transpose)
 
         # if the table is empty
-        if 0 in data.shape:
-            raise TableException("Collapsed table is empty!")
+        errcheck(self, 'empty')
 
         md = self.metadata(axis=self._invert_axis(axis))
         if axis == 'sample':
