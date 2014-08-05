@@ -25,6 +25,7 @@ from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
                         coo_arrays_to_sparse, list_list_to_sparse,
                         nparray_to_sparse, list_sparse_to_sparse)
 from biom.parse import parse_biom_table
+from biom.err import errstate
 
 if HAVE_H5PY:
     import h5py
@@ -874,6 +875,8 @@ class TableTests(TestCase):
         # test is that no exception is raised
 
         obs_ids = [1, 2]
+        from biom.err import geterr
+        print geterr()
         self.assertRaises(TableException, Table, d, samp_ids, obs_ids, samp_md,
                           obs_md)
 
@@ -1945,7 +1948,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_sample_remove_everything(self):
-        with self.assertRaises(TableException):
+        with errstate(empty='raise'), self.assertRaises(TableException):
             self.st_rich.filter(lambda vals, id_, md: False, 'sample')
 
     def test_filter_observations_id(self):
@@ -1979,7 +1982,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(table, exp_table)
 
     def test_filter_observations_remove_everything(self):
-        with self.assertRaises(TableException):
+        with errstate(empty='raise'), self.assertRaises(TableException):
             self.st_rich.filter(lambda vals, id_, md: False, 'observation')
 
     def test_subsample_by_id(self):

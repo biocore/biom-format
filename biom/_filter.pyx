@@ -15,8 +15,6 @@ from types import FunctionType
 import numpy as np
 cimport numpy as cnp
 
-from biom.exception import TableException
-
 
 cdef cnp.ndarray[cnp.uint8_t, ndim=1] \
     _make_filter_array_general(arr,
@@ -135,9 +133,6 @@ def _filter(arr, ids, metadata, index, ids_to_keep, axis, invert):
                                            axis, invert)
     else:
         raise TypeError("ids_to_keep must be an iterable or a function")
-
-    if np.all(bools == 0):
-        raise TableException("All data was filtered out!")
 
     if axis == 0:
         _remove_rows_csr(arr, bools)
