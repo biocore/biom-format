@@ -4,22 +4,38 @@ BIOM-Format ChangeLog
 biom 2.0.1-dev
 --------------
 
+New features: 
+
+* Group metadata (e.g., a phylogenetic tree) can now be stored within the HDF5
+    representation. These data are available within the `Table` object
+* Matrix data can now be accessed by the ``Table.matrix_data`` property
+* ``Table`` IDs are now accessed via the ``Table.ids`` method
+* ``Table`` metadata are now accessed via the ``Table.metadata`` method
+
 Changes:
 
+* Metadata are now stored in individual datasets within HDF5. This resulted in
+    a change to the BIOM-Format spec which has now been bumped to format
+    version 2.1.
+* ``Table.collapse`` ``min_group_size`` is now 1 by default, see #480
+* General improvements to BIOM 2.x online documentation
+* ``Table.pa`` now supports negative values
 * dropped old, unused scripts
 * added ``Table.iter_pairwise``
 * added ``Table.min`` and ``Table.max``, see #459
 * iter methods now support dense/sparse
 * added ``Table.matrix_data`` property
 * ``Table.filter`` yields a sparse vector, see #470
-* `Table.subsample` can now sample by IDs (e.g., get a random subset of samples
-    or observations from a `Table`).
-* `biom.util.generate_subsamples` will generate an infinite number of 
+* ``Table.subsample`` can now sample by IDs (e.g., get a random subset of 
+    samples or observations from a ``Table``).
+* ``biom.util.generate_subsamples`` will generate an infinite number of 
     subsamples and can be used for rarefaction.
-* `biom summarize-table` can now operate on observations.
+* ``biom summarize-table`` can now operate on observations.
 
 Bug fixes:
 
+* ``Table.transform`` operates on full vectors now, see #476
+* ``biom convert`` now handles taxonomy strings correctly, see #504
 * ``Table.sort_order`` was not retaining ``Table.type``, see #474
 * ``convert_biom_to_table`` now uses ``load_table``, see #478
 * ``Table.pa`` now handles negative values, see #492
