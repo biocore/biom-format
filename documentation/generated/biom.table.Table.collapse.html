@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.0.1-dev',
+        VERSION:     '2.1-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,13 +58,13 @@
 <h1>biom.table.Table.collapse<a class="headerlink" href="#biom-table-table-collapse" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="biom.table.Table.collapse">
-<tt class="descclassname">Table.</tt><tt class="descname">collapse</tt><big>(</big><em>f</em>, <em>reduce_f=&lt;built-in function add&gt;</em>, <em>norm=True</em>, <em>min_group_size=2</em>, <em>include_collapsed_metadata=True</em>, <em>one_to_many=False</em>, <em>one_to_many_mode='add'</em>, <em>one_to_many_md_key='Path'</em>, <em>strict=False</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.collapse" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Table.</tt><tt class="descname">collapse</tt><big>(</big><em>f</em>, <em>reduce_f=&lt;built-in function add&gt;</em>, <em>norm=True</em>, <em>min_group_size=1</em>, <em>include_collapsed_metadata=True</em>, <em>one_to_many=False</em>, <em>one_to_many_mode='add'</em>, <em>one_to_many_md_key='Path'</em>, <em>strict=False</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.collapse" title="Permalink to this definition">¶</a></dt>
 <dd><p>Collapse partitions in a table by metadata or by IDs</p>
 <p>Partition data by metadata or IDs and then collapse each partition into
 a single vector.</p>
-<p>If <cite>include_collapsed_metadata</cite> is <tt class="docutils literal"><span class="pre">True</span></tt>, metadata for the collapsed
-partition are retained and can be referred to by the corresponding ID
-from each vector within the partition.</p>
+<p>If <cite>include_collapsed_metadata</cite> is <tt class="docutils literal"><span class="pre">True</span></tt>, the metadata for the
+collapsed partition will be a category named &#8216;collapsed_ids&#8217;, in which
+a list of the original ids that made up the partition is retained</p>
 <p>The remainder is only relevant to setting <cite>one_to_many</cite> to <tt class="docutils literal"><span class="pre">True</span></tt>.</p>
 <p>If <cite>one_to_many</cite> is <tt class="docutils literal"><span class="pre">True</span></tt>, allow vectors to collapse into multiple
 bins if the metadata describe a one-many relationship. Supplied
@@ -123,8 +123,8 @@ a one-to-one collapse</p>
 </div></blockquote>
 <p><strong>min_group_size</strong> : int, optional</p>
 <blockquote>
-<div><p>Defaults to <tt class="docutils literal"><span class="pre">2</span></tt>. The minimum size of a partition of performing a
-one-to-many collapse</p>
+<div><p>Defaults to <tt class="docutils literal"><span class="pre">1</span></tt>. The minimum size of a partition when performing
+a one-to-one collapse</p>
 </div></blockquote>
 <p><strong>include_collapsed_metadata</strong> : bool, optional</p>
 <blockquote>
@@ -219,7 +219,7 @@ one-to-many structure</p>
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Jun 03, 2014.
+      Last updated on Aug 07, 2014.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

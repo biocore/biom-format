@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.0.1-dev',
+        VERSION:     '2.1-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -105,38 +105,50 @@ present in the hdf5 biom table</p>
 <p class="rubric">Notes</p>
 <p>The expected HDF5 group structure is below. An example of an HDF5 file
 in DDL can be found here <a class="reference internal" href="#r9" id="id1">[R9]</a>.</p>
-<p>./id                         : str, an arbitrary ID
-./type                       : str, the table type (e.g, OTU table)
-./format-url                 : str, a URL that describes the format
-./format-version             : two element tuple of int32,
-major and minor
-./generated-by               : str, what generated this file
-./creation-date              : str, ISO format
-./shape                      : two element tuple of int32, N by M
-./nnz                        : int32 or int64, number of non zero elems
-./observation                : Group
-./observation/ids            : (N,) dataset of str or vlen str
-./observation/matrix         : Group
-./observation/matrix/data    : (nnz,) dataset of float64
-./observation/matrix/indices : (nnz,) dataset of int32
-./observation/matrix/indptr  : (M+1,) dataset of int32
-[./observation/metadata]     : Optional, JSON str, in index order
-with ids. See below for added detail.
-./sample                     : Group
-./sample/ids                 : (M,) dataset of str or vlen str
-./sample/matrix              : Group
-./sample/matrix/data         : (nnz,) dataset of float64
-./sample/matrix/indices      : (nnz,) dataset of int32
-./sample/matrix/indptr       : (N+1,) dataset of int32
-[./sample/metadata]          : Optional, JSON str, in index order
-with ids. See below for added detail.</p>
-<p>The expected structure (in JSON) for the optional metadata is a list of
-objects, where the index order of the list corresponds to the index
-order of the relevant axis IDs. The metadata are parsed directly by
-JSON, and there are no constraints on the contained metadata with the
-exception of the outer list, and that the order of the list matters.
-Below is an example of observational metadata for two observations:</p>
-<p>[{&#8220;taxonomy&#8221;: [&#8220;foo&#8221;, &#8220;bar&#8221;]}, {&#8220;taxonomy&#8221;: [&#8220;foo&#8221;, &#8220;foobar&#8221;]}]</p>
+<ul class="simple">
+<li>./id                                                  : str, an arbitrary ID</li>
+<li>./type                                                : str, the table type (e.g, OTU table)</li>
+<li>./format-url                                          : str, a URL that describes the format</li>
+<li>./format-version                                      : two element tuple of int32, major and minor</li>
+<li>./generated-by                                        : str, what generated this file</li>
+<li>./creation-date                                       : str, ISO format</li>
+<li>./shape                                               : two element tuple of int32, N by M</li>
+<li>./nnz                                                 : int32 or int64, number of non zero elems</li>
+<li>./observation                                         : Group</li>
+<li>./observation/ids                                     : (N,) dataset of str or vlen str</li>
+<li>./observation/matrix                                  : Group</li>
+<li>./observation/matrix/data                             : (nnz,) dataset of float64</li>
+<li>./observation/matrix/indices                          : (nnz,) dataset of int32</li>
+<li>./observation/matrix/indptr                           : (M+1,) dataset of int32</li>
+<li>./observation/metadata                                : Group</li>
+<li>[./observation/metadata/foo]                          : Optional, (N,) dataset of any valid HDF5 type in index order with IDs.</li>
+<li>./observation/group-metadata                          : Group</li>
+<li>[./observation/group-metadata/foo]                    : Optional, (?,) dataset of group metadata that relates IDs</li>
+<li>[./observation/group-metadata/foo.attrs[&#8216;data_type&#8217;]] : attribute of the foo dataset that describes contained type (e.g., newick)</li>
+<li>./sample                                              : Group</li>
+<li>./sample/ids                                          : (M,) dataset of str or vlen str</li>
+<li>./sample/matrix                                       : Group</li>
+<li>./sample/matrix/data                                  : (nnz,) dataset of float64</li>
+<li>./sample/matrix/indices                               : (nnz,) dataset of int32</li>
+<li>./sample/matrix/indptr                                : (N+1,) dataset of int32</li>
+<li>./sample/metadata                                     : Group</li>
+<li>[./sample/metadata/foo]                               : Optional, (M,) dataset of any valid HDF5 type in index order with IDs.</li>
+<li>./sample/group-metadata                               : Group</li>
+<li>[./sample/group-metadata/foo]                         : Optional, (?,) dataset of group metadata that relates IDs</li>
+<li>[./sample/group-metadata/foo.attrs[&#8216;data_type&#8217;]]      : attribute of the foo dataset that describes contained type (e.g., newick)</li>
+</ul>
+<p>The &#8216;?&#8217; character on the dataset size means that it can be of arbitrary
+length.</p>
+<p>The expected structure for each of the metadata datasets is a list of
+atomic type objects (int, float, str, ...), where the index order of
+the list corresponds to the index order of the relevant axis IDs.
+Special metadata fields have been defined, and they are stored in a
+specific way. Currently, the available special metadata fields are:</p>
+<ul class="simple">
+<li>taxonomy: (N, ?) dataset of str or vlen str</li>
+<li>KEGG_Pathways: (N, ?) dataset of str or vlen str</li>
+<li>collapsed_ids: (N, ?) dataset of str or vlen str</li>
+</ul>
 <p class="rubric">References</p>
 <table class="docutils citation" frame="void" id="r7" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
@@ -157,18 +169,18 @@ Below is an example of observational metadata for two observations:</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">h5py</span> <span class="kn">import</span> <span class="n">File</span> 
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="s">&#39;rich_sparse_otu_table_hdf5.biom&#39;</span><span class="p">)</span> 
-<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">from_hdf5</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> 
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.util</span> <span class="kn">import</span> <span class="n">biom_open</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">biom_open</span><span class="p">(</span><span class="s">&#39;rich_sparse_otu_table_hdf5.biom&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span> 
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="o">.</span><span class="n">from_hdf5</span><span class="p">(</span><span class="n">f</span><span class="p">)</span> 
 </pre></div>
 </div>
 <p>Parse a hdf5 biom table subsetting observations
-&gt;&gt;&gt; from h5py import File # doctest: +SKIP
+&gt;&gt;&gt; from biom.util import biom_open # doctest: +SKIP
 &gt;&gt;&gt; from biom.parse import parse_biom_table
-&gt;&gt;&gt; f = File(&#8216;rich_sparse_otu_table_hdf5.biom&#8217;) # doctest: +SKIP
-&gt;&gt;&gt; t = Table.from_hdf5(f, ids=[&#8220;GG_OTU_1&#8221;],
-...                     axis=&#8217;observation&#8217;) # doctest: +SKIP</p>
+&gt;&gt;&gt; with biom_open(&#8216;rich_sparse_otu_table_hdf5.biom&#8217;) as f # doctest: +SKIP
+&gt;&gt;&gt;     t = Table.from_hdf5(f, ids=[&#8220;GG_OTU_1&#8221;],
+...                         axis=&#8217;observation&#8217;) # doctest: +SKIP</p>
 </dd></dl>
 
 </div>
@@ -190,7 +202,7 @@ Below is an example of observational metadata for two observations:</p>
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Jun 03, 2014.
+      Last updated on Aug 07, 2014.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

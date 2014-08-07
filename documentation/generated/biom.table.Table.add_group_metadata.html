@@ -1,0 +1,124 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>biom.table.Table.add_group_metadata &mdash; biom-format.org</title>
+    
+    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.1-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/copybutton.js"></script>
+    <link rel="top" title="biom-format.org" href="../../index.html" />
+    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
+    <link rel="next" title="biom.table.Table.add_metadata" href="biom.table.Table.add_metadata.html" />
+    <link rel="prev" title="biom.table.Table._extract_data_from_tsv" href="biom.table.Table._extract_data_from_tsv.html" /> 
+  </head>
+  <body>
+  
+  <a href="https://github.com/biocore/biom-format"><img
+    style="position: absolute; top: 0; right: 0; border: 0;"
+    src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+    alt="Fork me on GitHub"></a>
+
+      <div class="header"><h1 class="heading"><a href="../../index.html">
+          <span>biom-format.org</span></a></h1>
+        <h2 class="heading"><span>biom.table.Table.add_group_metadata</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom.table.Table._extract_data_from_tsv.html">biom.table.Table._extract_data_from_tsv</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="biom.table.Table.add_metadata.html">biom.table.Table.add_metadata</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="biom-table-table-add-group-metadata">
+<h1>biom.table.Table.add_group_metadata<a class="headerlink" href="#biom-table-table-add-group-metadata" title="Permalink to this headline">¶</a></h1>
+<dl class="method">
+<dt id="biom.table.Table.add_group_metadata">
+<tt class="descclassname">Table.</tt><tt class="descname">add_group_metadata</tt><big>(</big><em>group_md</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.add_group_metadata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a dict of group metadata and add it to an axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>group_md</strong> : dict of tuples</p>
+<blockquote>
+<div><p><cite>group_md</cite> should be of the form <tt class="docutils literal"><span class="pre">{category:</span> <span class="pre">(data</span> <span class="pre">type,</span> <span class="pre">value)</span></tt></p>
+</div></blockquote>
+<p><strong>axis</strong> : {&#8216;sample&#8217;, &#8216;observation&#8217;}, optional</p>
+<blockquote>
+<div><p>The axis to operate on</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>UnknownAxisError</strong></p>
+<blockquote class="last">
+<div><p>If provided an unrecognized axis.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom.table.Table._extract_data_from_tsv.html">biom.table.Table._extract_data_from_tsv</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="biom.table.Table.add_metadata.html">biom.table.Table.add_metadata</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+
+    <div class="footer">
+        &copy; Copyright 2011-2013, The BIOM Format Development Team.
+      Last updated on Aug 07, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-6636235-6']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>

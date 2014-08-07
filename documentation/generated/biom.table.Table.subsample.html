@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.0.1-dev',
+        VERSION:     '2.1-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table.subsample<a class="headerlink" href="#biom-table-table-subsample" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="biom.table.Table.subsample">
-<tt class="descclassname">Table.</tt><tt class="descname">subsample</tt><big>(</big><em>n</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.subsample" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Table.</tt><tt class="descname">subsample</tt><big>(</big><em>n</em>, <em>axis='sample'</em>, <em>by_id=False</em><big>)</big><a class="headerlink" href="#biom.table.Table.subsample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomly subsample without replacement.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -71,6 +71,13 @@
 <p><strong>axis</strong> : {&#8216;sample&#8217;, &#8216;observation&#8217;}, optional</p>
 <blockquote>
 <div><p>The axis to sample over</p>
+</div></blockquote>
+<p><strong>by_id</strong> : boolean, optional</p>
+<blockquote>
+<div><p>If <cite>False</cite>, the subsampling is based on the counts contained in the
+matrix (e.g., rarefaction). If <cite>True</cite>, the subsampling is based on
+the IDs (e.g., fetch a random subset of samples). Default is
+<cite>False</cite>.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -93,7 +100,7 @@
 the sum of a given vector, that vector is omitted from the result.</p>
 <p>Adapted from <cite>skbio.math.subsample</cite>, see biom-format/licenses for more
 information about scikit-bio.</p>
-<p>This code assumes absolute abundance.</p>
+<p>This code assumes absolute abundance if <cite>by_id</cite> is False.</p>
 <p class="rubric">Examples</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
@@ -101,7 +108,7 @@ information about scikit-bio.</p>
 <span class="gp">... </span>              <span class="p">[</span><span class="s">&#39;S1&#39;</span><span class="p">,</span> <span class="s">&#39;S2&#39;</span><span class="p">,</span> <span class="s">&#39;S3&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
-<p>Subsample 1 item over the sample axis:</p>
+<p>Subsample 1 item over the sample axis by value (e.g., rarefaction):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s">&#39;sample&#39;</span><span class="p">)</span>
 <span class="go">[ 1.  1.  1.]</span>
 </pre></div>
@@ -110,8 +117,17 @@ information about scikit-bio.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ss</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ss</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s">&#39;sample&#39;</span><span class="p">)</span>
 <span class="go">[ 2.  2.]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ss</span><span class="o">.</span><span class="n">sample_ids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ss</span><span class="o">.</span><span class="n">ids</span><span class="p">()</span>
 <span class="go">[&#39;S2&#39; &#39;S3&#39;]</span>
+</pre></div>
+</div>
+<p>Subsample by IDs over the sample axis. For this example, we&#8217;re going to
+randomly select 2 samples and do this 100 times, and then print out the
+set of IDs observed.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">by_id</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">ids</span><span class="p">())</span>
+<span class="gp">... </span>           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+<span class="go">[(&#39;S1&#39;, &#39;S2&#39;), (&#39;S1&#39;, &#39;S3&#39;), (&#39;S2&#39;, &#39;S3&#39;)]</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -135,7 +151,7 @@ information about scikit-bio.</p>
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Jun 03, 2014.
+      Last updated on Aug 07, 2014.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>biom.table.Table.ids &mdash; biom-format.org</title>
+    
+    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.1-dev',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/copybutton.js"></script>
+    <link rel="top" title="biom-format.org" href="../../index.html" />
+    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
+    <link rel="next" title="biom.table.Table.index" href="biom.table.Table.index.html" />
+    <link rel="prev" title="biom.table.Table.group_metadata" href="biom.table.Table.group_metadata.html" /> 
+  </head>
+  <body>
+  
+  <a href="https://github.com/biocore/biom-format"><img
+    style="position: absolute; top: 0; right: 0; border: 0;"
+    src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+    alt="Fork me on GitHub"></a>
+
+      <div class="header"><h1 class="heading"><a href="../../index.html">
+          <span>biom-format.org</span></a></h1>
+        <h2 class="heading"><span>biom.table.Table.ids</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom.table.Table.group_metadata.html">biom.table.Table.group_metadata</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="biom.table.Table.index.html">biom.table.Table.index</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="biom-table-table-ids">
+<h1>biom.table.Table.ids<a class="headerlink" href="#biom-table-table-ids" title="Permalink to this headline">¶</a></h1>
+<dl class="method">
+<dt id="biom.table.Table.ids">
+<tt class="descclassname">Table.</tt><tt class="descname">ids</tt><big>(</big><em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the ids along the given axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>axis</strong> : {&#8216;sample&#8217;, &#8216;observation&#8217;}, optional</p>
+<blockquote>
+<div><p>Axis to search for <cite>id</cite>. Defaults to &#8216;sample&#8217;</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">1-D numpy array</p>
+<blockquote>
+<div><p>The ids along the given axis</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>UnknownAxisError</strong></p>
+<blockquote class="last">
+<div><p>If provided an unrecognized axis.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
+</pre></div>
+</div>
+<p>Create a 2x3 BIOM table:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">42</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;O1&#39;</span><span class="p">,</span> <span class="s">&#39;O2&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;S1&#39;</span><span class="p">,</span> <span class="s">&#39;S2&#39;</span><span class="p">,</span> <span class="s">&#39;S3&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>Get the ids along the observation axis:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">ids</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s">&#39;observation&#39;</span><span class="p">)</span>
+<span class="go">[&#39;O1&#39; &#39;O2&#39;]</span>
+</pre></div>
+</div>
+<p>Get the ids along the sample axis:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">ids</span><span class="p">()</span>
+<span class="go">[&#39;S1&#39; &#39;S2&#39; &#39;S3&#39;]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom.table.Table.group_metadata.html">biom.table.Table.group_metadata</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="biom.table.Table.index.html">biom.table.Table.index</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+
+    <div class="footer">
+        &copy; Copyright 2011-2013, The BIOM Format Development Team.
+      Last updated on Aug 07, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-6636235-6']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>

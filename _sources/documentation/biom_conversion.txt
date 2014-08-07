@@ -33,6 +33,21 @@ Convert biom format to classic format, including the ``taxonomy`` observation me
 Special case usage examples
 ---------------------------
 
+Round-tripping between biom and tsv
+```````````````````````````````````
+In specific cases, see `this comment <https://groups.google.com/forum/#!msg/qiime-forum/fSPGQff2IEw/UdjtYaLJCecJ>`_, it is still useful to convert our biom table to tsv so we can open in Excel, make some changes to the file and then convert back to biom. For this cases you should follow this steps:
+
+- Convert from biom to txt::
+
+	biom convert -i otu_table.biom -o otu_table.txt --to-tsv --header-key taxonomy
+
+- Make your changes in Excel.
+
+- Convert back to biom::
+
+	biom convert -i otu_table.txt -o new_otu_table.biom --to-hdf5 --table-type="OTU table" --process-obs-metadata taxonomy 
+
+
 Converting QIIME 1.4.0 and earlier OTU tables to BIOM format
 ````````````````````````````````````````````````````````````
 If you are converting a QIIME 1.4.0 or earlier OTU table to BIOM format, there are a few steps to go through. First, for convenience, you might want to rename the ``ConsensusLineage`` column ``taxonomy``. You can do this with the following command::
@@ -42,3 +57,5 @@ If you are converting a QIIME 1.4.0 or earlier OTU table to BIOM format, there a
 Then, you'll want to perform the conversion including a step to convert the taxonomy `string` from the classic OTU table to a taxonomy `list`, as it's represented in QIIME 1.4.0-dev and later::
 
 	biom convert -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --table-type="OTU table" --process-obs-metadata taxonomy
+
+

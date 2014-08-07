@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.0.1-dev',
+        VERSION:     '2.1-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table.data<a class="headerlink" href="#biom-table-table-data" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="biom.table.Table.data">
-<tt class="descclassname">Table.</tt><tt class="descname">data</tt><big>(</big><em>id</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.data" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Table.</tt><tt class="descname">data</tt><big>(</big><em>id</em>, <em>axis='sample'</em>, <em>dense=True</em><big>)</big><a class="headerlink" href="#biom.table.Table.data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns data associated with an <cite>id</cite></p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -72,9 +72,19 @@
 <blockquote>
 <div><p>Axis to search for <cite>id</cite>.</p>
 </div></blockquote>
+<p><strong>dense</strong> : bool, optional</p>
+<blockquote>
+<div><p>If <tt class="docutils literal"><span class="pre">True</span></tt>, return data as dense</p>
+</div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>UnknownAxisError</strong></p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">np.ndarray or scipy.sparse.spmatrix</p>
+<blockquote>
+<div><p>np.ndarray if <tt class="docutils literal"><span class="pre">dense</span></tt>, otherwise scipy.sparse.spmatrix</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>UnknownAxisError</strong></p>
 <blockquote class="last">
 <div><p>If provided an unrecognized axis.</p>
 </div></blockquote>
@@ -82,6 +92,12 @@
 </tr>
 </tbody>
 </table>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">example_table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">example_table</span><span class="o">.</span><span class="n">data</span><span class="p">(</span><span class="s">&#39;S1&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s">&#39;sample&#39;</span><span class="p">)</span>
+<span class="go">array([ 0.,  3.])</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -103,7 +119,7 @@
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Jun 03, 2014.
+      Last updated on Aug 07, 2014.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

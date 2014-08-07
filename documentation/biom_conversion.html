@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '2.0.1',
+        VERSION:     '2.1-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -90,6 +90,24 @@ biom convert -i table.txt -o table.from_txt_hdf5.biom --table-type=&quot;OTU tab
 </div>
 <div class="section" id="special-case-usage-examples">
 <h2>Special case usage examples<a class="headerlink" href="#special-case-usage-examples" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="round-tripping-between-biom-and-tsv">
+<h3>Round-tripping between biom and tsv<a class="headerlink" href="#round-tripping-between-biom-and-tsv" title="Permalink to this headline">¶</a></h3>
+<p>In specific cases, see <a class="reference external" href="https://groups.google.com/forum/#!msg/qiime-forum/fSPGQff2IEw/UdjtYaLJCecJ">this comment</a>, it is still useful to convert our biom table to tsv so we can open in Excel, make some changes to the file and then convert back to biom. For this cases you should follow this steps:</p>
+<ul>
+<li><p class="first">Convert from biom to txt:</p>
+<div class="highlight-python"><div class="highlight"><pre>biom convert -i otu_table.biom -o otu_table.txt --to-tsv --header-key taxonomy
+</pre></div>
+</div>
+</li>
+<li><p class="first">Make your changes in Excel.</p>
+</li>
+<li><p class="first">Convert back to biom:</p>
+<div class="highlight-python"><div class="highlight"><pre>biom convert -i otu_table.txt -o new_otu_table.biom --to-hdf5 --table-type=&quot;OTU table&quot; --process-obs-metadata taxonomy
+</pre></div>
+</div>
+</li>
+</ul>
+</div>
 <div class="section" id="converting-qiime-1-4-0-and-earlier-otu-tables-to-biom-format">
 <h3>Converting QIIME 1.4.0 and earlier OTU tables to BIOM format<a class="headerlink" href="#converting-qiime-1-4-0-and-earlier-otu-tables-to-biom-format" title="Permalink to this headline">¶</a></h3>
 <p>If you are converting a QIIME 1.4.0 or earlier OTU table to BIOM format, there are a few steps to go through. First, for convenience, you might want to rename the <tt class="docutils literal"><span class="pre">ConsensusLineage</span></tt> column <tt class="docutils literal"><span class="pre">taxonomy</span></tt>. You can do this with the following command:</p>
@@ -121,7 +139,7 @@ biom convert -i table.txt -o table.from_txt_hdf5.biom --table-type=&quot;OTU tab
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Jun 03, 2014.
+      Last updated on Aug 07, 2014.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

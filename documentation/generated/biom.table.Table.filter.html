@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.0.1-dev',
+        VERSION:     '2.1-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -66,17 +66,16 @@
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>ids_to_keep</strong> : iterable, or function(values, id, metadata) -&gt; bool</p>
 <blockquote>
-<div><p>If a function, it will be called with the id (a string),
-the dictionary of metadata of each sample/observation and
-the nonzero values of the sample/observation, and must
-return a boolean.
-If it&#8217;s an iterable, it will be converted to an array of
-bools.</p>
+<div><p>If a function, it will be called with the values of the
+sample/observation, its id (a string) and the dictionary
+of metadata of each sample/observation, and must return a
+boolean. If it&#8217;s an iterable, it must be a list of ids to
+keep.</p>
 </div></blockquote>
 <p><strong>axis</strong> : {&#8216;sample&#8217;, &#8216;observation&#8217;}, optional</p>
 <blockquote>
-<div><p>It controls whether to filter samples or observations. Can
-be &#8220;sample&#8221; or &#8220;observation&#8221;.</p>
+<div><p>It controls whether to filter samples or observations and
+defaults to &#8220;sample&#8221;.</p>
 </div></blockquote>
 <p><strong>invert</strong> : bool, optional</p>
 <blockquote>
@@ -127,18 +126,18 @@ will drop sample S3, which has sample_type &#8216;b&#8217;:</p>
 <p>Get a filtered version of the table, leaving the original table
 untouched:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">new_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filter_fn</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">sample_ids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">ids</span><span class="p">()</span>
 <span class="go">[&#39;S1&#39; &#39;S2&#39; &#39;S3&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">new_table</span><span class="o">.</span><span class="n">sample_ids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">new_table</span><span class="o">.</span><span class="n">ids</span><span class="p">()</span>
 <span class="go">[&#39;S1&#39; &#39;S2&#39;]</span>
 </pre></div>
 </div>
 <p>Using the same filtering function, discard all samples with sample_type
 &#8216;a&#8217;. This will keep only sample S3, which has sample_type &#8216;b&#8217;:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">new_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filter_fn</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">invert</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">sample_ids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">ids</span><span class="p">()</span>
 <span class="go">[&#39;S1&#39; &#39;S2&#39; &#39;S3&#39;]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">new_table</span><span class="o">.</span><span class="n">sample_ids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">new_table</span><span class="o">.</span><span class="n">ids</span><span class="p">()</span>
 <span class="go">[&#39;S3&#39;]</span>
 </pre></div>
 </div>
@@ -146,7 +145,7 @@ untouched:</p>
 where sample_type is not &#8216;a&#8217;):</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">table</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filter_fn</span><span class="p">)</span>
 <span class="go">2 x 2 &lt;class &#39;biom.table.Table&#39;&gt; with 2 nonzero entries (50% dense)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">sample_ids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">ids</span><span class="p">()</span>
 <span class="go">[&#39;S1&#39; &#39;S2&#39;]</span>
 </pre></div>
 </div>
@@ -155,7 +154,7 @@ full_genome_available == True. This will filter out observation O2:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">filter_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">val</span><span class="p">,</span> <span class="n">id_</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="n">md</span><span class="p">[</span><span class="s">&#39;full_genome_available&#39;</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">table</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="n">filter_fn</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s">&#39;observation&#39;</span><span class="p">)</span>
 <span class="go">1 x 2 &lt;class &#39;biom.table.Table&#39;&gt; with 0 nonzero entries (0% dense)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">observation_ids</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">ids</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s">&#39;observation&#39;</span><span class="p">)</span>
 <span class="go">[&#39;O1&#39;]</span>
 </pre></div>
 </div>
@@ -180,7 +179,7 @@ full_genome_available == True. This will filter out observation O2:</p>
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Jun 03, 2014.
+      Last updated on Aug 07, 2014.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

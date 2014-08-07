@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.0.1-dev',
+        VERSION:     '2.1-dev',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="../../_static/copybutton.js"></script>
     <link rel="top" title="biom-format.org" href="../../index.html" />
     <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
-    <link rel="next" title="biom.table.Table.merge" href="biom.table.Table.merge.html" />
+    <link rel="next" title="biom.table.Table.iter_pairwise" href="biom.table.Table.iter_pairwise.html" />
     <link rel="prev" title="biom.table.Table.iter" href="biom.table.Table.iter.html" /> 
   </head>
   <body>
@@ -47,7 +47,7 @@
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../../index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="biom.table.Table.merge.html">biom.table.Table.merge</a>&#160;&#160;»
+        <a href="biom.table.Table.iter_pairwise.html">biom.table.Table.iter_pairwise</a>&#160;&#160;»
         </p>
 
       </div>
@@ -58,13 +58,19 @@
 <h1>biom.table.Table.iter_data<a class="headerlink" href="#biom-table-table-iter-data" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="biom.table.Table.iter_data">
-<tt class="descclassname">Table.</tt><tt class="descname">iter_data</tt><big>(</big><em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.iter_data" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Table.</tt><tt class="descname">iter_data</tt><big>(</big><em>dense=True</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.iter_data" title="Permalink to this definition">¶</a></dt>
 <dd><p>Yields axis values</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>axis</strong> : {&#8216;sample&#8217;, &#8216;observation&#8217;}, optional</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>dense</strong> : bool, optional</p>
+<blockquote>
+<div><p>Defaults to <tt class="docutils literal"><span class="pre">True</span></tt>. If <tt class="docutils literal"><span class="pre">False</span></tt>, yield compressed sparse row or
+compressed sparse columns if <cite>axis</cite> is &#8216;observation&#8217; or &#8216;sample&#8217;,
+respectively.</p>
+</div></blockquote>
+<p><strong>axis</strong> : {&#8216;sample&#8217;, &#8216;observation&#8217;}, optional</p>
 <blockquote>
 <div><p>Axis to iterate over.</p>
 </div></blockquote>
@@ -113,7 +119,7 @@
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../../index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="biom.table.Table.merge.html">biom.table.Table.merge</a>&#160;&#160;»
+        <a href="biom.table.Table.iter_pairwise.html">biom.table.Table.iter_pairwise</a>&#160;&#160;»
         </p>
 
       </div>
@@ -121,7 +127,7 @@
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Jun 03, 2014.
+      Last updated on Aug 07, 2014.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
