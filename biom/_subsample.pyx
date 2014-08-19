@@ -1,10 +1,10 @@
-# ----------------------------------------------------------------------------
-# Copyright (c) 2013--, biom development team.
+# -----------------------------------------------------------------------------
+# Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
-# ----------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 
 from __future__ import division
 
@@ -35,34 +35,28 @@ def _subsample(arr, n):
     cdef:
         cnp.int64_t counts_sum
         cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
+        cnp.ndarray[cnp.int32_t, ndim=1] data_i = arr.data.astype(np.int32)
         cnp.ndarray[cnp.float64_t, ndim=1] result
         cnp.ndarray[cnp.int32_t, ndim=1] indices = arr.indices
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
-        cnp.ndarray[cnp.int32_t, ndim=1] permuted, unpacked
+        cnp.ndarray[cnp.int32_t, ndim=1] permuted, unpacked, r
         cnp.float64_t cnt
-        Py_ssize_t unpacked_idx, i, j
+        Py_ssize_t i, j, length
 
     for i in range(indptr.shape[0] - 1):
         start, end = indptr[i], indptr[i+1]
+        length = end - start
         counts_sum = data[start:end].sum()
        
         if counts_sum < n:
             data[start:end] = 0
             continue
 
-        unpacked = np.empty(counts_sum, dtype=np.int32)
-        unpacked_idx = 0
-
-        for i in range(start, end):
-            cnt = data[i]
-
-            for j in range(int(cnt)):
-                unpacked[unpacked_idx] = i - start
-                unpacked_idx += 1
-       
+        r = np.arange(length, dtype=np.int32)
+        unpacked = np.repeat(r, data_i[start:end])
         permuted = np.random.permutation(unpacked)[:n]
         
-        result = np.zeros(end - start, dtype=np.float64)
+        result = np.zeros(length, dtype=np.float64)
         for idx in range(permuted.shape[0]):
             result[permuted[idx]] += 1
 
