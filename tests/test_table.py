@@ -876,7 +876,6 @@ class TableTests(TestCase):
 
         obs_ids = [1, 2]
         from biom.err import geterr
-        print geterr()
         self.assertRaises(TableException, Table, d, samp_ids, obs_ids, samp_md,
                           obs_md)
 
