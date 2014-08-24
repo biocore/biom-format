@@ -978,6 +978,25 @@ class Table(object):
         -------
         float
             The data value corresponding to the specified matrix position
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'Z3'])
+
+        Retrieve the number of counts for observation `O1` in sample `Z3`.
+
+        >>> print table.get_value_by_ids('O2', 'Z3')
+        42.0
+
+        See Also
+        --------
+        Table.data
         """
         return self[self.index(obs_id, 'observation'),
                     self.index(samp_id, 'sample')]
@@ -1260,6 +1279,10 @@ class Table(object):
         >>> from biom import example_table
         >>> example_table.data('S1', axis='sample')
         array([ 0.,  3.])
+
+        See Also
+        --------
+        Table.get_value_by_ids
 
         """
         if axis == 'sample':
