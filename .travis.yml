@@ -1,14 +1,10 @@
 # Modified from https://github.com/biocore/scikit-bio/
 language: python
-python:
-  - "2.7"
-  - "3.4"
 env:
-  - NUMPY_VERSION=1.7
-  - NUMPY_VERSION=1.8
-  - NUMPY_VERSION=1.8 USE_H5PY=True
-  - NUMPY_VERSION=1.8 USE_CYTHON=True
-  - NUMPY_VERSION=1.7 USE_H5PY=True
+  - PYTHON_VERSION=2.7 NUMPY_VERSION=1.8 USE_CYTHON=True USE_H5PY=True WITH_DOCTEST=True
+  - PYTHON_VERSION=2.7 NUMPY_VERSION=1.7 USE_H5PY=False WITH_DOCTEST=True
+  - PYTHON_VERSION=3.4 NUMPY_VERSION=1.8 USE_CYTHON=True USE_H5PY=True WITH_DOCTEST=False
+  - PYTHON_VERSION=3.4 NUMPY_VERSION=1.7 USE_H5PY=False WITH_DOCTEST=False
 before_install:
   - wget http://repo.continuum.io/miniconda/Miniconda-2.2.2-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -17,14 +13,14 @@ before_install:
   # Update conda itself
   - conda update --yes conda
 install:
-  - conda create --yes -n env_name python=$TRAVIS_PYTHON_VERSION pip numpy=$NUMPY_VERSION scipy nose pep8 Sphinx coverage
+  - conda create --yes -n env_name python=$PYTHON_VERSION pip numpy=$NUMPY_VERSION scipy nose pep8 Sphinx coverage
   - if [ ${USE_CYTHON} ]; then conda install --yes -n env_name cython; fi
   - if [ ${USE_H5PY} ]; then conda install --yes -n env_name h5py>=2.2.0; fi
   - source activate env_name
   - pip install coveralls pyqi
   - pip install -e . --no-deps
 script:
-  - nosetests --with-doctest --with-coverage
+  - if [ ${WITH_DOCTEST} ]; then nosetests --with-doctest --with-coverage; else nosetests --with-coverage; fi
   - pep8 biom setup.py
   - biom show-install-info
   - make -C doc html
