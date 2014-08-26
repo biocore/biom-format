@@ -17,7 +17,7 @@ install:
   - if [ ${USE_CYTHON} ]; then conda install --yes -n env_name cython; fi
   - if [ ${USE_H5PY} ]; then conda install --yes -n env_name h5py>=2.2.0; fi
   - source activate env_name
-  - pip install coveralls pyqi
+  - pip install future coveralls pyqi
   - pip install -e . --no-deps
 script:
   - if [ ${WITH_DOCTEST} ]; then nosetests --with-doctest --with-coverage; else nosetests --with-coverage; fi

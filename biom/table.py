@@ -179,10 +179,8 @@ from datetime import datetime
 from json import dumps
 from functools import reduce
 from operator import itemgetter, add
-try:
-    from itertools import izip as zip
-except ImportError:
-    pass
+from future.utils import zip
+
 from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
