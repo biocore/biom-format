@@ -19,6 +19,7 @@ __email__ = "jai.rideout@gmail.com"
 from os.path import abspath, dirname, join
 
 import numpy as np
+from future.utils.six import StringIO
 
 from pyqi.core.exception import CommandError
 from biom.commands.table_converter import TableConverter
@@ -26,7 +27,6 @@ from biom.parse import MetadataMap, parse_biom_table
 from biom.table import Table
 from biom.util import biom_open
 from unittest import TestCase, main
-from StringIO import StringIO
 
 
 class TableConverterTests(TestCase):

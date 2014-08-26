@@ -9,10 +9,10 @@
 # -----------------------------------------------------------------------------
 
 import os
-from StringIO import StringIO
 import json
 from unittest import TestCase, main
 
+from future.utils.six import StringIO
 import numpy.testing as npt
 
 from biom.parse import generatedby, MetadataMap, parse_biom_table

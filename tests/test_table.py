@@ -12,8 +12,8 @@
 import os
 from tempfile import mktemp
 from unittest import TestCase, main
-from StringIO import StringIO
 
+from future.utils.six import StringIO
 import numpy.testing as npt
 import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
