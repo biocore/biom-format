@@ -32,10 +32,10 @@ cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 
 def report_table_validity(result_key, data, option_value=None):
     if data:
-        print "The input file is a valid BIOM-formatted file."
+        print("The input file is a valid BIOM-formatted file.")
         sys.exit(0)
     else:
-        print "The input file is not a valid BIOM-formatted file."
+        print("The input file is not a valid BIOM-formatted file.")
         sys.exit(1)
 
 usage_examples = [
