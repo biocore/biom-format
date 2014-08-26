@@ -1454,24 +1454,24 @@ class Table(object):
         >>> iter_ = example_table.iter_pairwise()
         >>> for (val_i, id_i, md_i), (val_j, id_j, md_j) in iter_:
         ...     print(id_i, id_j)
-        S1 S2
-        S1 S3
-        S2 S3
+        ('S1', 'S2')
+        ('S1', 'S3')
+        ('S2', 'S3')
 
         The full pairwise combinations can also be yielded though.
 
         >>> iter_ = example_table.iter_pairwise(tri=False, diag=True)
         >>> for (val_i, id_i, md_i), (val_j, id_j, md_j) in iter_:
         ...     print(id_i, id_j)
-        S1 S1
-        S1 S2
-        S1 S3
-        S2 S1
-        S2 S2
-        S2 S3
-        S3 S1
-        S3 S2
-        S3 S3
+        ('S1', 'S1')
+        ('S1', 'S2')
+        ('S1', 'S3')
+        ('S2', 'S1')
+        ('S2', 'S2')
+        ('S2', 'S3')
+        ('S3', 'S1')
+        ('S3', 'S2')
+        ('S3', 'S3')
 
         """
         metadata = self.metadata(axis=axis)
