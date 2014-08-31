@@ -912,8 +912,8 @@ class Table(object):
                                   self.table_id,
                                   type=self.type)
         else:
-            # It's not possible to get here, since self.ids() call would
-            # errored, but leaving this in place for clarity.
+            # It's not possible to get here, since the self.ids() call would
+            # have errored, but leaving this in place for clarity.
             raise UnknownAxisError(axis)
 
     def _get_sparse_data(self, axis='sample'):
