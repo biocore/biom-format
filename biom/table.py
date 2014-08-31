@@ -834,6 +834,88 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
+    def update_ids(self, id_map, axis='sample', strict=True):
+        """Update the ids along the given axis
+
+        Parameters
+        ----------
+        id_map : dict
+            Mapping of old to new ids
+        axis : {'sample', 'observation'}, optional
+            Axis to search for `id`. Defaults to 'sample'
+        strict : bool, optional
+            If ``True``, raise an error if an id is present in the given axis
+            but is not a key in ``id_map``. If False, retain old identifier
+            for ids that are present in the given axis but are not keys in
+            ``id_map``.
+
+        Returns
+        -------
+        Table
+            New table object where ids have been updated.
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Define a mapping of old to new sample ids:
+
+        >>> id_map = {'S1':'s1.1', 'S2':'s2.2', 'S3':'s3.3'}
+
+        Get the ids along the sample axis in the table:
+
+        >>> print table.ids(axis='sample')
+        ['S1' 'S2' 'S3']
+
+        Update the sample ids and get the ids along the sample axis in the
+        updated table:
+
+        >>> updated_table = table.update_ids(id_map, axis='sample')
+        >>> print updated_table.ids(axis='sample')
+        ['s1.1' 's2.2' 's3.3']
+        """
+        updated_ids = []
+        for old_id in self.ids(axis=axis):
+            try:
+                updated_ids.append(id_map[old_id])
+            except KeyError:
+                if strict:
+                    raise TableException(
+                        "Mapping not provided for %s identifier: %s. If this "
+                        "identifier should not be updated, pass "
+                        "strict=False." % (axis, old_id))
+                else:
+                    updated_ids.append(old_id)
+
+        if axis == 'sample':
+            return self.__class__(self._data.copy(),
+                                  self.ids(axis='observation').copy(),
+                                  updated_ids,
+                                  deepcopy(self.metadata(axis='observation')),
+                                  deepcopy(self.metadata()),
+                                  self.table_id,
+                                  type=self.type)
+        elif axis == 'observation':
+            return self.__class__(self._data.copy(),
+                                  updated_ids,
+                                  self.ids(axis='sample').copy(),
+                                  deepcopy(self.metadata(axis='observation')),
+                                  deepcopy(self.metadata()),
+                                  self.table_id,
+                                  type=self.type)
+        else:
+            # It's not possible to get here, since self.ids() call would
+            # errored, but leaving this in place for clarity.
+            raise UnknownAxisError(axis)
+
     def _get_sparse_data(self, axis='sample'):
         """Returns the internal data in the correct sparse representation
 
