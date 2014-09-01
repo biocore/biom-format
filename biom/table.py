@@ -855,7 +855,7 @@ class Table(object):
         Returns
         -------
         Table
-            New table object where ids have been updated.
+            Table object where ids have been updated.
 
         Raises
         ------
@@ -895,8 +895,9 @@ class Table(object):
                     % (axis, old_id))
             updated_ids[idx] = new_id
 
+        # prepare the result object and update the ids along the specified
+        # axis
         result = self if inplace else self.copy()
-
         if axis == 'sample':
             result._sample_ids = updated_ids
         else:

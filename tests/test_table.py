@@ -1409,7 +1409,7 @@ class SparseTableTests(TestCase):
         npt.assert_equal(self.st1._observation_ids, np.array(['1', '2']))
         # when inplace == True, the input object is changed
         obs = self.st1.update_ids(id_map, axis='observation', inplace=True)
-        npt.assert_equal(self.st1._observation_ids, obs._observation_ids)
+        npt.assert_equal(self.st1._observation_ids, np.array(['41', '42']))
 
 
     def test_sort_order(self):
