@@ -834,7 +834,7 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    def update_ids(self, id_map, axis='sample', strict=True):
+    def update_ids(self, id_map, axis='sample', strict=True, inplace=True):
         """Update the ids along the given axis
 
         Parameters
@@ -848,6 +848,9 @@ class Table(object):
             but is not a key in ``id_map``. If False, retain old identifier
             for ids that are present in the given axis but are not keys in
             ``id_map``.
+        inplace : bool, optional
+            If True, modify the ids are updated in self; if False, a new table
+            is returned.
 
         Returns
         -------
@@ -892,13 +895,17 @@ class Table(object):
                     % (axis, old_id))
             updated_ids[idx] = new_id
 
-        result = self.copy()
+        result = self if inplace else self.copy()
+
         if axis == 'sample':
             result._sample_ids = updated_ids
         else:
             result._observation_ids = updated_ids
+
+        # check for errors (specifically, we want to esnsure that duplicate
+        # ids haven't been introduced)
         errcheck(result)
-        
+
         return result
 
     def _get_sparse_data(self, axis='sample'):
