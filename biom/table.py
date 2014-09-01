@@ -882,18 +882,15 @@ class Table(object):
         >>> print updated_table.ids(axis='sample')
         ['s1.1' 's2.2' 's3.3']
         """
-        updated_ids = []
-        for old_id in self.ids(axis=axis):
-            try:
-                updated_ids.append(id_map[old_id])
-            except KeyError:
-                if strict:
-                    raise TableException(
-                        "Mapping not provided for %s identifier: %s. If this "
-                        "identifier should not be updated, pass "
-                        "strict=False." % (axis, old_id))
-                else:
-                    updated_ids.append(old_id)
+        updated_ids = zeros(self.ids(axis=axis).size, dtype=object)
+        for idx, old_id in enumerate(self.ids(axis=axis)):
+            new_id = id_map.get(old_id, old_id)
+            if strict and new_id is old_id: # same object, not just equality
+                raise TableException(
+                    "Mapping not provided for %s identifier: %s. If this "
+                    "identifier should not be updated, pass strict=False."
+                    % (axis, old_id))
+            updated_ids[idx] = new_id
 
         if axis == 'sample':
             return self.__class__(self._data.copy(),
