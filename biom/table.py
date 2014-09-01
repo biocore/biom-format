@@ -892,26 +892,14 @@ class Table(object):
                     % (axis, old_id))
             updated_ids[idx] = new_id
 
+        result = self.copy()
         if axis == 'sample':
-            return self.__class__(self._data.copy(),
-                                  self.ids(axis='observation').copy(),
-                                  updated_ids,
-                                  deepcopy(self.metadata(axis='observation')),
-                                  deepcopy(self.metadata()),
-                                  self.table_id,
-                                  type=self.type)
-        elif axis == 'observation':
-            return self.__class__(self._data.copy(),
-                                  updated_ids,
-                                  self.ids(axis='sample').copy(),
-                                  deepcopy(self.metadata(axis='observation')),
-                                  deepcopy(self.metadata()),
-                                  self.table_id,
-                                  type=self.type)
+            result._sample_ids = updated_ids
         else:
-            # It's not possible to get here, since the self.ids() call would
-            # have errored, but leaving this in place for clarity.
-            raise UnknownAxisError(axis)
+            result._observation_ids = updated_ids
+        errcheck(result)
+        
+        return result
 
     def _get_sparse_data(self, axis='sample'):
         """Returns the internal data in the correct sparse representation
