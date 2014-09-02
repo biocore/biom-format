@@ -849,8 +849,8 @@ class Table(object):
             for ids that are present in the given axis but are not keys in
             ``id_map``.
         inplace : bool, optional
-            If True, modify the ids are updated in self; if False, a new table
-            is returned.
+            If ``True`` the ids are updated in ``self``; if ``False`` the ids
+            are updated in a new table is returned.
 
         Returns
         -------
@@ -861,6 +861,9 @@ class Table(object):
         ------
         UnknownAxisError
             If provided an unrecognized axis.
+        TableException
+            If an id from ``self`` is not in ``id_map`` and ``strict`` is
+            ``True``.
 
         Examples
         --------
