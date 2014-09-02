@@ -834,6 +834,84 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
+    def update_ids(self, id_map, axis='sample', strict=True, inplace=True):
+        """Update the ids along the given axis
+
+        Parameters
+        ----------
+        id_map : dict
+            Mapping of old to new ids
+        axis : {'sample', 'observation'}, optional
+            Axis to search for `id`. Defaults to 'sample'
+        strict : bool, optional
+            If ``True``, raise an error if an id is present in the given axis
+            but is not a key in ``id_map``. If False, retain old identifier
+            for ids that are present in the given axis but are not keys in
+            ``id_map``.
+        inplace : bool, optional
+            If ``True`` the ids are updated in ``self``; if ``False`` the ids
+            are updated in a new table is returned.
+
+        Returns
+        -------
+        Table
+            Table object where ids have been updated.
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+        TableException
+            If an id from ``self`` is not in ``id_map`` and ``strict`` is
+            ``True``.
+
+        Examples
+        --------
+        Create a 2x3 BIOM table:
+
+        >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
+        >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'])
+
+        Define a mapping of old to new sample ids:
+
+        >>> id_map = {'S1':'s1.1', 'S2':'s2.2', 'S3':'s3.3'}
+
+        Get the ids along the sample axis in the table:
+
+        >>> print table.ids(axis='sample')
+        ['S1' 'S2' 'S3']
+
+        Update the sample ids and get the ids along the sample axis in the
+        updated table:
+
+        >>> updated_table = table.update_ids(id_map, axis='sample')
+        >>> print updated_table.ids(axis='sample')
+        ['s1.1' 's2.2' 's3.3']
+        """
+        updated_ids = zeros(self.ids(axis=axis).size, dtype=object)
+        for idx, old_id in enumerate(self.ids(axis=axis)):
+            new_id = id_map.get(old_id, old_id)
+            if strict and new_id is old_id:  # same object, not just equality
+                raise TableException(
+                    "Mapping not provided for %s identifier: %s. If this "
+                    "identifier should not be updated, pass strict=False."
+                    % (axis, old_id))
+            updated_ids[idx] = new_id
+
+        # prepare the result object and update the ids along the specified
+        # axis
+        result = self if inplace else self.copy()
+        if axis == 'sample':
+            result._sample_ids = updated_ids
+        else:
+            result._observation_ids = updated_ids
+
+        # check for errors (specifically, we want to esnsure that duplicate
+        # ids haven't been introduced)
+        errcheck(result)
+
+        return result
+
     def _get_sparse_data(self, axis='sample'):
         """Returns the internal data in the correct sparse representation
 

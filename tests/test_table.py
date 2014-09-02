@@ -1356,6 +1356,62 @@ class SparseTableTests(TestCase):
                          self.st_rich.data('2', 'observation'))
         self.assertEqual(obs.transpose(), self.st_rich)
 
+    def test_update_ids(self):
+        """ids are updated as expected"""
+        # update observation ids
+        exp = self.st1.copy()
+        exp._observation_ids = np.array(['41', '42'])
+        id_map = {'2':'42', '1':'41'}
+        obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
+        self.assertEqual(obs, exp)
+
+        # update sample ids
+        exp = self.st1.copy()
+        exp._sample_ids = np.array(['99', '100'])
+        id_map = {'a':'99', 'b':'100'}
+        obs = self.st1.update_ids(id_map, axis='sample', inplace=False)
+        self.assertEqual(obs, exp)
+
+        # extra ids in id_map are ignored
+        exp = self.st1.copy()
+        exp._observation_ids = np.array(['41', '42'])
+        id_map = {'2':'42', '1':'41', '0':'40'}
+        obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
+        self.assertEqual(obs, exp)
+
+        # missing ids in id_map when strict=True
+        with self.assertRaises(TableException):
+            self.st1.update_ids({'b':'100'}, axis='sample', strict=True,
+                                inplace=False)
+
+        # missing ids in id_map when strict=False
+        exp = self.st1.copy()
+        exp._sample_ids = np.array(['a','100'])
+        id_map = {'b':'100'}
+        obs = self.st1.update_ids(id_map, axis='sample', strict=False,
+                                  inplace=False)
+        self.assertEqual(obs, exp)
+
+        # raise an error if update would result in duplicated ids
+        with self.assertRaises(TableException):
+            self.st1.update_ids({'a':'100', 'b':'100'}, axis='sample',
+                                inplace=False)
+
+        # raises an error if a invalid axis is passed
+        with self.assertRaises(UnknownAxisError):
+            self.st1.update_ids(id_map, axis='foo', inplace=False)
+
+        # when inplace == False, the input object is unchanged
+        exp = self.st1.copy()
+        exp._observation_ids = np.array(['41', '42'])
+        id_map = {'2':'42', '1':'41'}
+        obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
+        npt.assert_equal(self.st1._observation_ids, np.array(['1', '2']))
+        # when inplace == True, the input object is changed
+        obs = self.st1.update_ids(id_map, axis='observation', inplace=True)
+        npt.assert_equal(self.st1._observation_ids, np.array(['41', '42']))
+
+
     def test_sort_order(self):
         """sorts tables by arbitrary order"""
         # sort by observations arbitrary order
@@ -1363,7 +1419,7 @@ class SparseTableTests(TestCase):
         exp = Table(vals, ['2', '1'], ['a', 'b'])
         obs = self.st1.sort_order(['2', '1'], axis='observation')
         self.assertEqual(obs, exp)
-        # sort by observations arbitrary order
+        # sort by samples arbitrary order
         vals = {(0, 0): 6, (0, 1): 5,
                 (1, 0): 8, (1, 1): 7}
         exp = Table(vals, ['1', '2'], ['b', 'a'])
