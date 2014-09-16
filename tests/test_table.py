@@ -12,8 +12,8 @@
 import os
 from tempfile import mktemp
 from unittest import TestCase, main
-from StringIO import StringIO
 
+from future.utils.six import StringIO
 import numpy.testing as npt
 import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
@@ -876,7 +876,7 @@ class TableTests(TestCase):
 
         obs_ids = [1, 2]
         from biom.err import geterr
-        print geterr()
+        print(geterr())
         self.assertRaises(TableException, Table, d, samp_ids, obs_ids, samp_md,
                           obs_md)
 

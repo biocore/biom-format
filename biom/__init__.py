@@ -21,7 +21,7 @@ Examples
 Load an example table:
 
 >>> from biom import example_table
->>> print example_table # doctest: +NORMALIZE_WHITESPACE
+>>> print(example_table) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S1  S2  S3
 O1  0.0 1.0 2.0

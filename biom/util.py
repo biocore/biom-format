@@ -75,7 +75,7 @@ def generate_subsamples(table, n, axis='sample', by_id=False):
     >>> observed_ids = []
     >>> for _, table in zip(range(100), gen):
     ...     observed_ids.append(tuple(table.ids()))
-    >>> print sorted(set(observed_ids))
+    >>> print(sorted(set(observed_ids)))
     [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
 
     """

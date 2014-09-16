@@ -49,7 +49,7 @@ Now that we have a table, let's explore it at a high level first.
 
 >>> table
 10 x 4 <class 'biom.table.Table'> with 39 nonzero entries (97% dense)
->>> print table # doctest: +NORMALIZE_WHITESPACE
+>>> print(table) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S1  S2  S3
 O0  0.0 1.0 2.0 3.0
@@ -62,11 +62,11 @@ O6  24.0    25.0    26.0    27.0
 O7  28.0    29.0    30.0    31.0
 O8  32.0    33.0    34.0    35.0
 O9  36.0    37.0    38.0    39.0
->>> print table.ids() # doctest: +NORMALIZE_WHITESPACE
+>>> print(table.ids()) # doctest: +NORMALIZE_WHITESPACE
 ['S0' 'S1' 'S2' 'S3']
->>> print table.ids(axis='observation') # doctest: +NORMALIZE_WHITESPACE
+>>> print(table.ids(axis='observation')) # doctest: +NORMALIZE_WHITESPACE
 ['O0' 'O1' 'O2' 'O3' 'O4' 'O5' 'O6' 'O7' 'O8' 'O9']
->>> print table.nnz  # number of nonzero entries
+>>> print(table.nnz) # number of nonzero entries
 39
 
 While it's fun to just poke at the table, let's dig deeper. First, we're going
@@ -80,7 +80,7 @@ or ``False``, where ``True`` indicates that the vector should be retained.
 >>> normed = table.norm(axis='sample', inplace=False)
 >>> filter_f = lambda values, id_, md: md['environment'] == 'A'
 >>> env_a = normed.filter(filter_f, axis='sample', inplace=False)
->>> print env_a # doctest: +NORMALIZE_WHITESPACE
+>>> print(env_a) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S2
 O0  0.0 0.01
@@ -106,7 +106,7 @@ here.
 >>> part_f = lambda id_, md: md['environment']
 >>> env_tables = table.partition(part_f, axis='sample')
 >>> for partition, env_table in env_tables:
-...     print partition, env_table.sum('sample')
+...     print(partition, env_table.sum('sample'))
 A [ 180.  200.]
 B [ 190.  210.]
 
@@ -122,7 +122,7 @@ is equal to zero, we'll keep the value, otherwise we'll set the value to zero.
 
 >>> transform_f = lambda v,i,m: np.where(v % 3 == 0, v, 0)
 >>> mult_of_three = tform = table.transform(transform_f, inplace=False)
->>> print mult_of_three # doctest: +NORMALIZE_WHITESPACE
+>>> print(mult_of_three) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S1  S2  S3
 O0  0.0 0.0 0.0 3.0
@@ -145,7 +145,7 @@ we'll need to specify 'observation' as the axis.
 >>> phylum_idx = 1
 >>> collapse_f = lambda id_, md: '; '.join(md['taxonomy'][:phylum_idx + 1])
 >>> collapsed = mult_of_three.collapse(collapse_f, axis='observation')
->>> print collapsed # doctest: +NORMALIZE_WHITESPACE
+>>> print(collapsed) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S1  S2  S3
 Bacteria; Firmicutes  7.2 6.6 7.2 8.4
@@ -155,7 +155,7 @@ Bacteria; Proteobacteria  4.0 3.0 6.0 5.0
 Finally, let's convert the table to presence/absence data.
 
 >>> pa = collapsed.pa()
->>> print pa # doctest: +NORMALIZE_WHITESPACE
+>>> print(pa) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S1  S2  S3
 Bacteria; Firmicutes  1.0 1.0 1.0 1.0
@@ -179,7 +179,8 @@ from datetime import datetime
 from json import dumps
 from functools import reduce
 from operator import itemgetter, add
-from itertools import izip
+from future.utils import zip
+
 from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
@@ -819,12 +820,12 @@ class Table(object):
 
         Get the ids along the observation axis:
 
-        >>> print table.ids(axis='observation')
+        >>> print(table.ids(axis='observation'))
         ['O1' 'O2']
 
         Get the ids along the sample axis:
 
-        >>> print table.ids()
+        >>> print(table.ids())
         ['S1' 'S2' 'S3']
         """
         if axis == 'sample':
@@ -1069,7 +1070,7 @@ class Table(object):
 
         Retrieve the number of counts for observation `O1` in sample `Z3`.
 
-        >>> print table.get_value_by_ids('O2', 'Z3')
+        >>> print(table.get_value_by_ids('O2', 'Z3'))
         42.0
 
         See Also
@@ -1420,7 +1421,7 @@ class Table(object):
 
         >>> sample_gen = bt.iter_data(axis='sample')
         >>> max_sample_count = max([sample.sum() for sample in sample_gen])
-        >>> print max_sample_count
+        >>> print(max_sample_count)
         57.0
         """
         if axis == "sample":
@@ -1492,7 +1493,7 @@ class Table(object):
 
         iter_ = self.iter_data(axis=axis, dense=dense)
 
-        return izip(iter_, ids, metadata)
+        return zip(iter_, ids, metadata)
 
     def iter_pairwise(self, dense=True, axis='sample', tri=True, diag=False):
         """Pairwise iteration over self
@@ -1528,25 +1529,25 @@ class Table(object):
 
         >>> iter_ = example_table.iter_pairwise()
         >>> for (val_i, id_i, md_i), (val_j, id_j, md_j) in iter_:
-        ...     print id_i, id_j
-        S1 S2
-        S1 S3
-        S2 S3
+        ...     print(id_i, id_j)
+        ('S1', 'S2')
+        ('S1', 'S3')
+        ('S2', 'S3')
 
         The full pairwise combinations can also be yielded though.
 
         >>> iter_ = example_table.iter_pairwise(tri=False, diag=True)
         >>> for (val_i, id_i, md_i), (val_j, id_j, md_j) in iter_:
-        ...     print id_i, id_j
-        S1 S1
-        S1 S2
-        S1 S3
-        S2 S1
-        S2 S2
-        S2 S3
-        S3 S1
-        S3 S2
-        S3 S3
+        ...     print(id_i, id_j)
+        ('S1', 'S1')
+        ('S1', 'S2')
+        ('S1', 'S3')
+        ('S2', 'S1')
+        ('S2', 'S2')
+        ('S2', 'S3')
+        ('S3', 'S1')
+        ('S3', 'S2')
+        ('S3', 'S3')
 
         """
         metadata = self.metadata(axis=axis)
@@ -1601,7 +1602,7 @@ class Table(object):
 
         >>> data = np.asarray([[1, 0, 4], [1, 3, 0]])
         >>> table = Table(data, ['O2', 'O1'], ['S2', 'S1', 'S3'])
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S2  S1  S3
         O2  1.0 0.0 4.0
@@ -1610,7 +1611,7 @@ class Table(object):
         Sort the table using a list of samples:
 
         >>> sorted_table = table.sort_order(['S2', 'S3', 'S1'])
-        >>> print sorted_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(sorted_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	S2	S3	S1
         O2	1.0	4.0	0.0
@@ -1620,7 +1621,7 @@ class Table(object):
         Additionally you could sort the table's observations:
 
         >>> sorted_table = table.sort_order(['O1', 'O2'], axis="observation")
-        >>> print sorted_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(sorted_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	S2	S1	S3
         O1	1.0	3.0	0.0
@@ -1690,7 +1691,7 @@ class Table(object):
 
         >>> data = np.asarray([[1, 0, 4], [1, 3, 0]])
         >>> table = Table(data, ['O2', 'O1'], ['S2', 'S1', 'S3'])
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S2  S1  S3
         O2  1.0 0.0 4.0
@@ -1700,7 +1701,7 @@ class Table(object):
         sorting:
 
         >>> new_table = table.sort()
-        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(new_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O2  0.0 1.0 4.0
@@ -1710,7 +1711,7 @@ class Table(object):
         sorting:
 
         >>> new_table = table.sort(axis='observation')
-        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(new_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S2  S1  S3
         O1  1.0 3.0 0.0
@@ -1720,7 +1721,7 @@ class Table(object):
 
         >>> sort_f = lambda x: list(sorted(x, reverse=True))
         >>> new_table = table.sort(sort_f=sort_f)
-        >>> print new_table  # doctest: +NORMALIZE_WHITESPACE
+        >>> print(new_table)  # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S3  S2  S1
         O2  4.0 1.0 0.0
@@ -1783,18 +1784,18 @@ class Table(object):
         untouched:
 
         >>> new_table = table.filter(filter_fn, inplace=False)
-        >>> print table.ids()
+        >>> print(table.ids())
         ['S1' 'S2' 'S3']
-        >>> print new_table.ids()
+        >>> print(new_table.ids())
         ['S1' 'S2']
 
         Using the same filtering function, discard all samples with sample_type
         'a'. This will keep only sample S3, which has sample_type 'b':
 
         >>> new_table = table.filter(filter_fn, inplace=False, invert=True)
-        >>> print table.ids()
+        >>> print(table.ids())
         ['S1' 'S2' 'S3']
-        >>> print new_table.ids()
+        >>> print(new_table.ids())
         ['S3']
 
         Filter the table in-place using the same function (drop all samples
@@ -1802,7 +1803,7 @@ class Table(object):
 
         >>> table.filter(filter_fn)
         2 x 2 <class 'biom.table.Table'> with 2 nonzero entries (50% dense)
-        >>> print table.ids()
+        >>> print(table.ids())
         ['S1' 'S2']
 
         Filter out all observations in the table that do not have
@@ -1811,7 +1812,7 @@ class Table(object):
         >>> filter_fn = lambda val, id_, md: md['full_genome_available']
         >>> table.filter(filter_fn, axis='observation')
         1 x 2 <class 'biom.table.Table'> with 0 nonzero entries (0% dense)
-        >>> print table.ids(axis='observation')
+        >>> print(table.ids(axis='observation'))
         ['O1']
 
         """
@@ -1883,12 +1884,12 @@ class Table(object):
         Partition the table and view results
 
         >>> bins, tables = table.partition(f)
-        >>> print bins[1] # doctest: +NORMALIZE_WHITESPACE
+        >>> print(bins[1]) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  0.0 0.0
         O2  1.0 3.0
-        >>> print tables[1] # doctest: +NORMALIZE_WHITESPACE
+        >>> print(tables[1]) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S3
         O1  1.0
@@ -2042,7 +2043,7 @@ class Table(object):
         ...    [{'barcode': 'aatt'},
         ...     {'barcode': 'ttgg'},
         ...     {'barcode': 'aatt'}])
-        >>> print dt_rich # doctest: +NORMALIZE_WHITESPACE
+        >>> print(dt_rich) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID a   b   c
         1   5.0 6.0 7.0
@@ -2055,7 +2056,7 @@ class Table(object):
         >>> obs_phy = dt_rich.collapse(
         ...    bin_f, norm=False, min_group_size=1,
         ...    axis='observation').sort(axis='observation')
-        >>> print obs_phy # doctest: +NORMALIZE_WHITESPACE
+        >>> print(obs_phy) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID a   b   c
         p__b    5.0 6.0 7.0
@@ -2098,7 +2099,7 @@ class Table(object):
             new_md = {}
             md_count = {}
 
-            for id_, md in izip(*axis_ids_md(self)):
+            for id_, md in zip(*axis_ids_md(self)):
                 md_iter = f(id_, md)
                 num_md = 0
                 while True:
@@ -2188,7 +2189,7 @@ class Table(object):
                     # retain metadata but store by original id
                     collapsed_md.append({'collapsed_ids': axis_ids.tolist()})
                     # tmp_md = {}
-                    # for id_, md in izip(axis_ids, axis_md):
+                    # for id_, md in zip(axis_ids, axis_md):
                     #     tmp_md[id_] = md
                     # collapsed_md.append(tmp_md)
 
@@ -2250,7 +2251,7 @@ class Table(object):
         Examples
         --------
         >>> from biom import example_table
-        >>> print example_table.min(axis='sample')
+        >>> print(example_table.min(axis='sample'))
         [ 3.  1.  2.]
 
         """
@@ -2290,7 +2291,7 @@ class Table(object):
         Examples
         --------
         >>> from biom import example_table
-        >>> print example_table.max(axis='observation')
+        >>> print(example_table.max(axis='observation'))
         [ 2.  5.]
 
         """
@@ -2354,15 +2355,15 @@ class Table(object):
 
         Subsample 1 item over the sample axis by value (e.g., rarefaction):
 
-        >>> print table.subsample(1).sum(axis='sample')
+        >>> print(table.subsample(1).sum(axis='sample'))
         [ 1.  1.  1.]
 
         Subsample 2 items over the sample axis, note that 'S1' is filtered out:
 
         >>> ss = table.subsample(2)
-        >>> print ss.sum(axis='sample')
+        >>> print(ss.sum(axis='sample'))
         [ 2.  2.]
-        >>> print ss.ids()
+        >>> print(ss.ids())
         ['S2' 'S3']
 
         Subsample by IDs over the sample axis. For this example, we're going to
@@ -2371,7 +2372,7 @@ class Table(object):
 
         >>> ids = set([tuple(table.subsample(2, by_id=True).ids())
         ...            for i in range(100)])
-        >>> print sorted(ids)
+        >>> print(sorted(ids))
         [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
 
         """
@@ -2429,9 +2430,9 @@ class Table(object):
         Convert to presence/absence data
 
         >>> _ = table.pa()
-        >>> print table.data('O1', 'observation')
+        >>> print(table.data('O1', 'observation'))
         [ 0.  0.  1.]
-        >>> print table.data('O2', 'observation')
+        >>> print(table.data('O2', 'observation'))
         [ 1.  1.  1.]
         """
         def transform_f(data, id_, metadata):
@@ -2479,7 +2480,7 @@ class Table(object):
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
         >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
         ...               [{'foo': 'bar'}, {'x': 'y'}], None)
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O1  0.0 0.0 1.0
@@ -2492,7 +2493,7 @@ class Table(object):
         Transform to a new table on samples
 
         >>> table2 = table.transform(f, 'sample', False)
-        >>> print table2 # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table2) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O1  0.0 0.0 0.5
@@ -2500,7 +2501,7 @@ class Table(object):
 
         `table` hasn't changed
 
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O1  0.0 0.0 1.0
@@ -2512,7 +2513,7 @@ class Table(object):
 
         `table` is different now
 
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O1  0.0 0.0 0.5
@@ -2520,7 +2521,7 @@ class Table(object):
 
         but the table returned (`table3`) is the same as `table`
 
-        >>> print table3 # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table3) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O1  0.0 0.0 0.5
@@ -2573,12 +2574,12 @@ class Table(object):
         original table untouched:
 
         >>> new_table = table.norm(inplace=False)
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  2.0 0.0
         O2  6.0 1.0
-        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(new_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  0.25    0.0
@@ -2588,12 +2589,12 @@ class Table(object):
         again leaving the original table untouched:
 
         >>> new_table = table.norm(axis='observation', inplace=False)
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  2.0 0.0
         O2  6.0 1.0
-        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(new_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  1.0 0.0
@@ -2603,7 +2604,7 @@ class Table(object):
 
         >>> table.norm(axis='observation')
         2 x 2 <class 'biom.table.Table'> with 3 nonzero entries (75% dense)
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  1.0 0.0
@@ -2741,7 +2742,7 @@ class Table(object):
         the resulting table (see `S3`).
 
         >>> merged_table = t_a.merge(t_b)
-        >>> print merged_table  # doctest: +NORMALIZE_WHITESPACE
+        >>> print(merged_table ) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	S1	S2
         O1	6.0	5.0
@@ -3900,7 +3901,7 @@ html
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
         >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
         ...               [{'foo': 'bar'}, {'x': 'y'}], None)
-        >>> print table.to_tsv() # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table.to_tsv()) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	S1	S2	S3
         O1	0.0	0.0	1.0
@@ -3962,7 +3963,7 @@ def list_list_to_sparse(data, dtype=float, shape=None):
     scipy.csr_matrix
         The newly generated matrix
     """
-    rows, cols, values = izip(*data)
+    rows, cols, values = zip(*data)
 
     if shape is None:
         n_rows = max(rows) + 1
