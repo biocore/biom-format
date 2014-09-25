@@ -1931,7 +1931,7 @@ class Table(object):
             yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
                               self.table_id, type=self.type)
 
-    def collapse(self, f, reduce_f=add, norm=True, min_group_size=1,
+    def collapse(self, f, collapse_f=None, norm=True, min_group_size=1,
                  include_collapsed_metadata=True, one_to_many=False,
                  one_to_many_mode='add', one_to_many_md_key='Path',
                  strict=False, axis='sample'):
@@ -1985,7 +1985,7 @@ class Table(object):
 
         `one_to_many` and `norm` are not supported together.
 
-        `one_to_many` and `reduce_f` are not supported together.
+        `one_to_many` and `collapse_f` are not supported together.
 
         `one_to_many` and `min_group_size` are not supported together.
 
@@ -1997,9 +1997,14 @@ class Table(object):
         f : function
             Function that is used to determine what partition a vector belongs
             to
-        reduce_f : function, optional
-            Defaults to ``operator.add``. Function that reduces two vectors in
-            a one-to-one collapse
+        collapse_f : function, optional
+            Function that collapses a partition in a one-to-one collapse. The
+            expected function signature is:
+
+                dense or sparse_vector <- collapse_f(Table, axis)
+
+            Defaults to a pairwise add.
+
         norm : bool, optional
             Defaults to ``True``. If ``True``, normalize the resulting table
         min_group_size : int, optional
@@ -2171,13 +2176,16 @@ class Table(object):
             # convert back to self type
             data = self._conv_to_self_type(new_data)
         else:
+            if collapse_f is None:
+                collapse_f = lambda t, axis: t.reduce(add, axis)
+
             for part, table in self.partition(f, axis=axis):
                 axis_ids, axis_md = axis_ids_md(table)
 
                 if len(axis_ids) < min_group_size:
                     continue
 
-                redux_data = table.reduce(reduce_f, self._invert_axis(axis))
+                redux_data = collapse_f(table, self._invert_axis(axis))
                 if norm:
                     redux_data /= len(axis_ids)
 
