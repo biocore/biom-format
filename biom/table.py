@@ -2300,22 +2300,17 @@ class Table(object):
         if n < 0:
             raise ValueError("n cannot be negative.")
 
-        ids = self.ids(axis=axis)
-        data = self._get_sparse_data(axis=axis)
+        table = self.copy()
 
         if by_id:
-            ids = ids.copy()
+            ids = table.ids(axis=axis).copy()
             np.random.shuffle(ids)
             subset = set(ids[:n])
-            table = self.filter(lambda v, i, md: i in subset, inplace=False)
+            table.filter(lambda v, i, md: i in subset)
         else:
+            data = table._get_sparse_data()
             _subsample(data, n)
-
-            samp_md = deepcopy(self.metadata())
-            obs_md = deepcopy(self.metadata(axis='observation'))
-
-            table = Table(data, self.ids(axis='observation').copy(),
-                          self.ids().copy(), obs_md, samp_md)
+            table._data = data
 
             table.filter(lambda v, i, md: v.sum() > 0, axis=axis)
 
