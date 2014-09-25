@@ -14,6 +14,8 @@ Changes:
 
 Bug fixes:
 
+* Ensure that a copy is performed in `Table.subsample`
+
 biom 2.1
 --------
 
