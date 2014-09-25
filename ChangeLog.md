@@ -1,18 +1,33 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1-dev
+------------
+
+New features:
+
+Changes:
+
+* The collapsing function to `Table.collapse` is now passed the entire table to
+    allow for more complex collapses (e.g., median, random selection, etc). See
+    #544, #545 and #547. 
+
+Bug fixes:
+
 biom 2.1
 --------
 
 Format finalization, released on August 7th 2014
 
-New features: 
+New features:
 
 * Group metadata (e.g., a phylogenetic tree) can now be stored within the HDF5
     representation. These data are available within the `Table` object
 * Matrix data can now be accessed by the ``Table.matrix_data`` property
 * ``Table`` IDs are now accessed via the ``Table.ids`` method
 * ``Table`` metadata are now accessed via the ``Table.metadata`` method
+* New method ``Table.update_ids``, which allows for updating the ids along
+    either axis.
 
 Changes:
 
@@ -28,9 +43,9 @@ Changes:
 * iter methods now support dense/sparse
 * added ``Table.matrix_data`` property
 * ``Table.filter`` yields a sparse vector, see #470
-* ``Table.subsample`` can now sample by IDs (e.g., get a random subset of 
+* ``Table.subsample`` can now sample by IDs (e.g., get a random subset of
     samples or observations from a ``Table``).
-* ``biom.util.generate_subsamples`` will generate an infinite number of 
+* ``biom.util.generate_subsamples`` will generate an infinite number of
     subsamples and can be used for rarefaction.
 * ``biom summarize-table`` can now operate on observations.
 
@@ -78,10 +93,10 @@ Changes:
     been combined into `Table.partition`, which takes an axis argument
 * `Table.collapse_samples_by_metadata` and
     `Table.collapse_observations_by_metadata` have been combined into
-    `Table.collapse`, which now takes an axis argument 
-* `Table.filter_samples` and `Table.filter_observations` have been combined 
-    into `Table.filter`, which now takes an axis argument 
-* `Table.transform_samples` and `Table.transform_observations` have been 
+    `Table.collapse`, which now takes an axis argument
+* `Table.filter_samples` and `Table.filter_observations` have been combined
+    into `Table.filter`, which now takes an axis argument
+* `Table.transform_samples` and `Table.transform_observations` have been
     combined into `Table.transform`, which now takes an axis argument
 * `Table.norm_sample_by_observation` and `Table.norm_observation_by_sample`
     have been combined into `Table.norm`, which now takes an axis argument
@@ -149,8 +164,8 @@ New Features:
 * ```Table.delimitedSelf``` now has an additional argument, ```observation_column_name```, which allows the user to specify the name of the first column in the output table (e.g. 'OTU ID', 'Taxon', etc.).
 * Added new ```Table.transpose``` method.
 * ```Table.__init``` has change from ```__init__(self, data, sample_ids, observation_ids, sample_metadata=None,
-observation_metadata=None, table_id=None, type=None, **kwargs)``` to ```__init__(self, data, observation_ids, sample_ids, observation_metadata=None, sample_metadata=None, table_id=None, type=None, **kwargs)``` This is for clarity, the data is in the same order as the arguments to the constructor. 
-*```table_factory``` has changed from ```table_factory(data, sample_ids, observation_ids, sample_metadata=None, observation_metadata=None, table_id=None, input_is_dense=False, transpose=False, **kwargs)``` to ```table_factory(data, observation_ids, sample_ids, observation_metadata=None, sample_metadata=None, table_id=None, input_is_dense=False, transpose=False, **kwargs)``` This is for clarity, the data is in the same order as the arguments to the function. 
+observation_metadata=None, table_id=None, type=None, **kwargs)``` to ```__init__(self, data, observation_ids, sample_ids, observation_metadata=None, sample_metadata=None, table_id=None, type=None, **kwargs)``` This is for clarity, the data is in the same order as the arguments to the constructor.
+*```table_factory``` has changed from ```table_factory(data, sample_ids, observation_ids, sample_metadata=None, observation_metadata=None, table_id=None, input_is_dense=False, transpose=False, **kwargs)``` to ```table_factory(data, observation_ids, sample_ids, observation_metadata=None, sample_metadata=None, table_id=None, input_is_dense=False, transpose=False, **kwargs)``` This is for clarity, the data is in the same order as the arguments to the function.
 
 Changes:
 
