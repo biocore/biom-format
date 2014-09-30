@@ -1,6 +1,21 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1-dev
+------------
+
+New features:
+
+Changes:
+
+* The collapsing function to `Table.collapse` is now passed the entire table to
+    allow for more complex collapses (e.g., median, random selection, etc). See
+    #544, #545 and #547. 
+
+Bug fixes:
+
+* Ensure that a copy is performed in `Table.subsample`
+
 biom 2.1
 --------
 

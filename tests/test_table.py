@@ -875,8 +875,6 @@ class TableTests(TestCase):
         # test is that no exception is raised
 
         obs_ids = [1, 2]
-        from biom.err import geterr
-        print geterr()
         self.assertRaises(TableException, Table, d, samp_ids, obs_ids, samp_md,
                           obs_md)
 
@@ -2341,6 +2339,32 @@ class SparseTableTests(TestCase):
             dt_rich.collapse(
                 bin_f, norm=False, one_to_many=True, one_to_many_mode='foo',
                 axis='observation')
+
+    def test_collapse_median(self):
+        table = Table(
+            np.array([[5, 6, 7],
+                      [1, 2, 3],
+                      [8, 9, 10],
+                      [1, 2.5, 1],
+                      [11, 12, 13],
+                      [2, 3, 10]]),
+            ['a', 'b', 'c', 'd', 'e', 'f'],
+            ['s1', 's2', 's3'])
+
+        # two partitions, (a, c, e) and (b, d, f)
+        partition_f = lambda id_, md: id_ in set(['b', 'd', 'f'])
+
+        def collapse_f(t, axis):
+            return np.array([np.median(v) for v in t.iter_data(dense=True)])
+
+        obs = table.collapse(partition_f, collapse_f, axis='observation',
+                             norm=False)
+        exp = Table(np.array([[8, 9, 10], [1, 2.5, 3]]),
+                    [False, True],
+                    ['s1', 's2', 's3'],
+                    [{'collapsed_ids': ['a', 'c', 'e']},
+                     {'collapsed_ids': ['b', 'd', 'f']}])
+        self.assertEqual(obs, exp)
 
     def test_collapse_observations_by_metadata(self):
         """Collapse observations by arbitrary metadata"""
