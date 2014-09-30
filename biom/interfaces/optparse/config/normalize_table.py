@@ -29,38 +29,43 @@ cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
 
 
 usage_examples = [
-    OptparseUsageExample(ShortDesc="Normalizing a BIOM table to relative abundnace",
-                         LongDesc="Take a BIOM table and replace all values with their "
-                                  "relative abundance in relation to the sample",
-                         Ex="%prog -i table.biom -r -o normalized_table.biom"),
-    OptparseUsageExample(ShortDesc="Converting a BIOM table to a presence/absence table",
-                         LongDesc="Take a BIOM table and convert the values to 0's "
-                                  "and 1's based on presensce or absence of observations",
+    OptparseUsageExample(ShortDesc="Normalizing a BIOM table to relative"
+                                   "abundnace",
+                         LongDesc="Take a BIOM table and replace all values "
+                                  "with their relative abundance in relation "
+                                  "to the sample",
+                         Ex="%prog -i table.biom -r -o "
+                            "normalized_table.biom"),
+    OptparseUsageExample(ShortDesc="Converting a BIOM table to a "
+                                   "presence/absence table",
+                         LongDesc="Take a BIOM table and convert the values "
+                                  "to 0's and 1's based on presensce or "
+                                  "absence of observations",
                          Ex="%prog -i table.biom -p -o converted_table.biom")
 ]
 
 inputs = [
-    #table input
+    # table input
     OptparseOption(Parameter=cmd_in_lookup('biom_table'),
                    Type='existing_filepath',
                    Handler=None, ShortName='i',
                    Name='input-fp', Required=True,
                    Help='the input BIOM table filepath to subset'),
 
-    #normalization to relative_abundance
+    # normalization to relative_abundance
     OptparseOption(Parameter=cmd_in_lookup('relative_abund'),
                    ShortName='r',
                    Action='store_true',
                    Help='convert table to relative abundance'),
-    
-    #conversion to presensce/absence
+
+    # conversion to presensce/absence
     OptparseOption(Parameter=cmd_in_lookup('presence_absence'),
                    ShortName='p',
                    Action='store_true',
                    Help='convert table to presence/absence'),
-                   
-    #if relative abundance then normalize by sample or by observation
-    OptparseOption(Parameter=cmd_in_lookup('axis'), 
+
+    # if relative abundance then normalize by sample or by observation
+    OptparseOption(Parameter=cmd_in_lookup('axis'),
                    ShortName='a',
                    Default='sample'),
 

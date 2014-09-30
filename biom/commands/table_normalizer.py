@@ -62,7 +62,7 @@ class TableNormalizer(Command):
         axis = kwargs['axis']
         relative_abund = kwargs['relative_abund']
         p_a = kwargs['presence_absence']
-        
+
         if axis not in self.Axes:
             raise CommandError("Invalid axis '%s'. Must be either %s." % (
                 axis,
@@ -75,14 +75,14 @@ class TableNormalizer(Command):
             raise CommandError("Must specifiy a normalization type")
         elif relative_abund is True and p_a is True:
             raise CommandError("Must specify only one normalization type")
-            
+
         table = load_table(biom_table)
-        
+
         if relative_abund is True:
             table.norm(axis=axis)
         else:
             table.pa()
-        
+
         if HAVE_H5PY:
             return {'table': (table, 'hdf5')}
         else:

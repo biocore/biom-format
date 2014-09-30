@@ -24,29 +24,33 @@ from pyqi.core.exception import CommandError
 
 
 class TableNormalizerTests(TestCase):
-    
+
     def setUp(self):
         """initialize objects for use in tests"""
         self.cmd = TableNormalizer()
         self.biom_path = 'test_data/test.biom'
 
     def test_correct_table_type(self):
-        table = self.cmd(biom_table=self.biom_path, relative_abund=True, axis = "sample")['table']
+        table = self.cmd(biom_table=self.biom_path, relative_abund=True,
+                         axis="sample")['table']
         if HAVE_H5PY:
-            self.assertEqual(table[1],"hdf5")
+            self.assertEqual(table[1], "hdf5")
         else:
-            self.assertEqual(table[1],"json")
-    
+            self.assertEqual(table[1], "json")
+
     def test_bad_inputs(self):
-        #relative_abund and pa
+        # relative_abund and pa
         with self.assertRaises(CommandError):
-            self.cmd(biom_table=self.biom_path, relative_abund=True, presence_absence=True, axis = "sample")
-        #no normalization type
+            self.cmd(biom_table=self.biom_path, relative_abund=True,
+                     presence_absence=True, axis="sample")
+        # no normalization type
         with self.assertRaises(CommandError):
-            self.cmd(biom_table=self.biom_path, relative_abund=False, presence_absence=False, axis = "sample")
-        #bad axis
+            self.cmd(biom_table=self.biom_path, relative_abund=False,
+                     presence_absence=False, axis="sample")
+        # bad axis
         with self.assertRaises(CommandError):
-            self.cmd(biom_table=self.biom_path, relative_abund=True, axis = "nonsense")
-         
+            self.cmd(biom_table=self.biom_path, relative_abund=True,
+                     axis="nonsense")
+
 if __name__ == "__main__":
     main()

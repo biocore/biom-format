@@ -33,16 +33,16 @@ inputs = [
                     Type='upload_file',
                     Required=True,
                     Help='the input table filepath'),
-    
+
     HTMLInputOption(Parameter=cmd_in_lookup('relative_abund'),
                     Type=bool),
     HTMLInputOption(Parameter=cmd_in_lookup('presence_absence'),
                     Type=bool),
     HTMLInputOption(Parameter=cmd_in_lookup('axis'),
-                    Type=='multiple_choice',
+                    Type='multiple_choice',
                     Choices=['observation', 'sample']
                     Help='axis by which to normalize the table'),
-    
+
     HTMLInputOption(Parameter=None,
                     Name='download-file',
                     Required=True,
