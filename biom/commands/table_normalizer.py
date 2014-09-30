@@ -80,7 +80,7 @@ class TableNormalizer(Command):
             raise CommandError("Must specify only one normalization type")
         
         if relative_abund is True:
-            table.norm(axis=axis, inplace=True)
+            table.norm(axis=axis)
         else:
             table.pa()
         
