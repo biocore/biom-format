@@ -17,8 +17,8 @@ from biom.interfaces.optparse.output_handler import write_biom_table
 from biom.commands.table_normalizer import CommandConstructor
 
 __author__ = "Michael Shaffer"
-__copyright__ = ""
-__credits__ = []
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
+__credits__ = ["Michael Shaffer"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Michael Shaffer"

@@ -13,11 +13,12 @@ from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
 from pyqi.core.exception import CommandError
 from biom.table import Table
+from biom.util import HAVE_H5PY
 from biom import load_table
 
 __author__ = "Michael Shaffer"
-__copyright__ = ""
-__credits__ = []
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
+__credits__ = ["Michael Shaffer"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __author__ = "Michael Shaffer"
@@ -82,7 +83,10 @@ class TableNormalizer(Command):
             table.norm(axis=axis, inplace=True)
         else:
             table.pa()
-
-        return {'table': (table, 'json')}
+        
+        if HAVE_H5PY:
+            return {'table': (table, 'hdf5')}
+        else:
+            return {'table': (table, 'json')}
 
 CommandConstructor = TableNormalizer
