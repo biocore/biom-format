@@ -39,8 +39,7 @@ class TableNormalizer(Command):
 
     CommandIns = ParameterCollection([
         CommandIn(Name='biom_table', DataType=str,
-                  Description='the input BIOM table as an unparsed json '
-                              'string'),
+                  Description='the input BIOM table'),
         CommandIn(Name='axis', DataType=str,
                   Description='the axis to subset over, either ' +
                   ' or '.join(Axes),
@@ -72,12 +71,12 @@ class TableNormalizer(Command):
         if biom_table is None:
             raise CommandError("Must specify an input table")
 
-        table = load_table(biom_table)
-        
         if relative_abund is False and p_a is False:
             raise CommandError("Must specifiy a normalization type")
         elif relative_abund is True and p_a is True:
             raise CommandError("Must specify only one normalization type")
+            
+        table = load_table(biom_table)
         
         if relative_abund is True:
             table.norm(axis=axis)
