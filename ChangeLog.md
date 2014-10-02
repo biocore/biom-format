@@ -30,6 +30,8 @@ New features:
 * ``Table`` metadata are now accessed via the ``Table.metadata`` method
 * New method ``Table.update_ids``, which allows for updating the ids along
     either axis.
+* added ``normalize-table`` option to optparse and HTML interfaces which 
+    utilizes the new TableNormalizer command from ``table_normalizer.py``
 
 Changes:
 
@@ -49,7 +51,7 @@ Changes:
     samples or observations from a ``Table``).
 * ``biom.util.generate_subsamples`` will generate an infinite number of
     subsamples and can be used for rarefaction.
-* ``biom summarize-table`` can now operate on observations.
+* ``biom summarize-table`` can now operate on observations. 
 
 Bug fixes:
 
