@@ -3801,8 +3801,8 @@ html
         for line in lines:
             if not line.strip():
                 continue
-            if (not line.startswith('#')) or \
-                    (header_mark and (not line.startswith(header_mark))):
+            if (not line.startswith('#')) or ((header_mark is not None) and \
+                    (not line.startswith(header_mark))):
                 # Covers the case where the first line is the header
                 # and there is no indication of it (no comment character)
                 if not header:
@@ -3866,7 +3866,7 @@ html
                 continue
             if line.startswith('#'):
                 continue
-            if header_mark and line.startswith(header_mark):
+            if (header_mark is not None) and line.startswith(header_mark):
                 continue
 
             fields = line.strip().split(delim)
