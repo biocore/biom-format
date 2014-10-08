@@ -1,7 +1,7 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1-dev
+biom 2.1.0-dev
 ------------
 
 New features:
@@ -11,6 +11,9 @@ Changes:
 * The collapsing function to `Table.collapse` is now passed the entire table to
     allow for more complex collapses (e.g., median, random selection, etc). See
     #544, #545 and #547. 
+* Updated version strings in the project to be
+    [Semantic Versioning](www.semver.org)-stlye. This better matches with other
+    open source python projects, and plays nicer with pip.
 * Conversion from TSV now takes less memory. See #551.
 
 Bug fixes:
@@ -32,7 +35,7 @@ New features:
 * ``Table`` metadata are now accessed via the ``Table.metadata`` method
 * New method ``Table.update_ids``, which allows for updating the ids along
     either axis.
-* added ``normalize-table`` option to optparse and HTML interfaces which 
+* added ``normalize-table`` option to optparse and HTML interfaces which
     utilizes the new TableNormalizer command from ``table_normalizer.py``
 
 Changes:
@@ -53,7 +56,7 @@ Changes:
     samples or observations from a ``Table``).
 * ``biom.util.generate_subsamples`` will generate an infinite number of
     subsamples and can be used for rarefaction.
-* ``biom summarize-table`` can now operate on observations. 
+* ``biom summarize-table`` can now operate on observations.
 
 Bug fixes:
 
