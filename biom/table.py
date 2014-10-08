@@ -3796,13 +3796,13 @@ html
         # find header, the first line that is not empty and does not start
         # with a #
         header = False
-        first_line_is_header = False
         list_index = 0
         for line in lines:
             if not line.strip():
                 continue
-            if (not line.startswith('#')) or ((header_mark is not None) and \
-                    (not line.startswith(header_mark))):
+            if ((not line.startswith('#')) or
+                   ((header_mark is not None) and
+                    (line.startswith(header_mark)))):
                 # Covers the case where the first line is the header
                 # and there is no indication of it (no comment character)
                 if not header:
