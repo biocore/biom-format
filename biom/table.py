@@ -3788,34 +3788,42 @@ html
         """
         if not isinstance(lines, list):
             try:
-                lines = lines.readlines()
+                hasattr(lines, 'seek')
             except AttributeError:
                 raise RuntimeError(
-                    "Input needs to support readlines or be indexable")
+                    "Input needs to support seek (file-like) or be indexable (list)")
 
         # find header, the first line that is not empty and does not start
         # with a #
-        for idx, l in enumerate(lines):
-            if not l.strip():
+        header = False
+        first_line_is_header = False
+        list_index = 0
+        for line in lines:
+            if not line.strip():
                 continue
-            if not l.startswith('#'):
+            if (not line.startswith('#')) or \
+            (header_mark and (not line.startswith(header_mark))):
+                #Covers the case where the first line is the header
+                #And there is no indication of it (no comment character)
+                if not header:
+                    header = line.strip().split(delim)[1:]
+                    data_start = list_index + 1
+                else:
+                    data_start = list_index
                 break
-            if header_mark and l.startswith(header_mark):
-                break
-
-        if idx == 0:
-            data_start = 1
-            header = lines[0].strip().split(delim)[1:]
+            list_index += 1
+            header = line.strip().split(delim)[1:]
+        #If the first line is the header, then we need to get the next
+        #line for the "last column" check
+        if isinstance(lines, list):
+            line = lines[data_start]
         else:
-            if header_mark is not None:
-                data_start = idx + 1
-                header = lines[idx].strip().split(delim)[1:]
-            else:
-                data_start = idx
-                header = lines[idx - 1].strip().split(delim)[1:]
+            lines.seek(0)
+            for index in range(0, data_start + 1):
+                line = lines.readline()
 
         # attempt to determine if the last column is non-numeric, ie, metadata
-        first_values = lines[data_start].strip().split(delim)
+        first_values = line.strip().split(delim)
         last_value = first_values[-1]
         last_column_is_numeric = True
 
@@ -3842,11 +3850,23 @@ html
 
         data = []
         obs_ids = []
-        for line in lines[data_start:]:
+        row_number = 0
+
+        #Go back to the beginning if it is a file:
+        if hasattr(lines, 'seek'):
+            lines.seek(0)
+            for index in range(0, data_start):
+                line = lines.readline()
+        else:
+            lines = lines[data_start:]
+
+        for line in lines:
             line = line.strip()
             if not line:
                 continue
             if line.startswith('#'):
+                continue
+            if header_mark and line.startswith(header_mark):
                 continue
 
             fields = line.strip().split(delim)
@@ -3861,10 +3881,12 @@ html
                     metadata.append(md_parse(fields[-1]))
                 else:
                     metadata.append(fields[-1])
-
-            data.append(values)
-
-        return samp_ids, obs_ids, asarray(data), metadata, md_name
+            for column_number in range(0,len(values)):
+                if values[column_number] != dtype(0):
+                    data.append([row_number, column_number,
+                                 values[column_number]])
+            row_number += 1
+        return samp_ids, obs_ids, data, metadata, md_name
 
     def to_tsv(self, header_key=None, header_value=None,
                metadata_formatter=str, observation_column_name='#OTU ID'):
