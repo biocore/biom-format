@@ -3791,7 +3791,7 @@ html
                 hasattr(lines, 'seek')
             except AttributeError:
                 raise RuntimeError(
-                    "Input needs to support seek (file-like) or be indexable (list)")
+                    "Input needs to support seek or be indexable")
 
         # find header, the first line that is not empty and does not start
         # with a #
@@ -3802,9 +3802,9 @@ html
             if not line.strip():
                 continue
             if (not line.startswith('#')) or \
-            (header_mark and (not line.startswith(header_mark))):
-                #Covers the case where the first line is the header
-                #And there is no indication of it (no comment character)
+                (header_mark and (not line.startswith(header_mark))):
+                # Covers the case where the first line is the header
+                # and there is no indication of it (no comment character)
                 if not header:
                     header = line.strip().split(delim)[1:]
                     data_start = list_index + 1
@@ -3813,8 +3813,8 @@ html
                 break
             list_index += 1
             header = line.strip().split(delim)[1:]
-        #If the first line is the header, then we need to get the next
-        #line for the "last column" check
+        # If the first line is the header, then we need to get the next
+        # line for the "last column" check
         if isinstance(lines, list):
             line = lines[data_start]
         else:
@@ -3852,7 +3852,7 @@ html
         obs_ids = []
         row_number = 0
 
-        #Go back to the beginning if it is a file:
+        # Go back to the beginning if it is a file:
         if hasattr(lines, 'seek'):
             lines.seek(0)
             for index in range(0, data_start):
@@ -3881,7 +3881,7 @@ html
                     metadata.append(md_parse(fields[-1]))
                 else:
                     metadata.append(fields[-1])
-            for column_number in range(0,len(values)):
+            for column_number in range(0, len(values)):
                 if values[column_number] != dtype(0):
                     data.append([row_number, column_number,
                                  values[column_number]])

@@ -299,8 +299,8 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
         pass
     if hasattr(fp, 'read'):
         old_pos = fp.tell()
-        #Read in characters until first non-whitespace
-        #If it is a {, then this is (most likely) JSON
+        # Read in characters until first non-whitespace
+        # If it is a {, then this is (most likely) JSON
         c = fp.read(1)
         while c.isspace():
             c = fp.read(1)
