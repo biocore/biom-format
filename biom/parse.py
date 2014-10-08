@@ -297,12 +297,17 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
         return Table.from_hdf5(fp, ids=ids, axis=axis)
     except:
         pass
-
     if hasattr(fp, 'read'):
         old_pos = fp.tell()
-        try:
+        #Read in characters until first non-whitespace
+        #If it is a {, then this is (most likely) JSON
+        c = fp.read(1)
+        while c.isspace():
+            c = fp.read(1)
+        if c == '{':
+            fp.seek(old_pos)
             t = Table.from_json(json.load(fp), input_is_dense=input_is_dense)
-        except ValueError:
+        else:
             fp.seek(old_pos)
             t = Table.from_tsv(fp, None, None, lambda x: x)
     elif isinstance(fp, list):
