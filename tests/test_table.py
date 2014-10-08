@@ -2838,11 +2838,11 @@ class SparseTableTests(TestCase):
             'ceae',
             'Bacteria; Cyanobacteria; Chloroplasts; vectors']
         md_name = 'Consensus Lineage'
-        data = np.array([[19111, 44536, 42],
-                        [1216, 3500, 6],
-                        [1803, 1184, 2],
-                        [1722, 4903, 17],
-                        [589, 2074, 34]])
+        data = [[0,0,19111],[0,1,44536],[0,2,42],
+                [1,0,1216],[1,1,3500],[1,2,6],
+                [2,0,1803],[2,1,1184],[2,2,2],
+                [3,0,1722],[3,1,4903],[3,2,17],
+                [4,0,589],[4,1,2074],[4,2,34]]
 
         exp = (samp_ids, obs_ids, data, metadata, md_name)
         obs = Table._extract_data_from_tsv(input, dtype=int)
