@@ -55,6 +55,7 @@ Changes:
 * ``biom.util.generate_subsamples`` will generate an infinite number of
     subsamples and can be used for rarefaction.
 * ``biom summarize-table`` can now operate on observations.
+* 10% performance boost in ``Table.subsample``, see #532
 
 Bug fixes:
 
