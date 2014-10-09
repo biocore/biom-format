@@ -3797,7 +3797,7 @@ html
         for line in lines:
             if not line.strip():
                 continue
-            if ((not line.startswith('#')):
+            if not line.startswith('#'):
                 # Covers the case where the first line is the header
                 # and there is no indication of it (no comment character)
                 if not header:
