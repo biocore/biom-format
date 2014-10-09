@@ -3744,8 +3744,7 @@ html
         return Table(data, obs_ids, sample_ids, obs_metadata, sample_metadata)
 
     @staticmethod
-    def _extract_data_from_tsv(lines, delim='\t', dtype=float,
-                               header_mark=None, md_parse=None):
+    def _extract_data_from_tsv(lines, delim='\t', dtype=float, md_parse=None):
         """Parse a classic table into (sample_ids, obs_ids, data, metadata,
         name)
 
@@ -3756,8 +3755,6 @@ html
         delim: string
             delimeter in file lines
         dtype: type
-        header_mark:  string or None
-            string that indicates start of header line
         md_parse:  function or None
             funtion used to parse metdata
 
@@ -3800,9 +3797,7 @@ html
         for line in lines:
             if not line.strip():
                 continue
-            if ((not line.startswith('#')) or
-                   ((header_mark is not None) and
-                    (line.startswith(header_mark)))):
+            if ((not line.startswith('#')):
                 # Covers the case where the first line is the header
                 # and there is no indication of it (no comment character)
                 if not header:
@@ -3865,8 +3860,6 @@ html
             if not line:
                 continue
             if line.startswith('#'):
-                continue
-            if (header_mark is not None) and line.startswith(header_mark):
                 continue
 
             fields = line.strip().split(delim)
