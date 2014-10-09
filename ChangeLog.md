@@ -10,14 +10,18 @@ Changes:
 
 * The collapsing function to `Table.collapse` is now passed the entire table to
     allow for more complex collapses (e.g., median, random selection, etc). See
-    #544, #545 and #547.
+    #544, #545 and #547. 
 * Updated version strings in the project to be
     [Semantic Versioning](www.semver.org)-stlye. This better matches with other
     open source python projects, and plays nicer with pip.
+* Conversion from TSV now takes less memory. See #551.
+* Parameter header_mark has been removed from _extract_data_from_tsv()
+    in table.py
 
 Bug fixes:
 
 * Ensure that a copy is performed in `Table.subsample`
+* Avoided a memory leak when checking if a table is JSON or TSV, see #552.
 
 biom 2.1
 --------
