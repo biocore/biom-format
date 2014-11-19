@@ -1371,40 +1371,40 @@ class SparseTableTests(TestCase):
         # update observation ids
         exp = self.st1.copy()
         exp._observation_ids = np.array(['41', '42'])
-        id_map = {'2':'42', '1':'41'}
+        id_map = {'2': '42', '1': '41'}
         obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
         self.assertEqual(obs, exp)
 
         # update sample ids
         exp = self.st1.copy()
         exp._sample_ids = np.array(['99', '100'])
-        id_map = {'a':'99', 'b':'100'}
+        id_map = {'a': '99', 'b': '100'}
         obs = self.st1.update_ids(id_map, axis='sample', inplace=False)
         self.assertEqual(obs, exp)
 
         # extra ids in id_map are ignored
         exp = self.st1.copy()
         exp._observation_ids = np.array(['41', '42'])
-        id_map = {'2':'42', '1':'41', '0':'40'}
+        id_map = {'2': '42', '1': '41', '0': '40'}
         obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
         self.assertEqual(obs, exp)
 
         # missing ids in id_map when strict=True
         with self.assertRaises(TableException):
-            self.st1.update_ids({'b':'100'}, axis='sample', strict=True,
+            self.st1.update_ids({'b': '100'}, axis='sample', strict=True,
                                 inplace=False)
 
         # missing ids in id_map when strict=False
         exp = self.st1.copy()
-        exp._sample_ids = np.array(['a','100'])
-        id_map = {'b':'100'}
+        exp._sample_ids = np.array(['a', '100'])
+        id_map = {'b': '100'}
         obs = self.st1.update_ids(id_map, axis='sample', strict=False,
                                   inplace=False)
         self.assertEqual(obs, exp)
 
         # raise an error if update would result in duplicated ids
         with self.assertRaises(TableException):
-            self.st1.update_ids({'a':'100', 'b':'100'}, axis='sample',
+            self.st1.update_ids({'a': '100', 'b': '100'}, axis='sample',
                                 inplace=False)
 
         # raises an error if a invalid axis is passed
@@ -1414,13 +1414,12 @@ class SparseTableTests(TestCase):
         # when inplace == False, the input object is unchanged
         exp = self.st1.copy()
         exp._observation_ids = np.array(['41', '42'])
-        id_map = {'2':'42', '1':'41'}
+        id_map = {'2': '42', '1': '41'}
         obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
         npt.assert_equal(self.st1._observation_ids, np.array(['1', '2']))
         # when inplace == True, the input object is changed
         obs = self.st1.update_ids(id_map, axis='observation', inplace=True)
         npt.assert_equal(self.st1._observation_ids, np.array(['41', '42']))
-
 
     def test_sort_order(self):
         """sorts tables by arbitrary order"""
@@ -2212,13 +2211,13 @@ class SparseTableTests(TestCase):
     def test_collapse_observations_by_metadata_one_to_many(self):
         """Collapse observations by arbitary metadata"""
         dt_rich = Table(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
-            ['1', '2', '3'], ['a', 'b', 'c'],
-            [{'pathways': [['a', 'bx'], ['a', 'd']]},
-             {'pathways': [['a', 'bx'], ['a', 'c']]},
-             {'pathways': [['a', 'c']]}],
-            [{'barcode': 'aatt'},
-             {'barcode': 'ttgg'},
-             {'barcode': 'aatt'}])
+                        ['1', '2', '3'], ['a', 'b', 'c'],
+                        [{'pathways': [['a', 'bx'], ['a', 'd']]},
+                         {'pathways': [['a', 'bx'], ['a', 'c']]},
+                         {'pathways': [['a', 'c']]}],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
         exp_cat2 = Table(np.array([[13, 15, 17], [19, 21, 23], [5, 6, 7]]),
                          ['bx', 'c', 'd'], ['a', 'b', 'c'],
                          [{'Path': ['a', 'bx']},
@@ -2238,13 +2237,13 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs_cat2, exp_cat2)
 
         dt_rich = Table(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
-            ['1', '2', '3'], ['a', 'b', 'c'],
-            [{'pathways': [['a', 'b'], ['a', 'd']]},
-             {'pathways': [['a', 'b'], ['a', 'c']]},
-             {'pathways': [['a', 'c']]}],
-            [{'barcode': 'aatt'},
-             {'barcode': 'ttgg'},
-             {'barcode': 'aatt'}])
+                        ['1', '2', '3'], ['a', 'b', 'c'],
+                        [{'pathways': [['a', 'b'], ['a', 'd']]},
+                         {'pathways': [['a', 'b'], ['a', 'c']]},
+                         {'pathways': [['a', 'c']]}],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
         exp_cat1 = Table(np.array([[37, 42, 47]]),
                          ['a'], ['a', 'b', 'c'],
                          [{'Path': ['a']}],
@@ -2549,14 +2548,14 @@ class SparseTableTests(TestCase):
 
         # Test skipping some sample metadata (strict=False).
         dt_rich = Table(np.array([[5.0, 8, 11], [6.0, 9, 12], [7, 10, 13.0]]),
-            ['a', 'b', 'c'],
-            ['1', '2', '3'],
-            [{'barcode': 'aatt'},
-             {'barcode': 'ttgg'},
-             {'barcode': 'aatt'}],
-            [{'pathways': [['a', 'bx'], ['a', 'd']]},
-             {'pathways': [['a', 'bx'], ['a', 'c'], ['z']]},
-             {'pathways': [['a']]}])
+                        ['a', 'b', 'c'],
+                        ['1', '2', '3'],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}],
+                        [{'pathways': [['a', 'bx'], ['a', 'd']]},
+                         {'pathways': [['a', 'bx'], ['a', 'c'], ['z']]},
+                         {'pathways': [['a']]}])
         exp = Table(np.array([[6.5, 4, 2.5], [7.5, 4.5, 3], [8.5, 5, 3.5]]),
                     ['a', 'b', 'c'],
                     ['bx', 'c', 'd'],
@@ -2850,11 +2849,11 @@ class SparseTableTests(TestCase):
             'ceae',
             'Bacteria; Cyanobacteria; Chloroplasts; vectors']
         md_name = 'Consensus Lineage'
-        data = [[0,0,19111],[0,1,44536],[0,2,42],
-                [1,0,1216],[1,1,3500],[1,2,6],
-                [2,0,1803],[2,1,1184],[2,2,2],
-                [3,0,1722],[3,1,4903],[3,2,17],
-                [4,0,589],[4,1,2074],[4,2,34]]
+        data = [[0, 0, 19111], [0, 1, 44536], [0, 2, 42],
+                [1, 0, 1216], [1, 1, 3500], [1, 2, 6],
+                [2, 0, 1803], [2, 1, 1184], [2, 2, 2],
+                [3, 0, 1722], [3, 1, 4903], [3, 2, 17],
+                [4, 0, 589], [4, 1, 2074], [4, 2, 34]]
 
         exp = (samp_ids, obs_ids, data, metadata, md_name)
         obs = Table._extract_data_from_tsv(input, dtype=int)
