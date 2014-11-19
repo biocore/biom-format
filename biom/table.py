@@ -3122,7 +3122,7 @@ html
 
             # fetch ID specific metadata
             md = [{} for i in range(len(ids))]
-            for category, dset in grp['metadata'].items():
+            for category, dset in grp['metadata'].iteritems():
                 parse_f = parser[category]
                 data = dset[:]
                 for md_dict, data_row in izip(md, data):
