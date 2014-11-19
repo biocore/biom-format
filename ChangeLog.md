@@ -18,6 +18,8 @@ Changes:
 * Parameter header_mark has been removed from _extract_data_from_tsv()
     in table.py
 * Order of magnitude improvement in parsing HDF5 BIOM tables, see #529
+* Added `Table.length`, see #548
+* Order of magnitude performance increase in `Table.nonzero`, see #538
 
 Bug fixes:
 
