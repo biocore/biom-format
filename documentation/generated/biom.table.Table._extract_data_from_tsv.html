@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1-dev',
+        VERSION:     '2.1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table._extract_data_from_tsv<a class="headerlink" href="#biom-table-table-extract-data-from-tsv" title="Permalink to this headline">¶</a></h1>
 <dl class="staticmethod">
 <dt id="biom.table.Table._extract_data_from_tsv">
-<em class="property">static </em><tt class="descclassname">Table.</tt><tt class="descname">_extract_data_from_tsv</tt><big>(</big><em>lines</em>, <em>delim='t'</em>, <em>dtype=&lt;type 'float'&gt;</em>, <em>header_mark=None</em>, <em>md_parse=None</em><big>)</big><a class="headerlink" href="#biom.table.Table._extract_data_from_tsv" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><tt class="descclassname">Table.</tt><tt class="descname">_extract_data_from_tsv</tt><big>(</big><em>lines</em>, <em>delim='\t'</em>, <em>dtype=&lt;type 'float'&gt;</em>, <em>md_parse=None</em><big>)</big><a class="headerlink" href="#biom.table.Table._extract_data_from_tsv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse a classic table into (sample_ids, obs_ids, data, metadata,
 name)</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -74,10 +74,6 @@ name)</p>
 <div><p>delimeter in file lines</p>
 </div></blockquote>
 <p><strong>dtype: type</strong></p>
-<p><strong>header_mark:  string or None</strong></p>
-<blockquote>
-<div><p>string that indicates start of header line</p>
-</div></blockquote>
 <p><strong>md_parse:  function or None</strong></p>
 <blockquote>
 <div><p>funtion used to parse metdata</p>
@@ -136,8 +132,8 @@ Format project (and keep it under BIOM&#8217;s BSD license).</p>
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Aug 07, 2014.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Last updated on Nov 19, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 

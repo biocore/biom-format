@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1-dev',
+        VERSION:     '2.1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -27,7 +27,7 @@
     <link rel="top" title="biom-format.org" href="../../index.html" />
     <link rel="up" title="BIOM Table (biom.table)" href="../table_objects.html" />
     <link rel="next" title="biom.table.Table.dtype" href="biom.table.Table.dtype.html" />
-    <link rel="prev" title="biom.table.Table.transpose" href="biom.table.Table.transpose.html" /> 
+    <link rel="prev" title="biom.table.Table.update_ids" href="biom.table.Table.update_ids.html" /> 
   </head>
   <body>
   
@@ -43,7 +43,7 @@
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="biom.table.Table.transpose.html">biom.table.Table.transpose</a>
+        «&#160;&#160;<a href="biom.table.Table.update_ids.html">biom.table.Table.update_ids</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../../index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -101,7 +101,7 @@
 <tr class="row-even"><td><a class="reference internal" href="biom.table.Table.add_metadata.html#biom.table.Table.add_metadata" title="biom.table.Table.add_metadata"><tt class="xref py py-obj docutils literal"><span class="pre">add_metadata</span></tt></a>(md[,&nbsp;axis])</td>
 <td>Take a dict of metadata and add it to an axis.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.collapse.html#biom.table.Table.collapse" title="biom.table.Table.collapse"><tt class="xref py py-obj docutils literal"><span class="pre">collapse</span></tt></a>(f[,&nbsp;reduce_f,&nbsp;norm,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.collapse.html#biom.table.Table.collapse" title="biom.table.Table.collapse"><tt class="xref py py-obj docutils literal"><span class="pre">collapse</span></tt></a>(f[,&nbsp;collapse_f,&nbsp;norm,&nbsp;...])</td>
 <td>Collapse partitions in a table by metadata or by IDs</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="biom.table.Table.copy.html#biom.table.Table.copy" title="biom.table.Table.copy"><tt class="xref py py-obj docutils literal"><span class="pre">copy</span></tt></a>()</td>
@@ -158,62 +158,68 @@
 <tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.iter_pairwise.html#biom.table.Table.iter_pairwise" title="biom.table.Table.iter_pairwise"><tt class="xref py py-obj docutils literal"><span class="pre">iter_pairwise</span></tt></a>([dense,&nbsp;axis,&nbsp;tri,&nbsp;diag])</td>
 <td>Pairwise iteration over self</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.max.html#biom.table.Table.max" title="biom.table.Table.max"><tt class="xref py py-obj docutils literal"><span class="pre">max</span></tt></a>([axis])</td>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.length.html#biom.table.Table.length" title="biom.table.Table.length"><tt class="xref py py-obj docutils literal"><span class="pre">length</span></tt></a>([axis])</td>
+<td>Return the length of an axis</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.max.html#biom.table.Table.max" title="biom.table.Table.max"><tt class="xref py py-obj docutils literal"><span class="pre">max</span></tt></a>([axis])</td>
 <td>Get the maximum nonzero value over an axis</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.merge.html#biom.table.Table.merge" title="biom.table.Table.merge"><tt class="xref py py-obj docutils literal"><span class="pre">merge</span></tt></a>(other[,&nbsp;sample,&nbsp;observation,&nbsp;...])</td>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.merge.html#biom.table.Table.merge" title="biom.table.Table.merge"><tt class="xref py py-obj docutils literal"><span class="pre">merge</span></tt></a>(other[,&nbsp;sample,&nbsp;observation,&nbsp;...])</td>
 <td>Merge two tables together</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.metadata.html#biom.table.Table.metadata" title="biom.table.Table.metadata"><tt class="xref py py-obj docutils literal"><span class="pre">metadata</span></tt></a>([id,&nbsp;axis])</td>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.metadata.html#biom.table.Table.metadata" title="biom.table.Table.metadata"><tt class="xref py py-obj docutils literal"><span class="pre">metadata</span></tt></a>([id,&nbsp;axis])</td>
 <td>Return the metadata of the identified sample/observation.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.min.html#biom.table.Table.min" title="biom.table.Table.min"><tt class="xref py py-obj docutils literal"><span class="pre">min</span></tt></a>([axis])</td>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.min.html#biom.table.Table.min" title="biom.table.Table.min"><tt class="xref py py-obj docutils literal"><span class="pre">min</span></tt></a>([axis])</td>
 <td>Get the minimum nonzero value over an axis</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.nonzero.html#biom.table.Table.nonzero" title="biom.table.Table.nonzero"><tt class="xref py py-obj docutils literal"><span class="pre">nonzero</span></tt></a>()</td>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.nonzero.html#biom.table.Table.nonzero" title="biom.table.Table.nonzero"><tt class="xref py py-obj docutils literal"><span class="pre">nonzero</span></tt></a>()</td>
 <td>Yields locations of nonzero elements within the data matrix</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.nonzero_counts.html#biom.table.Table.nonzero_counts" title="biom.table.Table.nonzero_counts"><tt class="xref py py-obj docutils literal"><span class="pre">nonzero_counts</span></tt></a>(axis[,&nbsp;binary])</td>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.nonzero_counts.html#biom.table.Table.nonzero_counts" title="biom.table.Table.nonzero_counts"><tt class="xref py py-obj docutils literal"><span class="pre">nonzero_counts</span></tt></a>(axis[,&nbsp;binary])</td>
 <td>Get nonzero summaries about an axis</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.norm.html#biom.table.Table.norm" title="biom.table.Table.norm"><tt class="xref py py-obj docutils literal"><span class="pre">norm</span></tt></a>([axis,&nbsp;inplace])</td>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.norm.html#biom.table.Table.norm" title="biom.table.Table.norm"><tt class="xref py py-obj docutils literal"><span class="pre">norm</span></tt></a>([axis,&nbsp;inplace])</td>
 <td>Normalize in place sample values by an observation, or vice versa.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.pa.html#biom.table.Table.pa" title="biom.table.Table.pa"><tt class="xref py py-obj docutils literal"><span class="pre">pa</span></tt></a>([inplace])</td>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.pa.html#biom.table.Table.pa" title="biom.table.Table.pa"><tt class="xref py py-obj docutils literal"><span class="pre">pa</span></tt></a>([inplace])</td>
 <td>Convert the table to presence/absence data</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.partition.html#biom.table.Table.partition" title="biom.table.Table.partition"><tt class="xref py py-obj docutils literal"><span class="pre">partition</span></tt></a>(f[,&nbsp;axis])</td>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.partition.html#biom.table.Table.partition" title="biom.table.Table.partition"><tt class="xref py py-obj docutils literal"><span class="pre">partition</span></tt></a>(f[,&nbsp;axis])</td>
 <td>Yields partitions</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.reduce.html#biom.table.Table.reduce" title="biom.table.Table.reduce"><tt class="xref py py-obj docutils literal"><span class="pre">reduce</span></tt></a>(f,&nbsp;axis)</td>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.reduce.html#biom.table.Table.reduce" title="biom.table.Table.reduce"><tt class="xref py py-obj docutils literal"><span class="pre">reduce</span></tt></a>(f,&nbsp;axis)</td>
 <td>Reduce over axis using function <cite>f</cite></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.sort.html#biom.table.Table.sort" title="biom.table.Table.sort"><tt class="xref py py-obj docutils literal"><span class="pre">sort</span></tt></a>([sort_f,&nbsp;axis])</td>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.sort.html#biom.table.Table.sort" title="biom.table.Table.sort"><tt class="xref py py-obj docutils literal"><span class="pre">sort</span></tt></a>([sort_f,&nbsp;axis])</td>
 <td>Return a table sorted along axis</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.sort_order.html#biom.table.Table.sort_order" title="biom.table.Table.sort_order"><tt class="xref py py-obj docutils literal"><span class="pre">sort_order</span></tt></a>(order[,&nbsp;axis])</td>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.sort_order.html#biom.table.Table.sort_order" title="biom.table.Table.sort_order"><tt class="xref py py-obj docutils literal"><span class="pre">sort_order</span></tt></a>(order[,&nbsp;axis])</td>
 <td>Return a new table with <cite>axis</cite> in <cite>order</cite></td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.subsample.html#biom.table.Table.subsample" title="biom.table.Table.subsample"><tt class="xref py py-obj docutils literal"><span class="pre">subsample</span></tt></a>(n[,&nbsp;axis,&nbsp;by_id])</td>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.subsample.html#biom.table.Table.subsample" title="biom.table.Table.subsample"><tt class="xref py py-obj docutils literal"><span class="pre">subsample</span></tt></a>(n[,&nbsp;axis,&nbsp;by_id])</td>
 <td>Randomly subsample without replacement.</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.sum.html#biom.table.Table.sum" title="biom.table.Table.sum"><tt class="xref py py-obj docutils literal"><span class="pre">sum</span></tt></a>([axis])</td>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.sum.html#biom.table.Table.sum" title="biom.table.Table.sum"><tt class="xref py py-obj docutils literal"><span class="pre">sum</span></tt></a>([axis])</td>
 <td>Returns the sum by axis</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.to_hdf5.html#biom.table.Table.to_hdf5" title="biom.table.Table.to_hdf5"><tt class="xref py py-obj docutils literal"><span class="pre">to_hdf5</span></tt></a>(h5grp,&nbsp;generated_by[,&nbsp;compress])</td>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.to_hdf5.html#biom.table.Table.to_hdf5" title="biom.table.Table.to_hdf5"><tt class="xref py py-obj docutils literal"><span class="pre">to_hdf5</span></tt></a>(h5grp,&nbsp;generated_by[,&nbsp;compress])</td>
 <td>Store CSC and CSR in place</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.to_json.html#biom.table.Table.to_json" title="biom.table.Table.to_json"><tt class="xref py py-obj docutils literal"><span class="pre">to_json</span></tt></a>(generated_by[,&nbsp;direct_io])</td>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.to_json.html#biom.table.Table.to_json" title="biom.table.Table.to_json"><tt class="xref py py-obj docutils literal"><span class="pre">to_json</span></tt></a>(generated_by[,&nbsp;direct_io])</td>
 <td>Returns a JSON string representing the table in BIOM format.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.to_tsv.html#biom.table.Table.to_tsv" title="biom.table.Table.to_tsv"><tt class="xref py py-obj docutils literal"><span class="pre">to_tsv</span></tt></a>([header_key,&nbsp;header_value,&nbsp;...])</td>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.to_tsv.html#biom.table.Table.to_tsv" title="biom.table.Table.to_tsv"><tt class="xref py py-obj docutils literal"><span class="pre">to_tsv</span></tt></a>([header_key,&nbsp;header_value,&nbsp;...])</td>
 <td>Return self as a string in tab delimited form</td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.transform.html#biom.table.Table.transform" title="biom.table.Table.transform"><tt class="xref py py-obj docutils literal"><span class="pre">transform</span></tt></a>(f[,&nbsp;axis,&nbsp;inplace])</td>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.transform.html#biom.table.Table.transform" title="biom.table.Table.transform"><tt class="xref py py-obj docutils literal"><span class="pre">transform</span></tt></a>(f[,&nbsp;axis,&nbsp;inplace])</td>
 <td>Iterate over <cite>axis</cite>, applying a function <cite>f</cite> to each vector.</td>
 </tr>
-<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.transpose.html#biom.table.Table.transpose" title="biom.table.Table.transpose"><tt class="xref py py-obj docutils literal"><span class="pre">transpose</span></tt></a>()</td>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.transpose.html#biom.table.Table.transpose" title="biom.table.Table.transpose"><tt class="xref py py-obj docutils literal"><span class="pre">transpose</span></tt></a>()</td>
 <td>Transpose the contingency table</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.update_ids.html#biom.table.Table.update_ids" title="biom.table.Table.update_ids"><tt class="xref py py-obj docutils literal"><span class="pre">update_ids</span></tt></a>(id_map[,&nbsp;axis,&nbsp;strict,&nbsp;inplace])</td>
+<td>Update the ids along the given axis</td>
 </tr>
 </tbody>
 </table>
@@ -226,7 +232,7 @@
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="biom.table.Table.transpose.html">biom.table.Table.transpose</a>
+        «&#160;&#160;<a href="biom.table.Table.update_ids.html">biom.table.Table.update_ids</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../../index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
@@ -238,8 +244,8 @@
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Aug 07, 2014.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Last updated on Nov 19, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 

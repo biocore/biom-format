@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1-dev',
+        VERSION:     '2.1.1',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table.collapse<a class="headerlink" href="#biom-table-table-collapse" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="biom.table.Table.collapse">
-<tt class="descclassname">Table.</tt><tt class="descname">collapse</tt><big>(</big><em>f</em>, <em>reduce_f=&lt;built-in function add&gt;</em>, <em>norm=True</em>, <em>min_group_size=1</em>, <em>include_collapsed_metadata=True</em>, <em>one_to_many=False</em>, <em>one_to_many_mode='add'</em>, <em>one_to_many_md_key='Path'</em>, <em>strict=False</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.collapse" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Table.</tt><tt class="descname">collapse</tt><big>(</big><em>f</em>, <em>collapse_f=None</em>, <em>norm=True</em>, <em>min_group_size=1</em>, <em>include_collapsed_metadata=True</em>, <em>one_to_many=False</em>, <em>one_to_many_mode='add'</em>, <em>one_to_many_md_key='Path'</em>, <em>strict=False</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.collapse" title="Permalink to this definition">¶</a></dt>
 <dd><p>Collapse partitions in a table by metadata or by IDs</p>
 <p>Partition data by metadata or IDs and then collapse each partition into
 a single vector.</p>
@@ -99,7 +99,7 @@ then it defaults to &#8216;Path&#8217;.</p>
 <p>If <cite>strict</cite> is specified, then all metadata pathways operated on
 must be indexable by <cite>metadata_f</cite>.</p>
 <p><cite>one_to_many</cite> and <cite>norm</cite> are not supported together.</p>
-<p><cite>one_to_many</cite> and <cite>reduce_f</cite> are not supported together.</p>
+<p><cite>one_to_many</cite> and <cite>collapse_f</cite> are not supported together.</p>
 <p><cite>one_to_many</cite> and <cite>min_group_size</cite> are not supported together.</p>
 <p>A final note on space consumption. At present, the <cite>one_to_many</cite>
 functionality requires a temporary dense matrix representation.</p>
@@ -112,10 +112,14 @@ functionality requires a temporary dense matrix representation.</p>
 <div><p>Function that is used to determine what partition a vector belongs
 to</p>
 </div></blockquote>
-<p><strong>reduce_f</strong> : function, optional</p>
+<p><strong>collapse_f</strong> : function, optional</p>
 <blockquote>
-<div><p>Defaults to <tt class="docutils literal"><span class="pre">operator.add</span></tt>. Function that reduces two vectors in
-a one-to-one collapse</p>
+<div><p>Function that collapses a partition in a one-to-one collapse. The
+expected function signature is:</p>
+<blockquote>
+<div><p>dense or sparse_vector &lt;- collapse_f(Table, axis)</p>
+</div></blockquote>
+<p>Defaults to a pairwise add.</p>
 </div></blockquote>
 <p><strong>norm</strong> : bool, optional</p>
 <blockquote>
@@ -219,8 +223,8 @@ one-to-many structure</p>
 
     <div class="footer">
         &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Aug 07, 2014.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+      Last updated on Nov 19, 2014.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
     </div>
 <script type="text/javascript">
 

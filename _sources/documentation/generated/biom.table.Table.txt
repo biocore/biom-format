@@ -62,6 +62,7 @@ biom.table.Table
          Table.iter
          Table.iter_data
          Table.iter_pairwise
+         Table.length
          Table.max
          Table.merge
          Table.metadata
@@ -81,6 +82,7 @@ biom.table.Table
          Table.to_tsv
          Table.transform
          Table.transpose
+         Table.update_ids
 
 
 
