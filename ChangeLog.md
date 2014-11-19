@@ -17,6 +17,7 @@ Changes:
 * Conversion from TSV now takes less memory. See #551.
 * Parameter header_mark has been removed from _extract_data_from_tsv()
     in table.py
+* Added `Table.length`, see #548
 
 Bug fixes:
 
