@@ -3112,20 +3112,22 @@ html
 
             def vlen_list_of_str_parser(value):
                 """Parses the taxonomy value"""
-                # Remove the empty string values and return the results as list
-                new_value = value[np.where(
-                    value == np.array(""), False, True)].tolist()
+                new_value = [v for v in value if v]
                 return new_value if new_value else None
 
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
             parser['KEGG_Pathways'] = vlen_list_of_str_parser
             parser['collapsed_ids'] = vlen_list_of_str_parser
-            # fetch all of the metadata
-            md = []
-            for i in range(len(ids)):
-                md.append({cat: parser[cat](vals[i])
-                          for cat, vals in grp['metadata'].items()})
+
+            # fetch ID specific metadata
+            md = [{} for i in range(len(ids))]
+            for category, dset in grp['metadata'].iteritems():
+                parse_f = parser[category]
+                data = dset[:]
+                for md_dict, data_row in izip(md, data):
+                    md_dict[category] = parse_f(data_row)
+
             # Fetch the group metadata
             grp_md = {cat: val
                       for cat, val in grp['group-metadata'].items()}
@@ -3217,9 +3219,12 @@ html
                   observation_group_metadata=obs_grp_md,
                   sample_group_metadata=samp_grp_md)
 
-        f = lambda vals, id_, md: np.any(vals)
-        axis = 'observation' if axis == 'sample' else 'sample'
-        t.filter(f, axis=axis)
+        if ids is not None:
+            # filter out any empty samples or observations which may exist due
+            # to subsetting
+            f = lambda vals, id_, md: np.any(vals)
+            axis = 'observation' if axis == 'sample' else 'sample'
+            t.filter(f, axis=axis)
 
         return t
 
