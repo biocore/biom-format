@@ -1114,6 +1114,18 @@ class TableTests(TestCase):
         obs = self.single_ele._to_dense(input_row)
         npt.assert_array_equal(obs, exp)
 
+    def test_length(self):
+        npt.assert_array_equal(self.null1.length(), 0)
+        npt.assert_array_equal(self.null2.length(axis='sample'), 42)
+        npt.assert_array_equal(self.null3.length(axis='observation'), 42)
+        npt.assert_array_equal(self.mat1.length(), 3)
+        npt.assert_array_equal(self.empty.length(axis='observation'), 2)
+        npt.assert_array_equal(self.row_vec.length(axis='observation'), 1)
+        npt.assert_array_equal(self.row_vec.length(axis='sample'), 3)
+
+        with self.assertRaises(UnknownAxisError):
+            self.mat1.length(axis='foo')
+
     def test_shape(self):
         """What kind of shape are you in?"""
         npt.assert_array_equal(self.null1.shape, (0, 0))

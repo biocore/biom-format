@@ -447,6 +447,32 @@ class Table(object):
         """The sparse matrix object"""
         return self._data
 
+    def length(self, axis='sample'):
+        """Return the length of an axis
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}, optional
+            The axis to operate on
+
+        Raises
+        ------
+        UnknownAxisError
+            If provided an unrecognized axis.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> print example_table.length(axis='sample')
+        3
+        >>> print example_table.length(axis='observation')
+        2
+        """
+        if axis not in ('sample', 'observation'):
+            raise UnknownAxisError(axis)
+
+        return self.shape[1] if axis == 'sample' else self.shape[0]
+
     def add_group_metadata(self, group_md, axis='sample'):
         """Take a dict of group metadata and add it to an axis
 
