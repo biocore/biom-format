@@ -18,7 +18,6 @@ from os.path import abspath, dirname, exists
 import re
 from hashlib import md5
 from gzip import open as gzip_open
-from warnings import warn
 
 try:
     import h5py
@@ -27,7 +26,6 @@ try:
     H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=unicode)
 
 except ImportError:
-    warn("h5py is not available")
     HAVE_H5PY = False
     H5PY_VLEN_STR = None
     H5PY_VLEN_UNICODE = None
