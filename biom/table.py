@@ -3328,7 +3328,7 @@ dataset of int32
 py.sparse.csr_matrix.html
         .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
 py.sparse.csc_matrix.html
-        .. [3] http://biom-format.org/documentation/format_versions/biom-2.0.\
+        .. [3] http://biom-format.org/documentation/format_versions/biom-2.1.\
 html
 
         Examples
