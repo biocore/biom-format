@@ -18,6 +18,7 @@ Changes:
 * Parameter header_mark has been removed from _extract_data_from_tsv()
     in table.py
 * Added `Table.length`, see #548
+* Order of magnitude performance increase in `Table.nonzero`, see #538
 
 Bug fixes:
 

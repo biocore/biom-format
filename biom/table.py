@@ -2651,11 +2651,19 @@ class Table(object):
         generator
             Yields ``(observation_id, sample_id)`` for each nonzero element
         """
-        # this is naively implemented. If performance is a concern, private
-        # methods can be written to hit against the underlying types directly
-        for o_idx, samp_vals in enumerate(self.iter_data(axis="observation")):
-            for s_idx in samp_vals.nonzero()[0]:
-                yield (self.ids(axis='observation')[o_idx], self.ids()[s_idx])
+        self._data.tocsr()
+        samp_ids = self.ids()
+        obs_ids = self.ids(axis='observation')
+
+        indptr = self._data.indptr
+        indices = self._data.indices
+        for row_idx in range(indptr.size - 1):
+            start = indptr[row_idx]
+            end = indptr[row_idx+1]
+
+            obs_id = obs_ids[row_idx]
+            for col_idx in indices[start:end]:
+                yield (obs_id, samp_ids[col_idx])
 
     def nonzero_counts(self, axis, binary=False):
         """Get nonzero summaries about an axis
