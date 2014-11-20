@@ -1,6 +1,15 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1.1-dev
+--------------
+
+Features:
+
+Changes:
+
+Bug fixes:
+
 biom 2.1.1
 ----------
 
