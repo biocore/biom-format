@@ -21,7 +21,6 @@ from pyqi.core.command import (make_command_in_collection_lookup_f,
                                make_command_out_collection_lookup_f)
 from pyqi.core.interfaces.html.output_handler import newline_list_of_strings
 
-from biom.interfaces.html.input_handler import load_metadata
 from biom.commands.table_converter import CommandConstructor
 
 cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
@@ -40,7 +39,7 @@ inputs = [
                     Type=bool),
     HTMLInputOption(Parameter=cmd_in_lookup('axis'),
                     Type='multiple_choice',
-                    Choices=['observation', 'sample']
+                    Choices=['observation', 'sample'],
                     Help='axis by which to normalize the table'),
 
     HTMLInputOption(Parameter=None,
