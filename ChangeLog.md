@@ -1,6 +1,13 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1.2-dev
+--------------
+
+Bug fixes:
+
+* Remove syntax error from `normalize_table.py`.
+
 biom 2.1.1
 ----------
 
