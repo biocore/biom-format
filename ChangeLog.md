@@ -1,7 +1,7 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.2-dev
+biom 2.1.1-dev
 --------------
 
 Bug fixes:
