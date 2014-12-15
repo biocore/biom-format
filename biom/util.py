@@ -321,11 +321,14 @@ def compute_counts_per_sample_stats(table, binary_counts=False):
             sample_counts[sample_id] = float(count_vector.sum())
     counts = sample_counts.values()
 
-    return (min(counts),
-            max(counts),
-            median(counts),
-            mean(counts),
-            sample_counts)
+    if len(counts) == 0:
+        return (0, 0, 0, 0, sample_counts)
+    else:
+        return (min(counts),
+                max(counts),
+                median(counts),
+                mean(counts),
+                sample_counts)
 
 
 def safe_md5(open_file, block_size=2 ** 20):
