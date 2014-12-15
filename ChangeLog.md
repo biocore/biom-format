@@ -7,6 +7,8 @@ biom 2.1.1-dev
 Bug fixes:
 
 * Remove syntax error from `normalize_table.py`.
+* `Table.to_json` was not serializing empty tables properly, see #571
+* `biom summarize-table` could not handle empty tables, see #571
 
 biom 2.1.1
 ----------
