@@ -10,6 +10,7 @@
 # ----------------------------------------------------------------------------
 
 import os
+from json import loads
 from tempfile import mktemp
 from unittest import TestCase, main
 from StringIO import StringIO
@@ -2668,6 +2669,12 @@ class SparseTableTests(TestCase):
                                axis='sample').sort(axis='observation')
         self.assertEqual(obs, exp)
         self.assertEqual(type(obs), Table)
+
+    def test_to_json_empty(self):
+        t = Table({}, [], [])
+        serialized = t.to_json('foo')
+        reloaded = Table.from_json(loads(serialized))
+        self.assertEqual(t, reloaded)
 
     def test_to_json_dense_int(self):
         """Get a BIOM format string for a dense table of integers"""
