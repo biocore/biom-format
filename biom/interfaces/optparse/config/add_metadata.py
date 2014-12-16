@@ -18,6 +18,7 @@ from pyqi.core.interfaces.optparse.input_handler import (file_reading_handler,
 from biom.commands.metadata_adder import CommandConstructor
 from biom.interfaces.optparse.input_handler import load_biom_table
 from biom.interfaces.optparse.output_handler import write_biom_table
+from biom.util import HAVE_H5PY
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -98,6 +99,7 @@ inputs = [
 
     OptparseOption(Parameter=cmd_in_lookup('output_as_json'),
                    Type=None,
+                   Default=not HAVE_H5PY,
                    Action='store_true'),
 
     OptparseOption(Parameter=None, Type='new_filepath', ShortName='o',
