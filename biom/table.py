@@ -3716,6 +3716,11 @@ html
                 columns.append('{"id": %s, "metadata": %s}]' % (
                     dumps(samp[1]), dumps(samp[2])))
 
+        if rows[0] == '"rows": [' and len(rows) == 1:
+            # empty table case
+            rows = ['"rows": [],']
+            columns = ['"columns": []']
+
         rows = ''.join(rows)
         columns = ''.join(columns)
 

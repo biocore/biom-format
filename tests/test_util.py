@@ -197,6 +197,11 @@ class UtilTests(TestCase):
         # Empty dict on empty input.
         self.assertEqual(parse_biom_config_files([]), {})
 
+    def test_compute_counts_per_sample_stats_empty(self):
+        t = Table({}, [] ,[])
+        res = compute_counts_per_sample_stats(t)
+        self.assertEqual(res, (0, 0, 0, 0, {}))
+
     def test_compute_counts_per_sample_stats(self):
         """compute_counts_per_sample_stats functions as expected
 
