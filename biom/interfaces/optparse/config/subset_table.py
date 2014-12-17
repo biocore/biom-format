@@ -55,7 +55,7 @@ inputs = [
                    Type='existing_filepath',
                    Handler=biom_load_file_contents, ShortName='j',
                    Name='input-json-fp',
-                   Help='the input hdf5 BIOM table filepath to subset'),
+                   Help='the input json BIOM table filepath to subset'),
 
     OptparseOption(Parameter=cmd_in_lookup('axis'), ShortName='a'),
 
