@@ -1,8 +1,10 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.1-dev
---------------
+biom 2.1.2
+----------
+
+Minor fixes, released on December 18, 2014
 
 Bug fixes:
 
