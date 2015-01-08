@@ -821,7 +821,7 @@ class Table(object):
         Parameters
         ----------
         axis : {'sample', 'observation'}, optional
-            Axis to search for `id`. Defaults to 'sample'
+            Axis to return ids from. Defaults to 'sample'
 
         Returns
         -------
