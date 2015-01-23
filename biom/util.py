@@ -411,12 +411,27 @@ def biom_open(fp, permission='U'):
     qiime_open. QIIME is a GPL project, but we obtained permission from the
     authors of this function to port it to the BIOM Format project (and keep it
     under BIOM's BSD license).
+
+    Raises
+    ------
+    RuntimeError
+        If the user tries to parse an HDF5 file without having h5py installed.
+
     """
     if permission not in ['r', 'w', 'U', 'rb', 'wb']:
         raise IOError("Unknown mode: %s" % permission)
 
     opener = open
     mode = permission
+
+    # don't try to open an HDF5 file if H5PY is not installed, this can only
+    # happen if we are reading a file
+    if mode in {'r', 'rb', 'U'}:
+        with open(fp, 'rb') as f:
+            # from the HDF5 documentation about format signature
+            if f.read(8) == '\x89HDF\r\n\x1a\n' and not HAVE_H5PY:
+                raise RuntimeError("h5py is not installed, cannot parse HDF5 "
+                                   "BIOM file")
 
     if HAVE_H5PY:
         if mode in ['U', 'r', 'rb'] and h5py.is_hdf5(fp):

@@ -4,6 +4,10 @@ BIOM-Format ChangeLog
 biom 2.1.2-dev
 --------------
 
+Bug fixes:
+
+* Improve error message when trying to load an HDF5 file without h5py being
+    installed.
 
 biom 2.1.2
 ----------
