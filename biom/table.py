@@ -3128,6 +3128,9 @@ html
                 for md_dict, data_row in izip(md, data):
                     md_dict[category] = parse_f(data_row)
 
+            # If there was no metadata on the axis, set it up as none
+            md = md if any(md) else None
+
             # Fetch the group metadata
             grp_md = {cat: val
                       for cat, val in grp['group-metadata'].items()}
