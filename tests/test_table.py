@@ -288,6 +288,18 @@ class TableTests(TestCase):
         npt.assert_equal(obs, exp)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_from_hdf5_empty_md(self):
+        """Parse a hdf5 formatted BIOM table w/o metadata"""
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        t = Table.from_hdf5(h5py.File('test_data/empty.biom'))
+        os.chdir(cwd)
+
+        self.assertTrue(t._sample_metadata is None)
+        self.assertTrue(t._observation_metadata is None)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
         cwd = os.getcwd()
