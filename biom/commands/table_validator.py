@@ -72,7 +72,11 @@ class TableValidator(Command):
     HDF5FormatVersions = set([(2, 0), (2, 0, 0), (2, 1), (2, 1, 0)])
 
     def run(self, **kwargs):
-        is_json = kwargs['is_json']
+        # We can't trust kwargs['is_json'] because that's determined
+        # before any parsing happens...
+        with open(kwargs['table']) as f:
+            # from the HDF5 documentation about format signature
+            is_json = f.read(8) != '\x89HDF\r\n\x1a\n'
 
         if kwargs['format_version'] in [None, 'None']:
             if is_json:
