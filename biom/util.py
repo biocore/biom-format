@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
@@ -35,7 +35,7 @@ from numpy import mean, median, min, max
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
-               "Jose Clemente", "Justin Kuczynski"]
+               "Jose Clemente", "Justin Kuczynski", "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -427,11 +427,9 @@ def biom_open(fp, permission='U'):
     # don't try to open an HDF5 file if H5PY is not installed, this can only
     # happen if we are reading a file
     if mode in {'r', 'rb', 'U'}:
-        with open(fp, 'rb') as f:
-            # from the HDF5 documentation about format signature
-            if f.read(8) == '\x89HDF\r\n\x1a\n' and not HAVE_H5PY:
-                raise RuntimeError("h5py is not installed, cannot parse HDF5 "
-                                   "BIOM file")
+        if is_hdf5_file(fp) and not HAVE_H5PY:
+            raise RuntimeError("h5py is not installed, cannot parse HDF5 "
+                               "BIOM file")
 
     if HAVE_H5PY:
         if mode in ['U', 'r', 'rb'] and h5py.is_hdf5(fp):
@@ -484,3 +482,21 @@ def get_data_path(fn):
     path = os.path.dirname(os.path.abspath(callers_filename))
     data_path = os.path.join(path, 'test_data', fn)
     return data_path
+
+
+def is_hdf5_file(fp):
+    """Guess if file is HDF5.
+
+    Parameters
+    ----------
+    fn : str
+        File name
+
+    Returns
+    -------
+    bool
+        Whether the file is an HDF5 file
+    """
+    with open(fp) as f:
+        # from the HDF5 documentation about format signature
+        return f.read(8) == '\x89HDF\r\n\x1a\n'
