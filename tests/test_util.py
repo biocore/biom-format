@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
@@ -22,14 +22,14 @@ from biom.parse import parse_biom_table
 from biom.util import (natsort, flatten, unzip, HAVE_H5PY,
                        get_biom_project_dir, parse_biom_config_files,
                        compute_counts_per_sample_stats, safe_md5, biom_open,
-                       get_data_path, generate_subsamples)
+                       get_data_path, generate_subsamples, is_hdf5_file)
 
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
                "Zongzhi Liu", "Micah Hamady", "Daniel McDonald",
-               "Jai Ram Rideout"]
+               "Jai Ram Rideout", "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -289,6 +289,10 @@ class UtilTests(TestCase):
             self.assertTrue(isinstance(f, gzip.GzipFile))
 
         remove(get_data_path('test_writing.json.gz'))
+
+    def test_is_hdf5_file(self):
+        self.assertTrue(is_hdf5_file(get_data_path('test.biom')))
+        self.assertFalse(is_hdf5_file(get_data_path('test.json')))
 
 
 biom_otu_table1_w_tax = """{

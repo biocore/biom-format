@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
@@ -19,14 +19,15 @@ import numpy as np
 from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
 
-from biom.util import HAVE_H5PY, biom_open
+from biom.util import HAVE_H5PY, biom_open, is_hdf5_file
 
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso",
                "Jai Ram Rideout", "Justin Kuczynski", "Andreas Wilke",
-               "Tobias Paczian", "Rob Knight", "Folker Meyer", "Sue Huse"]
+               "Tobias Paczian", "Rob Knight", "Folker Meyer", "Sue Huse",
+               "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __author__ = "Daniel McDonald"
@@ -72,7 +73,9 @@ class TableValidator(Command):
     HDF5FormatVersions = set([(2, 0), (2, 0, 0), (2, 1), (2, 1, 0)])
 
     def run(self, **kwargs):
-        is_json = kwargs['is_json']
+        # We can't trust kwargs['is_json'] because that's determined
+        # before any parsing happens...
+        is_json = not is_hdf5_file(kwargs['table'])
 
         if kwargs['format_version'] in [None, 'None']:
             if is_json:

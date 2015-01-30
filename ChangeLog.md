@@ -8,6 +8,7 @@ Bug fixes:
 
 * Improve error message when trying to load an HDF5 file without h5py being
     installed.
+* Allow validating json files when h5py is not installed.
 
 biom 2.1.2
 ----------
@@ -29,7 +30,7 @@ Changes:
 
 * The collapsing function to `Table.collapse` is now passed the entire table to
     allow for more complex collapses (e.g., median, random selection, etc). See
-    #544, #545 and #547. 
+    #544, #545 and #547.
 * Updated version strings in the project to be
     [Semantic Versioning](www.semver.org)-stlye. This better matches with other
     open source python projects, and plays nicer with pip.
