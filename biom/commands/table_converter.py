@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
@@ -19,7 +19,7 @@ __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald",
                "Jose Carlos Clemente Litran", "Jai Ram Rideout",
-               "Jose Antonio Navas Molina"]
+               "Jose Antonio Navas Molina", "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Greg Caporaso"
@@ -174,7 +174,7 @@ class TableConverter(Command):
                     ', '.join(self.ObservationMetadataTypes.keys()))
 
             if table.metadata(axis='observation') is None:
-                raise CommandError("Obseration metadata processing requested "
+                raise CommandError("Observation metadata processing requested "
                                    "but it doesn't appear that there is any "
                                    "metadata to operate on!")
 
