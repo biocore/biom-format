@@ -3600,7 +3600,7 @@ html
             direct_io.write('"id": "%s",' % str(self.table_id))
             direct_io.write(
                 '"format": "%s",' %
-                get_biom_format_version_string(self.format_version))
+                get_biom_format_version_string((1, 0)))  # JSON table -> 1.0.0
             direct_io.write(
                 '"format_url": "%s",' %
                 get_biom_format_url_string())
@@ -3609,7 +3609,7 @@ html
         else:
             id_ = '"id": "%s",' % str(self.table_id)
             format_ = '"format": "%s",' % get_biom_format_version_string(
-                self.format_version)
+                (1, 0))  # JSON table -> 1.0.0
             format_url = '"format_url": "%s",' % get_biom_format_url_string()
             generated_by = '"generated_by": "%s",' % generated_by
             date = '"date": "%s",' % datetime.now().isoformat()
