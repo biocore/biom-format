@@ -8,17 +8,17 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import json
+from biom.util import biom_open
+from biom.parse import MetadataMap, parse_biom_table
+from pyqi.core.interfaces.optparse.input_handler import load_file_contents
+
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Jai Ram Rideout"]
 __license__ = "BSD"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
-
-import json
-from biom.util import biom_open
-from biom.parse import MetadataMap, parse_biom_table
-from pyqi.core.interfaces.optparse.input_handler import load_file_contents
 
 
 def biom_load_file_contents(fp):

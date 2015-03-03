@@ -8,13 +8,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-__author__ = "Greg Caporaso"
-__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Greg Caporaso", "Jai Ram Rideout", "Daniel McDonald"]
-__license__ = "BSD"
-__maintainer__ = "Greg Caporaso"
-__email__ = "gregcaporaso@gmail.com"
-
 from pyqi.core.command import (make_command_in_collection_lookup_f,
                                make_command_out_collection_lookup_f)
 from pyqi.core.interfaces.optparse import (OptparseOption,
@@ -25,6 +18,13 @@ from pyqi.core.interfaces.optparse.output_handler import (
 from biom.commands.table_summarizer import CommandConstructor
 from biom.interfaces.optparse.input_handler import (
     load_biom_table_with_file_contents)
+
+__author__ = "Greg Caporaso"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
+__credits__ = ["Greg Caporaso", "Jai Ram Rideout", "Daniel McDonald"]
+__license__ = "BSD"
+__maintainer__ = "Greg Caporaso"
+__email__ = "gregcaporaso@gmail.com"
 
 cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
 cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)

@@ -8,6 +8,14 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
+from pyqi.core.interfaces.html import (HTMLInputOption, HTMLDownload)
+from pyqi.core.command import (make_command_in_collection_lookup_f,
+                               make_command_out_collection_lookup_f)
+from pyqi.core.interfaces.html.output_handler import newline_list_of_strings
+
+from biom.interfaces.html.input_handler import load_metadata
+from biom.commands.table_converter import CommandConstructor
+
 __author__ = "Evan Bolyen"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = [
@@ -19,14 +27,6 @@ __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Evan Bolyen"
 __email__ = "ebolyen@gmail.com"
-
-from pyqi.core.interfaces.html import (HTMLInputOption, HTMLDownload)
-from pyqi.core.command import (make_command_in_collection_lookup_f,
-                               make_command_out_collection_lookup_f)
-from pyqi.core.interfaces.html.output_handler import newline_list_of_strings
-
-from biom.interfaces.html.input_handler import load_metadata
-from biom.commands.table_converter import CommandConstructor
 
 cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
 cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)
