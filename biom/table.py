@@ -932,6 +932,8 @@ class Table(object):
         else:
             result._observation_ids = updated_ids
 
+        result._index_ids()
+
         # check for errors (specifically, we want to esnsure that duplicate
         # ids haven't been introduced)
         errcheck(result)

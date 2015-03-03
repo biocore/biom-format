@@ -1434,6 +1434,16 @@ class SparseTableTests(TestCase):
         obs = self.st1.update_ids(id_map, axis='observation', inplace=True)
         npt.assert_equal(self.st1._observation_ids, np.array(['41', '42']))
 
+    def test_update_ids_cache_bug(self):
+        obs = self.st1.update_ids({'1': 'x', '2': 'y'}, axis='observation',
+                                  inplace=False)
+        exp_index = {'x': 0, 'y': 1}
+        self.assertEqual(obs._obs_index, exp_index)
+
+        obs = self.st1.update_ids({'a': 'x', 'b': 'y'}, inplace=False)
+        exp_index = {'x': 0, 'y': 1}
+        self.assertEqual(obs._sample_index, exp_index)
+
     def test_sort_order(self):
         """sorts tables by arbitrary order"""
         # sort by observations arbitrary order
