@@ -48,6 +48,10 @@ either in TSV, HDF5, JSON, gzip'd JSON or gzip'd TSV and parse accordingly:
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
+from .table import Table
+from .parse import parse_biom_table as parse_table, load_table
+from .util import __format_version__, __version__
+
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
@@ -57,13 +61,8 @@ __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Michael Shaffer"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
-__version__ = "2.1.3-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-__format_version__ = (2, 1)
-
-from .table import Table
-from .parse import parse_biom_table as parse_table, load_table
 
 example_table = Table([[0, 1, 2], [3, 4, 5]], ['O1', 'O2'],
                       ['S1', 'S2', 'S3'],

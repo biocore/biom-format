@@ -188,8 +188,7 @@ from biom.exception import TableException, UnknownAxisError, UnknownIDError
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
-                       H5PY_VLEN_UNICODE)
-from biom import __format_version__
+                       H5PY_VLEN_UNICODE, __format_version__)
 from biom.err import errcheck
 from ._filter import _filter
 from ._transform import _transform
