@@ -9,12 +9,21 @@
 # -----------------------------------------------------------------------------
 
 from __future__ import division
+from signal import signal, SIGPIPE, SIG_DFL
+from operator import itemgetter
+
 from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
 
 from numpy import std
-from operator import itemgetter
 from biom.util import compute_counts_per_sample_stats
+
+# Ignore SIG_PIPE and don't throw exceptions on it. This allows the user to
+# pipe the output from summarize table to other commands.
+# http://newbebweb.blogspot.com/2012/02/python-head-ioerror-errno-32-broken.html
+# http://docs.python.org/library/signal.html
+signal(SIGPIPE, SIG_DFL)
+
 
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
