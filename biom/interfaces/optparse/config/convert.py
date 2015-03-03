@@ -8,14 +8,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-__author__ = "Jai Ram Rideout"
-__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Jai Ram Rideout", "Greg Caporaso", "Daniel McDonald"]
-__license__ = "BSD"
-__url__ = "http://biom-format.org"
-__maintainer__ = "Jai Ram Rideout"
-__email__ = "jai.rideout@gmail.com"
-
 from pyqi.core.interfaces.optparse import (OptparseUsageExample,
                                            OptparseOption, OptparseResult)
 from pyqi.core.command import (make_command_in_collection_lookup_f,
@@ -24,6 +16,14 @@ from biom.interfaces.optparse.input_handler import (load_biom_table,
                                                     load_metadata)
 from biom.interfaces.optparse.output_handler import write_biom_table
 from biom.commands.table_converter import CommandConstructor
+
+__author__ = "Jai Ram Rideout"
+__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
+__credits__ = ["Jai Ram Rideout", "Greg Caporaso", "Daniel McDonald"]
+__license__ = "BSD"
+__url__ = "http://biom-format.org"
+__maintainer__ = "Jai Ram Rideout"
+__email__ = "jai.rideout@gmail.com"
 
 cmd_in_lookup = make_command_in_collection_lookup_f(CommandConstructor)
 cmd_out_lookup = make_command_out_collection_lookup_f(CommandConstructor)

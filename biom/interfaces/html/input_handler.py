@@ -8,15 +8,15 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
+import json
+from biom.parse import MetadataMap, parse_biom_table
+
 __author__ = "Evan Bolyen"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Evan Bolyen", "Greg Caporaso", "Jai Ram Rideout"]
 __license__ = "BSD"
 __maintainer__ = "Evan Bolyen"
 __email__ = "ebolyen@gmail.com"
-
-import json
-from biom.parse import MetadataMap, parse_biom_table
 
 
 def load_biom_table(table_f):

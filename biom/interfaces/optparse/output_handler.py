@@ -8,18 +8,18 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
+from os.path import exists
+from pyqi.core.exception import IncompetentDeveloperError
+from pyqi.core.interfaces.optparse.output_handler import write_list_of_strings
+from biom.parse import generatedby
+from biom.util import HAVE_H5PY
+
 __author__ = "Greg Caporaso"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Jai Ram Rideout"]
 __license__ = "BSD"
 __maintainer__ = "Greg Caporaso"
 __email__ = "gregcaporaso@gmail.com"
-
-from os.path import exists
-from pyqi.core.exception import IncompetentDeveloperError
-from pyqi.core.interfaces.optparse.output_handler import write_list_of_strings
-from biom.parse import generatedby
-from biom.util import HAVE_H5PY
 
 
 def write_subsetted_biom_table(result_key, data, option_value=None):

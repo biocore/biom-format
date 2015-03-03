@@ -17,8 +17,7 @@ import numpy.testing as npt
 
 from biom.parse import generatedby, MetadataMap, parse_biom_table
 from biom.table import Table
-from biom.util import HAVE_H5PY
-from biom import __version__
+from biom.util import HAVE_H5PY, __version__
 if HAVE_H5PY:
     import h5py
 

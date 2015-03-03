@@ -11,10 +11,9 @@
 from __future__ import division
 from string import maketrans
 import numpy as np
-from biom import __version__
 from biom.exception import BiomParseException, UnknownAxisError
 from biom.table import Table
-from biom.util import biom_open
+from biom.util import biom_open, __version__
 import json
 
 __author__ = "Justin Kuczynski"
@@ -157,18 +156,20 @@ def direct_slice_data(biom_str, to_keep, axis):
 
     return '"data": %s, "shape": %s' % (new_data, new_shape)
 
-STRIP_F = lambda x: x.strip("[] \n\t")
+
+def strip_f(x):
+    return x.strip("[] \n\t")
 
 
 def _remap_axis_sparse_obs(rcv, lookup):
     """Remap a sparse observation axis"""
-    row, col, value = map(STRIP_F, rcv.split(','))
+    row, col, value = map(strip_f, rcv.split(','))
     return "%s,%s,%s" % (lookup[row], col, value)
 
 
 def _remap_axis_sparse_samp(rcv, lookup):
     """Remap a sparse sample axis"""
-    row, col, value = map(STRIP_F, rcv.split(','))
+    row, col, value = map(strip_f, rcv.split(','))
     return "%s,%s,%s" % (row, lookup[col], value)
 
 
@@ -182,7 +183,7 @@ def _direct_slice_data_sparse_obs(data, to_keep):
     new_data = []
     remap_lookup = dict([(str(v), i) for i, v in enumerate(sorted(to_keep))])
     for rcv in data.split('],'):
-        r, c, v = STRIP_F(rcv).split(',')
+        r, c, v = strip_f(rcv).split(',')
         if r in remap_lookup:
             new_data.append(_remap_axis_sparse_obs(rcv, remap_lookup))
     return '[[%s]]' % '],['.join(new_data)
@@ -319,12 +320,16 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
     else:
         t = Table.from_json(json.loads(fp), input_is_dense=input_is_dense)
 
+    def subset_ids(data, id_, md):
+        return id_ in ids
+
+    def gt_zero(vals, id_, md):
+        return np.any(vals)
+
     if ids is not None:
-        f = lambda data, id_, md: id_ in ids
-        t.filter(f, axis=axis)
+        t.filter(subset_ids, axis=axis)
         axis = 'observation' if axis == 'sample' else 'sample'
-        f = lambda vals, id_, md: np.any(vals)
-        t.filter(f, axis=axis)
+        t.filter(gt_zero, axis=axis)
 
     return t
 
@@ -376,18 +381,22 @@ class MetadataMap(dict):
 
         if strip_quotes:
             if suppress_stripping:
-                # remove quotes but not spaces
-                strip_f = lambda x: x.replace('"', '')
+                def strip_f(x):
+                    # remove quotes but not spaces
+                    return x.replace('"', '')
             else:
-                # remove quotes and spaces
-                strip_f = lambda x: x.replace('"', '').strip()
+                def strip_f(x):
+                    # remove quotes and spaces
+                    return x.replace('"', '').strip()
         else:
             if suppress_stripping:
-                # don't remove quotes or spaces
-                strip_f = lambda x: x
+                def strip_f(x):
+                    # don't remove quotes or spaces
+                    return x
             else:
-                # remove spaces but not quotes
-                strip_f = lambda x: x.strip()
+                def strip_f(x):
+                    # remove spaces but not quotes
+                    return x.strip()
 
         # if the user didn't provide process functions, initialize as
         # an empty dict

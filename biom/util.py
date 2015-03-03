@@ -40,6 +40,8 @@ __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
+__format_version__ = (2, 1)
+__version__ = "2.1.3-dev"
 
 
 def generate_subsamples(table, n, axis='sample', by_id=False):
