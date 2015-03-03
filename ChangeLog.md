@@ -4,6 +4,9 @@ BIOM-Format ChangeLog
 biom 2.1.3-dev
 --------------
 
+Bug fixes:
+
+* `Table.update_ids` was not updating the internal ID lookup caches, issue #599
 
 biom 2.1.3
 ----------
