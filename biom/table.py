@@ -1584,9 +1584,11 @@ class Table(object):
         diag_v = 1 - diag  # for offseting tri_f, where a 0 includes the diag
 
         if tri:
-            tri_f = lambda idx: ind[idx+diag_v:]
+            def tri_f(idx):
+                return ind[idx+diag_v:]
         else:
-            tri_f = lambda idx: np.hstack([ind[:idx], ind[idx+diag_v:]])
+            def tri_f(idx):
+                return np.hstack([ind[:idx], ind[idx+diag_v:]])
 
         for idx, i in enumerate(ind):
             id_i = ids[i]
@@ -2106,15 +2108,27 @@ class Table(object):
         # transpose is only necessary in the one-to-one case
         # new_data_shape is only necessary in the one-to-many case
         # axis_slice is only necessary in the one-to-many case
-        axis_ids_md = lambda t: (t.ids(axis=axis), t.metadata(axis=axis))
+        def axis_ids_md(t):
+            return (t.ids(axis=axis), t.metadata(axis=axis))
+
         if axis == 'sample':
             transpose = True
-            new_data_shape = lambda ids, collapsed: (len(ids), len(collapsed))
-            axis_slice = lambda lookup, key: (slice(None), lookup[key])
+
+            def new_data_shape(ids, collapsed):
+                return (len(ids), len(collapsed))
+
+            def axis_slice(lookup, key):
+                return (slice(None), lookup[key])
+
         elif axis == 'observation':
             transpose = False
-            new_data_shape = lambda ids, collapsed: (len(collapsed), len(ids))
-            axis_slice = lambda lookup, key: (lookup[key], slice(None))
+
+            def new_data_shape(ids, collapsed):
+                return (len(collapsed), len(ids))
+
+            def axis_slice(lookup, key):
+                return (lookup[key], slice(None))
+
         else:
             raise UnknownAxisError(axis)
 
@@ -2202,7 +2216,8 @@ class Table(object):
             data = self._conv_to_self_type(new_data)
         else:
             if collapse_f is None:
-                collapse_f = lambda t, axis: t.reduce(add, axis)
+                def collapse_f(t, axis):
+                    return t.reduce(add, axis)
 
             for part, table in self.partition(f, axis=axis):
                 axis_ids, axis_md = axis_ids_md(table)
@@ -2682,10 +2697,14 @@ class Table(object):
         """
         if binary:
             dtype = 'int'
-            op = lambda x: x.nonzero()[0].size
+
+            def op(x):
+                return x.nonzero()[0].size
         else:
             dtype = self.dtype
-            op = lambda x: x.sum()
+
+            def op(x):
+                return x.sum()
 
         if axis in ('sample', 'observation'):
             # can use np.bincount for CSMat or ScipySparse
@@ -3107,7 +3126,8 @@ html
             ids = grp['ids'][:]
 
             # define functions for parsing the hdf5 metadata
-            general_parser = lambda x: x
+            def general_parser(x):
+                return x
 
             def vlen_list_of_str_parser(value):
                 """Parses the taxonomy value"""
@@ -3224,9 +3244,11 @@ html
         if ids is not None:
             # filter out any empty samples or observations which may exist due
             # to subsetting
-            f = lambda vals, id_, md: np.any(vals)
+            def any_value(vals, id_, md):
+                return np.any(vals)
+
             axis = 'observation' if axis == 'sample' else 'sample'
-            t.filter(f, axis=axis)
+            t.filter(any_value, axis=axis)
 
         return t
 
