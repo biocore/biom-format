@@ -21,7 +21,6 @@ import json
 from unittest import TestCase, main
 from shutil import copy
 
-import numpy as np
 import numpy.testing as npt
 
 from biom.commands.table_validator import TableValidator
