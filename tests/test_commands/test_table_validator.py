@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
@@ -10,7 +10,8 @@
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Jai Ram Rideout", "Daniel McDonald"]
+__credits__ = ["Jai Ram Rideout", "Daniel McDonald",
+               "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Jai Ram Rideout"
@@ -57,10 +58,10 @@ class TableValidatorTests(TestCase):
     @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
     def test_valid_hdf5_metadata_v210(self):
         exp = {'valid_table': True, 'report_lines': []}
-        obs = self.cmd(table=self.hdf5_file_valid, is_json=False,
+        obs = self.cmd(table=self.hdf5_file_valid,
                        format_version='2.1')
         self.assertEqual(obs, exp)
-        obs = self.cmd(table=self.hdf5_file_valid_md, is_json=False,
+        obs = self.cmd(table=self.hdf5_file_valid_md,
                        format_version='2.1')
         self.assertEqual(obs, exp)
 
@@ -74,7 +75,7 @@ class TableValidatorTests(TestCase):
         exp = {'valid_table': True,
                'report_lines': []}
 
-        obs = self.cmd(table=self.hdf5_file_valid, is_json=False)
+        obs = self.cmd(table=self.hdf5_file_valid)
         self.assertEqual(obs, exp)
 
     @npt.dec.skipif(HAVE_H5PY == False, msg='H5PY is not installed')
@@ -90,7 +91,7 @@ class TableValidatorTests(TestCase):
         del f.attrs['creation-date']
 
         f.close()
-        obs = self.cmd(table='invalid.hdf5', is_json=False)
+        obs = self.cmd(table='invalid.hdf5')
         self.assertEqual(obs, exp)
 
     def test_valid(self):
@@ -102,7 +103,7 @@ class TableValidatorTests(TestCase):
         f.close()
         self.to_remove.append('valid_test1')
 
-        obs = self.cmd(table='valid_test1', is_json=True)
+        obs = self.cmd(table='valid_test1')
         self.assertEqual(obs, exp)
 
         f = open('valid_test2', 'w')
@@ -110,7 +111,7 @@ class TableValidatorTests(TestCase):
         f.close()
         self.to_remove.append('valid_test2')
 
-        obs = self.cmd(table='valid_test2', is_json=True)
+        obs = self.cmd(table='valid_test2')
         self.assertEqual(obs, exp)
 
         # Soldier, report!!
@@ -119,7 +120,7 @@ class TableValidatorTests(TestCase):
         f.close()
         self.to_remove.append('valid_test3')
 
-        obs = self.cmd(table='valid_test3', detailed_report=True, is_json=True)
+        obs = self.cmd(table='valid_test3', detailed_report=True)
         self.assertTrue(obs['valid_table'])
         self.assertTrue(len(obs['report_lines']) > 0)
 
@@ -133,7 +134,7 @@ class TableValidatorTests(TestCase):
         f.close()
         self.to_remove.append('invalid_test1')
 
-        obs = self.cmd(table='invalid_test1', is_json=True)
+        obs = self.cmd(table='invalid_test1')
         self.assertEqual(obs, exp)
 
         self.rich_dense_otu['shape'][1] = 42
@@ -147,7 +148,7 @@ class TableValidatorTests(TestCase):
         f.close()
         self.to_remove.append('invalid_test2')
 
-        obs = self.cmd(table='invalid_test2', is_json=True)
+        obs = self.cmd(table='invalid_test2')
         self.assertEqual(obs, exp)
 
     def test_valid_format_url(self):

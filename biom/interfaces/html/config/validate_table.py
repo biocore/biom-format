@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
@@ -16,7 +16,8 @@ from biom.interfaces.html.input_handler import load_json_document
 
 __author__ = "Evan Bolyen"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Evan Bolyen", "Jai Ram Rideout", "Daniel McDonald"]
+__credits__ = ["Evan Bolyen", "Jai Ram Rideout", "Daniel McDonald",
+               "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Evan Bolyen"
@@ -46,8 +47,6 @@ inputs = [
     HTMLInputOption(Parameter=cmd_in_lookup('format_version')),
 
     HTMLInputOption(Parameter=cmd_in_lookup('detailed_report'), Type=bool),
-
-    HTMLInputOption(Parameter=cmd_in_lookup('is_json'), Type=bool)
 ]
 
 outputs = [

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-
+# -*- coding: utf-8 -*
 # ----------------------------------------------------------------------------
 # Copyright (c) 2011-2013, The BIOM Format Development Team.
 #
@@ -19,7 +19,7 @@ from biom.commands.table_validator import CommandConstructor
 
 __author__ = "Jai Ram Rideout"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Jai Ram Rideout", "Daniel McDonald"]
+__credits__ = ["Jai Ram Rideout", "Daniel McDonald", "Jorge Cañardo Alastuey"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Jai Ram Rideout"
@@ -51,9 +51,6 @@ inputs = [
                    Name='input-fp',
                    Help='the input filepath to validate against the BIOM '
                    'format specification'),
-    OptparseOption(Parameter=cmd_in_lookup('is_json'),
-                   Type=None,
-                   Action='store_true'),
     OptparseOption(Parameter=cmd_in_lookup('format_version'), ShortName='f'),
 
     OptparseOption(Parameter=cmd_in_lookup('detailed_report'), Type=None,
