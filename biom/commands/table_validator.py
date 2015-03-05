@@ -44,9 +44,6 @@ class TableValidator(Command):
         CommandIn(Name='table', DataType=object,
                   Description='the input BIOM JSON object (e.g., the output '
                   'of json.load)', Required=True),
-        CommandIn(Name='is_json', DataType=bool,
-                  Description='the input type',
-                  Required=False, Default=False),
         CommandIn(Name='format_version', DataType=str,
                   Description='the specific format version to validate '
                   'against', Required=False, Default=None),
@@ -73,8 +70,6 @@ class TableValidator(Command):
     HDF5FormatVersions = set([(2, 0), (2, 0, 0), (2, 1), (2, 1, 0)])
 
     def run(self, **kwargs):
-        # We can't trust kwargs['is_json'] because that's determined
-        # before any parsing happens...
         is_json = not is_hdf5_file(kwargs['table'])
 
         if kwargs['format_version'] in [None, 'None']:
