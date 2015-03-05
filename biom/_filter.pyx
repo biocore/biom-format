@@ -84,7 +84,8 @@ cdef _remove_rows_csr(arr, cnp.ndarray[cnp.uint8_t, ndim=1] booleans):
     arr.data = data[:nnz]
     arr.indices = indices[:nnz]
     arr.indptr = indptr[:m-offset_rows+1]
-    arr._shape = (m - offset_rows, n) if m-offset_rows else (0, 0)
+    arr._shape = ((m - offset_rows, n) if m-offset_rows else
+                  (<Py_ssize_t>0, <Py_ssize_t>0))
 
 def _filter(arr, ids, metadata, index, ids_to_keep, axis, invert):
     """Filter row/columns of a sparse matrix according to the output of a
