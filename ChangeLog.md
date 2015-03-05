@@ -1,12 +1,24 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.3-dev
---------------
+biom 2.1.4
+----------
+
+Minor fixes, released on March 5, 2014
+
+Changes:
+
+* Codebase updated to reflect pep8 1.6.x
 
 Bug fixes:
 
 * `Table.update_ids` was not updating the internal ID lookup caches, issue #599
+* `--is-json` has been removed from the table validator as it was being ignored
+    anyway, issue #591
+* `biom summarize-table` can now properly interact with pipes. This previously
+    worked on OSX but did not on Linux. Issue #598
+* `biom convert` was recording the wrong version information from HDF5 -> JSON,
+    issue #595
 
 biom 2.1.3
 ----------
