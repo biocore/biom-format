@@ -2975,7 +2975,7 @@ class Table(object):
                               sample_ids[:], obs_md, sample_md)
 
     @classmethod
-    def from_hdf5(cls, h5grp, ids=None, axis='sample'):
+    def from_hdf5(cls, h5grp, ids=None, axis='sample', parse_fs=None):
         """Parse an HDF5 formatted BIOM table
 
         If ids is provided, only the samples/observations listed in ids
@@ -3066,6 +3066,12 @@ dataset of int32
             to retrieve from the hdf5 biom table
         axis : {'sample', 'observation'}, optional
             The axis to subset on
+        parse_fs : dict, optional
+            Specify custom parsing functions for metadata fields. This dict is
+            expected to be {'metadata_field': function}, where the function
+            signature is (object) corresponding to a single row in the
+            associated metadata dataset. The return from this function an
+            object as well, and is the parsed representation of the metadata.
 
         Returns
         -------
@@ -3115,6 +3121,9 @@ html
         if axis not in ['sample', 'observation']:
             raise UnknownAxisError(axis)
 
+        if parse_fs is None:
+            parse_fs = {}
+
         id_ = h5grp.attrs['id']
         create_date = h5grp.attrs['creation-date']
         generated_by = h5grp.attrs['generated-by']
@@ -3140,6 +3149,7 @@ html
             parser['taxonomy'] = vlen_list_of_str_parser
             parser['KEGG_Pathways'] = vlen_list_of_str_parser
             parser['collapsed_ids'] = vlen_list_of_str_parser
+            parser.update(parse_fs)
 
             # fetch ID specific metadata
             md = [{} for i in range(len(ids))]
@@ -3254,7 +3264,7 @@ html
 
         return t
 
-    def to_hdf5(self, h5grp, generated_by, compress=True):
+    def to_hdf5(self, h5grp, generated_by, compress=True, format_fs=None):
         """Store CSC and CSR in place
 
         The resulting structure of this group is below. A few basic
@@ -3343,6 +3353,14 @@ dataset of int32
         compress : bool, optional
             Defaults to ``True`` means fields will be compressed with gzip,
             ``False`` means no compression
+        format_fs : dict, optional
+            Specify custom formatting functions for metadata fields. This dict
+            is expected to be {'metadata_field': function}, where the function
+            signature is (h5py.Group, str, dict, bool) corresponding to the
+            specific group the metadata dataset will be associated with, the
+            category being operated on, the metadata for the entire axis being
+            operated on, and whether to enable compression on the dataset.
+            Anything returned by this function is ignored.
 
         See Also
         --------
@@ -3370,6 +3388,9 @@ html
         if not HAVE_H5PY:
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
+
+        if format_fs is None:
+            format_fs = {}
 
         def axis_dump(grp, ids, md, group_md, order, compression=None):
             """Store for an axis"""
@@ -3472,6 +3493,7 @@ html
                 formatter['taxonomy'] = vlen_list_of_str_formatter
                 formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
                 formatter['collapsed_ids'] = vlen_list_of_str_formatter
+                formatter.update(format_fs)
                 # Loop through all the categories
                 for category in md[0]:
                     # Create the dataset for the current category,
