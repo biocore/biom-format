@@ -2233,15 +2233,17 @@ class SparseTableTests(TestCase):
 
     def test_collapse_observations_by_metadata_one_to_many(self):
         """Collapse observations by arbitary metadata"""
-        dt_rich = Table(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
-                        ['1', '2', '3'], ['a', 'b', 'c'],
+        dt_rich = Table(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13],
+                                  [14, 15, 16]]),
+                        ['1', '2', '3', '4'], ['a', 'b', 'c'],
                         [{'pathways': [['a', 'bx'], ['a', 'd']]},
                          {'pathways': [['a', 'bx'], ['a', 'c']]},
+                         {'pathways': [['a', 'c']]},
                          {'pathways': [['a', 'c']]}],
                         [{'barcode': 'aatt'},
                          {'barcode': 'ttgg'},
                          {'barcode': 'aatt'}])
-        exp_cat2 = Table(np.array([[13, 15, 17], [19, 21, 23], [5, 6, 7]]),
+        exp_cat2 = Table(np.array([[13, 15, 17], [33, 36, 39], [5, 6, 7]]),
                          ['bx', 'c', 'd'], ['a', 'b', 'c'],
                          [{'Path': ['a', 'bx']},
                           {'Path': ['a', 'c']},
