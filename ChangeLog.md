@@ -4,6 +4,11 @@ BIOM-Format ChangeLog
 biom 2.1.3-dev
 --------------
 
+Changes:
+
+* `Table.to_hdf5` and `Table.from_hdf5` now support custom parsers and
+    formatters, see issue #608
+
 Bug fixes:
 
 * `Table.update_ids` was not updating the internal ID lookup caches, issue #599
