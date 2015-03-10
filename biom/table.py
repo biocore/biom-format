@@ -2174,7 +2174,8 @@ class Table(object):
             # evenly.
             dtype = float if one_to_many_mode == 'divide' else self.dtype
 
-            new_data = zeros(new_data_shape(axis_ids_md(self)[0], new_md),
+            new_data = zeros(new_data_shape(self.ids(self._invert_axis(axis)),
+                                            new_md),
                              dtype=dtype)
 
             # for each vector
@@ -2198,7 +2199,6 @@ class Table(object):
                             continue
                     except StopIteration:
                         break
-
                     if one_to_many_mode == 'add':
                         new_data[axis_slice(idx_lookup, part)] += vals
                     else:

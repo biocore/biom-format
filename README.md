@@ -1,6 +1,8 @@
 README
 ======
 
+[![Join the chat at https://gitter.im/biocore/biom-format](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/biocore/biom-format?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 [![Build Status](https://travis-ci.org/biocore/biom-format.png?branch=master)](https://travis-ci.org/biocore/biom-format) [![Coverage Status](https://coveralls.io/repos/biocore/biom-format/badge.png)](https://coveralls.io/r/biocore/biom-format)
 
 The BIOM file format (canonically pronounced *biome*) is designed to be a general-use format for representing counts of observations (e.g., OTUs, KO categories, lipid types) in one or more biological samples (e.g., microbiome samples, genomes, metagenomes).

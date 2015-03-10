@@ -17,6 +17,8 @@ Bug fixes:
     worked on OSX but did not on Linux. Issue #598
 * `biom convert` was recording the wrong version information from HDF5 -> JSON,
     issue #595
+* `Table.collapse`, under `one_to_many` was not constructing the resulting
+    matrix properly, issue #606
 
 biom 2.1.3
 ----------
