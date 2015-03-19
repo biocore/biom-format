@@ -271,6 +271,12 @@ class UtilTests(TestCase):
 
         remove(get_data_path('test_writing.biom'))
 
+    def test_biom_open_empty(self):
+        with self.assertRaises(ValueError) as e:
+            with biom_open(get_data_path('no-contents.biom'), 'r') as f:
+                pass
+        self.assertTrue("is empty and can't be parsed" in str(e.exception))
+
     @npt.dec.skipif(HAVE_H5PY, msg='Can only be tested without H5PY')
     def test_biom_open_hdf5_no_h5py(self):
         with self.assertRaises(RuntimeError):
