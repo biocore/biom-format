@@ -418,6 +418,8 @@ def biom_open(fp, permission='U'):
     ------
     RuntimeError
         If the user tries to parse an HDF5 file without having h5py installed.
+    ValueError
+        If the user tries to read an empty file.
 
     """
     if permission not in ['r', 'w', 'U', 'rb', 'wb']:
@@ -429,6 +431,9 @@ def biom_open(fp, permission='U'):
     # don't try to open an HDF5 file if H5PY is not installed, this can only
     # happen if we are reading a file
     if mode in {'r', 'rb', 'U'}:
+        if os.path.getsize(fp) == 0:
+            raise ValueError("The file '%s' is empty and can't be parsed" % fp)
+
         if is_hdf5_file(fp) and not HAVE_H5PY:
             raise RuntimeError("h5py is not installed, cannot parse HDF5 "
                                "BIOM file")

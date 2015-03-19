@@ -9,6 +9,7 @@ Bug fixes:
 * `Table.update_ids` was not updating the internal ID lookup caches, issue #599
 * `Table.collapse`, under `one_to_many` was not constructing the resulting
     matrix properly, issue #606
+* Improve error message when trying to load an empty file, issue #614.
 
 biom 2.1.3
 ----------
