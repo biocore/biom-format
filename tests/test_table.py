@@ -299,7 +299,6 @@ class TableTests(TestCase):
         self.assertTrue(t._sample_metadata is None)
         self.assertTrue(t._observation_metadata is None)
 
-
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5_custom_parsers(self):
         def parser(item):
@@ -315,7 +314,6 @@ class TableTests(TestCase):
 
         for m in t.metadata():
             self.assertIn(m['BODY_SITE'], ('GUT', 'SKIN'))
-
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5(self):
@@ -602,7 +600,6 @@ class TableTests(TestCase):
             data = np.array([m[category].upper() for m in md])
             grp.create_dataset(name, shape=data.shape, dtype=H5PY_VLEN_STR,
                                data=data, compression=compression)
-
 
         fname = mktemp()
         self.to_remove.append(fname)

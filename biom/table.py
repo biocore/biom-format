@@ -3357,10 +3357,14 @@ dataset of int32
             Specify custom formatting functions for metadata fields. This dict
             is expected to be {'metadata_field': function}, where the function
             signature is (h5py.Group, str, dict, bool) corresponding to the
-            specific group the metadata dataset will be associated with, the
-            category being operated on, the metadata for the entire axis being
-            operated on, and whether to enable compression on the dataset.
-            Anything returned by this function is ignored.
+            specific HDF5 group the metadata dataset will be associated with,
+            the category being operated on, the metadata for the entire axis
+            being operated on, and whether to enable compression on the
+            dataset.  Anything returned by this function is ignored.
+
+        Notes
+        -----
+        This method does not return anything and operates in place on h5grp.
 
         See Also
         --------
