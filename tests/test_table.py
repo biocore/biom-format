@@ -20,7 +20,7 @@ import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 
 from biom.exception import UnknownAxisError, UnknownIDError, TableException
-from biom.util import unzip, HAVE_H5PY
+from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
 from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
                         list_dict_to_sparse, dict_to_sparse,
                         coo_arrays_to_sparse, list_list_to_sparse,
@@ -300,6 +300,22 @@ class TableTests(TestCase):
         self.assertTrue(t._observation_metadata is None)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_from_hdf5_custom_parsers(self):
+        def parser(item):
+            return item.upper()
+        parse_fs = {'BODY_SITE': parser}
+
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        t = Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            parse_fs=parse_fs)
+        os.chdir(cwd)
+
+        for m in t.metadata():
+            self.assertIn(m['BODY_SITE'], ('GUT', 'SKIN'))
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
         cwd = os.getcwd()
@@ -570,6 +586,41 @@ class TableTests(TestCase):
              {'barcode': 'aatt'}])
         with self.assertRaises(TypeError):
             t.to_hdf5(h5, 'tests')
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_to_hdf5_custom_formatters(self):
+        self.st_rich = Table(self.vals,
+                             ['1', '2'], ['a', 'b'],
+                             [{'taxonomy': ['k__a', 'p__b']},
+                              {'taxonomy': ['k__a', 'p__c']}],
+                             [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+
+        def bc_formatter(grp, category, md, compression):
+            name = 'metadata/%s' % category
+            data = np.array([m[category].upper() for m in md])
+            grp.create_dataset(name, shape=data.shape, dtype=H5PY_VLEN_STR,
+                               data=data, compression=compression)
+
+        fname = mktemp()
+        self.to_remove.append(fname)
+        h5 = h5py.File(fname, 'w')
+        self.st_rich.to_hdf5(h5, 'tests', format_fs={'barcode': bc_formatter})
+        h5.close()
+
+        h5 = h5py.File(fname, 'r')
+        self.assertIn('observation', h5)
+        self.assertIn('sample', h5)
+        self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
+                                                          'format-url',
+                                                          'format-version',
+                                                          'generated-by',
+                                                          'creation-date',
+                                                          'shape', 'nnz']))
+
+        obs = Table.from_hdf5(h5)
+        for m1, m2 in zip(obs.metadata(), self.st_rich.metadata()):
+            self.assertNotEqual(m1['barcode'], m2['barcode'])
+            self.assertEqual(m1['barcode'].lower(), m2['barcode'])
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5(self):
