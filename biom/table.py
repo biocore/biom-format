@@ -211,6 +211,75 @@ MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': unicode,
                        u'int': int, u'float': float, u'unicode': unicode}
 
 
+def general_parser(x):
+    return x
+
+
+def vlen_list_of_str_parser(value):
+    """Parses the taxonomy value"""
+    new_value = [v for v in value if v]
+    return new_value if new_value else None
+
+
+def general_formatter(grp, header, md, compression):
+    """Creates a dataset for a general atomic type category"""
+    test_val = md[0][header]
+    shape = (len(md),)
+    name = 'metadata/%s' % header
+    if isinstance(test_val, unicode):
+        grp.create_dataset(name, shape=shape,
+                           dtype=H5PY_VLEN_UNICODE,
+                           compression=compression)
+        grp[name][:] = [m[header] for m in md]
+    elif isinstance(test_val, str):
+        grp.create_dataset(name, shape=shape,
+                           dtype=H5PY_VLEN_STR,
+                           data=[m[header] for m in md],
+                           compression=compression)
+    else:
+        grp.create_dataset(
+            'metadata/%s' % header, shape=(len(md),),
+            data=[m[header] for m in md],
+            compression=compression)
+
+
+def vlen_list_of_str_formatter(grp, header, md, compression):
+    """Creates a (N, ?) vlen str dataset"""
+    # It is possible that the value for some sample/observation
+    # is None. In that case, we still need to see them as
+    # iterables, but their length will be 0
+    iterable_checks = []
+    lengths = []
+    for m in md:
+        if m[header] is None:
+            iterable_checks.append(True)
+        else:
+            iterable_checks.append(
+                isinstance(m.get(header, []), Iterable))
+            lengths.append(len(m[header]))
+
+    if not np.all(iterable_checks):
+        raise TypeError(
+            "Category %s not formatted correctly. Did you pass"
+            " --process-obs-metadata taxonomy when converting "
+            " from tsv?")
+
+    max_list_len = max(lengths)
+    shape = (len(md), max_list_len)
+    data = np.empty(shape, dtype=object)
+    for i, m in enumerate(md):
+        if m[header] is None:
+            continue
+        value = np.asarray(m[header])
+        data[i, :len(value)] = value
+    # Change the None entries on data to empty strings ""
+    data = np.where(data == np.array(None), "", data)
+    grp.create_dataset(
+        'metadata/%s' % header, shape=shape,
+        dtype=H5PY_VLEN_STR, data=data,
+        compression=compression)
+
+
 class Table(object):
 
     """The (canonically pronounced 'teh') Table.
@@ -3136,15 +3205,6 @@ html
             # fetch all of the IDs
             ids = grp['ids'][:]
 
-            # define functions for parsing the hdf5 metadata
-            def general_parser(x):
-                return x
-
-            def vlen_list_of_str_parser(value):
-                """Parses the taxonomy value"""
-                new_value = [v for v in value if v]
-                return new_value if new_value else None
-
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
             parser['KEGG_Pathways'] = vlen_list_of_str_parser
@@ -3435,64 +3495,6 @@ html
             grp.create_group('metadata')
 
             if md is not None:
-                # Define functions for writing to hdf5
-                def general_formatter(grp, header, md, compression):
-                    """Creates a dataset for a general atomic type category"""
-                    test_val = md[0][header]
-                    shape = (len(md),)
-                    name = 'metadata/%s' % category
-                    if isinstance(test_val, unicode):
-                        grp.create_dataset(name, shape=shape,
-                                           dtype=H5PY_VLEN_UNICODE,
-                                           compression=compression)
-                        grp[name][:] = [m[header] for m in md]
-                    elif isinstance(test_val, str):
-                        grp.create_dataset(name, shape=shape,
-                                           dtype=H5PY_VLEN_STR,
-                                           data=[m[header] for m in md],
-                                           compression=compression)
-                    else:
-                        grp.create_dataset(
-                            'metadata/%s' % category, shape=(len(md),),
-                            data=[m[header] for m in md],
-                            compression=compression)
-
-                def vlen_list_of_str_formatter(grp, header, md, compression):
-                    """Creates a (N, ?) vlen str dataset"""
-                    # It is possible that the value for some sample/observation
-                    # is None. In that case, we still need to see them as
-                    # iterables, but their length will be 0
-                    iterable_checks = []
-                    lengths = []
-                    for m in md:
-                        if m[header] is None:
-                            iterable_checks.append(True)
-                        else:
-                            iterable_checks.append(
-                                isinstance(m.get(header, []), Iterable))
-                            lengths.append(len(m[header]))
-
-                    if not np.all(iterable_checks):
-                        raise TypeError(
-                            "Category %s not formatted correctly. Did you pass"
-                            " --process-obs-metadata taxonomy when converting "
-                            " from tsv?")
-
-                    max_list_len = max(lengths)
-                    shape = (len(md), max_list_len)
-                    data = np.empty(shape, dtype=object)
-                    for i, m in enumerate(md):
-                        if m[header] is None:
-                            continue
-                        value = np.asarray(m[header])
-                        data[i, :len(value)] = value
-                    # Change the None entries on data to empty strings ""
-                    data = np.where(data == np.array(None), "", data)
-                    grp.create_dataset(
-                        'metadata/%s' % header, shape=shape,
-                        dtype=H5PY_VLEN_STR, data=data,
-                        compression=compression)
-
                 formatter = defaultdict(lambda: general_formatter)
                 formatter['taxonomy'] = vlen_list_of_str_formatter
                 formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
