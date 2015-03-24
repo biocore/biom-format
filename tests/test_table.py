@@ -11,7 +11,7 @@
 
 import os
 from json import loads
-from tempfile import mktemp
+from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 from StringIO import StringIO
 
@@ -563,29 +563,28 @@ class TableTests(TestCase):
         """Successfully writes an empty OTU table in HDF5 format"""
         # Create an empty OTU table
         t = Table([], [], [])
-        fname = mktemp()
-        self.to_remove.append(fname)
-        h5 = h5py.File(fname, 'w')
-        t.to_hdf5(h5, 'tests')
-        h5.close()
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            t.to_hdf5(h5, 'tests')
+            h5.close()
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_error(self):
         """Errors if a controlled category is not correctly formatted"""
-        fname = mktemp()
-        self.to_remove.append(fname)
-        h5 = h5py.File(fname, 'w')
-        t = Table(
-            np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
-            ['1', '2', '3'], ['a', 'b', 'c'],
-            [{'taxonomy': 'k__a; p__b'},
-             {'taxonomy': 'k__a; p__c'},
-             {'taxonomy': 'k__a; p__c'}],
-            [{'barcode': 'aatt'},
-             {'barcode': 'ttgg'},
-             {'barcode': 'aatt'}])
-        with self.assertRaises(TypeError):
-            t.to_hdf5(h5, 'tests')
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            t = Table(
+                np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
+                ['1', '2', '3'], ['a', 'b', 'c'],
+                [{'taxonomy': 'k__a; p__b'},
+                 {'taxonomy': 'k__a; p__c'},
+                 {'taxonomy': 'k__a; p__c'}],
+                [{'barcode': 'aatt'},
+                 {'barcode': 'ttgg'},
+                 {'barcode': 'aatt'}])
+            with self.assertRaises(TypeError):
+                t.to_hdf5(h5, 'tests')
+            h5.close()
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_custom_formatters(self):
@@ -601,113 +600,115 @@ class TableTests(TestCase):
             grp.create_dataset(name, shape=data.shape, dtype=H5PY_VLEN_STR,
                                data=data, compression=compression)
 
-        fname = mktemp()
-        self.to_remove.append(fname)
-        h5 = h5py.File(fname, 'w')
-        self.st_rich.to_hdf5(h5, 'tests', format_fs={'barcode': bc_formatter})
-        h5.close()
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            self.st_rich.to_hdf5(h5, 'tests',
+                                 format_fs={'barcode': bc_formatter})
+            h5.close()
 
-        h5 = h5py.File(fname, 'r')
-        self.assertIn('observation', h5)
-        self.assertIn('sample', h5)
-        self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
-                                                          'format-url',
-                                                          'format-version',
-                                                          'generated-by',
-                                                          'creation-date',
-                                                          'shape', 'nnz']))
+            h5 = h5py.File(tmpfile.name, 'r')
+            self.assertIn('observation', h5)
+            self.assertIn('sample', h5)
+            self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
+                                                              'format-url',
+                                                              'format-version',
+                                                              'generated-by',
+                                                              'creation-date',
+                                                              'shape', 'nnz']))
 
-        obs = Table.from_hdf5(h5)
-        for m1, m2 in zip(obs.metadata(), self.st_rich.metadata()):
-            self.assertNotEqual(m1['barcode'], m2['barcode'])
-            self.assertEqual(m1['barcode'].lower(), m2['barcode'])
+            obs = Table.from_hdf5(h5)
+            for m1, m2 in zip(obs.metadata(), self.st_rich.metadata()):
+                self.assertNotEqual(m1['barcode'], m2['barcode'])
+                self.assertEqual(m1['barcode'].lower(), m2['barcode'])
+            h5.close()
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5(self):
         """Write a file"""
-        fname = mktemp()
-        self.to_remove.append(fname)
-        h5 = h5py.File(fname, 'w')
-        self.st_rich.to_hdf5(h5, 'tests')
-        h5.close()
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            self.st_rich.to_hdf5(h5, 'tests')
+            h5.close()
 
-        h5 = h5py.File(fname, 'r')
-        self.assertIn('observation', h5)
-        self.assertIn('sample', h5)
-        self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
-                                                          'format-url',
-                                                          'format-version',
-                                                          'generated-by',
-                                                          'creation-date',
-                                                          'shape', 'nnz']))
+            h5 = h5py.File(tmpfile.name, 'r')
+            self.assertIn('observation', h5)
+            self.assertIn('sample', h5)
+            self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
+                                                              'format-url',
+                                                              'format-version',
+                                                              'generated-by',
+                                                              'creation-date',
+                                                              'shape', 'nnz']))
 
-        obs = Table.from_hdf5(h5)
-        self.assertEqual(obs, self.st_rich)
+            obs = Table.from_hdf5(h5)
+            self.assertEqual(obs, self.st_rich)
+            h5.close()
 
         # Test with a collapsed table
-        fname = mktemp()
-        self.to_remove.append(fname)
-        h5 = h5py.File(fname, 'w')
-        dt_rich = Table(
-            np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
-            ['1', '2', '3'], ['a', 'b', 'c'],
-            [{'taxonomy': ['k__a', 'p__b']},
-             {'taxonomy': ['k__a', 'p__c']},
-             {'taxonomy': ['k__a', 'p__c']}],
-            [{'barcode': 'aatt'},
-             {'barcode': 'ttgg'},
-             {'barcode': 'aatt'}])
-        bin_f = lambda id_, x: x['barcode']
-        collapsed = dt_rich.collapse(
-            bin_f, norm=False, min_group_size=1,
-            axis='sample').sort(axis='sample')
-        collapsed.to_hdf5(h5, 'tests')
-        h5.close()
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            dt_rich = Table(
+                np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
+                ['1', '2', '3'], ['a', 'b', 'c'],
+                [{'taxonomy': ['k__a', 'p__b']},
+                 {'taxonomy': ['k__a', 'p__c']},
+                 {'taxonomy': ['k__a', 'p__c']}],
+                [{'barcode': 'aatt'},
+                 {'barcode': 'ttgg'},
+                 {'barcode': 'aatt'}])
+            bin_f = lambda id_, x: x['barcode']
+            collapsed = dt_rich.collapse(
+                bin_f, norm=False, min_group_size=1,
+                axis='sample').sort(axis='sample')
+            collapsed.to_hdf5(h5, 'tests')
+            h5.close()
 
-        h5 = h5py.File(fname, 'r')
-        self.assertIn('observation', h5)
-        self.assertIn('sample', h5)
-        self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
-                                                          'format-url',
-                                                          'format-version',
-                                                          'generated-by',
-                                                          'creation-date',
-                                                          'shape', 'nnz']))
+            h5 = h5py.File(tmpfile.name, 'r')
+            self.assertIn('observation', h5)
+            self.assertIn('sample', h5)
+            self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
+                                                              'format-url',
+                                                              'format-version',
+                                                              'generated-by',
+                                                              'creation-date',
+                                                              'shape', 'nnz']))
 
-        obs = Table.from_hdf5(h5)
-        exp = Table(
-            np.array([[12, 6], [18, 9], [24, 12]]),
-            ['1', '2', '3'], ['aatt', 'ttgg'],
-            [{'taxonomy': ['k__a', 'p__b']},
-             {'taxonomy': ['k__a', 'p__c']},
-             {'taxonomy': ['k__a', 'p__c']}],
-            [{'collapsed_ids': ['a', 'c']},
-             {'collapsed_ids': ['b']}])
-        self.assertEqual(obs, exp)
+            obs = Table.from_hdf5(h5)
+            h5.close()
+
+            exp = Table(
+                np.array([[12, 6], [18, 9], [24, 12]]),
+                ['1', '2', '3'], ['aatt', 'ttgg'],
+                [{'taxonomy': ['k__a', 'p__b']},
+                 {'taxonomy': ['k__a', 'p__c']},
+                 {'taxonomy': ['k__a', 'p__c']}],
+                [{'collapsed_ids': ['a', 'c']},
+                 {'collapsed_ids': ['b']}])
+            self.assertEqual(obs, exp)
 
         # Test with table having a None on taxonomy
-        fname = mktemp()
-        self.to_remove.append(fname)
-        h5 = h5py.File(fname, 'w')
-        t = Table(self.vals, ['1', '2'], ['a', 'b'],
-                  [{'taxonomy': ['k__a', 'p__b']},
-                   {'taxonomy': None}],
-                  [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
-        t.to_hdf5(h5, 'tests')
-        h5.close()
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            t = Table(self.vals, ['1', '2'], ['a', 'b'],
+                      [{'taxonomy': ['k__a', 'p__b']},
+                       {'taxonomy': None}],
+                      [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+            t.to_hdf5(h5, 'tests')
+            h5.close()
 
-        h5 = h5py.File(fname, 'r')
-        self.assertIn('observation', h5)
-        self.assertIn('sample', h5)
-        self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
-                                                          'format-url',
-                                                          'format-version',
-                                                          'generated-by',
-                                                          'creation-date',
-                                                          'shape', 'nnz']))
+            h5 = h5py.File(tmpfile.name, 'r')
+            self.assertIn('observation', h5)
+            self.assertIn('sample', h5)
+            self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
+                                                              'format-url',
+                                                              'format-version',
+                                                              'generated-by',
+                                                              'creation-date',
+                                                              'shape', 'nnz']))
 
-        obs = Table.from_hdf5(h5)
-        self.assertEqual(obs, t)
+            obs = Table.from_hdf5(h5)
+            h5.close()
+            self.assertEqual(obs, t)
 
     def test_from_tsv(self):
         tab1_fh = StringIO(otu_table1)
