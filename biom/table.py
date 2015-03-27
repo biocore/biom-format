@@ -1938,7 +1938,7 @@ class Table(object):
             table._observation_metadata = metadata
 
         table._index_ids()
-        errcheck(table, 'empty')
+        errcheck(table)
 
         return table
 
