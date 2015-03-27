@@ -15,6 +15,9 @@ Bug fixes:
 * `Table.collapse`, under `one_to_many` was not constructing the resulting
     matrix properly, issue #606
 * Improve error message when trying to load an empty file, issue #614.
+* Improve error handling when filtering tables, and return tables of shape
+    `(0, n)` instead of `(0, 0)` when fully filtering out a table along an
+    axis, issue #620
 
 biom 2.1.3
 ----------
