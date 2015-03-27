@@ -61,7 +61,6 @@ TableException: Empty table!
 from warnings import warn
 from sys import stdout
 from contextlib import contextmanager
-import types
 
 from biom.exception import TableException
 
