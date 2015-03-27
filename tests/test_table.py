@@ -2155,6 +2155,16 @@ class SparseTableTests(TestCase):
                     ['S1', 'S2', 'S3', 'S4'])
         self.assertEqual(obs, exp)
 
+    def test_filter_out_full_table(self):
+        t = Table(np.asarray([[1, 2, 3],
+                              [4, 5, 6]]),
+                  ['a', 'b'], ['c', 'd', 'e'])
+        t_sample = t.filter(ids_to_keep=[], axis='sample', inplace=False)
+        t_obs = t.filter(ids_to_keep=[], axis='observation', inplace=False)
+
+        self.assertEqual(t_sample.shape, (2, 0))
+        self.assertEqual(t_obs.shape, (0, 3))
+
     def test_subsample(self):
         table = Table(np.array([[0, 5, 0]]), ['O1'], ['S1', 'S2', 'S3'])
 
