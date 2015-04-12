@@ -1566,6 +1566,17 @@ class SparseTableTests(TestCase):
         obs = list(st.nonzero())
         self.assertEqual(obs, exp)
 
+    def test_nonzero_csc_bug(self):
+        data = {(0, 0): 5, (0, 1): 6, (0, 2): 0, (0, 3): 3,
+                (1, 0): 0, (1, 1): 7, (1, 2): 0, (1, 3): 8,
+                (2, 0): 1, (2, 1): -1, (2, 2): 0, (2, 3): 0}
+        st = Table(data, ['1', '2', '3'], ['a', 'b', 'c', 'd'])
+        st._data = st._data.tocsc()
+        exp = [('1', 'a'), ('1', 'b'), ('1', 'd'), ('2', 'b'), ('2', 'd'),
+               ('3', 'a'), ('3', 'b')]
+        obs = list(st.nonzero())
+        self.assertEqual(obs, exp)
+
     def test_nonzero_counts(self):
         """Returns nonzero counts over an axis"""
         data = {(0, 0): 5, (0, 1): 6, (0, 2): 0, (0, 3): 3,

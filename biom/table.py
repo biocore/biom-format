@@ -2736,12 +2736,12 @@ class Table(object):
         generator
             Yields ``(observation_id, sample_id)`` for each nonzero element
         """
-        self._data.tocsr()
+        csr = self._data.tocsr()
         samp_ids = self.ids()
         obs_ids = self.ids(axis='observation')
 
-        indptr = self._data.indptr
-        indices = self._data.indices
+        indptr = csr.indptr
+        indices = csr.indices
         for row_idx in range(indptr.size - 1):
             start = indptr[row_idx]
             end = indptr[row_idx+1]

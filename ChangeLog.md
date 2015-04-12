@@ -18,6 +18,7 @@ Bug fixes:
 * Improve error handling when filtering tables, and return tables of shape
     `(0, n)` instead of `(0, 0)` when fully filtering out a table along an
     axis, issue #620
+* Fix `Table.nonzero` to work on data is not already csr, issue #625.
 
 biom 2.1.3
 ----------
