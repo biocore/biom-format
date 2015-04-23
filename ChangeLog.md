@@ -1,8 +1,8 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.3rc1
--------------
+biom 2.1.4
+----------
 
 Changes:
 
