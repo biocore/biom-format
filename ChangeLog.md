@@ -4,6 +4,8 @@ BIOM-Format ChangeLog
 biom 2.1.4
 ----------
 
+Bug fixes, released on April 22nd 2015
+
 Changes:
 
 * Codebase updated to reflect pep8 1.6.x
