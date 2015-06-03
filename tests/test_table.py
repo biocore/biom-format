@@ -1490,7 +1490,7 @@ class SparseTableTests(TestCase):
         """ids are updated as expected"""
         # update observation ids
         exp = self.st1.copy()
-        id_map = {'1': '2', '1': '1'}
+        id_map = {'1': '1', '2': '2'}
         obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
         self.assertEqual(obs, exp)
 
