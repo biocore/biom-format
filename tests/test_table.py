@@ -1486,6 +1486,21 @@ class SparseTableTests(TestCase):
         obs = self.st1.update_ids(id_map, axis='observation', inplace=True)
         npt.assert_equal(self.st1._observation_ids, np.array(['41', '42']))
 
+    def test_update_ids_nochange_bug(self):
+        """ids are updated as expected"""
+        # update observation ids
+        exp = self.st1.copy()
+        id_map = {'1': '1', '2': '2'}
+        obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
+        self.assertEqual(obs, exp)
+
+        # test having one ID remain unchanged
+        exp = self.st1.copy()
+        exp._observation_ids = np.array(['1', '3'])
+        id_map = {'1': '1', '2': '3'}
+        obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
+        self.assertEqual(obs, exp)
+
     def test_update_ids_cache_bug(self):
         obs = self.st1.update_ids({'1': 'x', '2': 'y'}, axis='observation',
                                   inplace=False)
