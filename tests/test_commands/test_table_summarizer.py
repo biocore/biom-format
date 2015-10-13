@@ -95,15 +95,15 @@ Counts/sample summary:
  Observation Metadata Categories: taxonomy
 
 Counts/sample detail:
- p2: 22.0
- f1: 22.0
- f2: 22.0
- f3: 22.0
- f4: 22.0
- t2: 22.0
- not16S.1: 22.0
- t1: 23.0
- p1: 23.0"""
+p2: 22.0
+f1: 22.0
+f2: 22.0
+f3: 22.0
+f4: 22.0
+t2: 22.0
+not16S.1: 22.0
+t1: 23.0
+p1: 23.0"""
 
 summary_qualitative = """Num samples: 9
 Num observations: 14
@@ -118,15 +118,15 @@ Observations/sample summary:
  Observation Metadata Categories: taxonomy
 
 Observations/sample detail:
- f4: 1
- f1: 2
- f3: 2
- not16S.1: 2
- f2: 3
- t2: 3
- t1: 4
- p1: 4
- p2: 9"""
+f4: 1
+f1: 2
+f3: 2
+not16S.1: 2
+f2: 3
+t2: 3
+t1: 4
+p1: 4
+p2: 9"""
 
 if __name__ == "__main__":
     main()
