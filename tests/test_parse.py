@@ -1563,6 +1563,8 @@ class ParseUcTests(TestCase):
         #                      [{'environment': 'A'}, {'environment': 'B'}])
 
     def test_empty(self):
+        """ empty uc file returns empty Table
+        """
         actual = parse_uc(uc_empty.split('\n'))
         expected = Table(np.array([[]]),
                          observation_ids=[],
@@ -1570,6 +1572,8 @@ class ParseUcTests(TestCase):
         self.assertEqual(actual, expected)
 
     def test_minimal(self):
+        """ single new seed observed
+        """
         actual = parse_uc(uc_minimal.split('\n'))
         expected = Table(np.array([[1.0]]),
                          observation_ids=['f2_1539'],
@@ -1577,6 +1581,8 @@ class ParseUcTests(TestCase):
         self.assertEqual(actual, expected)
 
     def test_lib_minimal(self):
+        """ single library seed observed
+        """
         actual = parse_uc(uc_lib_minimal.split('\n'))
         expected = Table(np.array([[1.0]]),
                          observation_ids=['295053'],
@@ -1584,9 +1590,13 @@ class ParseUcTests(TestCase):
         self.assertEqual(actual, expected)
 
     def test_invalid(self):
+        """ invalid query sequence identifier detected
+        """
         self.assertRaises(ValueError, parse_uc, uc_invalid_id.split('\n'))
 
     def test_seed_hits(self):
+        """ multiple new seeds observed
+        """
         actual = parse_uc(uc_seed_hits.split('\n'))
         expected = Table(np.array([[2.0, 1.0], [0.0, 1.0]]),
                          observation_ids=['f2_1539', 'f3_44'],
@@ -1594,6 +1604,8 @@ class ParseUcTests(TestCase):
         self.assertEqual(actual, expected)
 
     def test_mixed_hits(self):
+        """ new and library seeds observed
+        """
         actual = parse_uc(uc_mixed_hits.split('\n'))
         expected = Table(np.array([[2.0, 1.0], [0.0, 1.0], [1.0, 0.0]]),
                          observation_ids=['f2_1539', 'f3_44', '295053'],
@@ -1601,7 +1613,7 @@ class ParseUcTests(TestCase):
         self.assertEqual(actual, expected)
 
 
-
+# no hits or library seeds
 uc_empty = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
 # version=1.2.22
 # Tab-separated fields:
@@ -1612,6 +1624,7 @@ uc_empty = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/
 # If minus strand, SeedStart is relative to reverse-complemented seed.
 """
 
+# label not in qiime post-split-libraries format
 uc_invalid_id = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
 # version=1.2.22
 # Tab-separated fields:
@@ -1623,6 +1636,7 @@ uc_invalid_id = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000
 S	0	133	*	*	*	*	*	1539	*
 """
 
+# contains single new (de novo) seed hit
 uc_minimal = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
 # version=1.2.22
 # Tab-separated fields:
@@ -1634,6 +1648,7 @@ uc_minimal = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/
 S	0	133	*	*	*	*	*	f2_1539	*
 """
 
+# contains single library (reference) seed hit
 uc_lib_minimal = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
 # version=1.2.22
 # Tab-separated fields:
@@ -1646,6 +1661,7 @@ L	3	1389	*	*	*	*	*	295053	*
 H	3	133	100.0	+	0	0	519I133M737I	f2_1539	295053
 """
 
+# contains new seed (de novo) hits only
 uc_seed_hits = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
 # version=1.2.22
 # Tab-separated fields:
@@ -1660,6 +1676,7 @@ H	0	141	100.0	+	0	0	133M8D	f2_43	f2_1539
 S	0	133	*	*	*	*	*	f3_44	*
 """
 
+# contains library (reference) and new seed (de novo) hits
 uc_mixed_hits = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
 # version=1.2.22
 # Tab-separated fields:
