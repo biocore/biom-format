@@ -10,11 +10,14 @@ from __future__ import division
 
 from biom.parse import MetadataMap
 
+
 def _split_on_semicolons(x):
     return [e.strip() for e in x.split(';')]
 
+
 def _split_on_semicolons_and_pipes(x):
     return [[e.strip() for e in y.split(';')] for y in x.split('|')]
+
 
 def _int(x):
     try:
@@ -22,16 +25,22 @@ def _int(x):
     except ValueError:
         return x
 
+
 def _float(x):
     try:
         return float(x)
     except ValueError:
         return x
 
+
 def add_metadata(table, sample_metadata=None, observation_metadata=None,
                  sc_separated=None, sc_pipe_separated=None, int_fields=None,
                  float_fields=None, sample_header=None,
                  observation_header=None):
+
+    if sample_metadata is None and observation_metadata is None:
+        raise ValueError('Must specify sample_metadata and/or '
+                         'observation_metadata.')
 
     # define metadata processing functions, if any
     process_fns = {}
@@ -60,10 +69,6 @@ def add_metadata(table, sample_metadata=None, observation_metadata=None,
             observation_metadata,
             process_fns=process_fns,
             header=observation_header)
-
-    if sample_metadata is None and observation_metadata is None:
-        raise CommandError('Must specify sample_metadata and/or '
-                           'observation_metadata.')
 
     # NAUGHTY: this is modifying the input table IN PLACE!!! And then
     # RETURNING IT! MetadataAdder is angry!

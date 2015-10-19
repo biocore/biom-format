@@ -12,7 +12,8 @@ from .metadata_adder import add_metadata
 import biom.parse
 import biom.util
 
-__all__ = ['summarize_table', 'add_metadata', 'summarize_table']
+__all__ = ['summarize_table', 'add_metadata', 'show_install_info']
+
 
 def write_biom_table(table, format, filepath):
     """Write table in specified format to filepath"""
