@@ -1239,9 +1239,9 @@ class Table(object):
         """
         return id in self._index(axis=axis)
 
-    def delimited_self(self, delim='\t', header_key=None, header_value=None,
+    def delimited_self(self, delim=u'\t', header_key=None, header_value=None,
                        metadata_formatter=str,
-                       observation_column_name='#OTU ID'):
+                       observation_column_name=u'#OTU ID'):
         """Return self as a string in a delimited form
 
         Default str output for the Table is just row/col ids and table data
@@ -1282,9 +1282,9 @@ class Table(object):
                     "You need to specify both header_key and header_value")
 
         if header_value:
-            output = ['# Constructed from biom file',
-                      '%s%s%s\t%s' % (observation_column_name, delim, samp_ids,
-                                      header_value)]
+            output = [u'# Constructed from biom file',
+                      u'%s%s%s\t%s' % (observation_column_name, delim, samp_ids,
+                                       header_value)]
         else:
             output = ['# Constructed from biom file',
                       '%s%s%s' % (observation_column_name, delim, samp_ids)]
@@ -1298,10 +1298,10 @@ class Table(object):
                 md = obs_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
                 output.append(
-                    '%s%s%s\t%s' %
+                    u'%s%s%s\t%s' %
                     (obs_id, delim, str_obs_vals, md_out))
             else:
-                output.append('%s%s%s' % (obs_id, delim, str_obs_vals))
+                output.append(u'%s%s%s' % (obs_id, delim, str_obs_vals))
 
         return '\n'.join(output)
 
@@ -3648,23 +3648,23 @@ html
 
         # Fill in top-level metadata.
         if direct_io:
-            direct_io.write('{')
-            direct_io.write('"id": "%s",' % str(self.table_id))
+            direct_io.write(u'{')
+            direct_io.write(u'"id": "%s",' % str(self.table_id))
             direct_io.write(
-                '"format": "%s",' %
+                u'"format": "%s",' %
                 get_biom_format_version_string((1, 0)))  # JSON table -> 1.0.0
             direct_io.write(
-                '"format_url": "%s",' %
+                u'"format_url": "%s",' %
                 get_biom_format_url_string())
-            direct_io.write('"generated_by": "%s",' % generated_by)
-            direct_io.write('"date": "%s",' % datetime.now().isoformat())
+            direct_io.write(u'"generated_by": "%s",' % generated_by)
+            direct_io.write(u'"date": "%s",' % datetime.now().isoformat())
         else:
-            id_ = '"id": "%s",' % str(self.table_id)
-            format_ = '"format": "%s",' % get_biom_format_version_string(
+            id_ = u'"id": "%s",' % str(self.table_id)
+            format_ = u'"format": "%s",' % get_biom_format_version_string(
                 (1, 0))  # JSON table -> 1.0.0
-            format_url = '"format_url": "%s",' % get_biom_format_url_string()
-            generated_by = '"generated_by": "%s",' % generated_by
-            date = '"date": "%s",' % datetime.now().isoformat()
+            format_url = u'"format_url": "%s",' % get_biom_format_url_string()
+            generated_by = u'"generated_by": "%s",' % generated_by
+            date = u'"date": "%s",' % datetime.now().isoformat()
 
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
@@ -3682,30 +3682,30 @@ html
 
         # Determine the type of elements the matrix is storing.
         if isinstance(test_element, int):
-            matrix_element_type = "int"
+            matrix_element_type = u"int"
         elif isinstance(test_element, float):
-            matrix_element_type = "float"
+            matrix_element_type = u"float"
         elif isinstance(test_element, unicode):
-            matrix_element_type = "unicode"
+            matrix_element_type = u"unicode"
         else:
             raise TableException("Unsupported matrix data type.")
 
         # Fill in details about the matrix.
         if direct_io:
             direct_io.write(
-                '"matrix_element_type": "%s",' %
+                u'"matrix_element_type": "%s",' %
                 matrix_element_type)
-            direct_io.write('"shape": [%d, %d],' % (num_rows, num_cols))
+            direct_io.write(u'"shape": [%d, %d],' % (num_rows, num_cols))
         else:
-            matrix_element_type = '"matrix_element_type": "%s",' % \
+            matrix_element_type = u'"matrix_element_type": "%s",' % \
                 matrix_element_type
-            shape = '"shape": [%d, %d],' % (num_rows, num_cols)
+            shape = u'"shape": [%d, %d],' % (num_rows, num_cols)
 
         # Fill in the table type
         if self.type is None:
-            type_ = '"type": null,'
+            type_ = u'"type": null,'
         else:
-            type_ = '"type": "%s",' % self.type
+            type_ = u'"type": "%s",' % self.type
 
         if direct_io:
             direct_io.write(type_)
@@ -3713,24 +3713,24 @@ html
         # Fill in details about the rows in the table and fill in the matrix's
         # data. BIOM 2.0+ is now only sparse
         if direct_io:
-            direct_io.write('"matrix_type": "sparse",')
-            direct_io.write('"data": [')
+            direct_io.write(u'"matrix_type": "sparse",')
+            direct_io.write(u'"data": [')
         else:
-            matrix_type = '"matrix_type": "sparse",'
-            data = ['"data": [']
+            matrix_type = u'"matrix_type": "sparse",'
+            data = [u'"data": [']
 
         max_row_idx = len(self.ids(axis='observation')) - 1
         max_col_idx = len(self.ids()) - 1
-        rows = ['"rows": [']
+        rows = [u'"rows": [']
         have_written = False
         for obs_index, obs in enumerate(self.iter(axis='observation')):
             # i'm crying on the inside
             if obs_index != max_row_idx:
-                rows.append('{"id": %s, "metadata": %s},' % (dumps(obs[1]),
-                                                             dumps(obs[2])))
-            else:
-                rows.append('{"id": %s, "metadata": %s}],' % (dumps(obs[1]),
+                rows.append(u'{"id": %s, "metadata": %s},' % (dumps(obs[1]),
                                                               dumps(obs[2])))
+            else:
+                rows.append(u'{"id": %s, "metadata": %s}],' % (dumps(obs[1]),
+                                                               dumps(obs[2])))
 
             # turns out its a pain to figure out when to place commas. the
             # simple work around, at the expense of a little memory
@@ -3739,55 +3739,55 @@ html
             built_row = []
             for col_index, val in enumerate(obs[0]):
                 if float(val) != 0.0:
-                    built_row.append("[%d,%d,%r]" % (obs_index, col_index,
-                                                     val))
+                    built_row.append(u"[%d,%d,%r]" % (obs_index, col_index,
+                                                      val))
             if built_row:
                 # if we have written a row already, its safe to add a comma
                 if have_written:
                     if direct_io:
-                        direct_io.write(',')
+                        direct_io.write(u',')
                     else:
-                        data.append(',')
+                        data.append(u',')
                 if direct_io:
-                    direct_io.write(','.join(built_row))
+                    direct_io.write(u','.join(built_row))
                 else:
-                    data.append(','.join(built_row))
+                    data.append(u','.join(built_row))
 
                 have_written = True
 
         # finalize the data block
         if direct_io:
-            direct_io.write("],")
+            direct_io.write(u"],")
         else:
-            data.append("],")
+            data.append(u"],")
 
         # Fill in details about the columns in the table.
-        columns = ['"columns": [']
+        columns = [u'"columns": [']
         for samp_index, samp in enumerate(self.iter()):
             if samp_index != max_col_idx:
-                columns.append('{"id": %s, "metadata": %s},' % (
+                columns.append(u'{"id": %s, "metadata": %s},' % (
                     dumps(samp[1]), dumps(samp[2])))
             else:
-                columns.append('{"id": %s, "metadata": %s}]' % (
+                columns.append(u'{"id": %s, "metadata": %s}]' % (
                     dumps(samp[1]), dumps(samp[2])))
 
-        if rows[0] == '"rows": [' and len(rows) == 1:
+        if rows[0] == u'"rows": [' and len(rows) == 1:
             # empty table case
-            rows = ['"rows": [],']
-            columns = ['"columns": []']
+            rows = [u'"rows": [],']
+            columns = [u'"columns": []']
 
-        rows = ''.join(rows)
-        columns = ''.join(columns)
+        rows = u''.join(rows)
+        columns = u''.join(columns)
 
         if direct_io:
             direct_io.write(rows)
             direct_io.write(columns)
-            direct_io.write('}')
+            direct_io.write(u'}')
         else:
-            return "{%s}" % ''.join([id_, format_, format_url, matrix_type,
-                                     generated_by, date, type_,
-                                     matrix_element_type, shape,
-                                     ''.join(data), rows, columns])
+            return u"{%s}" % ''.join([id_, format_, format_url, matrix_type,
+                                      generated_by, date, type_,
+                                      matrix_element_type, shape,
+                                      u''.join(data), rows, columns])
 
     @staticmethod
     def from_tsv(lines, obs_mapping, sample_mapping,
@@ -4023,7 +4023,7 @@ html
         O1	0.0	0.0	1.0
         O2	1.0	3.0	42.0
         """
-        return self.delimited_self('\t', header_key, header_value,
+        return self.delimited_self(u'\t', header_key, header_value,
                                    metadata_formatter,
                                    observation_column_name)
 

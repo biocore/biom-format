@@ -3270,7 +3270,7 @@ class SupportTests2(TestCase):
         obs = list_sparse_to_sparse(ins)
         self.assertEqual((obs != exp).sum(), 0)
 
-legacy_otu_table1 = """# some comment goes here
+legacy_otu_table1 = u"""# some comment goes here
 #OTU id\tFing\tKey\tNA\tConsensus Lineage
 0\t19111\t44536\t42 \tBacteria; Actinobacteria; Actinobacteridae; Propioniba\
 cterineae; Propionibacterium
@@ -3283,7 +3283,7 @@ ae; Corynebacteriaceae
 aphylococcaceae
 4\t589\t2074\t34\tBacteria; Cyanobacteria; Chloroplasts; vectors
 """
-otu_table1 = """# Some comment
+otu_table1 = u"""# Some comment
 #OTU ID\tFing\tKey\tNA\tConsensus Lineage
 0\t19111\t44536\t42\tBacteria; Actinobacteria; Actinobacteridae; \
 Propionibacterineae; Propionibacterium
