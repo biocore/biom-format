@@ -52,6 +52,17 @@ def summarize_table(input_fp, output_fp, qualitative, observations):
         click.echo(result)
 
 
+@cli.command(name='show-install-info')
+def show_install_info():
+    """Provide information about the biom-format installation
+
+    Provide information about the biom-format installation, including settings
+    pulled from the configuration file. For more details, see
+    http://biom-format.org
+
+    """
+    click.echo(biom.cli.show_install_info())
+
 
 if __name__ == '__main__':
     cli()
