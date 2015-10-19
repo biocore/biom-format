@@ -9,5 +9,32 @@
 from .installation_informer import show_install_info
 from .table_summarizer import summarize_table
 from .table_normalizer import normalize_table
+from .metadata_adder import add_metadata
+import biom.parse
+import biom.util
 
-__all__ = ['show_install_info', 'summarize_table', 'normalize_table']
+__all__ = ['summarize_table', 'add_metadata', 'show_install_info',
+           'normalize_table']
+
+
+def write_biom_table(table, fmt, filepath):
+    """Write table in specified format to filepath"""
+
+    if fmt not in ['hdf5', 'json', 'tsv']:
+        raise ValueError("Unknown file format")
+
+    if fmt == 'hdf5' and not biom.util.HAVE_H5PY:
+        fmt = 'json'
+
+    if fmt == 'json':
+        with open(filepath, 'w') as f:
+            f.write(table.to_json(biom.parse.generatedby()))
+    elif fmt == 'tsv':
+        with open(filepath, 'w') as f:
+            f.write(table)
+            f.write('\n')
+    else:
+        import h5py
+
+        with h5py.File(filepath, 'w') as f:
+            table.to_hdf5(f, biom.parse.generatedby())
