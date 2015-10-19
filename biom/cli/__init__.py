@@ -8,6 +8,7 @@
 
 from .installation_informer import show_install_info
 from .table_summarizer import summarize_table
+from .table_normalizer import normalize_table
 from .metadata_adder import add_metadata
 from .table_validator import validate_table
 
@@ -15,7 +16,7 @@ import biom.parse
 import biom.util
 
 __all__ = ['validate_table', 'summarize_table', 'add_metadata',
-           'show_install_info']
+           'show_install_info', 'normalize_table']
 
 
 def write_biom_table(table, fmt, filepath):
