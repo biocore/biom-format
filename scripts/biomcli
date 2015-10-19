@@ -148,11 +148,11 @@ def add_metadata(input_fp, output_fp, sample_metadata_fp,
                                    observation_header)
 
     if output_as_json:
-        format = 'json'
+        fmt = 'json'
     else:
-        format = 'hdf5'
+        fmt = 'hdf5'
 
-    biom.cli.write_biom_table(result, format, output_fp)
+    biom.cli.write_biom_table(result, fmt, output_fp)
 
 
 @cli.command(name='show-install-info')

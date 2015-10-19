@@ -15,19 +15,19 @@ import biom.util
 __all__ = ['summarize_table', 'add_metadata', 'show_install_info']
 
 
-def write_biom_table(table, format, filepath):
+def write_biom_table(table, fmt, filepath):
     """Write table in specified format to filepath"""
 
-    if format not in ['hdf5', 'json', 'tsv']:
+    if fmt not in ['hdf5', 'json', 'tsv']:
         raise ValueError("Unknown file format")
 
-    if format == 'hdf5' and not biom.util.HAVE_H5PY:
-        format = 'json'
+    if fmt == 'hdf5' and not biom.util.HAVE_H5PY:
+        fmt = 'json'
 
-    if format == 'json':
+    if fmt == 'json':
         with open(filepath, 'w') as f:
             f.write(table.to_json(biom.parse.generatedby()))
-    elif format == 'tsv':
+    elif fmt == 'tsv':
         with open(filepath, 'w') as f:
             f.write(table)
             f.write('\n')
