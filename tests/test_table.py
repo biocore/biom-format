@@ -19,6 +19,7 @@ import numpy.testing as npt
 import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 
+from biom import example_table
 from biom.exception import UnknownAxisError, UnknownIDError, TableException
 from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
 from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
@@ -44,6 +45,49 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 class SupportTests(TestCase):
+
+    def test_head(self):
+        # example table is 2 x 3, so no change in contained data
+        exp = example_table
+        obs = example_table.head()
+        self.assertIsNot(obs, exp)
+        self.assertEqual(obs, exp)
+
+    def head_bounded(self):
+        obs = example_table.head(1)
+        exp = Table(np.array([[0., 1., 2.]]), ['O1'], ['S1', 'S2', 'S3'])
+        self.assertEqual(obs, exp)
+
+        obs = example_table.head(m=2)
+        exp = Table(np.array([[0., 1.], [3., 4.]]), ['O1', 'O2'], ['S1', 'S2'])
+        self.assertEqual(obs, exp)
+
+    def test_head_overstep(self):
+        # silently works
+        exp = example_table
+        obs = example_table.head(10000)
+        self.assertIsNot(obs, exp)
+        self.assertEqual(obs, exp)
+
+    def test_head_zero_or_neg(self):
+        with self.assertRaises(IndexError):
+            example_table.head(0)
+
+        with self.assertRaises(IndexError):
+            example_table.head(-1)
+
+        with self.assertRaises(IndexError):
+            example_table.head(m=0)
+
+        with self.assertRaises(IndexError):
+            example_table.head(m=-1)
+
+        with self.assertRaises(IndexError):
+            example_table.head(0, 5)
+
+        with self.assertRaises(IndexError):
+            example_table.head(5, 0)
+
     def test_table_sparse_nparray(self):
         """beat the table sparsely to death"""
         # nparray test
