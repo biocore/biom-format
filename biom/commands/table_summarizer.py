@@ -160,7 +160,7 @@ class TableSummarizer(Command):
             lines.append('Counts/sample detail:')
 
         for k, v in sorted(counts_per_samp.items(), key=itemgetter(1)):
-            lines.append(' %s: %r' % (k, v))
+            lines.append('%s: %r' % (k, v))
 
         result['biom_summary'] = lines
         return result

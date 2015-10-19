@@ -53,7 +53,7 @@ The biom-format project has the following dependencies:
 	* `numpy <http://www.numpy.org/>`_ >= 1.7.0
 	* `pyqi <http://pyqi.readthedocs.org>`_ 0.3.2
 	* `scipy <http://www.scipy.org/>`_ >= 0.13.0 
-	* `h5py <http://www.h5py.org/>`_ >= 2.20.0 (optional; must be installed if creating or reading HDF5 formatted files)
+	* `h5py <http://www.h5py.org/>`_ >= 2.2.0 (optional; must be installed if creating or reading HDF5 formatted files)
 
 The easiest way to install the latest version of the biom-format project and its required dependencies is via pip::
 

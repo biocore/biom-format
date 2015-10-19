@@ -984,13 +984,13 @@ class Table(object):
         """
         updated_ids = zeros(self.ids(axis=axis).size, dtype=object)
         for idx, old_id in enumerate(self.ids(axis=axis)):
-            new_id = id_map.get(old_id, old_id)
-            if strict and new_id is old_id:  # same object, not just equality
+            if strict and old_id not in id_map:
                 raise TableException(
                     "Mapping not provided for %s identifier: %s. If this "
                     "identifier should not be updated, pass strict=False."
                     % (axis, old_id))
-            updated_ids[idx] = new_id
+
+            updated_ids[idx] = id_map.get(old_id, old_id)
 
         # prepare the result object and update the ids along the specified
         # axis

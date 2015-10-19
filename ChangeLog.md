@@ -1,6 +1,13 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1.4-dev
+--------------
+
+Bug fixes:
+
+* `Table.update_ids` strict check was too agressive. See #633
+
 biom 2.1.4
 ----------
 
