@@ -9,7 +9,10 @@
 # ----------------------------------------------------------------------------
 
 from __future__ import division
+
 import numpy as np
+from future.utils import string_types
+
 from biom.exception import BiomParseException, UnknownAxisError
 from biom.table import Table
 from biom.util import biom_open, __version__
@@ -579,8 +582,7 @@ def biom_meta_to_string(metadata, replace_str=':'):
     # Note that since ';' and '|' are used as seperators we must replace them
     # if they exist
 
-    # metadata is just a string (not a list)
-    if isinstance(metadata, str) or isinstance(metadata, unicode):
+    if isinstance(metadata, string_types):
         return metadata.replace(';', replace_str)
     elif isinstance(metadata, list):
         transtab = bytes.maketrans(';|', ''.join([replace_str, replace_str]))

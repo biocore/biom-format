@@ -9,10 +9,10 @@
 # ----------------------------------------------------------------------------
 
 import os
+import sys
 import inspect
 from contextlib import contextmanager
 
-from future.utils import viewvalues
 from collections import defaultdict
 from os import getenv
 from os.path import abspath, dirname, exists
@@ -23,8 +23,13 @@ from gzip import open as gzip_open
 try:
     import h5py
     HAVE_H5PY = True
-    H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
-    H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=unicode)
+
+    if sys.version_info.major == 2:
+        H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
+        H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=unicode)  # noqa
+    else:
+        H5PY_VLEN_STR = h5py.special_dtype(vlen=bytes)
+        H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=str)
 
 except ImportError:
     HAVE_H5PY = False

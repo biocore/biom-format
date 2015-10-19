@@ -180,11 +180,12 @@ from json import dumps
 from functools import reduce
 from operator import itemgetter, add
 from future.builtins import zip
-from future.utils import viewitems, viewkeys
+from future.utils import viewitems
 from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
+from future.utils import string_types
 from biom.exception import TableException, UnknownAxisError, UnknownIDError
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
@@ -1342,8 +1343,8 @@ class Table(object):
 
         if header_value:
             output = [u'# Constructed from biom file',
-                      u'%s%s%s\t%s' % (observation_column_name, delim, samp_ids,
-                                       header_value)]
+                      u'%s%s%s\t%s' % (observation_column_name, delim,
+                                       samp_ids, header_value)]
         else:
             output = ['# Constructed from biom file',
                       '%s%s%s' % (observation_column_name, delim, samp_ids)]
@@ -3701,8 +3702,7 @@ html
         str
             A JSON-formatted string representing the biom table
         """
-        if (not isinstance(generated_by, str) and
-                not isinstance(generated_by, unicode)):
+        if not isinstance(generated_by, string_types):
             raise TableException("Must specify a generated_by string")
 
         # Fill in top-level metadata.
