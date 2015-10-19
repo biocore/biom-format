@@ -9,8 +9,8 @@
 #-----------------------------------------------------------------------------
 
 import click
-
 import biom
+import sys
 import biom.cli
 from biom.util import HAVE_H5PY
 import biom.parse
@@ -167,6 +167,41 @@ def show_install_info():
     """
     click.echo(biom.cli.show_install_info())
 
+
+@cli.command(name='validate-table')
+@click.option('-i', '--input-fp', required=True,
+              type=click.Path(exists=True, dir_okay=False),
+              help='The input filpath to validate against the BIOM format'
+                   ' specification')
+@click.option('-f', '--format-version', default=None,
+              help='The specific format version to validate against')
+@click.option('--detailed-report', is_flag=True, default=False,
+              help='Include more details in the output report')
+def validate_table(input_fp, format_version, detailed_report):
+    """Validate a BIOM-formatted file
+
+    Test a file for adherence to the Biological Observation Matrix (BIOM)
+    format specification. This specification is defined at
+    http://biom-format.org
+
+    Example usage:
+
+    Validate the contents of table.biom for adherence to the BIOM format
+    specification
+
+    $ biom validate-table -i table.biom
+
+    """
+    valid, report = biom.cli.validate_table(input_fp, format_version,
+                                            detailed_report)
+    click.echo("\n".join(report))
+    if valid:
+        # apparently silence is too quiet to be golden.
+        click.echo("The input file is a valid BIOM-formatted file.")
+        sys.exit(0)
+    else:
+        click.echo("The input file is not a valid BIOM-formatted file.")
+        sys.exit(1)
 
 if __name__ == '__main__':
     cli()
