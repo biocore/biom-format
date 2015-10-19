@@ -6,6 +6,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
+from .installation_informer import show_install_info
 from .table_summarizer import summarize_table
 
-__all__ = ['summarize_table', 'add_metadata']
+__all__ = ['summarize_table', 'add_metadata', 'summarize_table']

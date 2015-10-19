@@ -9,6 +9,7 @@
 # -----------------------------------------------------------------------------
 
 from biom.cli import summarize_table
+from biom.parse import load_table
 
 import tempfile
 from unittest import TestCase, main
@@ -17,14 +18,10 @@ from unittest import TestCase, main
 class TestSummarizeTable(TestCase):
 
     def setUp(self):
-        self.file = tempfile.NamedTemporaryFile()
-        self.file.write(biom1)
-        self.file.seek(0)
-        self.biom1 = self.file.name
-
-
-    def tearDown(self):
-        self.file.close()
+        with tempfile.NamedTemporaryFile() as fh:
+            fh.write(biom1)
+            fh.flush()
+            self.biom1 = load_table(fh.name)
 
     def test_default(self):
         """ TableSummarizer functions as expected

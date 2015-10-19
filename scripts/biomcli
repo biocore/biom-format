@@ -12,7 +12,7 @@ import click
 
 import biom.cli
 from biom.util import HAVE_H5PY
-from biom.parse import load_table
+import biom.parse
 
 @click.group()
 @click.version_option(version=biom.__version__)
@@ -23,7 +23,8 @@ def cli():
 @click.option('-i', '--input-fp', required=True,
               type=click.Path(exists=True, dir_okay=False),
               help='The input BIOM table')
-@click.option('-o', '--output-fp', default=None, type=click.Path(),
+@click.option('-o', '--output-fp', default=None,
+              type=click.Path(writable=True),
               help='An output file-path')
 @click.option('--qualitative', default=False, is_flag=True,
               help="Present counts as number of unique observation ids per"
@@ -44,7 +45,8 @@ def summarize_table(input_fp, output_fp, qualitative, observations):
     $ biom summarize-table -i table.biom -o table_summary.txt
 
     """
-    result = biom.cli.summarize_table(input_fp, qualitative, observations)
+    table =  biom.parse.load_table(input_fp)
+    result = biom.cli.summarize_table(table, qualitative, observations)
     if output_fp:
         with open(output_fp, 'w') as fh:
             fh.write(result)
@@ -114,7 +116,7 @@ def add_metadata(input_fp, output_fp, sample_metadata_fp,
     $ biom add-metadata -i otu_table.biom -o table_with_sample_metadata.biom
       -m sample_metadata.txt
     """
-    table = load_table(input_fp)
+    table = biom.parse.load_table(input_fp)
     result = cli.add_metadata(table, open(sample_metadata_fp, 'U'),
                               open(observation_metadata_fp, 'U'),
                               sc_separated.split(','),
@@ -123,11 +125,24 @@ def add_metadata(input_fp, output_fp, sample_metadata_fp,
                               float_fields.split(','),
                               sample_header.split(','),
                               observation_header.split(','))
+
     if output_as_json:
-        output_as = 'json'
+        table.to_json(generated_by=biom.parse.generated_by())
     else:
-        output_as = 'hdf5'
-    
+        table.to_hdf5(generated_by=biom.parse.generated_by())
+
+
+
+@cli.command(name='show-install-info')
+def show_install_info():
+    """Provide information about the biom-format installation
+
+    Provide information about the biom-format installation, including settings
+    pulled from the configuration file. For more details, see
+    http://biom-format.org
+
+    """
+    click.echo(biom.cli.show_install_info())
 
 
 if __name__ == '__main__':
