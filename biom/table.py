@@ -835,6 +835,65 @@ class Table(object):
                               self.ids()[:], self.ids(axis='observation')[:],
                               sample_md_copy, obs_md_copy, self.table_id)
 
+    def head(self, n=5, m=5):
+        """Get the first n rows and m columns from self
+
+        Parameters
+        ----------
+        n : int, optional
+            The number of rows (observations) to get. This number must be
+            greater than 0. If not specified, 5 rows will be retrieved.
+
+        m : int, optional
+            The number of columns (samples) to get. This number must be
+            greater than 0. If not specified, 5 columns will be
+            retrieved.
+
+        Notes
+        -----
+        Like `head` for Linux like systems, requesting more rows (or columns)
+        than exists will silently work.
+
+        Raises
+        ------
+        IndexError
+            If `n` or `m` are <= 0.
+
+        Returns
+        -------
+        Table
+            The subset table.
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom.table import Table
+        >>> data = np.arange(100).reshape(5, 20)
+        >>> obs_ids = ['O%d' % i for i in range(1, 6)]
+        >>> samp_ids = ['S%d' % i for i in range(1, 21)]
+        >>> table = Table(data, obs_ids, samp_ids)
+        >>> print table.head()  # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID S1  S2  S3  S4  S5
+        O1  0.0 1.0 2.0 3.0 4.0
+        O2  20.0 21.0 22.0 23.0 24.0
+        O3  40.0 41.0 42.0 43.0 44.0
+        O4  60.0 61.0 62.0 63.0 64.0
+        O5  80.0 81.0 82.0 83.0 84.0
+
+        """
+        if n <= 0:
+            raise IndexError("n cannot be <= 0.")
+
+        if m <= 0:
+            raise IndexError("m cannot be <= 0.")
+
+        row_ids = self.ids(axis='observation')[:n]
+        col_ids = self.ids(axis='sample')[:m]
+
+        table = self.filter(row_ids, axis='observation', inplace=False)
+        return table.filter(col_ids, axis='sample')
+
     def group_metadata(self, axis='sample'):
         """Return the group metadata of the given axis
 
