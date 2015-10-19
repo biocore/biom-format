@@ -15,7 +15,7 @@ before_install:
   # Update conda itself
   - conda update --yes conda
 install:
-  - conda create --yes -n env_name python=$PYTHON_VERSION pip numpy scipy nose pep8 flake8 Sphinx=1.2.2 coverage
+  - conda create --yes -n env_name python=$PYTHON_VERSION pip numpy scipy nose pep8 flake8 Sphinx=1.2.2 coverage future
   - if [ ${USE_CYTHON} ]; then conda install --yes -n env_name cython; fi
   - if [ ${USE_H5PY} ]; then conda install --yes -n env_name h5py>=2.2.0; fi
   - source activate env_name
