@@ -8,4 +8,4 @@
 
 from .table_summarizer import summarize_table
 
-__all__ = ['summarize_table']
+__all__ = ['summarize_table', 'add_metadata']
