@@ -246,7 +246,6 @@ def get_axis_indices(biom_str, to_keep, axis):
     return idxs, json.dumps(subset)[1:-1]  # trim off { and }
 
 
-
 def parse_uc(fh):
     """ Create a Table object from a uclust/usearch/vsearch uc file.
 
@@ -337,6 +336,7 @@ def parse_uc(fh):
             # nothing else needs to be done for 'L' records
             pass
     return Table(data, observation_ids=observation_ids, sample_ids=sample_ids)
+
 
 def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
     r"""Parses the biom table stored in the filepath `fp`
