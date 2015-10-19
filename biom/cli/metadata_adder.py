@@ -10,25 +10,44 @@ from __future__ import division
 
 from biom.parse import MetadataMap
 
-def add_metadata(table, sample_metadata, observation_metadata,
-                 sc_separated, sc_pipe_separated, int_fields, float_fields,
-                 sample_header, observation_header):
+def _split_on_semicolons(x):
+    return [e.strip() for e in x.split(';')]
+
+def _split_on_semicolons_and_pipes(x):
+    return [[e.strip() for e in y.split(';')] for y in x.split('|')]
+
+def _int(x):
+    try:
+        return int(x)
+    except ValueError:
+        return x
+
+def _float(x):
+    try:
+        return float(x)
+    except ValueError:
+        return x
+
+def add_metadata(table, sample_metadata=None, observation_metadata=None,
+                 sc_separated=None, sc_pipe_separated=None, int_fields=None,
+                 float_fields=None, sample_header=None,
+                 observation_header=None):
 
     # define metadata processing functions, if any
     process_fns = {}
     if sc_separated is not None:
         process_fns.update(dict.fromkeys(sc_separated,
-                                         self._split_on_semicolons))
+                                         _split_on_semicolons))
 
     if sc_pipe_separated is not None:
         process_fns.update(dict.fromkeys(sc_pipe_separated,
-                           self._split_on_semicolons_and_pipes))
+                           _split_on_semicolons_and_pipes))
 
     if int_fields is not None:
-        process_fns.update(dict.fromkeys(int_fields, self._int))
+        process_fns.update(dict.fromkeys(int_fields, _int))
 
     if float_fields is not None:
-        process_fns.update(dict.fromkeys(float_fields, self._float))
+        process_fns.update(dict.fromkeys(float_fields, _float))
 
     # parse mapping files
     if sample_metadata is not None:
@@ -57,21 +76,3 @@ def add_metadata(table, sample_metadata, observation_metadata,
         table.add_metadata(observation_metadata, axis='observation')
 
     return table
-
-    def _split_on_semicolons(self, x):
-        return [e.strip() for e in x.split(';')]
-
-    def _split_on_semicolons_and_pipes(self, x):
-        return [[e.strip() for e in y.split(';')] for y in x.split('|')]
-
-    def _int(self, x):
-        try:
-            return int(x)
-        except ValueError:
-            return x
-
-    def _float(self, x):
-        try:
-            return float(x)
-        except ValueError:
-            return x
