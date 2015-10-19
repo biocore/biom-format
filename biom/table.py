@@ -180,6 +180,7 @@ from json import dumps
 from functools import reduce
 from operator import itemgetter, add
 from future.builtins import zip
+from future.utils import viewitems, viewkeys
 from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
@@ -581,7 +582,7 @@ class Table(object):
         """
         metadata = self.metadata(axis=axis)
         if metadata is not None:
-            for id_, md_entry in md.iteritems():
+            for id_, md_entry in viewitems(md):
                 if self.exists(id_, axis=axis):
                     idx = self.index(id_, axis=axis)
                     metadata[idx].update(md_entry)
@@ -2011,7 +2012,7 @@ class Table(object):
 
         md = self.metadata(axis=self._invert_axis(axis))
 
-        for part, (ids, values, metadata) in partitions.iteritems():
+        for part, (ids, values, metadata) in viewitems(partitions):
             if axis == 'sample':
                 data = self._conv_to_self_type(values, transpose=True)
                 samp_ids = ids
@@ -2218,7 +2219,7 @@ class Table(object):
                 num_md = 0
                 while True:
                     try:
-                        pathway, partition = md_iter.next()
+                        pathway, partition = next(md_iter)
                     except IndexError:
                         # if a pathway is incomplete
                         if strict:
@@ -2255,7 +2256,7 @@ class Table(object):
 
                 while True:
                     try:
-                        pathway, part = md_iter.next()
+                        pathway, part = next(md_iter)
                     except IndexError:
                         # if a pathway is incomplete
                         if strict:
@@ -2276,11 +2277,11 @@ class Table(object):
 
             if include_collapsed_metadata:
                 # reassociate pathway information
-                for k, i in sorted(idx_lookup.iteritems(), key=itemgetter(1)):
+                for k, i in sorted(viewitems(idx_lookup), key=itemgetter(1)):
                     collapsed_md.append({one_to_many_md_key: new_md[k]})
 
             # get the new sample IDs
-            collapsed_ids = [k for k, i in sorted(idx_lookup.iteritems(),
+            collapsed_ids = [k for k, i in sorted(viewitems(idx_lookup),
                                                   key=itemgetter(1))]
 
             # convert back to self type
@@ -3213,7 +3214,7 @@ html
 
             # fetch ID specific metadata
             md = [{} for i in range(len(ids))]
-            for category, dset in grp['metadata'].iteritems():
+            for category, dset in viewitems(grp['metadata']):
                 parse_f = parser[category]
                 data = dset[:]
                 for md_dict, data_row in zip(md, data):
@@ -3964,9 +3965,9 @@ html
             obs_ids.append(fields[0])
 
             if last_column_is_numeric:
-                values = map(dtype, fields[1:])
+                values = list(map(dtype, fields[1:]))
             else:
-                values = map(dtype, fields[1:-1])
+                values = list(map(dtype, fields[1:-1]))
 
                 if md_parse is not None:
                     metadata.append(md_parse(fields[-1]))
@@ -4272,7 +4273,7 @@ def dict_to_sparse(data, dtype=float, shape=None):
     rows = []
     cols = []
     vals = []
-    for (r, c), v in data.iteritems():
+    for (r, c), v in viewitems(data):
         rows.append(r)
         cols.append(c)
         vals.append(v)

@@ -13,8 +13,9 @@ import os
 from json import loads
 from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
-from StringIO import StringIO
+from io import StringIO
 
+from future.utils import viewkeys
 import numpy.testing as npt
 import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
@@ -717,7 +718,7 @@ class TableTests(TestCase):
         self.assertEqual(sorted(sparse_rich.ids()),
                          sorted(['Fing', 'Key', 'NA']))
         self.assertEqual(sorted(sparse_rich.ids(axis='observation')),
-                         map(str, [0, 1, 3, 4, 7]))
+                         list(map(str, [0, 1, 3, 4, 7])))
         for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
             if obs_id == '0':
                 self.assertEqual(sparse_rich._observation_metadata[i],
@@ -758,7 +759,7 @@ class TableTests(TestCase):
         self.assertEqual(sorted(sparse_rich.ids()),
                          sorted(['Fing', 'Key', 'NA']))
         self.assertEqual(sorted(sparse_rich.ids(axis='observation')),
-                         map(str, [0, 1, 3, 4, 7]))
+                         list(map(str, [0, 1, 3, 4, 7])))
         for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
             if obs_id == '0':
                 self.assertEqual(sparse_rich._observation_metadata[i],
@@ -845,10 +846,10 @@ class TableTests(TestCase):
 
     def test_metadata_sample(self):
         """Return the sample metadata"""
-        obs = sorted(self.st_rich.metadata())
-        exp = sorted([{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+        obs = self.st_rich.metadata()
+        exp = [{'barcode': 'aatt'}, {'barcode': 'ttgg'}]
         for o, e in zip(obs, exp):
-            self.assertEqual(o, e)
+            self.assertDictEqual(o, e)
 
     def test_metadata_observation_id(self):
         """returns the observation metadata for a given id"""
@@ -862,11 +863,10 @@ class TableTests(TestCase):
 
     def test_metadata_observation(self):
         """returns the observation metadata"""
-        obs = sorted(self.st_rich.metadata(axis='observation'))
-        exp = sorted([{'taxonomy': ['k__a', 'p__b']},
-                      {'taxonomy': ['k__a', 'p__c']}])
+        obs = self.st_rich.metadata(axis='observation')
+        exp = [{'taxonomy': ['k__a', 'p__b']}, {'taxonomy': ['k__a', 'p__c']}]
         for o, e in zip(obs, exp):
-            self.assertEqual(o, e)
+            self.assertDictEqual(o, e)
 
     def test_index_invalid_input(self):
         """Correctly handles invalid input."""
@@ -2509,9 +2509,8 @@ class SparseTableTests(TestCase):
         obs_king = dt_rich.collapse(bin_f, norm=False, axis='observation')
         self.assertEqual(obs_king, exp_king)
 
-        self.assertRaises(
-            TableException, dt_rich.collapse, bin_f, min_group_size=10,
-            axis='observation')
+        with errstate(all='raise'), self.assertRaises(TableException):
+            dt_rich.collapse(bin_f, min_group_size=10, axis='observation')
 
         # Test out include_collapsed_metadata=False.
         exp = Table(np.array([[24, 27, 30]]),
@@ -2557,8 +2556,9 @@ class SparseTableTests(TestCase):
             axis='sample').sort(axis='sample')
         self.assertEqual(obs_bc, exp_bc)
 
-        self.assertRaises(TableException, dt_rich.collapse,
-                          bin_f, min_group_size=10)
+        with errstate(all='raise'), self.assertRaises(TableException):
+            dt_rich.collapse(bin_f, min_group_size=10)
+
         # Test out include_collapsed_metadata=False.
         exp = Table(np.array([[12, 6], [18, 9], [24, 12]]),
                     ['1', '2', '3'],
@@ -2776,8 +2776,8 @@ class SparseTableTests(TestCase):
     def test_to_json_dense_int(self):
         """Get a BIOM format string for a dense table of integers"""
         # check by round trip
-        obs_ids = map(str, range(5))
-        samp_ids = map(str, range(10))
+        obs_ids = list(map(str, range(5)))
+        samp_ids = list(map(str, range(10)))
         obs_md = [{'foo': i} for i in range(5)]
         samp_md = [{'bar': i} for i in range(10)]
         data = np.reshape(np.arange(50), (5, 10))
@@ -2812,8 +2812,8 @@ class SparseTableTests(TestCase):
     def test_to_json_dense_int_directio(self):
         """Get a BIOM format string for a dense table of integers"""
         # check by round trip
-        obs_ids = map(str, range(5))
-        samp_ids = map(str, range(10))
+        obs_ids = list(map(str, range(5)))
+        samp_ids = list(map(str, range(10)))
         obs_md = [{'foo': i} for i in range(5)]
         samp_md = [{'bar': i} for i in range(10)]
         data = np.reshape(np.arange(50), (5, 10))
@@ -2854,8 +2854,8 @@ class SparseTableTests(TestCase):
     def test_to_json_sparse_int(self):
         """Get a BIOM format string for a sparse table of integers"""
         # check by round trip
-        obs_ids = map(str, range(5))
-        samp_ids = map(str, range(10))
+        obs_ids = list(map(str, range(5)))
+        samp_ids = list(map(str, range(10)))
         obs_md = [{'foo': i} for i in range(5)]
         samp_md = [{'bar': i} for i in range(10)]
         data = [[0, 0, 10], [1, 1, 11], [2, 2, 12], [3, 3, 13], [4, 4, 14],
@@ -2891,8 +2891,8 @@ class SparseTableTests(TestCase):
     def test_to_json_sparse_int_directio(self):
         """Get a BIOM format string for a sparse table of integers"""
         # check by round trip
-        obs_ids = map(str, range(5))
-        samp_ids = map(str, range(10))
+        obs_ids = list(map(str, range(5)))
+        samp_ids = list(map(str, range(10)))
         obs_md = [{'foo': i} for i in range(5)]
         samp_md = [{'bar': i} for i in range(10)]
         data = [[0, 0, 10], [1, 1, 11], [2, 2, 12], [3, 3, 13], [4, 4, 14],
@@ -2965,7 +2965,7 @@ class SparseTableTests(TestCase):
 
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
-        f = lambda id_, md: md['age']
+        f = lambda id_, md: md.get('age', np.inf)
         obs_ids = ['a', 'b', 'c', 'd']
         samp_ids = ['1', '2', '3', '4']
         data = {(0, 0): 1, (0, 1): 2, (0, 2): 3, (0, 3): 4,
@@ -2977,7 +2977,7 @@ class SparseTableTests(TestCase):
         t = Table(data, obs_ids, samp_ids, obs_md, samp_md)
         obs_bins, obs_tables = unzip(t.partition(f))
 
-        exp_bins = (2, 4, None)
+        exp_bins = (2, 4, np.inf)
         exp1_data = {(0, 0): 1, (0, 1): 3, (1, 0): 5, (1, 1): 7, (2, 0): 8,
                      (2, 1): 10, (3, 0): 12, (3, 1): 14}
         exp1_obs_ids = ['a', 'b', 'c', 'd']
@@ -2997,7 +2997,7 @@ class SparseTableTests(TestCase):
         exp3_obs_ids = ['a', 'b', 'c', 'd']
         exp3_samp_ids = ['4']
         exp3_obs_md = [{}, {}, {}, {}]
-        exp3_samp_md = [{'age': None}]
+        exp3_samp_md = [{}]
         exp3 = Table(exp3_data, exp3_obs_ids, exp3_samp_ids, exp3_obs_md,
                      exp3_samp_md)
         exp_tables = (exp1, exp2, exp3)
@@ -3086,8 +3086,10 @@ class SparseTableTests(TestCase):
         exp_phy2 = Table(exp_phy2_data, exp_phy2_obs_ids, exp_phy2_samp_ids,
                          observation_metadata=exp_phy2_obs_md)
         obs_bins, obs_phy = unzip(t.partition(func_phy, axis='observation'))
-        self.assertEqual(obs_phy, [exp_phy1, exp_phy2])
-        self.assertEqual(obs_bins, [('k__a', 'p__b'), ('k__a', 'p__c')])
+        self.assertIn(obs_phy[0], [exp_phy1, exp_phy2])
+        self.assertIn(obs_phy[1], [exp_phy1, exp_phy2])
+        self.assertIn(obs_bins[0], [('k__a', 'p__b'), ('k__a', 'p__c')])
+        self.assertIn(obs_bins[1], [('k__a', 'p__b'), ('k__a', 'p__c')])
 
     def test_get_table_density(self):
         """Test correctly computes density of table."""
