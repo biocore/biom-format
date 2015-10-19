@@ -10,7 +10,7 @@
 
 import click
 import biom.cli
-import biom.parse
+import biom
 
 @click.group()
 @click.version_option(version=biom.__version__)
@@ -43,7 +43,7 @@ def summarize_table(input_fp, output_fp, qualitative, observations):
     $ biom summarize-table -i table.biom -o table_summary.txt
 
     """
-    table =  biom.parse.load_table(input_fp)
+    table =  biom.load_table(input_fp)
     result = biom.cli.summarize_table(table, qualitative, observations)
     if output_fp:
         with open(output_fp, 'w') as fh:
@@ -62,6 +62,50 @@ def show_install_info():
 
     """
     click.echo(biom.cli.show_install_info())
+
+
+
+@cli.command(name='normalize-table')
+@click.option( '-i', '--input-fp', required=True,
+              type=click.Path(exists=True, dir_okay=False),
+              help='The input BIOM table')
+@click.option('-o', '--output-fp', default=None,
+              type=click.Path(writable=True),
+              help='An output file-path')
+@click.option('-r', '--relative-abund', default=False, is_flag=True,
+              help='convert table to relative abundance',
+              required=False)
+@click.option('-p', '--presence-absence', default=False, is_flag=True,
+              help='convert table to presence/absence',
+              required=False)
+@click.option('-a', '--axis', default='sample', 
+              type=click.Choice(['sample', 'observation']),
+              help='The axis to normalize over')
+def normalize_table(input_fp, output_fp, relative_abund, presence_absence, 
+                    axis):
+    """Normalize a BIOM table
+    
+    Normalize the values of a BIOM table through various methods. Relative
+    abundance will take the relative abundance of each observation in terms of
+    samples or observations.  Presence absensece will convert observations to
+    1's and 0's based on presence of the observation.
+
+    Example usage:
+
+    Normalizing a BIOM table to relative abundnace:
+
+    $ biom normalize-table -i table.biom -r -o normalized_table.biom
+
+    Converting a BIOM table to a presence/absence table:
+
+    $ biom normalize-table -i table.biom -p -o converted_table.biom
+    """
+    table = biom.load_table(input_fp)
+    result = biom.cli.normalize_table(table, relative_abund, presence_absence, 
+                                      axis)
+
+    biom.cli.write_biom_table(result, 'hdf5' if HAVE_H5PY else 'json', 
+                              output_fp)
 
 
 if __name__ == '__main__':

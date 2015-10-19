@@ -8,5 +8,6 @@
 
 from .installation_informer import show_install_info
 from .table_summarizer import summarize_table
+from .table_normalizer import normalize_table
 
-__all__ = ['show_install_info', 'summarize_table']
+__all__ = ['show_install_info', 'summarize_table', 'normalize_table']
