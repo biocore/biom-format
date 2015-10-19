@@ -7,6 +7,7 @@
 # ----------------------------------------------------------------------------
 
 from .installation_informer import show_install_info
+from .table_subsetter import subset_table
 from .table_summarizer import summarize_table
 
-__all__ = ['show_install_info', 'summarize_table']
+__all__ = ['show_install_info', 'subset_table', 'summarize_table']
