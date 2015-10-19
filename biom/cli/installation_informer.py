@@ -34,7 +34,7 @@ def _get_formatted_package_info():
 
 def _get_system_info():
     return (("Platform", sys.platform),
-            ("Python/GCC version", sys.version.replace('\n', ' ')),
+            ("Python version", sys.version.replace('\n', ' ')),
             ("Python executable", sys.executable))
 
 
