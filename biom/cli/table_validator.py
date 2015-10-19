@@ -54,8 +54,6 @@ class TableValidator(object):
                 raise ValueError("Unrecognized format version: %s" %
                                  kwargs['format_version'])
 
-        # this is not pyqi-appriopriate, but how we parse this thing is
-        # dependent on runtime options :(
         with biom_open(kwargs['table']) as f:
             if is_json:
                 kwargs['table'] = json.load(f)
