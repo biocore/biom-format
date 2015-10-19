@@ -286,15 +286,15 @@ def parse_uc(fh):
     for line in fh:
         # determine if the current line is one that we need
         line = line.strip()
-        if not (line and line[0] in line_types):
-            # if the line is blank, or not one of the types we need,
-            # including comments, move on to the next line
+        if not line:
             continue
-        else:
-            fields = line.split('\t')
+        fields = line.split('\t')
+
+        line_type = fields[0]
+        if line_type not in line_types:
+            continue
 
         # grab the fields we care about
-        hit_type = fields[0]
         observation_id = fields[9].split()[0]
         query_id = fields[8].split()[0]
 
@@ -311,7 +311,7 @@ def parse_uc(fh):
             observation_ids.append(observation_id)
             observation_idxs[observation_id] = observation_idx
 
-        if hit_type == 'H' or hit_type == 'S':
+        if line_type == 'H' or line_type == 'S':
             # get the sample id
             try:
                 underscore_index = query_id.index('_')
