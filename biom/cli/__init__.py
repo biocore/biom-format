@@ -9,10 +9,13 @@
 from .installation_informer import show_install_info
 from .table_summarizer import summarize_table
 from .metadata_adder import add_metadata
+from .table_validator import validate_table
+
 import biom.parse
 import biom.util
 
-__all__ = ['summarize_table', 'add_metadata', 'show_install_info']
+__all__ = ['validate_table', 'summarize_table', 'add_metadata',
+           'show_install_info']
 
 
 def write_biom_table(table, fmt, filepath):
