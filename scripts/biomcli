@@ -58,7 +58,7 @@ def summarize_table(input_fp, output_fp, qualitative, observations):
               type=click.Path(exists=True, dir_okay=False),
               help='The input BIOM table')
 @click.option('-o', '--output-fp', required=True,
-              type=click.Path(exists=True, dir_okay=False),
+              type=click.Path(exists=False, dir_okay=False),
               help='The output BIOM table')
 @click.option('-m', '--sample-metadata-fp', required=False,
               type=click.Path(exists=True, dir_okay=False),
@@ -117,20 +117,42 @@ def add_metadata(input_fp, output_fp, sample_metadata_fp,
       -m sample_metadata.txt
     """
     table = biom.parse.load_table(input_fp)
-    result = cli.add_metadata(table, open(sample_metadata_fp, 'U'),
-                              open(observation_metadata_fp, 'U'),
-                              sc_separated.split(','),
-                              sc_pipe_separated.split(','),
-                              int_fields.split(','),
-                              float_fields.split(','),
-                              sample_header.split(','),
-                              observation_header.split(','))
+    if sample_metadata_fp is not None:
+        sample_metadata_f = open(sample_metadata_fp, 'U')
+    else:
+        sample_metadata_f = None
+    if observation_metadata_fp is not None:
+        observation_metadata_f = open(observation_metadata_fp, 'U')
+    else:
+        observation_metadata_f = None
+    if sc_separated is not None:
+        sc_separated = sc_separated.split(',')
+    if sc_pipe_separated is not None:
+        sc_pipe_separated = sc_pipe_separated.split(',')
+    if int_fields is not None:
+        int_fields = int_fields.split(',')
+    if float_fields is not None:
+        float_fields = float_fields.split(',')
+    if sample_header is not None:
+        sample_header = sample_header.split(',')
+    if observation_header is not None:
+        observation_header = observation_header.split(',')
+
+    result = biom.cli.add_metadata(table, sample_metadata_f,
+                                   observation_metadata_f,
+                                   sc_separated,
+                                   sc_pipe_separated,
+                                   int_fields,
+                                   float_fields,
+                                   sample_header,
+                                   observation_header)
 
     if output_as_json:
-        table.to_json(generated_by=biom.parse.generated_by())
+        format = 'json'
     else:
-        table.to_hdf5(generated_by=biom.parse.generated_by())
+        format = 'hdf5'
 
+    biom.cli.write_biom_table(result, format, output_fp)
 
 
 @cli.command(name='show-install-info')

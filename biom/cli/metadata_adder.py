@@ -8,7 +8,9 @@
 
 from __future__ import division
 
-def add_metadata(table, sample_metadata_fp, observation_metadata_fp,
+from biom.parse import MetadataMap
+
+def add_metadata(table, sample_metadata, observation_metadata,
                  sc_separated, sc_pipe_separated, int_fields, float_fields,
                  sample_header, observation_header):
 
