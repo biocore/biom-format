@@ -304,9 +304,9 @@ def parse_uc(fh):
 
         # get the index of the current observation id, or create it if it's
         # the first time we're seeing this id
-        try:
+        if observation_id in observation_idxs:
             observation_idx = observation_idxs[observation_id]
-        except KeyError:
+        else:
             observation_idx = len(observation_ids)
             observation_ids.append(observation_id)
             observation_idxs[observation_id] = observation_idx
@@ -323,9 +323,9 @@ def parse_uc(fh):
             # get the sample id and its index, creating the index if it is the
             # first time we're seeing this id
             sample_id = query_id[:underscore_index]
-            try:
+            if sample_id in sample_idxs:
                 sample_idx = sample_idxs[sample_id]
-            except KeyError:
+            else:
                 sample_idx = len(sample_ids)
                 sample_idxs[sample_id] = sample_idx
                 sample_ids.append(sample_id)
