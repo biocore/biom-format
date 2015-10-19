@@ -9,7 +9,7 @@
 # -----------------------------------------------------------------------------
 
 import os
-from StringIO import StringIO
+from io import StringIO
 import json
 from unittest import TestCase, main
 

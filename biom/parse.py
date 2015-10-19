@@ -123,7 +123,7 @@ def direct_slice_data(biom_str, to_keep, axis):
 
     # determine shape
     raw_shape = shape_kv_pair.split(':')[-1].replace("[", "").replace("]", "")
-    n_rows, n_cols = map(int, raw_shape.split(","))
+    n_rows, n_cols = list(map(int, raw_shape.split(",")))
 
     # slice to just data
     data_start = data_fields.find('[') + 1
@@ -162,13 +162,13 @@ def strip_f(x):
 
 def _remap_axis_sparse_obs(rcv, lookup):
     """Remap a sparse observation axis"""
-    row, col, value = map(strip_f, rcv.split(','))
+    row, col, value = list(map(strip_f, rcv.split(',')))
     return "%s,%s,%s" % (lookup[row], col, value)
 
 
 def _remap_axis_sparse_samp(rcv, lookup):
     """Remap a sparse sample axis"""
-    row, col, value = map(strip_f, rcv.split(','))
+    row, col, value = list(map(strip_f, rcv.split(',')))
     return "%s,%s,%s" % (row, lookup[col], value)
 
 
@@ -422,7 +422,7 @@ class MetadataMap(dict):
                     comments.append(line)
             else:
                 # Will add empty string to empty fields
-                tmp_line = map(strip_f, line.split('\t'))
+                tmp_line = list(map(strip_f, line.split('\t')))
                 if len(tmp_line) < len(header):
                     tmp_line.extend([''] * (len(header) - len(tmp_line)))
                 mapping_data.append(tmp_line)
