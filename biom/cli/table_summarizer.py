@@ -9,14 +9,12 @@
 from __future__ import division
 
 from biom.util import compute_counts_per_sample_stats
-from biom.parse import load_table
 from numpy import std
 from operator import itemgetter
 
 
-def summarize_table(input_fp, qualitative=False, observations=False):
+def summarize_table(table, qualitative=False, observations=False):
     lines = []
-    table = load_table(input_fp)
 
     if observations:
         table = table.transpose()

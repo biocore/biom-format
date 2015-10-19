@@ -10,6 +10,7 @@
 
 import click
 import biom.cli
+import biom.parse
 
 @click.group()
 @click.version_option(version=biom.__version__)
@@ -20,7 +21,8 @@ def cli():
 @click.option( '-i', '--input-fp', required=True,
               type=click.Path(exists=True, dir_okay=False),
               help='The input BIOM table')
-@click.option('-o', '--output-fp', default=None, type=click.Path(),
+@click.option('-o', '--output-fp', default=None,
+              type=click.Path(writable=True),
               help='An output file-path')
 @click.option('--qualitative', default=False, is_flag=True,
               help="Present counts as number of unique observation ids per"
@@ -41,7 +43,8 @@ def summarize_table(input_fp, output_fp, qualitative, observations):
     $ biom summarize-table -i table.biom -o table_summary.txt
 
     """
-    result = biom.cli.summarize_table(input_fp, qualitative, observations)
+    table =  biom.parse.load_table(input_fp)
+    result = biom.cli.summarize_table(table, qualitative, observations)
     if output_fp:
         with open(output_fp, 'w') as fh:
             fh.write(result)
