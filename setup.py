@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2011-2013, The BIOM Format Development Team.
+# Copyright (c) 2011-2015, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -12,7 +12,6 @@
 import os
 from setuptools import setup
 from setuptools.extension import Extension
-from glob import glob
 
 try:
     import numpy as np
@@ -91,6 +90,7 @@ setup(name='biom-format',
       url='http://www.biom-format.org',
       test_suite='nose.collector',
       packages=['biom',
+                'biom/cli',
                 'biom/commands',
                 'biom/interfaces',
                 'biom/interfaces/optparse',
@@ -101,7 +101,8 @@ setup(name='biom-format',
       ext_modules=extensions,
       include_dirs=[np.get_include()],
       scripts=['scripts/biom',
-               'scripts/serve-biom'],
+               'scripts/serve-biom',
+               'scripts/biomcli'],
       install_requires=["click",
                         "numpy >= 1.3.0",
                         "pyqi == 0.3.2",
