@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 
 from __future__ import division
-from string import maketrans
 import numpy as np
 from biom.exception import BiomParseException, UnknownAxisError
 from biom.table import Table
@@ -26,8 +25,8 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
-MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': unicode,
-                       u'int': int, u'float': float, u'unicode': unicode}
+MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': str,
+                       u'int': int, u'float': float, u'unicode': str}
 
 QUOTE = '"'
 JSON_OPEN = set(["[", "{"])
@@ -491,7 +490,7 @@ def biom_meta_to_string(metadata, replace_str=':'):
     if isinstance(metadata, str) or isinstance(metadata, unicode):
         return metadata.replace(';', replace_str)
     elif isinstance(metadata, list):
-        transtab = maketrans(';|', ''.join([replace_str, replace_str]))
+        transtab = bytes.maketrans(';|', ''.join([replace_str, replace_str]))
         # metadata is list of lists
         if isinstance(metadata[0], list):
             new_metadata = []

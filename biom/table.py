@@ -179,7 +179,7 @@ from datetime import datetime
 from json import dumps
 from functools import reduce
 from operator import itemgetter, add
-from itertools import izip
+from future.builtins import zip
 from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
@@ -207,8 +207,8 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
 
-MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': unicode,
-                       u'int': int, u'float': float, u'unicode': unicode}
+MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': str,
+                       u'int': int, u'float': float, u'unicode': str}
 
 
 def general_parser(x):
@@ -1588,7 +1588,7 @@ class Table(object):
 
         iter_ = self.iter_data(axis=axis, dense=dense)
 
-        return izip(iter_, ids, metadata)
+        return zip(iter_, ids, metadata)
 
     def iter_pairwise(self, dense=True, axis='sample', tri=True, diag=False):
         """Pairwise iteration over self
@@ -2213,7 +2213,7 @@ class Table(object):
             new_md = {}
             md_count = {}
 
-            for id_, md in izip(*axis_ids_md(self)):
+            for id_, md in zip(*axis_ids_md(self)):
                 md_iter = f(id_, md)
                 num_md = 0
                 while True:
@@ -3216,7 +3216,7 @@ html
             for category, dset in grp['metadata'].iteritems():
                 parse_f = parser[category]
                 data = dset[:]
-                for md_dict, data_row in izip(md, data):
+                for md_dict, data_row in zip(md, data):
                     md_dict[category] = parse_f(data_row)
 
             # If there was no metadata on the axis, set it up as none
@@ -4078,7 +4078,7 @@ def list_list_to_sparse(data, dtype=float, shape=None):
     scipy.csr_matrix
         The newly generated matrix
     """
-    rows, cols, values = izip(*data)
+    rows, cols, values = zip(*data)
 
     if shape is None:
         n_rows = max(rows) + 1
