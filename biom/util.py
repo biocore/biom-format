@@ -12,6 +12,7 @@ import os
 import inspect
 from contextlib import contextmanager
 
+from future.utils import viewvalues
 from collections import defaultdict
 from os import getenv
 from os.path import abspath, dirname, exists
@@ -126,7 +127,7 @@ def unzip(items):
     BSD license).
     """
     if items:
-        return map(list, zip(*items))
+        return list(map(list, zip(*list(items))))
     else:
         return []
 
@@ -321,7 +322,7 @@ def compute_counts_per_sample_stats(table, binary_counts=False):
             sample_counts[sample_id] = (count_vector != 0).sum()
         else:
             sample_counts[sample_id] = float(count_vector.sum())
-    counts = sample_counts.values()
+    counts = list(sample_counts.values())
 
     if len(counts) == 0:
         return (0, 0, 0, 0, sample_counts)
@@ -349,7 +350,7 @@ def safe_md5(open_file, block_size=2 ** 20):
 
     # While a little hackish, this allows this code to
     # safely work either with a file object or a list of lines.
-    if isinstance(open_file, file):
+    if hasattr(open_file, 'read'):
         data_getter = open_file.read
         data_getter_i = block_size
     elif isinstance(open_file, list):
@@ -367,7 +368,7 @@ def safe_md5(open_file, block_size=2 ** 20):
     while data:
         data = data_getter(data_getter_i)
         if data:
-            result.update(data)
+            result.update(data.encode('utf-8'))
     return result.hexdigest()
 
 
@@ -381,7 +382,7 @@ def is_gzip(fp):
     project, but we obtained permission from the authors of this function to
     port it to the BIOM Format project (and keep it under BIOM's BSD license).
     """
-    return open(fp, 'rb').read(2) == '\x1f\x8b'
+    return open(fp, 'rb').read(2) == b'\x1f\x8b'
 
 
 @contextmanager
@@ -504,6 +505,6 @@ def is_hdf5_file(fp):
     bool
         Whether the file is an HDF5 file
     """
-    with open(fp) as f:
+    with open(fp, 'rb') as f:
         # from the HDF5 documentation about format signature
-        return f.read(8) == '\x89HDF\r\n\x1a\n'
+        return f.read(8) == b'\x89HDF\r\n\x1a\n'
