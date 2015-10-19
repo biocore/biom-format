@@ -4,9 +4,18 @@ BIOM-Format ChangeLog
 biom 2.1.4-dev
 --------------
 
+Changes:
+
+* Codebase is now Python 3 compatible.
+
+New Features:
+
+* `Table.head` has been added to retrieve the first few rows and or columns
+    from a table, see issue #639.
+
 Bug fixes:
 
-* `Table.update_ids` strict check was too agressive. See #633
+* `Table.update_ids` strict check was too aggressive. See #633
 
 biom 2.1.4
 ----------
@@ -21,8 +30,6 @@ New features:
 
 * `Table.to_hdf5` and `Table.from_hdf5` now support custom parsers and
     formatters, see issue #608
-* `Table.head` has been added to retrieve the first few rows and or columns
-    from a table, see issue #639.
 
 Bug fixes:
 
