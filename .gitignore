@@ -1,6 +1,7 @@
 # Python stuff we hate
 ######################
 *.pyc
+biom_format.egg-info/
 
 # Cython compiled files
 #######################

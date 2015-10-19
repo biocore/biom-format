@@ -12,7 +12,6 @@ from __future__ import division
 from pyqi.core.command import (Command, CommandIn, CommandOut,
                                ParameterCollection)
 from pyqi.core.exception import CommandError
-from biom.table import Table
 from biom.util import HAVE_H5PY
 from biom import load_table
 

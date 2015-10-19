@@ -41,7 +41,7 @@ either in TSV, HDF5, JSON, gzip'd JSON or gzip'd TSV and parse accordingly:
 
 """
 # ----------------------------------------------------------------------------
-# Copyright (c) 2011-2013, The BIOM Format Development Team.
+# Copyright (c) 2011-2015, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -73,4 +73,5 @@ example_table = Table([[0, 1, 2], [3, 4, 5]], ['O1', 'O2'],
                        {'environment': 'A'}], input_is_dense=True)
 
 
-__all__ = ['Table', 'example_table', 'parse_table', 'load_table']
+__all__ = ['Table', 'example_table', 'parse_table', 'load_table',
+           '__format_version__', '__version__']
