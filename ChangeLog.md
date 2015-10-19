@@ -1,6 +1,13 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1.4-dev
+--------------
+
+Bug fixes:
+
+* `Table.update_ids` strict check was too agressive. See #633
+
 biom 2.1.4
 ----------
 
@@ -10,10 +17,12 @@ Changes:
 
 * Codebase updated to reflect pep8 1.6.x
 
-Changes:
+New features:
 
 * `Table.to_hdf5` and `Table.from_hdf5` now support custom parsers and
     formatters, see issue #608
+* `Table.head` has been added to retrieve the first few rows and or columns
+    from a table, see issue #639.
 
 Bug fixes:
 

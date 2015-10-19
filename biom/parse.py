@@ -14,6 +14,7 @@ from biom.exception import BiomParseException, UnknownAxisError
 from biom.table import Table
 from biom.util import biom_open, __version__
 import json
+import collections
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -242,6 +243,98 @@ def get_axis_indices(biom_str, to_keep, axis):
             subset[axis_key].append(v)
 
     return idxs, json.dumps(subset)[1:-1]  # trim off { and }
+
+
+def parse_uc(fh):
+    """ Create a Table object from a uclust/usearch/vsearch uc file.
+
+        Parameters
+        ----------
+        fh : file handle
+            The ``.uc`` file to be parsed.
+
+        Returns
+        -------
+        biom.Table : The resulting BIOM table.
+
+        Raises
+        ------
+        ValueError
+            If a sequence identifier is encountered that doesn't have at least
+            one underscore in it (see Notes).
+
+        Notes
+        -----
+        This function assumes sequence identifiers in this file are in QIIME's
+        "post-split-libraries" format, where the identifiers are of the form
+        ``<sample-id>_<sequence-id>``. Everything before the first underscore
+        will be used as the sample identifier in the resulting ``Table``.
+        The information after the first underscore is not used directly, though
+        the full identifiers of seeds will be used as the observation
+        identifier in the resulting ``Table``.
+
+    """
+    data = collections.defaultdict(int)
+    sample_idxs = {}
+    sample_ids = []
+    observation_idxs = {}
+    observation_ids = []
+    # The types of hit lines we need here are hit (H), seed (S) and
+    # library seed (L). Store these in a set for quick reference.
+    line_types = set('HSL')
+    for line in fh:
+        # determine if the current line is one that we need
+        line = line.strip()
+        if not line:
+            continue
+        fields = line.split('\t')
+
+        line_type = fields[0]
+        if line_type not in line_types:
+            continue
+
+        # grab the fields we care about
+        observation_id = fields[9].split()[0]
+        query_id = fields[8].split()[0]
+
+        if observation_id == '*':
+            # S and L lines don't have a separate observation id
+            observation_id = query_id
+
+        # get the index of the current observation id, or create it if it's
+        # the first time we're seeing this id
+        if observation_id in observation_idxs:
+            observation_idx = observation_idxs[observation_id]
+        else:
+            observation_idx = len(observation_ids)
+            observation_ids.append(observation_id)
+            observation_idxs[observation_id] = observation_idx
+
+        if line_type == 'H' or line_type == 'S':
+            # get the sample id
+            try:
+                underscore_index = query_id.index('_')
+            except ValueError:
+                raise ValueError(
+                 "A query sequence was encountered that does not have an "
+                 "underscore. An underscore is required in all query "
+                 "sequence identifiers to indicate the sample identifier.")
+            # get the sample id and its index, creating the index if it is the
+            # first time we're seeing this id
+            sample_id = query_id[:underscore_index]
+            if sample_id in sample_idxs:
+                sample_idx = sample_idxs[sample_id]
+            else:
+                sample_idx = len(sample_ids)
+                sample_idxs[sample_id] = sample_idx
+                sample_ids.append(sample_id)
+            # increment the count of the current observation in the current
+            # sample by one.
+            data[(observation_idx, sample_idx)] += 1
+        else:
+            # nothing else needs to be done for 'L' records
+            pass
+    return Table(data, observation_ids=observation_ids, sample_ids=sample_ids)
 
 
 def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):

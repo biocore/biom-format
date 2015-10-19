@@ -13,9 +13,10 @@ from io import StringIO
 import json
 from unittest import TestCase, main
 
+import numpy as np
 import numpy.testing as npt
 
-from biom.parse import generatedby, MetadataMap, parse_biom_table
+from biom.parse import generatedby, MetadataMap, parse_biom_table, parse_uc
 from biom.table import Table
 from biom.util import HAVE_H5PY, __version__
 if HAVE_H5PY:
@@ -1552,6 +1553,140 @@ classic_otu_table1_no_tax = """#Full OTU Counts
 414	1	0	1	0	0	0	0	0	0
 415	0	0	0	0	0	7	0	2	2
 416	0	1	0	0	1	0	0	0	0"""
+
+
+class ParseUcTests(TestCase):
+
+    def test_empty(self):
+        """ empty uc file returns empty Table
+        """
+        actual = parse_uc(uc_empty.split('\n'))
+        expected = Table(np.array([[]]),
+                         observation_ids=[],
+                         sample_ids=[])
+        self.assertEqual(actual, expected)
+
+    def test_minimal(self):
+        """ single new seed observed
+        """
+        actual = parse_uc(uc_minimal.split('\n'))
+        expected = Table(np.array([[1.0]]),
+                         observation_ids=['f2_1539'],
+                         sample_ids=['f2'])
+        self.assertEqual(actual, expected)
+
+    def test_lib_minimal(self):
+        """ single library seed observed
+        """
+        actual = parse_uc(uc_lib_minimal.split('\n'))
+        expected = Table(np.array([[1.0]]),
+                         observation_ids=['295053'],
+                         sample_ids=['f2'])
+        self.assertEqual(actual, expected)
+
+    def test_invalid(self):
+        """ invalid query sequence identifier detected
+        """
+        self.assertRaises(ValueError, parse_uc, uc_invalid_id.split('\n'))
+
+    def test_seed_hits(self):
+        """ multiple new seeds observed
+        """
+        actual = parse_uc(uc_seed_hits.split('\n'))
+        expected = Table(np.array([[2.0, 1.0], [0.0, 1.0]]),
+                         observation_ids=['f2_1539', 'f3_44'],
+                         sample_ids=['f2', 'f3'])
+        self.assertEqual(actual, expected)
+
+    def test_mixed_hits(self):
+        """ new and library seeds observed
+        """
+        actual = parse_uc(uc_mixed_hits.split('\n'))
+        expected = Table(np.array([[2.0, 1.0], [0.0, 1.0], [1.0, 0.0]]),
+                         observation_ids=['f2_1539', 'f3_44', '295053'],
+                         sample_ids=['f2', 'f3'])
+        self.assertEqual(actual, expected)
+
+
+# no hits or library seeds
+uc_empty = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
+# version=1.2.22
+# Tab-separated fields:
+# 1=Type, 2=ClusterNr, 3=SeqLength or ClusterSize, 4=PctId, 5=Strand, 6=QueryStart, 7=SeedStart, 8=Alignment, 9=QueryLabel, 10=TargetLabel
+# Record types (field 1): L=LibSeed, S=NewSeed, H=Hit, R=Reject, D=LibCluster, C=NewCluster, N=NoHit
+# For C and D types, PctId is average id with seed.
+# QueryStart and SeedStart are zero-based relative to start of sequence.
+# If minus strand, SeedStart is relative to reverse-complemented seed.
+"""
+
+# label not in qiime post-split-libraries format
+uc_invalid_id = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
+# version=1.2.22
+# Tab-separated fields:
+# 1=Type, 2=ClusterNr, 3=SeqLength or ClusterSize, 4=PctId, 5=Strand, 6=QueryStart, 7=SeedStart, 8=Alignment, 9=QueryLabel, 10=TargetLabel
+# Record types (field 1): L=LibSeed, S=NewSeed, H=Hit, R=Reject, D=LibCluster, C=NewCluster, N=NoHit
+# For C and D types, PctId is average id with seed.
+# QueryStart and SeedStart are zero-based relative to start of sequence.
+# If minus strand, SeedStart is relative to reverse-complemented seed.
+S	0	133	*	*	*	*	*	1539	*
+"""
+
+# contains single new (de novo) seed hit
+uc_minimal = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
+# version=1.2.22
+# Tab-separated fields:
+# 1=Type, 2=ClusterNr, 3=SeqLength or ClusterSize, 4=PctId, 5=Strand, 6=QueryStart, 7=SeedStart, 8=Alignment, 9=QueryLabel, 10=TargetLabel
+# Record types (field 1): L=LibSeed, S=NewSeed, H=Hit, R=Reject, D=LibCluster, C=NewCluster, N=NoHit
+# For C and D types, PctId is average id with seed.
+# QueryStart and SeedStart are zero-based relative to start of sequence.
+# If minus strand, SeedStart is relative to reverse-complemented seed.
+S	0	133	*	*	*	*	*	f2_1539	*
+"""
+
+# contains single library (reference) seed hit
+uc_lib_minimal = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
+# version=1.2.22
+# Tab-separated fields:
+# 1=Type, 2=ClusterNr, 3=SeqLength or ClusterSize, 4=PctId, 5=Strand, 6=QueryStart, 7=SeedStart, 8=Alignment, 9=QueryLabel, 10=TargetLabel
+# Record types (field 1): L=LibSeed, S=NewSeed, H=Hit, R=Reject, D=LibCluster, C=NewCluster, N=NoHit
+# For C and D types, PctId is average id with seed.
+# QueryStart and SeedStart are zero-based relative to start of sequence.
+# If minus strand, SeedStart is relative to reverse-complemented seed.
+L	3	1389	*	*	*	*	*	295053	*
+H	3	133	100.0	+	0	0	519I133M737I	f2_1539	295053
+"""
+
+# contains new seed (de novo) hits only
+uc_seed_hits = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
+# version=1.2.22
+# Tab-separated fields:
+# 1=Type, 2=ClusterNr, 3=SeqLength or ClusterSize, 4=PctId, 5=Strand, 6=QueryStart, 7=SeedStart, 8=Alignment, 9=QueryLabel, 10=TargetLabel
+# Record types (field 1): L=LibSeed, S=NewSeed, H=Hit, R=Reject, D=LibCluster, C=NewCluster, N=NoHit
+# For C and D types, PctId is average id with seed.
+# QueryStart and SeedStart are zero-based relative to start of sequence.
+# If minus strand, SeedStart is relative to reverse-complemented seed.
+S	0	133	*	*	*	*	*	f2_1539	*
+H	0	141	100.0	+	0	0	133M8D	f3_42	f2_1539
+H	0	141	100.0	+	0	0	133M8D	f2_43	f2_1539
+S	0	133	*	*	*	*	*	f3_44	*
+"""
+
+# contains library (reference) and new seed (de novo) hits
+uc_mixed_hits = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
+# version=1.2.22
+# Tab-separated fields:
+# 1=Type, 2=ClusterNr, 3=SeqLength or ClusterSize, 4=PctId, 5=Strand, 6=QueryStart, 7=SeedStart, 8=Alignment, 9=QueryLabel, 10=TargetLabel
+# Record types (field 1): L=LibSeed, S=NewSeed, H=Hit, R=Reject, D=LibCluster, C=NewCluster, N=NoHit
+# For C and D types, PctId is average id with seed.
+# QueryStart and SeedStart are zero-based relative to start of sequence.
+# If minus strand, SeedStart is relative to reverse-complemented seed.
+S	0	133	*	*	*	*	*	f2_1539	*
+H	0	141	100.0	+	0	0	133M8D	f3_42	f2_1539
+H	0	141	100.0	+	0	0	133M8D	f2_43	f2_1539
+S	0	133	*	*	*	*	*	f3_44	*
+L	3	1389	*	*	*	*	*	295053	*
+H	3	133	100.0	+	0	0	519I133M737I	f2_1539	295053
+"""
 
 if __name__ == '__main__':
     main()
