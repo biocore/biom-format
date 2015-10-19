@@ -266,7 +266,7 @@ def parse_uc(fh):
 
         Notes
         -----
-        This file assumes that sequence identifiers in this file are in QIIME's
+        This function assumes sequence identifiers in this file are in QIIME's
         "post-split-libraries" format, where the identifiers are of the form
         ``<sample-id>_<sequence-id>``. Everything before the first underscore
         will be used as the sample identifier in the resulting ``Table``.
@@ -282,7 +282,7 @@ def parse_uc(fh):
     observation_ids = []
     # The types of hit lines we need here are hit (H), seed (S) and
     # library seed (L). Store these in a set for quick reference.
-    line_types = set(list('HSL'))
+    line_types = set('HSL')
     for line in fh:
         # determine if the current line is one that we need
         line = line.strip()

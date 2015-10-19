@@ -1557,11 +1557,6 @@ classic_otu_table1_no_tax = """#Full OTU Counts
 
 class ParseUcTests(TestCase):
 
-        # exp = Table(np.array([[0., 1.], [3., 4.]]), ['O1', 'O2'], ['S1', 'S2'],
-        #                      [{'taxonomy': ['Bacteria', 'Firmicutes']},
-        #                       {'taxonomy': ['Bacteria', 'Bacteroidetes']}],
-        #                      [{'environment': 'A'}, {'environment': 'B'}])
-
     def test_empty(self):
         """ empty uc file returns empty Table
         """
