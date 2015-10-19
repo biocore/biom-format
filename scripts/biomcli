@@ -10,6 +10,7 @@
 
 import click
 
+import biom
 import biom.cli
 from biom.util import HAVE_H5PY
 import biom.parse
@@ -45,7 +46,7 @@ def summarize_table(input_fp, output_fp, qualitative, observations):
     $ biom summarize-table -i table.biom -o table_summary.txt
 
     """
-    table =  biom.parse.load_table(input_fp)
+    table =  biom.load_table(input_fp)
     result = biom.cli.summarize_table(table, qualitative, observations)
     if output_fp:
         with open(output_fp, 'w') as fh:
@@ -116,7 +117,7 @@ def add_metadata(input_fp, output_fp, sample_metadata_fp,
     $ biom add-metadata -i otu_table.biom -o table_with_sample_metadata.biom
       -m sample_metadata.txt
     """
-    table = biom.parse.load_table(input_fp)
+    table = biom.load_table(input_fp)
     if sample_metadata_fp is not None:
         sample_metadata_f = open(sample_metadata_fp, 'U')
     else:

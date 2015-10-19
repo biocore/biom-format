@@ -8,11 +8,11 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from biom.cli import add_metadata
-from biom.parse import load_table
-
 import tempfile
 from unittest import TestCase, main
+
+import biom
+from biom.cli import add_metadata
 
 
 class TestAddMetadata(TestCase):
@@ -23,7 +23,7 @@ class TestAddMetadata(TestCase):
         with tempfile.NamedTemporaryFile() as fh:
             fh.write(biom1)
             fh.flush()
-            self.biom_table1 = load_table(fh.name)
+            self.biom_table1 = biom.load_table(fh.name)
         self.sample_md_lines1 = sample_md1.split('\n')
         self.obs_md_lines1 = obs_md1.split('\n')
 
