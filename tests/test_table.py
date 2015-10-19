@@ -53,13 +53,21 @@ class SupportTests(TestCase):
         self.assertIsNot(obs, exp)
         self.assertEqual(obs, exp)
 
-    def head_bounded(self):
+    def test_head_bounded(self):
         obs = example_table.head(1)
-        exp = Table(np.array([[0., 1., 2.]]), ['O1'], ['S1', 'S2', 'S3'])
+        from collections import defaultdict
+        exp = Table(np.array([[0., 1., 2.]]), ['O1'], ['S1', 'S2', 'S3'],
+                             [{'taxonomy': ['Bacteria', 'Firmicutes']}],
+                             [{'environment': 'A'}, {'environment': 'B'},
+                              {'environment': 'A'}])
+
         self.assertEqual(obs, exp)
 
         obs = example_table.head(m=2)
-        exp = Table(np.array([[0., 1.], [3., 4.]]), ['O1', 'O2'], ['S1', 'S2'])
+        exp = Table(np.array([[0., 1.], [3., 4.]]), ['O1', 'O2'], ['S1', 'S2'],
+                             [{'taxonomy': ['Bacteria', 'Firmicutes']},
+                              {'taxonomy': ['Bacteria', 'Bacteroidetes']}],
+                             [{'environment': 'A'}, {'environment': 'B'}])
         self.assertEqual(obs, exp)
 
     def test_head_overstep(self):
