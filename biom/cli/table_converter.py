@@ -36,25 +36,13 @@ def convert(table, sample_metadata, observation_metadata,
             process_obs_metadata, tsv_metadata_formatter):
 
     if sum([to_tsv, to_hdf5, to_json]) == 0:
-        raise CommandError("Must specify an output format")
+        raise ValueError("Must specify an output format")
     elif sum([to_tsv, to_hdf5, to_json]) > 1:
-        raise CommandError("Can only specify a single output format")
+        raise ValueError("Can only specify a single output format")
 
-    # if we don't have a table type, then one is required to be specified
-    if table.type in [None, "None"]:
-        if table_type is None:
-            raise CommandError("Must specify --table-type!")
-        else:
-            if table_type not in self.TableTypes:
-                raise CommandError("Unknown table type: %s" % table_type)
-
-            table.type = table_type
-
-    if obs_md_fmt not in self.ObservationMetadataFormatters:
-        raise CommandError("Unknown tsv_metadata_formatter: %s" %
-                           obs_md_fmt)
-    else:
-        obs_md_fmt_f = self.ObservationMetadataFormatters[obs_md_fmt]
+    table.type = table_type
+    if tsv_metadata_formatter is not None:
+        obs_md_fmt_f = observation_metadata_formatters[tsv_metadata_formatter]
 
     if sample_metadata is not None:
         table.add_metadata(sample_metadata)
@@ -64,14 +52,8 @@ def convert(table, sample_metadata, observation_metadata,
     output_metadata_id = output_metadata_id or header_key
 
     if process_obs_metadata is not None and not to_tsv:
-        if process_obs_metadata not in self.ObservationMetadataTypes:
-            raise CommandError(
-                "Unknown observation metadata processing method, must be "
-                "one of: %s" %
-                ', '.join(self.ObservationMetadataTypes.keys()))
-
         if table.metadata(axis='observation') is None:
-            raise CommandError("Observation metadata processing requested "
+            raise ValueError("Observation metadata processing requested "
                                "but it doesn't appear that there is any "
                                "metadata to operate on!")
 
@@ -79,7 +61,7 @@ def convert(table, sample_metadata, observation_metadata,
         # metadata
         md_key = table.metadata(axis='observation')[0].keys()[0]
 
-        process_f = self.ObservationMetadataTypes[process_obs_metadata]
+        process_f = observation_metadata_types[process_obs_metadata]
         it = zip(table.ids(axis='observation'),
                  table.metadata(axis='observation'))
         new_md = {id_: {md_key: process_f(md[md_key])} for id_, md in it}
@@ -113,4 +95,4 @@ def convert(table, sample_metadata, observation_metadata,
             result._cast_metadata()
         fmt = 'hdf5'
 
-    return {'table': (result, fmt)}
+    return result
