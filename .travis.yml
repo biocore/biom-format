@@ -8,12 +8,10 @@ env:
   - PYTHON_VERSION=3.5 USE_H5PY=True
   - PYTHON_VERSION=3.5 USE_CYTHON=True
 before_install:
-  - wget http://repo.continuum.io/miniconda/Miniconda3-3.7.3-Linux-x86_64.sh -O miniconda.sh
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda3/bin:$PATH
-  # Update conda itself
-  - conda update --yes conda
 install:
   - conda create --yes -n env_name python=$PYTHON_VERSION pip click numpy scipy nose pep8 flake8 coverage future
   - if [ ${USE_CYTHON} ]; then conda install --yes -n env_name cython; fi
