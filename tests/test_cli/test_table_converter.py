@@ -29,7 +29,7 @@ class TableConverterTests(TestCase):
         self.cmd = convert
         self.output_filepath = tempfile.NamedTemporaryFile().name
 
-        with tempfile.NamedTemporaryFile() as fh:
+        with tempfile.NamedTemporaryFile('w') as fh:
             fh.write(biom1)
             fh.flush()
             self.biom_table1 = load_table(fh.name)
@@ -130,7 +130,7 @@ class TableConverterTests(TestCase):
                               [1., 4.], [0., 2.]]),
                     observation_ids=[u'GG_OTU_1', u'GG_OTU_2', u'GG_OTU_3',
                                      u'GG_OTU_4', u'GG_OTU_5'],
-                    sample_ids=['skin', 'gut'],
+                    sample_ids=[u'skin', u'gut'],
                     observation_metadata=[
                         {'taxonomy': ['k__Bacteria', 'p__Proteobacteria',
                                       'c__Gammaproteobacteria',
@@ -175,10 +175,11 @@ class TableConverterTests(TestCase):
                               [0., 0., 1., 4., 0., 2.],
                               [5., 1., 0., 2., 3., 1.],
                               [0., 1., 2., 0., 0., 0.]]),
-                    observation_ids=['p__Firmicutes', 'p__Euryarchaeota',
-                                     'p__Cyanobacteria', 'p__Proteobacteria'],
-                    sample_ids=['Sample1', 'Sample2', 'Sample3',
-                                'Sample4', 'Sample5', 'Sample6'],
+                    observation_ids=[u'p__Firmicutes', u'p__Euryarchaeota',
+                                     u'p__Cyanobacteria',
+                                     u'p__Proteobacteria'],
+                    sample_ids=[u'Sample1', u'Sample2', u'Sample3',
+                                u'Sample4', u'Sample5', u'Sample6'],
                     observation_metadata=[
                         {'collapsed_ids': ['GG_OTU_4']},
                         {'collapsed_ids': ['GG_OTU_3']},
