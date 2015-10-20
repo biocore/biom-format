@@ -33,7 +33,8 @@ class TableConverter(Command):
                   "Ortholog table",
                   "Gene table",
                   "Metabolite table",
-                  "Taxon table"]
+                  "Taxon table",
+                  "Table"]
 
     ObservationMetadataTypes = {
         'sc_separated': lambda x: [e.strip() for e in x.split(';')],
