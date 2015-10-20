@@ -9,12 +9,14 @@
 #-----------------------------------------------------------------------------
 
 import click
-
 import biom
+import sys
 import biom.cli
 import biom.cli.table_converter
 from biom.util import HAVE_H5PY
 import biom.parse
+import biom.util
+
 
 @click.group()
 @click.version_option(version=biom.__version__)
@@ -26,7 +28,7 @@ def cli():
               type=click.Path(exists=True, dir_okay=False),
               help='The input BIOM table')
 @click.option('-o', '--output-fp', default=None,
-              type=click.Path(writable=True),
+              type=click.Path(writable=True, dir_okay=False),
               help='An output file-path')
 @click.option('--qualitative', default=False, is_flag=True,
               help="Present counts as number of unique observation ids per"
@@ -237,8 +239,161 @@ def show_install_info():
     pulled from the configuration file. For more details, see
     http://biom-format.org
 
+    Example usage:
+
+    Display biom-format installation information:
+
+    $ biom show-install-info
+
     """
     click.echo(biom.cli.show_install_info())
+
+
+@cli.command(name='subset-table')
+@click.option( '-i', '--input-hdf5-fp', default=None,
+              type=click.Path(exists=True, dir_okay=False),
+              help='the input hdf5 BIOM table filepath to subset')
+@click.option( '-j', '--input-json-fp', default=None,
+              type=click.Path(exists=True, dir_okay=False),
+              help='the input json BIOM table filepath to subset')
+@click.option( '-a', '--axis', required=True,
+              type=click.Choice(['sample', 'observation']),
+              help='the axis to subset over, either sample or observation')
+@click.option( '-s', '--ids', required=True,
+              type=click.Path(exists=True, dir_okay=False),
+              help='a file containing a single column of IDs to retain '
+                   '(either sample IDs or observation IDs, depending on the '
+                   'axis)')
+@click.option('-o', '--output-fp', required=True,
+              type=click.Path(writable=True, dir_okay=False),
+              help='the output BIOM table filepath')
+def subset_table(input_hdf5_fp, input_json_fp, axis, ids, output_fp):
+    """Subset a BIOM table
+
+    Subset a BIOM table, over either observations or samples, without fully
+    parsing it. This command is intended to assist in working with very large
+    tables when tight on memory, or as a lightweight way to subset a full
+    table. Currently, it is possible to produce tables with rows or columns
+    (observations or samples) that are fully zeroed.
+
+    Example usage:
+
+    Choose a subset of the observations in table.biom (JSON) and write them to
+    subset.biom:
+
+    $ biom subset-table -j table.biom -a observations -s observation_ids.txt \
+           -o subset.biom
+
+    Choose a subset of the observations in table.biom (HDF5) and write them to
+    subset.biom:
+
+    $ biom subset-table -i table.biom -a observations -s observation_ids.txt \
+           -o subset.biom
+
+    """
+    if input_json_fp is not None:
+        with open(input_json_fp, 'U') as f:
+            input_json_fp = f.read()
+
+    with open(ids, 'U') as f:
+        ids = [line.strip() for line in f]
+
+    table, format_ = biom.cli.subset_table(input_hdf5_fp, input_json_fp, axis,
+                                           ids)
+
+    if format_ == 'json':
+        with open(output_fp, 'w') as f:
+            for line in table:
+                f.write(line)
+                f.write('\n')
+    else:
+        if biom.util.HAVE_H5PY:
+            import h5py
+        else:
+            # This should never be raised here
+            raise ImportError("h5py is not available, cannot write HDF5!")
+
+        with h5py.File(output_fp, 'w') as f:
+            table.to_hdf5(f, biom.parse.generatedby())
+
+
+@cli.command(name='normalize-table')
+@click.option( '-i', '--input-fp', required=True,
+              type=click.Path(exists=True, dir_okay=False),
+              help='The input BIOM table')
+@click.option('-o', '--output-fp', default=None,
+              type=click.Path(writable=True),
+              help='An output file-path')
+@click.option('-r', '--relative-abund', default=False, is_flag=True,
+              help='convert table to relative abundance',
+              required=False)
+@click.option('-p', '--presence-absence', default=False, is_flag=True,
+              help='convert table to presence/absence',
+              required=False)
+@click.option('-a', '--axis', default='sample', 
+              type=click.Choice(['sample', 'observation']),
+              help='The axis to normalize over')
+def normalize_table(input_fp, output_fp, relative_abund, presence_absence, 
+                    axis):
+    """Normalize a BIOM table
+    
+    Normalize the values of a BIOM table through various methods. Relative
+    abundance will take the relative abundance of each observation in terms of
+    samples or observations.  Presence absensece will convert observations to
+    1's and 0's based on presence of the observation.
+
+    Example usage:
+
+    Normalizing a BIOM table to relative abundnace:
+
+    $ biom normalize-table -i table.biom -r -o normalized_table.biom
+
+    Converting a BIOM table to a presence/absence table:
+
+    $ biom normalize-table -i table.biom -p -o converted_table.biom
+    """
+    table = biom.load_table(input_fp)
+    result = biom.cli.normalize_table(table, relative_abund, presence_absence, 
+                                      axis)
+
+    biom.cli.write_biom_table(result, 'hdf5' if HAVE_H5PY else 'json', 
+                              output_fp)
+
+
+@cli.command(name='validate-table')
+@click.option('-i', '--input-fp', required=True,
+              type=click.Path(exists=True, dir_okay=False),
+              help='The input filpath to validate against the BIOM format'
+                   ' specification')
+@click.option('-f', '--format-version', default=None,
+              help='The specific format version to validate against')
+@click.option('--detailed-report', is_flag=True, default=False,
+              help='Include more details in the output report')
+def validate_table(input_fp, format_version, detailed_report):
+    """Validate a BIOM-formatted file
+
+    Test a file for adherence to the Biological Observation Matrix (BIOM)
+    format specification. This specification is defined at
+    http://biom-format.org
+
+    Example usage:
+
+    Validate the contents of table.biom for adherence to the BIOM format
+    specification
+
+    $ biom validate-table -i table.biom
+
+    """
+    valid, report = biom.cli.validate_table(input_fp, format_version,
+                                            detailed_report)
+    click.echo("\n".join(report))
+    if valid:
+        # apparently silence is too quiet to be golden.
+        click.echo("The input file is a valid BIOM-formatted file.")
+        sys.exit(0)
+    else:
+        click.echo("The input file is not a valid BIOM-formatted file.")
+        sys.exit(1)
 
 
 if __name__ == '__main__':
