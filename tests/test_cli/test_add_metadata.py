@@ -20,7 +20,7 @@ class TestAddMetadata(TestCase):
     def setUp(self):
         """Set up data for use in unit tests."""
         self.cmd = _add_metadata
-        with tempfile.NamedTemporaryFile() as fh:
+        with tempfile.NamedTemporaryFile('w') as fh:
             fh.write(biom1)
             fh.flush()
             self.biom_table1 = biom.load_table(fh.name)

@@ -18,7 +18,7 @@ from unittest import TestCase, main
 class TestSummarizeTable(TestCase):
 
     def setUp(self):
-        with tempfile.NamedTemporaryFile() as fh:
+        with tempfile.NamedTemporaryFile(mode='w') as fh:
             fh.write(biom1)
             fh.flush()
             self.biom1 = load_table(fh.name)
@@ -28,14 +28,18 @@ class TestSummarizeTable(TestCase):
 
         """
         result = _summarize_table(self.biom1)
-        self.assertEqual(result, summary_default)
+        # test same alphanumeric content, order of samples is runtime
+        # dependent
+        self.assertEqual(sorted(result), sorted(summary_default))
 
     def test_qualitative(self):
         """ TableSummarizer functions as expected with qualitative=True
 
         """
         result = _summarize_table(self.biom1, qualitative=True)
-        self.assertEqual(result, summary_qualitative)
+        # test same alphanumeric content, order of samples is runtime
+        # dependent
+        self.assertEqual(sorted(result), sorted(summary_qualitative))
 
 biom1 = ('{"id": "None","format": "Biological Observation Matrix 1.0.0",'
     '"format_url": "http://biom-format.org","type": "OTU table",'

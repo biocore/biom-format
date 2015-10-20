@@ -285,7 +285,7 @@ class UtilTests(TestCase):
 
     def test_biom_open_json(self):
         with biom_open(get_data_path('test.json')) as f:
-            self.assertTrue(isinstance(f, file))
+            self.assertTrue(hasattr(f, 'read'))
 
     def test_biom_open_gz(self):
         with biom_open(get_data_path('test.json.gz')) as f:

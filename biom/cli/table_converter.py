@@ -167,7 +167,7 @@ def _convert(table, output_filepath, sample_metadata=None,
 
         # and if this came in as TSV, then we expect only a single type of
         # metadata
-        md_key = table.metadata(axis='observation')[0].keys()[0]
+        md_key = list(table.metadata(axis='observation')[0].keys())[0]
 
         process_f = observation_metadata_types[process_obs_metadata]
         it = zip(table.ids(axis='observation'),
@@ -193,11 +193,11 @@ def _convert(table, output_filepath, sample_metadata=None,
         fmt = 'hdf5'
         result = table
         if collapsed_observations:
-            metadata = [{'collapsed_ids': md.keys()}
+            metadata = [{'collapsed_ids': sorted(md.keys())}
                         for md in result.metadata(axis='observation')]
             result._observation_metadata = metadata
         if collapsed_samples:
-            metadata = [{'collapsed_ids': md.keys()}
+            metadata = [{'collapsed_ids': sorted(md.keys())}
                         for md in result.metadata()]
             result._sample_metadata = metadata
         if collapsed_observations or collapsed_samples:
