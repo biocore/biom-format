@@ -35,7 +35,7 @@ class TableConverterTests(TestCase):
             self.biom_table1 = load_table(fh.name)
 
         self.biom_lines1 = biom1.split('\n')
-        with tempfile.NamedTemporaryFile() as fh:
+        with tempfile.NamedTemporaryFile('w') as fh:
             fh.write(classic1)
             fh.flush()
             self.classic_biom1 = load_table(fh.name)
@@ -75,7 +75,7 @@ class TableConverterTests(TestCase):
         self.assertEqual(len(obs.ids(axis='observation')), 14)
         self.assertNotEqual(obs.metadata(), None)
         self.assertNotEqual(obs.metadata(axis='observation'), None)
-        self.assertEqual(obs.metadata()[obs.index('p2', 'sample')],
+        self.assertEqual(obs.metadata()[obs.index(u'p2', u'sample')],
                          {'foo': 'c;b;a'})
         self.assertEqual(obs.metadata()[obs.index('not16S.1', 'sample')],
                          {'foo': 'b;c;d'})
@@ -128,8 +128,8 @@ class TableConverterTests(TestCase):
         obs = load_table(self.output_filepath)
         exp = Table(np.array([[0., 1.], [6., 6.], [6., 1.],
                               [1., 4.], [0., 2.]]),
-                    observation_ids=['GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
-                                     'GG_OTU_4', 'GG_OTU_5'],
+                    observation_ids=[u'GG_OTU_1', u'GG_OTU_2', u'GG_OTU_3',
+                                     u'GG_OTU_4', u'GG_OTU_5'],
                     sample_ids=['skin', 'gut'],
                     observation_metadata=[
                         {'taxonomy': ['k__Bacteria', 'p__Proteobacteria',
