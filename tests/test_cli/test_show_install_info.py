@@ -8,7 +8,7 @@
 
 import unittest
 
-from biom.cli import show_install_info
+from biom.cli.installation_informer import _show_install_info
 
 
 class TestShowInstallInfo(unittest.TestCase):
@@ -16,7 +16,7 @@ class TestShowInstallInfo(unittest.TestCase):
         # Not really sure what to specifically test here, as this information
         # will change on a per-install basis. Just make sure the code is being
         # exercised and we have some output.
-        obs = show_install_info()
+        obs = _show_install_info()
         self.assertTrue(len(obs) > 0)
 
 

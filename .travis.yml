@@ -24,7 +24,7 @@ install:
   - pip install -e . --no-deps
 script:
   - nosetests --with-doctest --with-coverage
-  - flake8 biom setup.py scripts
+  - flake8 biom setup.py
   - biom show-install-info
   - make -C doc html
   # we can only validate the tables if we have H5PY

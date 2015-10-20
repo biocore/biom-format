@@ -10,8 +10,30 @@ from __future__ import division
 
 import sys
 
+import click
 
+from biom.cli import cli
+
+
+@cli.command(name='show-install-info')
 def show_install_info():
+    """Provide information about the biom-format installation.
+
+    Provide information about the biom-format installation, including settings
+    pulled from the configuration file. For more details, see
+    http://biom-format.org
+
+    Example usage:
+
+    Display biom-format installation information:
+
+    $ biom show-install-info
+
+    """
+    click.echo(_show_install_info())
+
+
+def _show_install_info():
     lines = []
     lines.extend(_get_formatted_system_info())
     lines.extend(_get_formatted_dependency_version_info())

@@ -5,7 +5,6 @@ include ChangeLog.md
 graft biom
 graft support_files
 graft examples
-graft scripts
 graft doc
 
 prune docs/_build
