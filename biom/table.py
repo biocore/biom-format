@@ -274,7 +274,7 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
         if m[header] is None:
             continue
         value = np.asarray(m[header])
-        data[i, :len(value)] = [str(v).encode('utf8') for v in value]
+        data[i, :len(value)] = [v.encode('utf8') for v in value]
     # Change the None entries on data to empty strings ""
     data = np.where(data == np.array(None), "", data)
     grp.create_dataset(
@@ -3554,7 +3554,7 @@ html
                 # is cleaner, as is the parse
                 grp.create_dataset('ids', shape=(len_ids,),
                                    dtype=H5PY_VLEN_STR,
-                                   data=[str(i).encode('utf8') for i in ids],
+                                   data=[i.encode('utf8') for i in ids],
                                    compression=compression)
             else:
                 # Empty H5PY_VLEN_STR datasets are not supported.
