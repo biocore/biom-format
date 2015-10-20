@@ -4,6 +4,12 @@ BIOM-Format ChangeLog
 biom 2.1.4-dev
 --------------
 
+Changes:
+
+* Codebase now uses [click](http://click.pocoo.org) instead of
+  [pyqi](https://github.com/biocore/pyqi) to create interfaces
+* `biom-serve` and the accompanying html interface has been removed
+
 Bug fixes:
 
 * `Table.update_ids` strict check was too agressive. See #633
