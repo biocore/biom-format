@@ -9,6 +9,7 @@
 import biom.util
 import biom.parse
 
+
 def write_biom_table(table, fmt, filepath):
     """Write table in specified format to filepath"""
 

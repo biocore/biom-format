@@ -15,9 +15,6 @@ from .table_validator import validate_table
 from .table_converter import convert
 from .util import write_biom_table
 
-import biom.parse
-import biom.util
-
 __all__ = ['validate_table', 'summarize_table', 'add_metadata',
            'show_install_info', 'normalize_table', 'subset_table',
-           'convert']
+           'convert', 'write_biom_table']

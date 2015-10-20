@@ -8,7 +8,6 @@
 
 from __future__ import division
 
-import biom.parse
 from biom.cli.util import write_biom_table
 
 table_types = ["OTU table",
