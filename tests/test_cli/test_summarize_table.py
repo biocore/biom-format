@@ -8,7 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from biom.cli import summarize_table
+from biom.cli.table_summarizer import _summarize_table
 from biom.parse import load_table
 
 import tempfile
@@ -27,7 +27,7 @@ class TestSummarizeTable(TestCase):
         """ TableSummarizer functions as expected
 
         """
-        result = summarize_table(self.biom1)
+        result = _summarize_table(self.biom1)
         # test same alphanumeric content, order of samples is runtime
         # dependent
         self.assertEqual(sorted(result), sorted(summary_default))
@@ -36,7 +36,7 @@ class TestSummarizeTable(TestCase):
         """ TableSummarizer functions as expected with qualitative=True
 
         """
-        result = summarize_table(self.biom1, qualitative=True)
+        result = _summarize_table(self.biom1, qualitative=True)
         # test same alphanumeric content, order of samples is runtime
         # dependent
         self.assertEqual(sorted(result), sorted(summary_qualitative))

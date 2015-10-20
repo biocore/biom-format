@@ -8,12 +8,52 @@
 
 from __future__ import division
 
-from biom.util import compute_counts_per_sample_stats
-from numpy import std
 from operator import itemgetter
 
+import click
+from numpy import std
 
-def summarize_table(table, qualitative=False, observations=False):
+from biom import load_table
+from biom.cli import cli
+from biom.util import compute_counts_per_sample_stats
+
+
+@cli.command(name='summarize-table')
+@click.option('-i', '--input-fp', required=True,
+              type=click.Path(exists=True, dir_okay=False),
+              help='The input BIOM table')
+@click.option('-o', '--output-fp', default=None,
+              type=click.Path(writable=True, dir_okay=False),
+              help='An output file-path')
+@click.option('--qualitative', default=False, is_flag=True,
+              help="Present counts as number of unique observation ids per"
+                   " sample, rather than counts of observations per sample.")
+@click.option('--observations', default=False, is_flag=True,
+              help="Summarize over observations")
+def summarize_table(input_fp, output_fp, qualitative, observations):
+    """Summarize sample or observation data in a BIOM table.
+
+    Provides details on the observation counts per sample, including summary
+    statistics, as well as metadata categories associated with samples and
+    observations.
+
+    Example usage:
+
+    Write a summary of table.biom to table_summary.txt:
+
+    $ biom summarize-table -i table.biom -o table_summary.txt
+
+    """
+    table = load_table(input_fp)
+    result = _summarize_table(table, qualitative, observations)
+    if output_fp:
+        with open(output_fp, 'w') as fh:
+            fh.write(result)
+    else:
+        click.echo(result)
+
+
+def _summarize_table(table, qualitative=False, observations=False):
     lines = []
 
     if observations:

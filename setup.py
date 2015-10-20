@@ -10,7 +10,7 @@
 # ----------------------------------------------------------------------------
 
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
 try:
@@ -89,12 +89,10 @@ setup(name='biom-format',
       maintainer_email=__email__,
       url='http://www.biom-format.org',
       test_suite='nose.collector',
-      packages=['biom',
-                'biom/cli'
-                ],
+      packages=find_packages(),
+      include_package_data=True,
       ext_modules=extensions,
       include_dirs=[np.get_include()],
-      scripts=['scripts/biom'],
       install_requires=["click",
                         "numpy >= 1.3.0",
                         "future >= 0.14.3",
@@ -102,5 +100,8 @@ setup(name='biom-format',
       extras_require={'test': ["nose >= 0.10.1", "flake8"],
                       'hdf5': ["h5py >= 2.2.0"]
                       },
-      classifiers=classifiers
-      )
+      classifiers=classifiers,
+      entry_points='''
+          [console_scripts]
+          biom=biom.cli:cli
+      ''')

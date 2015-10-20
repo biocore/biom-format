@@ -13,7 +13,8 @@ import tempfile
 
 import numpy as np
 
-from biom.cli import convert, write_biom_table
+from biom.cli.table_converter import _convert
+from biom.cli.util import write_biom_table
 from biom.parse import MetadataMap, load_table
 from biom.table import Table
 from biom import load_table
@@ -26,7 +27,7 @@ class TableConverterTests(TestCase):
 
     def setUp(self):
         """Set up data for use in unit tests."""
-        self.cmd = convert
+        self.cmd = _convert
         self.output_filepath = tempfile.NamedTemporaryFile().name
 
         with tempfile.NamedTemporaryFile('w') as fh:

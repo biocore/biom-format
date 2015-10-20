@@ -10,8 +10,10 @@
 
 from unittest import TestCase, main
 
+import os
+
 import biom
-from biom.cli.table_normalizer import normalize_table
+from biom.cli.table_normalizer import _normalize_table
 from biom.parse import parse_biom_table
 from biom.util import HAVE_H5PY
 from biom.exception import UnknownAxisError
@@ -21,8 +23,13 @@ class TableNormalizerTests(TestCase):
 
     def setUp(self):
         """initialize objects for use in tests"""
-        self.cmd = normalize_table
+        self.cmd = _normalize_table
+
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
         self.table = biom.load_table('test_data/test.json')
+        os.chdir(cwd)
 
     def test_bad_inputs(self):
         # relative_abund and pa

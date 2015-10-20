@@ -8,12 +8,83 @@
 
 from __future__ import division
 
-from biom.parse import get_axis_indices, direct_slice_data, direct_parse_key
+import click
+
+from biom.cli import cli
+from biom.parse import (get_axis_indices, direct_slice_data, direct_parse_key,
+                        generatedby)
 from biom.table import Table
-from biom.util import biom_open
+from biom.util import biom_open, HAVE_H5PY
 
 
-def subset_table(hdf5_biom, json_table_str, axis, ids):
+@cli.command(name='subset-table')
+@click.option('-i', '--input-hdf5-fp', default=None,
+              type=click.Path(exists=True, dir_okay=False),
+              help='the input hdf5 BIOM table filepath to subset')
+@click.option('-j', '--input-json-fp', default=None,
+              type=click.Path(exists=True, dir_okay=False),
+              help='the input json BIOM table filepath to subset')
+@click.option('-a', '--axis', required=True,
+              type=click.Choice(['sample', 'observation']),
+              help='the axis to subset over, either sample or observation')
+@click.option('-s', '--ids', required=True,
+              type=click.Path(exists=True, dir_okay=False),
+              help='a file containing a single column of IDs to retain '
+                   '(either sample IDs or observation IDs, depending on the '
+                   'axis)')
+@click.option('-o', '--output-fp', required=True,
+              type=click.Path(writable=True, dir_okay=False),
+              help='the output BIOM table filepath')
+def subset_table(input_hdf5_fp, input_json_fp, axis, ids, output_fp):
+    """Subset a BIOM table.
+
+    Subset a BIOM table, over either observations or samples, without fully
+    parsing it. This command is intended to assist in working with very large
+    tables when tight on memory, or as a lightweight way to subset a full
+    table. Currently, it is possible to produce tables with rows or columns
+    (observations or samples) that are fully zeroed.
+
+    Example usage:
+
+    Choose a subset of the observations in table.biom (JSON) and write them to
+    subset.biom:
+
+    $ biom subset-table -j table.biom -a observations -s observation_ids.txt \
+           -o subset.biom
+
+    Choose a subset of the observations in table.biom (HDF5) and write them to
+    subset.biom:
+
+    $ biom subset-table -i table.biom -a observations -s observation_ids.txt \
+           -o subset.biom
+
+    """
+    if input_json_fp is not None:
+        with open(input_json_fp, 'U') as f:
+            input_json_fp = f.read()
+
+    with open(ids, 'U') as f:
+        ids = [line.strip() for line in f]
+
+    table, format_ = _subset_table(input_hdf5_fp, input_json_fp, axis, ids)
+
+    if format_ == 'json':
+        with open(output_fp, 'w') as f:
+            for line in table:
+                f.write(line)
+                f.write('\n')
+    else:
+        if HAVE_H5PY:
+            import h5py
+        else:
+            # This should never be raised here
+            raise ImportError("h5py is not available, cannot write HDF5!")
+
+        with h5py.File(output_fp, 'w') as f:
+            table.to_hdf5(f, generatedby())
+
+
+def _subset_table(hdf5_biom, json_table_str, axis, ids):
     if axis not in ['sample', 'observation']:
         raise ValueError("Invalid axis '%s'. Must be either 'sample' or "
                          "'observation'." % axis)

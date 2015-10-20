@@ -12,15 +12,15 @@ import tempfile
 from unittest import TestCase, main
 
 import biom
-from biom.cli import add_metadata
+from biom.cli.metadata_adder import _add_metadata
 
 
 class TestAddMetadata(TestCase):
 
     def setUp(self):
         """Set up data for use in unit tests."""
-        self.cmd = add_metadata
-        with tempfile.NamedTemporaryFile(mode='w') as fh:
+        self.cmd = _add_metadata
+        with tempfile.NamedTemporaryFile('w') as fh:
             fh.write(biom1)
             fh.flush()
             self.biom_table1 = biom.load_table(fh.name)
