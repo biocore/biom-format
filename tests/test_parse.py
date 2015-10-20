@@ -9,7 +9,7 @@
 # -----------------------------------------------------------------------------
 
 import os
-from StringIO import StringIO
+from io import StringIO
 import json
 from unittest import TestCase, main
 
@@ -163,7 +163,7 @@ class ParseTests(TestCase):
         self.assertEqual(tab.metadata(), None)
         self.assertEqual(tab.metadata(axis='observation'), None)
 
-        tablestring = '''{
+        tablestring = u'''{
             "id":null,
             "format": "Biological Observation Matrix 0.9.1-dev",
             "format_url": "http://biom-format.org",
@@ -356,7 +356,7 @@ K00507	0.0	0.0	Metabolism; Lipid Metabolism; Biosynthesis of unsaturated fatt\
 y acids|Organismal Systems; Endocrine System; PPAR signaling pathway
 """
 
-biom_minimal_sparse = """
+biom_minimal_sparse = u"""
     {
         "id":null,
         "format": "Biological Observation Matrix v0.9",

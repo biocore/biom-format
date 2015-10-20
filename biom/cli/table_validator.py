@@ -34,7 +34,7 @@ class TableValidator(object):
                       'ortholog table', 'gene table', 'metabolite table',
                       'taxon table'])
     MatrixTypes = set(['sparse', 'dense'])
-    ElementTypes = {'int': int, 'str': str, 'float': float, 'unicode': unicode}
+    ElementTypes = {'int': int, 'str': str, 'float': float, 'unicode': str}
     HDF5FormatVersions = set([(2, 0), (2, 0, 0), (2, 1), (2, 1, 0)])
 
     def run(self, **kwargs):
@@ -292,7 +292,10 @@ class TableValidator(object):
 
     def _json_or_hdf5_get(self, table, key):
         if hasattr(table, 'attrs'):
-            return table.attrs.get(key, None)
+            item = table.attrs.get(key, None)
+            if item is not None and isinstance(item, bytes):
+                item = item.decode('utf8')
+            return item
         else:
             return table.get(key, None)
 
@@ -304,11 +307,11 @@ class TableValidator(object):
 
     def _is_int(self, x):
         """Return True if x is an int"""
-        return isinstance(x, int)
+        return isinstance(x, (int, np.int64))
 
     def _valid_nnz(self, table):
         """Check if nnz seems correct"""
-        if not isinstance(table.attrs['nnz'], int):
+        if not self._is_int(table.attrs['nnz']):
             return "nnz is not an integer!"
         if table.attrs['nnz'] < 0:
             return "nnz is negative!"
@@ -352,6 +355,9 @@ class TableValidator(object):
                        "%Y-%m-%dT%H:%M",
                        "%Y-%m-%dT%H:%M:%S",
                        "%Y-%m-%dT%H:%M:%S.%f"]
+        if isinstance(val, bytes):
+            val = val.decode('utf8')
+
         valid_time = False
         for fmt in valid_times:
             try:

@@ -97,6 +97,7 @@ setup(name='biom-format',
       scripts=['scripts/biom'],
       install_requires=["click",
                         "numpy >= 1.3.0",
+                        "future >= 0.14.3",
                         "scipy >= 0.13.0"],
       extras_require={'test': ["nose >= 0.10.1", "flake8"],
                       'hdf5': ["h5py >= 2.2.0"]

@@ -61,15 +61,15 @@ class TestSubsetTable(unittest.TestCase):
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
         obs = subset_table(hdf5_biom='test_data/test.biom', axis='sample',
-                       ids=['Sample1', 'Sample2', 'Sample3'],
-                       json_table_str=None)
+                           ids=[u'Sample1', u'Sample2', u'Sample3'],
+                           json_table_str=None)
         os.chdir(cwd)
         obs = obs[0]
         self.assertEqual(len(obs.ids()), 3)
         self.assertEqual(len(obs.ids(axis='observation')), 5)
-        self.assertTrue('Sample1' in obs.ids())
-        self.assertTrue('Sample2' in obs.ids())
-        self.assertTrue('Sample3' in obs.ids())
+        self.assertTrue(u'Sample1' in obs.ids())
+        self.assertTrue(u'Sample2' in obs.ids())
+        self.assertTrue(u'Sample3' in obs.ids())
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_subset_observations_hdf5(self):
@@ -78,15 +78,15 @@ class TestSubsetTable(unittest.TestCase):
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
         obs = subset_table(hdf5_biom='test_data/test.biom', axis='observation',
-                       ids=['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'],
-                       json_table_str=None)
+                           ids=[u'GG_OTU_1', u'GG_OTU_3', u'GG_OTU_5'],
+                           json_table_str=None)
         os.chdir(cwd)
         obs = obs[0]
         self.assertEqual(len(obs.ids()), 4)
         self.assertEqual(len(obs.ids(axis='observation')), 3)
-        self.assertTrue('GG_OTU_1' in obs.ids(axis='observation'))
-        self.assertTrue('GG_OTU_3' in obs.ids(axis='observation'))
-        self.assertTrue('GG_OTU_5' in obs.ids(axis='observation'))
+        self.assertTrue(u'GG_OTU_1' in obs.ids(axis='observation'))
+        self.assertTrue(u'GG_OTU_3' in obs.ids(axis='observation'))
+        self.assertTrue(u'GG_OTU_5' in obs.ids(axis='observation'))
 
 
 biom1 = ('{"id": "None","format": "Biological Observation Matrix 1.0.0",'
