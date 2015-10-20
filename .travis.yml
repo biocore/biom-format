@@ -1,9 +1,9 @@
 # Modified from https://github.com/biocore/scikit-bio/
 language: python
 env:
-  - PYTHON_VERSION=2.7 USE_H5PY=True
-  - PYTHON_VERSION=2.7 USE_CYTHON=True
-  - PYTHON_VERSION=3.4 USE_H5PY=True
+  - PYTHON_VERSION=2.7 USE_H5PY=True NOSE_ARGS="--with-doctest --with-coverage"
+  - PYTHON_VERSION=2.7 USE_CYTHON=True NOSE_ARGS="--with-doctest --with-coverage"
+  - PYTHON_VERSION=3.4 USE_H5PY=True 
   - PYTHON_VERSION=3.4 USE_CYTHON=True
   - PYTHON_VERSION=3.5 USE_H5PY=True
   - PYTHON_VERSION=3.5 USE_CYTHON=True
@@ -23,7 +23,7 @@ install:
   - pip install coveralls
   - pip install -e . --no-deps
 script:
-  - nosetests --with-doctest --with-coverage
+  - nosetests ${NOSE_ARGS}
   - flake8 biom setup.py scripts
   - biom show-install-info
   - if [ ${PYTHON_VERSION} = "2.7" ]; then make -C doc html; fi
