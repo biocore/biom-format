@@ -219,7 +219,13 @@ def general_parser(x):
 
 def vlen_list_of_str_parser(value):
     """Parses the taxonomy value"""
-    new_value = [v for v in value if v]
+    new_value = []
+    for v in value:
+        if v:
+            if isinstance(v, bytes):
+                v = v.decode('utf8')
+            new_value.append(v)
+
     return new_value if new_value else None
 
 
@@ -3264,6 +3270,9 @@ html
             """Loads all the data of the given group"""
             # fetch all of the IDs
             ids = grp['ids'][:]
+
+            if ids.size > 0 and isinstance(ids[0], bytes):
+                ids = np.array([i.decode('utf8') for i in ids])
 
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser

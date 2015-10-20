@@ -377,46 +377,46 @@ class TableTests(TestCase):
         t = Table.from_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
-        npt.assert_equal(t.ids(), (b'Sample1', b'Sample2', b'Sample3',
-                                   b'Sample4', b'Sample5', b'Sample6'))
+        npt.assert_equal(t.ids(), (u'Sample1', u'Sample2', u'Sample3',
+                                   u'Sample4', u'Sample5', u'Sample6'))
         npt.assert_equal(t.ids(axis='observation'),
-                         (b'GG_OTU_1', b'GG_OTU_2', b'GG_OTU_3',
-                          b'GG_OTU_4', b'GG_OTU_5'))
-        exp_obs_md = ({u'taxonomy': [b'k__Bacteria',
-                                     b'p__Proteobacteria',
-                                     b'c__Gammaproteobacteria',
-                                     b'o__Enterobacteriales',
-                                     b'f__Enterobacteriaceae',
-                                     b'g__Escherichia',
-                                     b's__']},
-                      {u'taxonomy': [b'k__Bacteria',
-                                     b'p__Cyanobacteria',
-                                     b'c__Nostocophycideae',
-                                     b'o__Nostocales',
-                                     b'f__Nostocaceae',
-                                     b'g__Dolichospermum',
-                                     b's__']},
-                      {u'taxonomy': [b'k__Archaea',
-                                     b'p__Euryarchaeota',
-                                     b'c__Methanomicrobia',
-                                     b'o__Methanosarcinales',
-                                     b'f__Methanosarcinaceae',
-                                     b'g__Methanosarcina',
-                                     b's__']},
-                      {u'taxonomy': [b'k__Bacteria',
-                                     b'p__Firmicutes',
-                                     b'c__Clostridia',
-                                     b'o__Halanaerobiales',
-                                     b'f__Halanaerobiaceae',
-                                     b'g__Halanaerobium',
-                                     b's__Halanaerobiumsaccharolyticum']},
-                      {u'taxonomy': [b'k__Bacteria',
-                                     b'p__Proteobacteria',
-                                     b'c__Gammaproteobacteria',
-                                     b'o__Enterobacteriales',
-                                     b'f__Enterobacteriaceae',
-                                     b'g__Escherichia',
-                                     b's__']})
+                         (u'GG_OTU_1', u'GG_OTU_2', u'GG_OTU_3',
+                          u'GG_OTU_4', u'GG_OTU_5'))
+        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
+                                     u'p__Proteobacteria',
+                                     u'c__Gammaproteobacteria',
+                                     u'o__Enterobacteriales',
+                                     u'f__Enterobacteriaceae',
+                                     u'g__Escherichia',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Cyanobacteria',
+                                     u'c__Nostocophycideae',
+                                     u'o__Nostocales',
+                                     u'f__Nostocaceae',
+                                     u'g__Dolichospermum',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Archaea',
+                                     u'p__Euryarchaeota',
+                                     u'c__Methanomicrobia',
+                                     u'o__Methanosarcinales',
+                                     u'f__Methanosarcinaceae',
+                                     u'g__Methanosarcina',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Firmicutes',
+                                     u'c__Clostridia',
+                                     u'o__Halanaerobiales',
+                                     u'f__Halanaerobiaceae',
+                                     u'g__Halanaerobium',
+                                     u's__Halanaerobiumsaccharolyticum']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Proteobacteria',
+                                     u'c__Gammaproteobacteria',
+                                     u'o__Enterobacteriales',
+                                     u'f__Enterobacteriaceae',
+                                     u'g__Escherichia',
+                                     u's__']})
         self.assertEqual(t._observation_metadata, exp_obs_md)
 
         exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
@@ -455,7 +455,7 @@ class TableTests(TestCase):
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5_sample_subset(self):
         """Parse a sample subset of a hdf5 formatted BIOM table"""
-        samples = [b'Sample2', b'Sample4', b'Sample6']
+        samples = [u'Sample2', u'Sample4', u'Sample6']
 
         cwd = os.getcwd()
         if '/' in __file__:
@@ -463,37 +463,37 @@ class TableTests(TestCase):
         t = Table.from_hdf5(h5py.File('test_data/test.biom'), ids=samples)
         os.chdir(cwd)
 
-        npt.assert_equal(t.ids(), [b'Sample2', b'Sample4', b'Sample6'])
+        npt.assert_equal(t.ids(), [u'Sample2', u'Sample4', u'Sample6'])
         npt.assert_equal(t.ids(axis='observation'),
-                         [b'GG_OTU_2', b'GG_OTU_3', b'GG_OTU_4', b'GG_OTU_5'])
-        exp_obs_md = ({u'taxonomy': [b'k__Bacteria',
-                                     b'p__Cyanobacteria',
-                                     b'c__Nostocophycideae',
-                                     b'o__Nostocales',
-                                     b'f__Nostocaceae',
-                                     b'g__Dolichospermum',
-                                     b's__']},
-                      {u'taxonomy': [b'k__Archaea',
-                                     b'p__Euryarchaeota',
-                                     b'c__Methanomicrobia',
-                                     b'o__Methanosarcinales',
-                                     b'f__Methanosarcinaceae',
-                                     b'g__Methanosarcina',
-                                     b's__']},
-                      {u'taxonomy': [b'k__Bacteria',
-                                     b'p__Firmicutes',
-                                     b'c__Clostridia',
-                                     b'o__Halanaerobiales',
-                                     b'f__Halanaerobiaceae',
-                                     b'g__Halanaerobium',
-                                     b's__Halanaerobiumsaccharolyticum']},
-                      {u'taxonomy': [b'k__Bacteria',
-                                     b'p__Proteobacteria',
-                                     b'c__Gammaproteobacteria',
-                                     b'o__Enterobacteriales',
-                                     b'f__Enterobacteriaceae',
-                                     b'g__Escherichia',
-                                     b's__']})
+                         [u'GG_OTU_2', u'GG_OTU_3', u'GG_OTU_4', u'GG_OTU_5'])
+        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
+                                     u'p__Cyanobacteria',
+                                     u'c__Nostocophycideae',
+                                     u'o__Nostocales',
+                                     u'f__Nostocaceae',
+                                     u'g__Dolichospermum',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Archaea',
+                                     u'p__Euryarchaeota',
+                                     u'c__Methanomicrobia',
+                                     u'o__Methanosarcinales',
+                                     u'f__Methanosarcinaceae',
+                                     u'g__Methanosarcina',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Firmicutes',
+                                     u'c__Clostridia',
+                                     u'o__Halanaerobiales',
+                                     u'f__Halanaerobiaceae',
+                                     u'g__Halanaerobium',
+                                     u's__Halanaerobiumsaccharolyticum']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Proteobacteria',
+                                     u'c__Gammaproteobacteria',
+                                     u'o__Enterobacteriales',
+                                     u'f__Enterobacteriaceae',
+                                     u'g__Escherichia',
+                                     u's__']})
         self.assertEqual(t._observation_metadata, exp_obs_md)
 
         exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
@@ -519,7 +519,7 @@ class TableTests(TestCase):
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5_observation_subset(self):
         """Parse a observation subset of a hdf5 formatted BIOM table"""
-        observations = [b'GG_OTU_1', b'GG_OTU_3', b'GG_OTU_5']
+        observations = [u'GG_OTU_1', u'GG_OTU_3', u'GG_OTU_5']
 
         cwd = os.getcwd()
         if '/' in __file__:
@@ -528,31 +528,31 @@ class TableTests(TestCase):
                             ids=observations, axis='observation')
         os.chdir(cwd)
 
-        npt.assert_equal(t.ids(), [b'Sample2', b'Sample3', b'Sample4',
-                                   b'Sample6'])
+        npt.assert_equal(t.ids(), [u'Sample2', u'Sample3', u'Sample4',
+                                   u'Sample6'])
         npt.assert_equal(t.ids(axis='observation'),
-                         [b'GG_OTU_1', b'GG_OTU_3', b'GG_OTU_5'])
-        exp_obs_md = ({u'taxonomy': [b'k__Bacteria',
-                                     b'p__Proteobacteria',
-                                     b'c__Gammaproteobacteria',
-                                     b'o__Enterobacteriales',
-                                     b'f__Enterobacteriaceae',
-                                     b'g__Escherichia',
-                                     b's__']},
-                      {u'taxonomy': [b'k__Archaea',
-                                     b'p__Euryarchaeota',
-                                     b'c__Methanomicrobia',
-                                     b'o__Methanosarcinales',
-                                     b'f__Methanosarcinaceae',
-                                     b'g__Methanosarcina',
-                                     b's__']},
-                      {u'taxonomy': [b'k__Bacteria',
-                                     b'p__Proteobacteria',
-                                     b'c__Gammaproteobacteria',
-                                     b'o__Enterobacteriales',
-                                     b'f__Enterobacteriaceae',
-                                     b'g__Escherichia',
-                                     b's__']})
+                         [u'GG_OTU_1', u'GG_OTU_3', u'GG_OTU_5'])
+        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
+                                     u'p__Proteobacteria',
+                                     u'c__Gammaproteobacteria',
+                                     u'o__Enterobacteriales',
+                                     u'f__Enterobacteriaceae',
+                                     u'g__Escherichia',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Archaea',
+                                     u'p__Euryarchaeota',
+                                     u'c__Methanomicrobia',
+                                     u'o__Methanosarcinales',
+                                     u'f__Methanosarcinaceae',
+                                     u'g__Methanosarcina',
+                                     u's__']},
+                      {u'taxonomy': [u'k__Bacteria',
+                                     u'p__Proteobacteria',
+                                     u'c__Gammaproteobacteria',
+                                     u'o__Enterobacteriales',
+                                     u'f__Enterobacteriaceae',
+                                     u'g__Escherichia',
+                                     u's__']})
         self.assertEqual(t._observation_metadata, exp_obs_md)
 
         exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
