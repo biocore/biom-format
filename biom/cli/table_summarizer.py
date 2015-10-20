@@ -23,7 +23,7 @@ def summarize_table(table, qualitative=False, observations=False):
         compute_counts_per_sample_stats(table, qualitative)
     num_observations = len(table.ids(axis='observation'))
 
-    counts_per_sample_values = counts_per_samp.values()
+    counts_per_sample_values = list(counts_per_samp.values())
 
     if table.metadata() is None:
         sample_md_keys = ["None provided"]

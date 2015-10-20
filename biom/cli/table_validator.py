@@ -34,7 +34,7 @@ class TableValidator(object):
                       'ortholog table', 'gene table', 'metabolite table',
                       'taxon table'])
     MatrixTypes = set(['sparse', 'dense'])
-    ElementTypes = {'int': int, 'str': str, 'float': float, 'unicode': unicode}
+    ElementTypes = {'int': int, 'str': str, 'float': float, 'unicode': str}
     HDF5FormatVersions = set([(2, 0), (2, 0, 0), (2, 1), (2, 1, 0)])
 
     def run(self, **kwargs):
