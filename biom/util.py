@@ -25,10 +25,10 @@ try:
     HAVE_H5PY = True
 
     if sys.version_info.major == 2:
-        H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
+        H5PY_VLEN_STR = h5py.special_dtype(vlen=unicode)  # noqa
         H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=unicode)  # noqa
     else:
-        H5PY_VLEN_STR = h5py.special_dtype(vlen=bytes)
+        H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
         H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=str)
 
 except ImportError:

@@ -228,15 +228,10 @@ def general_formatter(grp, header, md, compression):
     test_val = md[0][header]
     shape = (len(md),)
     name = 'metadata/%s' % header
-    if isinstance(test_val, unicode):
-        grp.create_dataset(name, shape=shape,
-                           dtype=H5PY_VLEN_UNICODE,
-                           compression=compression)
-        grp[name][:] = [m[header] for m in md]
-    elif isinstance(test_val, str):
+    if isinstance(test_val, string_types):
         grp.create_dataset(name, shape=shape,
                            dtype=H5PY_VLEN_STR,
-                           data=[m[header] for m in md],
+                           data=[m[header].encode('utf8') for m in md],
                            compression=compression)
     else:
         grp.create_dataset(
@@ -273,7 +268,7 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
         if m[header] is None:
             continue
         value = np.asarray(m[header])
-        data[i, :len(value)] = value
+        data[i, :len(value)] = [str(v).encode('utf8') for v in value]
     # Change the None entries on data to empty strings ""
     data = np.where(data == np.array(None), "", data)
     grp.create_dataset(
@@ -1325,11 +1320,16 @@ class Table(object):
             OTU1\t10\t2
             OTU2\t4\t8
         """
+        def to_utf8(i):
+            if isinstance(i, bytes):
+                return i.decode('utf8')
+            else:
+                return str(i)
+
         if self.is_empty():
             raise TableException("Cannot delimit self if I don't have data...")
 
-        samp_ids = delim.join(map(str, self.ids()))
-
+        samp_ids = delim.join([to_utf8(i) for i in self.ids()])
         # 17 hrs of straight programming later...
         if header_key is not None:
             if header_value is None:
@@ -1348,12 +1348,11 @@ class Table(object):
         else:
             output = ['# Constructed from biom file',
                       '%s%s%s' % (observation_column_name, delim, samp_ids)]
-
         obs_metadata = self.metadata(axis='observation')
         for obs_id, obs_values in zip(self.ids(axis='observation'),
                                       self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
-
+            obs_id = to_utf8(obs_id)
             if header_key and obs_metadata is not None:
                 md = obs_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
@@ -3314,6 +3313,7 @@ html
                     # Retrieve only the ids that we are interested on
                     ids = source_ids[idx]
                     # Check that all desired ids have been found on source ids
+
                     if ids.shape != desired_ids.shape:
                         raise ValueError("The following ids could not be "
                                          "found in the biom table: %s" %
@@ -3545,7 +3545,7 @@ html
                 # is cleaner, as is the parse
                 grp.create_dataset('ids', shape=(len_ids,),
                                    dtype=H5PY_VLEN_STR,
-                                   data=[str(i) for i in ids],
+                                   data=[str(i).encode('utf8') for i in ids],
                                    compression=compression)
             else:
                 # Empty H5PY_VLEN_STR datasets are not supported.
