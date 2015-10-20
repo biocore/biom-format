@@ -8,6 +8,9 @@
 
 from __future__ import division
 
+import biom.parse
+from biom.cli.util import write_biom_table
+
 table_types = ["OTU table",
                "Pathway table",
                "Function table",
@@ -30,17 +33,26 @@ observation_metadata_formatters = {
 }
 
 
-def convert(table, sample_metadata, observation_metadata,
-            to_json, to_hdf5, to_tsv, collapsed_samples,
-            collapsed_observations, header_key, output_metadata_id, table_type,
-            process_obs_metadata, tsv_metadata_formatter):
+def convert(table, output_filepath, sample_metadata=None,
+            observation_metadata=None,
+            to_json=False, to_hdf5=False, to_tsv=False,
+            collapsed_samples=False, collapsed_observations=False,
+            header_key=None, output_metadata_id=None, table_type=None,
+            process_obs_metadata=None, tsv_metadata_formatter='sc_separated'):
 
     if sum([to_tsv, to_hdf5, to_json]) == 0:
         raise ValueError("Must specify an output format")
     elif sum([to_tsv, to_hdf5, to_json]) > 1:
         raise ValueError("Can only specify a single output format")
 
-    table.type = table_type
+    if table_type is None:
+        if table.type in [None, "None"]:
+            table.type = "Table"
+        else:
+            pass
+    else:
+        table.type = table_type
+
     if tsv_metadata_formatter is not None:
         obs_md_fmt_f = observation_metadata_formatters[tsv_metadata_formatter]
 
@@ -75,9 +87,14 @@ def convert(table, sample_metadata, observation_metadata,
         result = table.to_tsv(header_key=header_key,
                               header_value=output_metadata_id,
                               metadata_formatter=obs_md_fmt_f)
+        with open(output_filepath, 'w') as f:
+            f.write(result)
+        return
     elif to_json:
+        fmt = 'json'
         result = table
     elif to_hdf5:
+        fmt = 'hdf5'
         result = table
         if collapsed_observations:
             metadata = [{'collapsed_ids': md.keys()}
@@ -91,5 +108,6 @@ def convert(table, sample_metadata, observation_metadata,
             # We have changed the metadata, it is safer to make sure that
             # it is correct
             result._cast_metadata()
+    write_biom_table(result, fmt, output_filepath)
 
-    return result
+    return

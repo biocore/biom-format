@@ -199,7 +199,7 @@ def add_metadata(input_fp, output_fp, sample_metadata_fp,
               help='The name to be given to the observation metadata '
                    'column when creating a tsv table file if the column '
                    'should be renamed.')
-@click.option('--table-type', required=False, default="Table",
+@click.option('--table-type', required=False,
               type=click.Choice(biom.cli.table_converter.table_types),
               help='The type of the table.')
 @click.option('--process-obs-metadata', required=False,
@@ -253,13 +253,12 @@ def convert(input_fp, output_fp, sample_metadata_fp, observation_metadata_fp,
     else:
         observation_metadata_f = None
 
-    result = biom.cli.convert(table, sample_metadata_f, observation_metadata_f,
-                              to_json, to_hdf5, to_tsv, collapsed_samples,
-                              collapsed_observations, header_key,
-                              output_metadata_id, table_type,
-                              process_obs_metadata, tsv_metadata_formatter)
-
-    biom.cli.write_biom_table(result, fmt, output_fp)
+    biom.cli.convert(table, output_fp, sample_metadata_f,
+                     observation_metadata_f,
+                     to_json, to_hdf5, to_tsv, collapsed_samples,
+                     collapsed_observations, header_key,
+                     output_metadata_id, table_type,
+                     process_obs_metadata, tsv_metadata_formatter)
 
 @cli.command(name='show-install-info')
 def show_install_info():
