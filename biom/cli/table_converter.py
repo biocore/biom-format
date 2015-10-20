@@ -54,8 +54,8 @@ def convert(table, sample_metadata, observation_metadata,
     if process_obs_metadata is not None and not to_tsv:
         if table.metadata(axis='observation') is None:
             raise ValueError("Observation metadata processing requested "
-                               "but it doesn't appear that there is any "
-                               "metadata to operate on!")
+                             "but it doesn't appear that there is any "
+                             "metadata to operate on!")
 
         # and if this came in as TSV, then we expect only a single type of
         # metadata
@@ -75,10 +75,8 @@ def convert(table, sample_metadata, observation_metadata,
         result = table.to_tsv(header_key=header_key,
                               header_value=output_metadata_id,
                               metadata_formatter=obs_md_fmt_f)
-        fmt = 'tsv'
     elif to_json:
         result = table
-        fmt = 'json'
     elif to_hdf5:
         result = table
         if collapsed_observations:
@@ -93,6 +91,5 @@ def convert(table, sample_metadata, observation_metadata,
             # We have changed the metadata, it is safer to make sure that
             # it is correct
             result._cast_metadata()
-        fmt = 'hdf5'
 
     return result
