@@ -12,6 +12,9 @@ New Features:
 
 * `Table.head` has been added to retrieve the first few rows and or columns
     from a table, see issue #639.
+* Codebase now uses [click](http://click.pocoo.org) instead of
+  [pyqi](https://github.com/biocore/pyqi) to create interfaces
+* `biom-serve` and the accompanying html interface has been removed
 
 Bug fixes:
 

@@ -1,43 +1,31 @@
-#!/usr/bin/env python
-
 # -----------------------------------------------------------------------------
-# Copyright (c) 2011-2013, The BIOM Format Development Team.
+# Copyright (c) 2011-2015, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-__author__ = "Jai Ram Rideout"
-__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Jai Ram Rideout"]
-__license__ = "BSD"
-__url__ = "http://biom-format.org"
-__maintainer__ = "Jai Ram Rideout"
-__email__ = "jai.rideout@gmail.com"
-
 import os
-from pyqi.core.exception import CommandError
-from biom.commands.table_subsetter import TableSubsetter
-from biom.parse import parse_biom_table
-from unittest import TestCase, main
+import unittest
+
 import numpy.testing as npt
+
+from biom.cli import subset_table
+from biom.parse import parse_biom_table
 from biom.util import HAVE_H5PY
 
 
-class TableSubsetterTests(TestCase):
-
+class TestSubsetTable(unittest.TestCase):
     def setUp(self):
         """Set up data for use in unit tests."""
-        self.cmd = TableSubsetter()
         self.biom_str1 = biom1
 
     def test_subset_samples(self):
         """Correctly subsets samples in a table."""
-        obs = self.cmd(json_table_str=self.biom_str1, axis='sample',
-                       ids=['f4', 'f2'])
-        self.assertEqual(obs.keys(), ['subsetted_table'])
-        obs = parse_biom_table(list(obs['subsetted_table'][0]))
+        obs = subset_table(json_table_str=self.biom_str1, axis='sample',
+                       ids=['f4', 'f2'], hdf5_biom=None)
+        obs = parse_biom_table(list(obs[0]))
         self.assertEqual(len(obs.ids()), 2)
         self.assertEqual(len(obs.ids(axis='observation')), 14)
         self.assertTrue('f4' in obs.ids())
@@ -45,10 +33,9 @@ class TableSubsetterTests(TestCase):
 
     def test_subset_observations(self):
         """Correctly subsets observations in a table."""
-        obs = self.cmd(json_table_str=self.biom_str1, axis='observation',
-                       ids=['None2', '879972'])
-        self.assertEqual(obs.keys(), ['subsetted_table'])
-        obs = parse_biom_table(list(obs['subsetted_table'][0]))
+        obs = subset_table(json_table_str=self.biom_str1, axis='observation',
+                       ids=['None2', '879972'], hdf5_biom=None)
+        obs = parse_biom_table(list(obs[0]))
         self.assertEqual(len(obs.ids()), 9)
         self.assertEqual(len(obs.ids(axis='observation')), 2)
         self.assertTrue('None2' in obs.ids(axis='observation'))
@@ -56,15 +43,15 @@ class TableSubsetterTests(TestCase):
 
     def test_invalid_input(self):
         """Correctly raises politically correct error upon invalid input."""
-        with self.assertRaises(CommandError):
-            self.cmd(json_table_str=self.biom_str1, axis='foo',
+        with self.assertRaises(ValueError):
+            subset_table(hdf5_biom=None, json_table_str=self.biom_str1, axis='foo',
                      ids=['f2', 'f4'])
 
-        with self.assertRaises(CommandError):
-            self.cmd(axis='sample', ids=['f2', 'f4'])
+        with self.assertRaises(ValueError):
+            subset_table(hdf5_biom=None, json_table_str=None, axis='sample', ids=['f2', 'f4'])
 
-        with self.assertRaises(CommandError):
-            self.cmd(json_table_str=self.biom_str1, hdf5_table='foo',
+        with self.assertRaises(ValueError):
+            subset_table(json_table_str=self.biom_str1, hdf5_biom='foo',
                      axis='sample', ids=['f2', 'f4'])
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
@@ -73,11 +60,11 @@ class TableSubsetterTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        obs = self.cmd(hdf5_table='test_data/test.biom', axis='sample',
-                       ids=['Sample1', 'Sample2', 'Sample3'])
+        obs = subset_table(hdf5_biom='test_data/test.biom', axis='sample',
+                       ids=['Sample1', 'Sample2', 'Sample3'],
+                       json_table_str=None)
         os.chdir(cwd)
-        self.assertEqual(obs.keys(), ['subsetted_table'])
-        obs = obs['subsetted_table'][0]
+        obs = obs[0]
         self.assertEqual(len(obs.ids()), 3)
         self.assertEqual(len(obs.ids(axis='observation')), 5)
         self.assertTrue('Sample1' in obs.ids())
@@ -90,11 +77,11 @@ class TableSubsetterTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        obs = self.cmd(hdf5_table='test_data/test.biom', axis='observation',
-                       ids=['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'])
+        obs = subset_table(hdf5_biom='test_data/test.biom', axis='observation',
+                       ids=['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'],
+                       json_table_str=None)
         os.chdir(cwd)
-        self.assertEqual(obs.keys(), ['subsetted_table'])
-        obs = obs['subsetted_table'][0]
+        obs = obs[0]
         self.assertEqual(len(obs.ids()), 4)
         self.assertEqual(len(obs.ids(axis='observation')), 3)
         self.assertTrue('GG_OTU_1' in obs.ids(axis='observation'))
@@ -131,6 +118,5 @@ biom1 = ('{"id": "None","format": "Biological Observation Matrix 1.0.0",'
          ' "p1", "metadata": null},{"id": "t1", "metadata": null},{"id": '
          '"not16S.1", "metadata": null},{"id": "t2", "metadata": null}]}')
 
-
 if __name__ == "__main__":
-    main()
+    unittest.main()

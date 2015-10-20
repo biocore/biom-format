@@ -24,7 +24,7 @@ from shutil import copy
 
 import numpy.testing as npt
 
-from biom.commands.table_validator import TableValidator
+from biom.cli.table_validator import TableValidator
 from biom.util import HAVE_H5PY
 
 

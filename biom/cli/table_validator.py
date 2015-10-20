@@ -16,50 +16,18 @@ from operator import and_
 from functools import reduce
 
 import numpy as np
-from pyqi.core.command import (Command, CommandIn, CommandOut,
-                               ParameterCollection)
 
 from biom.util import HAVE_H5PY, biom_open, is_hdf5_file
 
 
-__author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Daniel McDonald", "Jose Clemente", "Greg Caporaso",
-               "Jai Ram Rideout", "Justin Kuczynski", "Andreas Wilke",
-               "Tobias Paczian", "Rob Knight", "Folker Meyer", "Sue Huse",
-               "Jorge Cañardo Alastuey"]
-__license__ = "BSD"
-__url__ = "http://biom-format.org"
-__author__ = "Daniel McDonald"
-__email__ = "daniel.mcdonald@colorado.edu"
+def validate_table(input_fp, format_version=None, detailed_report=False):
+    result = TableValidator()(table=input_fp, format_version=format_version,
+                              detailed_report=detailed_report)
+    return result['valid_table'], result['report_lines']
 
 
-class TableValidator(Command):
-    BriefDescription = "Validate a BIOM-formatted file"
-    LongDescription = ("Test a file for adherence to the Biological "
-                       "Observation Matrix (BIOM) format specification. This "
-                       "specification is defined at http://biom-format.org")
-
-    CommandIns = ParameterCollection([
-        CommandIn(Name='table', DataType=object,
-                  Description='the input BIOM JSON object (e.g., the output '
-                  'of json.load)', Required=True),
-        CommandIn(Name='format_version', DataType=str,
-                  Description='the specific format version to validate '
-                  'against', Required=False, Default=None),
-        CommandIn(Name='detailed_report', DataType=bool,
-                  Description='include more details in the output report',
-                  Required=False, Default=False)
-    ])
-
-    CommandOuts = ParameterCollection([
-        CommandOut(Name='valid_table',
-                   Description='Is the table valid?',
-                   DataType=bool),
-        CommandOut(Name='report_lines',
-                   Description='Detailed report',
-                   DataType=list)
-    ])
+# Refactor in the future. Also need to address #664
+class TableValidator(object):
 
     FormatURL = "http://biom-format.org"
     TableTypes = set(['otu table', 'pathway table', 'function table',
@@ -86,8 +54,6 @@ class TableValidator(Command):
                 raise ValueError("Unrecognized format version: %s" %
                                  kwargs['format_version'])
 
-        # this is not pyqi-appriopriate, but how we parse this thing is
-        # dependent on runtime options :(
         with biom_open(kwargs['table']) as f:
             if is_json:
                 kwargs['table'] = json.load(f)
@@ -104,6 +70,10 @@ class TableValidator(Command):
             else:
                 raise IOError("h5py is not installed, can only validate JSON "
                               "tables")
+
+    def __call__(self, table, format_version=None, detailed_report=False):
+        return self.run(table=table, format_version=format_version,
+                        detailed_report=detailed_report)
 
     def _validate_hdf5(self, **kwargs):
         table = kwargs['table']
@@ -560,5 +530,3 @@ class TableValidator(Command):
             return self._valid_dense_data(table_json)
         else:
             return "Unknown matrix type"
-
-CommandConstructor = TableValidator

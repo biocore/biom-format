@@ -1,34 +1,29 @@
 #!/usr/bin/env python
 
 # -----------------------------------------------------------------------------
-# Copyright (c) 2011-2013, The BIOM Format Development Team.
+# Copyright (c) 2011-2015, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-__author__ = "Jai Ram Rideout"
-__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
-__credits__ = ["Jai Ram Rideout", "Jose Antonio Navas Molina"]
-__license__ = "BSD"
-__url__ = "http://biom-format.org"
-__maintainer__ = "Jai Ram Rideout"
-__email__ = "jai.rideout@gmail.com"
-
-from pyqi.core.exception import CommandError
-from biom.commands.metadata_adder import MetadataAdder
-from biom.parse import parse_biom_table
+import tempfile
 from unittest import TestCase, main
 
+import biom
+from biom.cli import add_metadata
 
-class MetadataAdderTests(TestCase):
+
+class TestAddMetadata(TestCase):
 
     def setUp(self):
         """Set up data for use in unit tests."""
-        self.cmd = MetadataAdder()
-        self.biom_lines1 = biom1
-        self.biom_table1 = parse_biom_table(self.biom_lines1)
+        self.cmd = add_metadata
+        with tempfile.NamedTemporaryFile() as fh:
+            fh.write(biom1)
+            fh.flush()
+            self.biom_table1 = biom.load_table(fh.name)
         self.sample_md_lines1 = sample_md1.split('\n')
         self.obs_md_lines1 = obs_md1.split('\n')
 
@@ -38,15 +33,12 @@ class MetadataAdderTests(TestCase):
         # sample metadata to begin with. Don't perform any casting.
         obs = self.cmd(table=self.biom_table1,
                        sample_metadata=self.sample_md_lines1)
-        self.assertEqual(obs.keys(), ['table'])
 
-        obs, fmt = obs['table']
         self.assertEqual(obs.metadata()[obs.index('f4', 'sample')],
                          {'bar': '0.23', 'foo': '9', 'baz': 'abc;123'})
         self.assertEqual(obs.metadata()[obs.index('not16S.1', 'sample')],
                          {'bar': '-4.2', 'foo': '0', 'baz': '123;abc'})
         self.assertEqual(obs.metadata()[obs.index('f2', 'sample')], {})
-        self.assertEqual(fmt, 'hdf5')
 
     def test_add_sample_metadata_with_casting(self):
         """Correctly adds sample metadata with casting."""
@@ -54,15 +46,12 @@ class MetadataAdderTests(TestCase):
                        sample_metadata=self.sample_md_lines1,
                        sc_separated=['baz'], int_fields=['foo'],
                        float_fields=['bar'])
-        self.assertEqual(obs.keys(), ['table'])
 
-        obs, fmt = obs['table']
         self.assertEqual(obs.metadata()[obs.index('f4', 'sample')],
                          {'bar': 0.23, 'foo': 9, 'baz': ['abc', '123']})
         self.assertEqual(obs.metadata()[obs.index('not16S.1', 'sample')],
                          {'bar': -4.2, 'foo': 0, 'baz': ['123', 'abc']})
         self.assertEqual(obs.metadata()[obs.index('f2', 'sample')], {})
-        self.assertEqual(fmt, 'hdf5')
 
     def test_add_observation_metadata_no_casting(self):
         """Correctly adds observation metadata without casting it."""
@@ -71,11 +60,8 @@ class MetadataAdderTests(TestCase):
         # observations that aren't in the table are included. Don't perform any
         # casting.
         obs = self.cmd(table=self.biom_table1,
-                       observation_metadata=self.obs_md_lines1,
-                       output_as_json=True)
-        self.assertEqual(obs.keys(), ['table'])
+                       observation_metadata=self.obs_md_lines1)
 
-        obs, fmt = obs['table']
         metadata = obs.metadata(axis='observation')
         self.assertEqual(
             metadata[obs.index('None7', 'observation')],
@@ -86,16 +72,13 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(
             metadata[obs.index('None8', 'observation')],
             {'taxonomy': ['k__Bacteria']})
-        self.assertEqual(fmt, 'json')
 
     def test_add_observation_metadata_with_casting(self):
         """Correctly adds observation metadata with casting."""
         obs = self.cmd(table=self.biom_table1,
                        observation_metadata=self.obs_md_lines1,
                        sc_pipe_separated=['taxonomy'], int_fields=['foo'])
-        self.assertEqual(obs.keys(), ['table'])
 
-        obs, fmt = obs['table']
         metadata = obs.metadata(axis='observation')
         self.assertEqual(
             metadata[obs.index('None7', 'observation')],
@@ -106,12 +89,6 @@ class MetadataAdderTests(TestCase):
         self.assertEqual(
             metadata[obs.index('None8', 'observation')],
             {'taxonomy': ['k__Bacteria']})
-        self.assertEqual(fmt, 'hdf5')
-
-    def test_no_metadata(self):
-        """Correctly raises error when not provided any metadata."""
-        with self.assertRaises(CommandError):
-            self.cmd(table=self.biom_table1)
 
 
 biom1 = ('{"id": "None","format": "Biological Observation Matrix 1.0.0","form'
