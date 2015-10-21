@@ -1,24 +1,36 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.4-dev
---------------
+biom 2.1.5
+----------
+
+New features and bug fixes, released on 21 October 2015.
 
 Changes:
 
-* Codebase is now Python 3 compatible.
+* Codebase is now Python 2/3 compatible. It is currently tested with Python
+  versions 2.7, 3.4 and 3.5.
+* `biom-serve` and the accompanying html interface has been removed.
 
 New Features:
 
 * `Table.head` has been added to retrieve the first few rows and or columns
-    from a table, see issue #639.
+  from a table. This can be accessed through the new ``biom head`` command.
+  See [issue #639](https://github.com/biocore/biom-format/issues/639).
+* ``biom.parse.from_uc`` has been added to support creation of ``biom.Table``
+  objects from vsearch/uclust/usearch ``.uc`` files. This can be accessed
+  through the new ``biom from-uc`` command. See
+  [issue #648](https://github.com/biocore/biom-format/issues/648).
 * Codebase now uses [click](http://click.pocoo.org) instead of
-  [pyqi](https://github.com/biocore/pyqi) to create interfaces
-* `biom-serve` and the accompanying html interface has been removed
+  [pyqi](https://github.com/biocore/pyqi) for its command line interface.
+  See [issue #631](https://github.com/biocore/biom-format/issues/631).
 
 Bug fixes:
 
-* `Table.update_ids` strict check was too aggressive. See #633
+* `Table.update_ids` strict check was too aggressive. See
+ [issue #633](https://github.com/biocore/biom-format/issues/633).
+* `biom --version` now prints the software version (previously the individual
+  commands did this, but not the base command).
 
 biom 2.1.4
 ----------
