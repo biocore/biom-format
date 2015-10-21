@@ -62,8 +62,10 @@ def from_uc(input_fp, output_fp, rep_set_fp):
 
     """
     input_f = open(input_fp, 'U')
-    if rep_set_f is not None:
-        rep_set_f = open(rep_set_f, 'U')
+    if rep_set_fp is not None:
+        rep_set_f = open(rep_set_fp, 'U')
+    else:
+        rep_set_f = None
     table = _from_uc(input_f, rep_set_f)
     write_biom_table(table, 'hdf5', output_fp)
 
