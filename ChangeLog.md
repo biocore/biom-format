@@ -1,6 +1,11 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1.5-dev
+--------------
+
+Changes since biom 2.1.5 go here.
+
 biom 2.1.5
 ----------
 
