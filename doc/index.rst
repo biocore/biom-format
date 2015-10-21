@@ -59,10 +59,6 @@ To work with BIOM 2.0+ files::
 
     pip install h5py
 
-Equivalently, you can use the ``conda`` package manager available in `Anaconda <http://continuum.io/downloads>`_ or `miniconda <http://conda.pydata.org/miniconda.html>`_ to install ``biom-format`` and its dependencies without having to compile them::
-
-    conda install biom-format
-
 To see a list of all ``biom`` commands, run::
 
     biom
