@@ -10,6 +10,7 @@
 # ----------------------------------------------------------------------------
 
 import os
+import sys
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 
@@ -78,6 +79,13 @@ if USE_CYTHON:
     from Cython.Build import cythonize
     extensions = cythonize(extensions)
 
+install_requires = ["click", "numpy >= 1.3.0", "future >= 0.14.3",
+                    "scipy >= 0.13.0"]
+# HACK: for backward-compatibility with QIIME 1.9.x, pyqi must be installed.
+# pyqi is not used anymore in this project.
+if sys.version_info[0] < 3:
+    install_requires.append("pyqi")
+
 setup(name='biom-format',
       version=__version__,
       description='Biological Observation Matrix (BIOM) format',
@@ -93,10 +101,7 @@ setup(name='biom-format',
       include_package_data=True,
       ext_modules=extensions,
       include_dirs=[np.get_include()],
-      install_requires=["click",
-                        "numpy >= 1.3.0",
-                        "future >= 0.14.3",
-                        "scipy >= 0.13.0"],
+      install_requires=install_requires,
       extras_require={'test': ["nose >= 0.10.1", "flake8"],
                       'hdf5': ["h5py >= 2.2.0"]
                       },
