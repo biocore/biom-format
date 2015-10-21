@@ -61,12 +61,18 @@ def from_uc(input_fp, output_fp, rep_set_fp):
     $ biom from-uc -i in.uc -o out.biom --rep-set-fp rep-set.fna
 
     """
-    with open(input_fp, 'U') as f:
-        table = parse_uc(f)
+    input_f = open(input_fp, 'U')
+    if rep_set_f is not None:
+        rep_set_f = open(rep_set_f, 'U')
+    table = _from_uc(input_f, rep_set_f)
+    write_biom_table(table, 'hdf5', output_fp)
 
-    if rep_set_fp is not None:
-        with open(rep_set_fp, 'U') as f:
-            obs_id_map = _id_map_from_fasta(f)
+
+def _from_uc(input_f, rep_set_f=None):
+    table = parse_uc(input_f)
+
+    if rep_set_f is not None:
+        obs_id_map = _id_map_from_fasta(rep_set_f)
         try:
             table.update_ids(obs_id_map, axis='observation', strict=True,
                              inplace=True)
@@ -75,4 +81,4 @@ def from_uc(input_fp, output_fp, rep_set_fp):
                              'file are present in description fields in the '
                              'representative sequence fasta file.')
 
-    write_biom_table(table, 'hdf5', output_fp)
+    return table
