@@ -18,6 +18,7 @@ install:
   - if [ ${USE_H5PY} ]; then conda install --yes -n env_name h5py>=2.2.0; fi
   - if [ ${PYTHON_VERSION} = "2.7" ]; then conda install --yes -n env_name Sphinx=1.2.2; fi
   - source activate env_name
+  - if [ ${PYTHON_VERSION} = "2.7" ]; then pip install pyqi; fi
   - pip install coveralls
   - pip install -e . --no-deps
 script:
