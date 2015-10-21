@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.1',
+        VERSION:     '2.1.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table.to_hdf5<a class="headerlink" href="#biom-table-table-to-hdf5" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="biom.table.Table.to_hdf5">
-<tt class="descclassname">Table.</tt><tt class="descname">to_hdf5</tt><big>(</big><em>h5grp</em>, <em>generated_by</em>, <em>compress=True</em><big>)</big><a class="headerlink" href="#biom.table.Table.to_hdf5" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Table.</tt><tt class="descname">to_hdf5</tt><big>(</big><em>h5grp</em>, <em>generated_by</em>, <em>compress=True</em>, <em>format_fs=None</em><big>)</big><a class="headerlink" href="#biom.table.Table.to_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Store CSC and CSR in place</p>
 <p>The resulting structure of this group is below. A few basic
 definitions, N is the number of observations and M is the number of
@@ -78,9 +78,19 @@ observation oriented operations) and compressed sparse column <a class="referenc
 <div><p>A description of what generated the table</p>
 </div></blockquote>
 <p><strong>compress</strong> : bool, optional</p>
-<blockquote class="last">
+<blockquote>
 <div><p>Defaults to <tt class="docutils literal"><span class="pre">True</span></tt> means fields will be compressed with gzip,
 <tt class="docutils literal"><span class="pre">False</span></tt> means no compression</p>
+</div></blockquote>
+<p><strong>format_fs</strong> : dict, optional</p>
+<blockquote class="last">
+<div><p>Specify custom formatting functions for metadata fields. This dict
+is expected to be {&#8216;metadata_field&#8217;: function}, where the function
+signature is (h5py.Group, str, dict, bool) corresponding to the
+specific HDF5 group the metadata dataset will be associated with,
+the category being operated on, the metadata for the entire axis
+being operated on, and whether to enable compression on the
+dataset.  Anything returned by this function is ignored.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -91,69 +101,24 @@ observation oriented operations) and compressed sparse column <a class="referenc
 <p class="last"><a class="reference internal" href="biom.table.Table.from_hdf5.html#biom.table.Table.from_hdf5" title="biom.table.Table.from_hdf5"><tt class="xref py py-obj docutils literal"><span class="pre">Table.from_hdf5</span></tt></a></p>
 </div>
 <p class="rubric">Notes</p>
-<p>The expected HDF5 group structure is below. An example of an HDF5 file
-in DDL can be found here <a class="reference internal" href="#r12" id="id3">[R12]</a>.</p>
-<ul class="simple">
-<li>./id                                                  : str, an arbitrary ID</li>
-<li>./type                                                : str, the table type (e.g, OTU table)</li>
-<li>./format-url                                          : str, a URL that describes the format</li>
-<li>./format-version                                      : two element tuple of int32, major and minor</li>
-<li>./generated-by                                        : str, what generated this file</li>
-<li>./creation-date                                       : str, ISO format</li>
-<li>./shape                                               : two element tuple of int32, N by M</li>
-<li>./nnz                                                 : int32 or int64, number of non zero elems</li>
-<li>./observation                                         : Group</li>
-<li>./observation/ids                                     : (N,) dataset of str or vlen str</li>
-<li>./observation/matrix                                  : Group</li>
-<li>./observation/matrix/data                             : (nnz,) dataset of float64</li>
-<li>./observation/matrix/indices                          : (nnz,) dataset of int32</li>
-<li>./observation/matrix/indptr                           : (M+1,) dataset of int32</li>
-<li>./observation/metadata                                : Group</li>
-<li>[./observation/metadata/foo]                          : Optional, (N,) dataset of any valid HDF5 type in index order with IDs.</li>
-<li>./observation/group-metadata                          : Group</li>
-<li>[./observation/group-metadata/foo]                    : Optional, (?,) dataset of group metadata that relates IDs</li>
-<li>[./observation/group-metadata/foo.attrs[&#8216;data_type&#8217;]] : attribute of the foo dataset that describes contained type (e.g., newick)</li>
-<li>./sample                                              : Group</li>
-<li>./sample/ids                                          : (M,) dataset of str or vlen str</li>
-<li>./sample/matrix                                       : Group</li>
-<li>./sample/matrix/data                                  : (nnz,) dataset of float64</li>
-<li>./sample/matrix/indices                               : (nnz,) dataset of int32</li>
-<li>./sample/matrix/indptr                                : (N+1,) dataset of int32</li>
-<li>./sample/metadata                                     : Group</li>
-<li>[./sample/metadata/foo]                               : Optional, (M,) dataset of any valid HDF5 type in index order with IDs.</li>
-<li>./sample/group-metadata                               : Group</li>
-<li>[./sample/group-metadata/foo]                         : Optional, (?,) dataset of group metadata that relates IDs</li>
-<li>[./sample/group-metadata/foo.attrs[&#8216;data_type&#8217;]]      : attribute of the foo dataset that describes contained type (e.g., newick)</li>
-</ul>
-<p>The &#8216;?&#8217; character on the dataset size means that it can be of arbitrary
-length.</p>
-<p>The expected structure for each of the metadata datasets is a list of
-atomic type objects (int, float, str, ...), where the index order of
-the list corresponds to the index order of the relevant axis IDs.
-Special metadata fields have been defined, and they are stored in a
-specific way. Currently, the available special metadata fields are:</p>
-<ul class="simple">
-<li>taxonomy: (N, ?) dataset of str or vlen str</li>
-<li>KEGG_Pathways: (N, ?) dataset of str or vlen str</li>
-<li>collapsed_ids: (N, ?) dataset of str or vlen str</li>
-</ul>
+<p>This method does not return anything and operates in place on h5grp.</p>
 <p class="rubric">References</p>
 <table class="docutils citation" frame="void" id="r10" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[R10]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html</a></td></tr>
+<tr><td class="label">[R10]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id3">2</a>)</em> <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="r11" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[R11]</td><td><em>(<a class="fn-backref" href="#id2">1</a>, <a class="fn-backref" href="#id5">2</a>)</em> <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html</a></td></tr>
+<tr><td class="label">[R11]</td><td><em>(<a class="fn-backref" href="#id2">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html</a></td></tr>
 </tbody>
 </table>
 <table class="docutils citation" frame="void" id="r12" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[R12]</td><td><em>(<a class="fn-backref" href="#id3">1</a>, <a class="fn-backref" href="#id6">2</a>)</em> <a class="reference external" href="http://biom-format.org/documentation/format_versions/biom-2.1.html">http://biom-format.org/documentation/format_versions/biom-2.1.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id5">[R12]</a></td><td><a class="reference external" href="http://biom-format.org/documentation/format_versions/biom-2.1.html">http://biom-format.org/documentation/format_versions/biom-2.1.html</a></td></tr>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
@@ -185,9 +150,9 @@ specific way. Currently, the available special metadata fields are:</p>
 
 
     <div class="footer">
-        &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Nov 19, 2014.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+        &copy; Copyright 2011-2015, The BIOM Format Development Team.
+      Last updated on Oct 21, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 

@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.1',
+        VERSION:     '2.1.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table.from_hdf5<a class="headerlink" href="#biom-table-table-from-hdf5" title="Permalink to this headline">¶</a></h1>
 <dl class="classmethod">
 <dt id="biom.table.Table.from_hdf5">
-<em class="property">classmethod </em><tt class="descclassname">Table.</tt><tt class="descname">from_hdf5</tt><big>(</big><em>h5grp</em>, <em>ids=None</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.from_hdf5" title="Permalink to this definition">¶</a></dt>
+<em class="property">classmethod </em><tt class="descclassname">Table.</tt><tt class="descname">from_hdf5</tt><big>(</big><em>h5grp</em>, <em>ids=None</em>, <em>axis='sample'</em>, <em>parse_fs=None</em><big>)</big><a class="headerlink" href="#biom.table.Table.from_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse an HDF5 formatted BIOM table</p>
 <p>If ids is provided, only the samples/observations listed in ids
 (depending on the value of axis) will be loaded</p>
@@ -80,6 +80,14 @@ to retrieve from the hdf5 biom table</p>
 <p><strong>axis</strong> : {&#8216;sample&#8217;, &#8216;observation&#8217;}, optional</p>
 <blockquote>
 <div><p>The axis to subset on</p>
+</div></blockquote>
+<p><strong>parse_fs</strong> : dict, optional</p>
+<blockquote>
+<div><p>Specify custom parsing functions for metadata fields. This dict is
+expected to be {&#8216;metadata_field&#8217;: function}, where the function
+signature is (object) corresponding to a single row in the
+associated metadata dataset. The return from this function an
+object as well, and is the parsed representation of the metadata.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -201,9 +209,9 @@ specific way. Currently, the available special metadata fields are:</p>
 
 
     <div class="footer">
-        &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Nov 19, 2014.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+        &copy; Copyright 2011-2015, The BIOM Format Development Team.
+      Last updated on Oct 21, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 

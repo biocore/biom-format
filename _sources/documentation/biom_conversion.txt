@@ -56,6 +56,6 @@ If you are converting a QIIME 1.4.0 or earlier OTU table to BIOM format, there a
 
 Then, you'll want to perform the conversion including a step to convert the taxonomy `string` from the classic OTU table to a taxonomy `list`, as it's represented in QIIME 1.4.0-dev and later::
 
-	biom convert -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --table-type="OTU table" --process-obs-metadata taxonomy
+	biom convert -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --table-type="OTU table" --process-obs-metadata taxonomy --to-hdf5
 
 

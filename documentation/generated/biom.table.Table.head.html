@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>biom.table.Table.head &mdash; biom-format.org</title>
+    
+    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.1.5',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/copybutton.js"></script>
+    <link rel="top" title="biom-format.org" href="../../index.html" />
+    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
+    <link rel="next" title="biom.table.Table.ids" href="biom.table.Table.ids.html" />
+    <link rel="prev" title="biom.table.Table.group_metadata" href="biom.table.Table.group_metadata.html" /> 
+  </head>
+  <body>
+  
+  <a href="https://github.com/biocore/biom-format"><img
+    style="position: absolute; top: 0; right: 0; border: 0;"
+    src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+    alt="Fork me on GitHub"></a>
+
+      <div class="header"><h1 class="heading"><a href="../../index.html">
+          <span>biom-format.org</span></a></h1>
+        <h2 class="heading"><span>biom.table.Table.head</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom.table.Table.group_metadata.html">biom.table.Table.group_metadata</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="biom.table.Table.ids.html">biom.table.Table.ids</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="biom-table-table-head">
+<h1>biom.table.Table.head<a class="headerlink" href="#biom-table-table-head" title="Permalink to this headline">¶</a></h1>
+<dl class="method">
+<dt id="biom.table.Table.head">
+<tt class="descclassname">Table.</tt><tt class="descname">head</tt><big>(</big><em>n=5</em>, <em>m=5</em><big>)</big><a class="headerlink" href="#biom.table.Table.head" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the first n rows and m columns from self</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>n</strong> : int, optional</p>
+<blockquote>
+<div><p>The number of rows (observations) to get. This number must be
+greater than 0. If not specified, 5 rows will be retrieved.</p>
+</div></blockquote>
+<p><strong>m</strong> : int, optional</p>
+<blockquote>
+<div><p>The number of columns (samples) to get. This number must be
+greater than 0. If not specified, 5 columns will be
+retrieved.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Table</p>
+<blockquote>
+<div><p>The subset table.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>IndexError</strong></p>
+<blockquote class="last">
+<div><p>If <cite>n</cite> or <cite>m</cite> are &lt;= 0.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Like <cite>head</cite> for Linux like systems, requesting more rows (or columns)
+than exists will silently work.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">20</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">obs_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;O</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">6</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">samp_ids</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;S</span><span class="si">%d</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">21</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">obs_ids</span><span class="p">,</span> <span class="n">samp_ids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">head</span><span class="p">()</span>  
+<span class="go"># Constructed from biom file</span>
+<span class="go">#OTU ID S1  S2  S3  S4  S5</span>
+<span class="go">O1  0.0 1.0 2.0 3.0 4.0</span>
+<span class="go">O2  20.0 21.0 22.0 23.0 24.0</span>
+<span class="go">O3  40.0 41.0 42.0 43.0 44.0</span>
+<span class="go">O4  60.0 61.0 62.0 63.0 64.0</span>
+<span class="go">O5  80.0 81.0 82.0 83.0 84.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom.table.Table.group_metadata.html">biom.table.Table.group_metadata</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="biom.table.Table.ids.html">biom.table.Table.ids</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+
+    <div class="footer">
+        &copy; Copyright 2011-2015, The BIOM Format Development Team.
+      Last updated on Oct 21, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-6636235-6']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>

@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '2.1.1',
+        VERSION:     '2.1.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -115,7 +115,7 @@ biom convert -i table.txt -o table.from_txt_hdf5.biom --table-type=&quot;OTU tab
 </pre></div>
 </div>
 <p>Then, you&#8217;ll want to perform the conversion including a step to convert the taxonomy <cite>string</cite> from the classic OTU table to a taxonomy <cite>list</cite>, as it&#8217;s represented in QIIME 1.4.0-dev and later:</p>
-<div class="highlight-python"><div class="highlight"><pre>biom convert -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --table-type=&quot;OTU table&quot; --process-obs-metadata taxonomy
+<div class="highlight-python"><div class="highlight"><pre>biom convert -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --table-type=&quot;OTU table&quot; --process-obs-metadata taxonomy --to-hdf5
 </pre></div>
 </div>
 </div>
@@ -138,9 +138,9 @@ biom convert -i table.txt -o table.from_txt_hdf5.biom --table-type=&quot;OTU tab
 
 
     <div class="footer">
-        &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Nov 19, 2014.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+        &copy; Copyright 2011-2015, The BIOM Format Development Team.
+      Last updated on Oct 21, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 

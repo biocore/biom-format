@@ -56,6 +56,7 @@ biom.table.Table
          Table.get_table_density
          Table.get_value_by_ids
          Table.group_metadata
+         Table.head
          Table.ids
          Table.index
          Table.is_empty

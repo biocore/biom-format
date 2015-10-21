@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.1.1',
+        VERSION:     '2.1.5',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -55,8 +55,13 @@
 <h1>The Biological Observation Matrix (BIOM) format<a class="headerlink" href="#the-biological-observation-matrix-biom-format" title="Permalink to this headline">¶</a></h1>
 <p>The <a class="reference external" href="http://www.biom-format.org">BIOM file format</a> (canonically pronounced <cite>biome</cite>) is designed to be a general-use format for representing biological sample by observation contingency tables. BIOM is a recognized standard for the <a class="reference external" href="http://www.earthmicrobiome.org">Earth Microbiome Project</a> and is a <a class="reference external" href="http://gensc.org/">Genomics Standards Consortium</a> supported project.</p>
 <p>The <a class="reference external" href="http://www.biom-format.org">BIOM format</a> is designed for general use in broad areas of comparative -omics. For example, in marker-gene surveys, the primary use of this format is to represent OTU tables: the observations in this case are OTUs and the matrix contains counts corresponding to the number of times each OTU is observed in each sample. With respect to metagenome data, this format would be used to represent metagenome tables: the observations in this case might correspond to SEED subsystems, and the matrix would contain counts corresponding to the number of times each subsystem is observed in each metagenome. Similarly, with respect to genome data, this format may be used to represent a set of genomes: the observations in this case again might correspond to SEED subsystems, and the counts would correspond to the number of times each subsystem is observed in each genome.</p>
-<p>There are two components to the BIOM project: first is the <a class="reference external" href="./documentation/biom_format.html">definition of the BIOM format</a>, and second is <a class="reference external" href="./documentation/table_objects.html">development of support objects</a> in multiple programming languages to support the use of BIOM in diverse bioinformatics applications. The version of the BIOM file format is independent of the version of the <cite>biom-format</cite> software.</p>
-<p>There are official implementations of BIOM format support objects (APIs) in the Python and R programming languages. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python <tt class="docutils literal"><span class="pre">biom-format</span></tt> API. For more details about the R API, please see the <a class="reference external" href="http://cran.r-project.org/web/packages/biom/index.html">CRAN biom package</a>.</p>
+<p>The BIOM project consists of the following components:</p>
+<ul class="simple">
+<li><a class="reference external" href="./documentation/biom_format.html">definition of the BIOM file format</a>;</li>
+<li>command line interface (CLI) for working with BIOM files, including <a class="reference external" href="./documentation/biom_conversion.html">converting between file formats</a>, <a class="reference external" href="./documentation/adding_metadata.html">adding metadata to BIOM files</a>, and <a class="reference external" href="./documentation/summarizing_biom_tables.html">summarizing BIOM files</a> (run <tt class="docutils literal"><span class="pre">biom</span></tt> to see the full list of commands);</li>
+<li>application programming interface (API) for working with BIOM files in multiple programming languages (including Python and R).</li>
+</ul>
+<p>The <tt class="docutils literal"><span class="pre">biom-format</span></tt> package provides a command line interface and Python API for working with BIOM files. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python <tt class="docutils literal"><span class="pre">biom-format</span></tt> package. For more details about the R API, please see the <a class="reference external" href="http://cran.r-project.org/web/packages/biom/index.html">CRAN biom package</a>.</p>
 </div>
 <div class="section" id="projects-using-the-biom-format">
 <h1>Projects using the BIOM format<a class="headerlink" href="#projects-using-the-biom-format" title="Permalink to this headline">¶</a></h1>
@@ -70,6 +75,7 @@
 <li><a class="reference external" href="http://vamps.mbl.edu/">VAMPS</a></li>
 <li><a class="reference external" href="http://www.bioconductor.org/packages/release/bioc/html/metagenomeSeq.html">metagenomeSeq</a></li>
 <li><a class="reference external" href="http://phinch.org">Phinch</a></li>
+<li><a class="reference external" href="https://github.com/rdpstaff/classifier">RDP Classifier</a></li>
 </ul>
 <p>If you are using BIOM in your project, and would like your project to be listed, please submit a <a class="reference external" href="https://github.com/biocore/biom-format/pulls">pull request</a> to the BIOM project. More information on <a class="reference external" href="https://help.github.com/articles/using-pull-requests">submitting pull requests can be found here</a>.</p>
 </div>
@@ -123,75 +129,31 @@
 </div>
 <div class="section" id="biom-version">
 <h1>BIOM version<a class="headerlink" href="#biom-version" title="Permalink to this headline">¶</a></h1>
-<p>The latest official version of the biom-format project is 2.1.1 and of the BIOM file format is 2.0. Details on the <a class="reference external" href="./documentation/biom_format.html">file format can be found here</a>.</p>
+<p>The latest official version of the biom-format project is 2.1.5 and of the BIOM file format is 2.0. Details on the <a class="reference external" href="./documentation/biom_format.html">file format can be found here</a>.</p>
 </div>
-<div class="section" id="installing-the-biom-format-project">
-<h1>Installing the biom-format project<a class="headerlink" href="#installing-the-biom-format-project" title="Permalink to this headline">¶</a></h1>
-<p>To install the <tt class="docutils literal"><span class="pre">biom-format</span></tt> project, you can download the <a class="reference external" href="https://pypi.python.org/pypi/biom-format/">latest version here</a>, or work with the development version. Generally we recommend working with the release version as it will be more stable, but if you want access to the latest features (and can tolerate some instability) you should work with the development version.</p>
-<p>The biom-format project has the following dependencies:</p>
-<blockquote>
-<div><ul class="simple">
-<li><a class="reference external" href="http://www.python.org/">Python</a> &gt;= 2.7 and &lt; 3.0</li>
-<li><a class="reference external" href="http://www.numpy.org/">numpy</a> &gt;= 1.7.0</li>
-<li><a class="reference external" href="http://pyqi.readthedocs.org">pyqi</a> 0.3.2</li>
-<li><a class="reference external" href="http://www.scipy.org/">scipy</a> &gt;= 0.13.0</li>
-<li><a class="reference external" href="http://www.h5py.org/">h5py</a> &gt;= 2.20.0 (optional; must be installed if creating or reading HDF5 formatted files)</li>
-</ul>
-</div></blockquote>
-<p>The easiest way to install the latest version of the biom-format project and its required dependencies is via pip:</p>
+<div class="section" id="installing-the-biom-format-python-package">
+<h1>Installing the <tt class="docutils literal"><span class="pre">biom-format</span></tt> Python package<a class="headerlink" href="#installing-the-biom-format-python-package" title="Permalink to this headline">¶</a></h1>
+<p>To install the latest release of the <tt class="docutils literal"><span class="pre">biom-format</span></tt> Python package:</p>
 <div class="highlight-python"><div class="highlight"><pre>pip install numpy
 pip install biom-format
 </pre></div>
 </div>
-<p>That&#8217;s it!</p>
-<p>If you decided not to install biom-format using pip, it is also possible to manually install the latest release. We&#8217;ll illustrate the install process in the <tt class="docutils literal"><span class="pre">$HOME/code</span></tt> directory. You can either work in this directory on your system (creating it, if necessary, by running <tt class="docutils literal"><span class="pre">mkdir</span> <span class="pre">$HOME/code</span></tt>) or replace all occurrences of <tt class="docutils literal"><span class="pre">$HOME/code</span></tt> in the following instructions with your working directory. Please note that <tt class="docutils literal"><span class="pre">numpy</span></tt> must be in your installed prior to installing <tt class="docutils literal"><span class="pre">biom-format</span></tt>. Change to this directory to start the install process:</p>
-<div class="highlight-python"><div class="highlight"><pre>cd $HOME/code
+<p>To work with BIOM 2.0+ files:</p>
+<div class="highlight-python"><div class="highlight"><pre>pip install h5py
 </pre></div>
 </div>
-<p>Download the <a class="reference external" href="https://pypi.python.org/pypi/biom-format">latest release, which can be found here</a>. After downloading, unpack and install (note: x.y.z refers to the downloaded version):</p>
-<div class="highlight-python"><div class="highlight"><pre>tar xzf biom-format-x.y.z.tar.gz
-cd $HOME/code/biom-format-x.y.z
-</pre></div>
-</div>
-<p>Alternatively, to install the development version, pull it from GitHub, and change to the resulting directory:</p>
-<div class="highlight-python"><div class="highlight"><pre>git clone git://github.com/biocore/biom-format.git
-cd $HOME/code/biom-format
-</pre></div>
-</div>
-<p>To install (either the development or release version), follow these steps:</p>
-<div class="highlight-python"><div class="highlight"><pre>sudo python setup.py install
-</pre></div>
-</div>
-<p>If you do not have sudo access on your system (or don&#8217;t want to install the <tt class="docutils literal"><span class="pre">biom-format</span></tt> project in the default location) you&#8217;ll need to install the library code and scripts in specified directories, and then tell your system where to look for those files. You can do this as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre>echo &quot;export PATH=$HOME/bin/:$PATH&quot; &gt;&gt; $HOME/.bashrc
-echo &quot;export PYTHONPATH=$HOME/lib/:$PYTHONPATH&quot; &gt;&gt; $HOME/.bashrc
-mkdir -p $HOME/bin $HOME/lib/
-source $HOME/.bashrc
-python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib/ --install-lib=$HOME/lib/
-</pre></div>
-</div>
-<p>You should then have access to the biom-format project. You can test this by running the following command:</p>
-<div class="highlight-python"><div class="highlight"><pre>python -c &quot;from biom import __version__; print __version__&quot;
-</pre></div>
-</div>
-<p>You should see the current version of the biom-format project.</p>
-<p>Next you can run:</p>
-<div class="highlight-python"><div class="highlight"><pre>which biom
-</pre></div>
-</div>
-<p>You should get a file path ending with <tt class="docutils literal"><span class="pre">biom</span></tt> printed to your screen if it is installed correctly. Finally, to see a list of all <tt class="docutils literal"><span class="pre">biom</span></tt> commands, run:</p>
+<p>To see a list of all <tt class="docutils literal"><span class="pre">biom</span></tt> commands, run:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">biom</span>
 </pre></div>
 </div>
-<div class="section" id="enabling-tab-completion-of-biom-commands">
-<h2>Enabling tab completion of biom commands<a class="headerlink" href="#enabling-tab-completion-of-biom-commands" title="Permalink to this headline">¶</a></h2>
-<p>The <tt class="docutils literal"><span class="pre">biom</span></tt> command referenced in the previous section is a driver for commands in biom-format, powered by <a class="reference external" href="http://biocore.github.io/pyqi">the pyqi project</a>. You can enable tab completion of biom command names and command options (meaning that when you begin typing the name of a command or option you can auto-complete it by hitting the <em>tab</em> key) by following a few simple steps from the pyqi documentation. While this step is optional, tab completion is very convenient so it&#8217;s worth enabling.</p>
-<p>To enable tab completion, follow the steps outlined under <a class="reference external" href="http://biocore.github.io/pyqi/doc/tutorials/defining_your_command_driver.html#configuring-bash-completion">Configuring bash completion</a> in the pyqi install documentation, substituting <tt class="docutils literal"><span class="pre">biom</span></tt> for <tt class="docutils literal"><span class="pre">my-project</span></tt> and <tt class="docutils literal"><span class="pre">my_project</span></tt> in all commands. After completing those steps and closing and re-opening your terminal, auto-completion should be enabled.</p>
+<p>To enable Bash tab completion of <tt class="docutils literal"><span class="pre">biom</span></tt> commands, add the following line to <tt class="docutils literal"><span class="pre">$HOME/.bashrc</span></tt> (if on Linux) or <tt class="docutils literal"><span class="pre">$HOME/.bash_profile</span></tt> (if on Mac OS X):</p>
+<div class="highlight-python"><div class="highlight"><pre>eval &quot;$(_BIOM_COMPLETE=source biom)&quot;
+</pre></div>
 </div>
 </div>
-<div class="section" id="biom-format-in-r">
-<h1>BIOM format in R<a class="headerlink" href="#biom-format-in-r" title="Permalink to this headline">¶</a></h1>
-<p>There is also a BIOM format package for R, called <tt class="docutils literal"><span class="pre">biom</span></tt>. This package includes basic tools for reading biom-format files, accessing and subsetting data tables from a biom object, as well as limited support for writing a biom-object back to a biom-format file. The design of this API is intended to match the python API and other tools included with the biom-format project, but with a decidedly &#8220;R flavor&#8221; that should be familiar to R users. This includes S4 classes and methods, as well as extensions of common core functions/methods.</p>
+<div class="section" id="installing-the-biom-r-package">
+<h1>Installing the <tt class="docutils literal"><span class="pre">biom</span></tt> R package<a class="headerlink" href="#installing-the-biom-r-package" title="Permalink to this headline">¶</a></h1>
+<p>There is also a BIOM format package for R called <tt class="docutils literal"><span class="pre">biom</span></tt>. This package includes basic tools for reading biom-format files, accessing and subsetting data tables from a biom object, as well as limited support for writing a biom-object back to a biom-format file. The design of this API is intended to match the python API and other tools included with the biom-format project, but with a decidedly &#8220;R flavor&#8221; that should be familiar to R users. This includes S4 classes and methods, as well as extensions of common core functions/methods.</p>
 <p>To install the latest stable release of the <tt class="docutils literal"><span class="pre">biom</span></tt> package enter the following command from within an R session:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">install</span><span class="o">.</span><span class="n">packages</span><span class="p">(</span><span class="s">&quot;biom&quot;</span><span class="p">)</span>
 </pre></div>
@@ -204,7 +166,7 @@ python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib
 </div>
 <p>Please post any support or feature requests and bugs to <a class="reference external" href="https://github.com/joey711/biom/issues">the biom issue tracker</a>.</p>
 <p>See <a class="reference external" href="https://github.com/joey711/biom/">the biom project on GitHub</a> for further details, or if you would like to contribute.</p>
-<p>Note that the licenses between the <tt class="docutils literal"><span class="pre">biom</span></tt> R package (GPL-2) and the other biom-format software (Modified BSD) are different.</p>
+<p>Note that the licenses between the <tt class="docutils literal"><span class="pre">biom</span></tt> R package (GPL-2) and the <tt class="docutils literal"><span class="pre">biom-format</span></tt> Python package (Modified BSD) are different.</p>
 </div>
 <div class="section" id="citing-the-biom-project">
 <h1>Citing the BIOM project<a class="headerlink" href="#citing-the-biom-project" title="Permalink to this headline">¶</a></h1>
@@ -217,7 +179,7 @@ python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib
 </div>
 <div class="section" id="development-team">
 <h1>Development team<a class="headerlink" href="#development-team" title="Permalink to this headline">¶</a></h1>
-<p>The biom-format project was conceived of and developed by the <a class="reference external" href="http://www.qiime.org">QIIME</a>, <a class="reference external" href="http://metagenomics.anl.gov">MG-RAST</a>, and <a class="reference external" href="http://vamps.mbl.edu/">VAMPS</a> development groups to support interoperability of our software packages. If you have questions about the biom-format project you can contact <a class="reference external" href="mailto:gregcaporaso&#37;&#52;&#48;gmail&#46;com">gregcaporaso<span>&#64;</span>gmail<span>&#46;</span>com</a>.</p>
+<p>The biom-format project was conceived of and developed by the <a class="reference external" href="http://www.qiime.org">QIIME</a>, <a class="reference external" href="http://metagenomics.anl.gov">MG-RAST</a>, and <a class="reference external" href="http://vamps.mbl.edu/">VAMPS</a> development groups to support interoperability of our software packages. If you have questions about the biom-format project please post them on the <a class="reference external" href="http://forum.qiime.org">QIIME Forum</a>.</p>
 </div>
 
 
@@ -234,9 +196,9 @@ python setup.py install --install-scripts=$HOME/bin/ --install-purelib=$HOME/lib
 
 
     <div class="footer">
-        &copy; Copyright 2011-2013, The BIOM Format Development Team.
-      Last updated on Nov 19, 2014.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.3.
+        &copy; Copyright 2011-2015, The BIOM Format Development Team.
+      Last updated on Oct 21, 2015.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
 
