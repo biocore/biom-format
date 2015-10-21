@@ -56,7 +56,6 @@ def from_uc(input_fp, output_fp, rep_set_fp):
 def _id_map_from_fasta(fasta_lines):
     result = {}
     for line in fasta_lines:
-        line = line.strip()
         if line.startswith('>'):
             try:
                 obs_id, seq_id = line.split()[:2]
