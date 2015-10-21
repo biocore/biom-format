@@ -10,28 +10,11 @@ from __future__ import division
 
 import click
 
-from biom import load_table
 from biom.cli import cli
 from biom.cli.util import write_biom_table
 from biom.parse import parse_uc
 from biom.exception import TableException
 
-
-def _id_map_from_fasta(fasta_lines):
-    result = {}
-    for line in fasta_lines:
-        line = line.strip()
-        if line.startswith('>'):
-            try:
-                obs_id, seq_id = line.split()[:2]
-            except ValueError:
-                raise ValueError('Sequence identifiers in fasta file '
-                                 'must contain at least two space-'
-                                 'separated fields.')
-            result[seq_id] = obs_id[1:]
-        else:
-            pass
-    return result
 
 @cli.command('from-uc')
 @click.option('-i', '--input-fp', required=True,
@@ -68,6 +51,23 @@ def from_uc(input_fp, output_fp, rep_set_fp):
         rep_set_f = None
     table = _from_uc(input_f, rep_set_f)
     write_biom_table(table, 'hdf5', output_fp)
+
+
+def _id_map_from_fasta(fasta_lines):
+    result = {}
+    for line in fasta_lines:
+        line = line.strip()
+        if line.startswith('>'):
+            try:
+                obs_id, seq_id = line.split()[:2]
+            except ValueError:
+                raise ValueError('Sequence identifiers in fasta file '
+                                 'must contain at least two space-'
+                                 'separated fields.')
+            result[seq_id] = obs_id[1:]
+        else:
+            pass
+    return result
 
 
 def _from_uc(input_f, rep_set_f=None):
