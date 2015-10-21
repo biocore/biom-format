@@ -26,15 +26,6 @@ class TestUcProcessor(TestCase):
         self.rep_set = rep_set.split('\n')
         self.rep_set_no_mapping = rep_set_no_mapping.split('\n')
         self.rep_set_missing_id = rep_set_missing_id.split('\n')
-        # with tempfile.NamedTemporaryFile('w') as fh:
-        #     fh.write(rep_set)
-        #     fh.flush()
-        # with tempfile.NamedTemporaryFile('w') as fh:
-        #     fh.write(rep_set_invalid1)
-        #     fh.flush()
-        # with tempfile.NamedTemporaryFile('w') as fh:
-        #     fh.write(rep_set_invalid2)
-        #     fh.flush()
 
     def test_basic(self):
         obs = self.cmd(self.uc_minimal)
