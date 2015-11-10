@@ -9,6 +9,7 @@
 from __future__ import division
 
 from operator import itemgetter
+import locale
 
 import click
 from numpy import std
@@ -55,6 +56,7 @@ def summarize_table(input_fp, output_fp, qualitative, observations):
 
 def _summarize_table(table, qualitative=False, observations=False):
     lines = []
+    locale.setlocale(locale.LC_ALL, '')
 
     if observations:
         table = table.transpose()
@@ -79,15 +81,20 @@ def _summarize_table(table, qualitative=False, observations=False):
 
     if observations:
         # as this is a transpose of the original table...
-        lines.append('Num samples: %d' % num_observations)
-        lines.append('Num observations: %d' % num_samples)
+        lines.append('Num samples: ' + locale.format('%d', num_observations,
+                                                     grouping=True))
+        lines.append('Num observations: ' + locale.format('%d', num_samples,
+                                                          grouping=True))
     else:
-        lines.append('Num samples: %d' % num_samples)
-        lines.append('Num observations: %d' % num_observations)
+        lines.append('Num samples: ' + locale.format('%d', num_samples,
+                                                     grouping=True))
+        lines.append('Num observations: ' + locale.format('%d',
+                     num_observations, grouping=True))
 
     if not qualitative:
         total_count = sum(counts_per_sample_values)
-        lines.append('Total count: %d' % total_count)
+        lines.append('Total count: ' + locale.format('%d', total_count,
+                                                     grouping=True))
         lines.append('Table density (fraction of non-zero values): %1.3f' %
                      table.get_table_density())
 
@@ -101,11 +108,14 @@ def _summarize_table(table, qualitative=False, observations=False):
     else:
         lines.append('Counts/sample summary:')
 
-    lines.append(' Min: %r' % min_counts)
-    lines.append(' Max: %r' % max_counts)
-    lines.append(' Median: %1.3f' % median_counts)
-    lines.append(' Mean: %1.3f' % mean_counts)
-    lines.append(' Std. dev.: %1.3f' % std(counts_per_sample_values))
+    lines.append(' Min: ' + locale.format('%1.3f', min_counts, grouping=True))
+    lines.append(' Max: ' + locale.format('%1.3f', max_counts, grouping=True))
+    lines.append(' Median: ' + locale.format('%1.3f', median_counts,
+                                             grouping=True))
+    lines.append(' Mean: ' + locale.format('%1.3f', mean_counts,
+                                           grouping=True))
+    lines.append(' Std. dev.: ' + locale.format('%1.3f',
+                 std(counts_per_sample_values), grouping=True))
 
     if observations:
         # since this is a transpose...
@@ -131,6 +141,6 @@ def _summarize_table(table, qualitative=False, observations=False):
         lines.append('Counts/sample detail:')
 
     for k, v in sorted(counts_per_samp.items(), key=itemgetter(1)):
-        lines.append('%s: %r' % (k, v))
+        lines.append('%s: ' % k + locale.format('%1.3f', v, grouping=True))
 
     return "\n".join(lines)
