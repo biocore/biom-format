@@ -2743,6 +2743,11 @@ class Table(object):
         biom.Table
             The rank-abundance-transformed table.
 
+        Raises
+        ------
+        ValueError
+            If unknown ``method`` is provided.
+
         See Also
         --------
         scipy.stats.rankdata
