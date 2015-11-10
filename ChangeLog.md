@@ -11,6 +11,9 @@ New Features:
   either axis. See [issue #645](https://github.com/biocore/biom-format/issues/639).
 * Format of numbers in ``biom summarize-table`` output is now more readable and localized. See [issue #679](https://github.com/biocore/biom-format/issues/679).
 
+Bug fixes:
+* ``-o`` is now a required parameter of ``biom from-uc``. This was not the case previously, which resulted in a cryptic error message if ``-o`` was not provided. See [issue #683](https://github.com/biocore/biom-format/issues/683).
+
 biom 2.1.5
 ----------
 
