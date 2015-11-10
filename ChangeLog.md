@@ -7,9 +7,9 @@ biom 2.1.5-dev
 Changes since biom 2.1.5 go here.
 
 New Features:
-* `Table.rankdata` has been added to convert counts to ranked abundances on
+* `Table.rankdata` has been added to convert values to ranked abundances on
   either axis. See [issue #645](https://github.com/biocore/biom-format/issues/639).
-* Format of numbers in ``biom summarize-table`` output is now more readable. See [issue #679](https://github.com/biocore/biom-format/issues/679).
+* Format of numbers in ``biom summarize-table`` output is now more readable and localized. See [issue #679](https://github.com/biocore/biom-format/issues/679).
 
 biom 2.1.5
 ----------
