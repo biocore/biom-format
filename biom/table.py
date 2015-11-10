@@ -2724,16 +2724,15 @@ class Table(object):
         return table
 
     def rankdata(self, axis='sample', inplace=True, method='average'):
-        """Convert counts to rank abundances from smallest to largest
+        """Convert values to rank abundances from smallest to largest
 
         Parameters
         ----------
         axis : {'sample', 'observation'}, optional
-            The axis to use for normalization
+            The axis to use for ranking.
         inplace : bool, optional
-            Defaults to ``True``. If ``True``, performs the normalization in
-            place. Otherwise, returns a new table with the noramlization
-            applied.
+            Defaults to ``True``. If ``True``, performs the ranking in
+            place. Otherwise, returns a new table with ranking applied.
         method : str, optional
             The method for handling ties in counts. This can be any valid
             string that can be passed to `scipy.stats.rankdata`.
@@ -2783,10 +2782,10 @@ class Table(object):
         Parameters
         ----------
         axis : {'sample', 'observation'}, optional
-            The axis to use for normalization
+            The axis to use for normalization.
         inplace : bool, optional
             Defaults to ``True``. If ``True``, performs the normalization in
-            place. Otherwise, returns a new table with the noramlization
+            place. Otherwise, returns a new table with the normalization
             applied.
 
         Returns
