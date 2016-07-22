@@ -3110,7 +3110,8 @@ class Table(object):
                               sample_ids[:], obs_md, sample_md)
 
     @classmethod
-    def from_hdf5(cls, h5grp, ids=None, axis='sample', parse_fs=None):
+    def from_hdf5(cls, h5grp, ids=None, axis='sample', parse_fs=None,
+                  subset_with_metadata=True):
         """Parse an HDF5 formatted BIOM table
 
         If ids is provided, only the samples/observations listed in ids
@@ -3207,6 +3208,11 @@ dataset of int32
             signature is (object) corresponding to a single row in the
             associated metadata dataset. The return from this function an
             object as well, and is the parsed representation of the metadata.
+        subset_with_metadata : bool, optional
+            When subsetting (i.e., `ids` is `not None`), whether to also parse
+            the metadata. By default, the metadata are also subset. The reason
+            for exposing this functionality is that, for large tables, there
+            exists a very large overhead for this metadata manipulation.
 
         Returns
         -------
@@ -3258,6 +3264,42 @@ html
 
         if parse_fs is None:
             parse_fs = {}
+
+        if not subset_with_metadata and ids is not None:
+            ids = set(ids)
+
+            raw_indices = h5grp['%s/matrix/indices' % axis]
+            raw_indptr = h5grp['%s/matrix/indptr' % axis]
+            raw_data = h5grp['%s/matrix/data' % axis]
+            axis_ids = h5grp['%s/ids' % axis][:]
+
+            to_keep = np.array([i for i, id_ in enumerate(axis_ids)
+                                if id_ in ids], dtype=int)
+            start_end = [(raw_indptr[i], raw_indptr[i+1]) for i in to_keep]
+            indptr = np.empty(len(to_keep) + 1, dtype=np.int32)
+            indptr[0] = 0
+            indptr[1:] = np.array([e - s for s, e in start_end]).cumsum()
+            data = np.concatenate([raw_data[s:e] for s, e in start_end])
+            indices = np.concatenate([raw_indices[s:e] for s, e in start_end])
+
+            if axis == 'sample':
+                obs_ids = h5grp['observation/ids'][:]
+                samp_ids = axis_ids[to_keep]
+                shape = (len(obs_ids), len(to_keep))
+                mat = csc_matrix((data, indices, indptr), shape=shape)
+                mat_nz = np.unique(mat.nonzero()[0])  # nz rows
+                obs_ids = obs_ids[mat_nz]
+                mat = mat[mat_nz]
+            else:
+                samp_ids = h5grp['sample/ids'][:]
+                obs_ids = axis_ids[to_keep]
+                shape = (len(to_keep), len(samp_ids))
+                mat = csr_matrix((data, indices, indptr), shape=shape)
+                mat_nz = np.unique(mat.nonzero()[1])  # nz columns
+                samp_ids = samp_ids[mat_nz]
+                mat = mat[:, mat_nz]
+
+            return Table(mat, obs_ids, samp_ids)
 
         id_ = h5grp.attrs['id']
         create_date = h5grp.attrs['creation-date']
