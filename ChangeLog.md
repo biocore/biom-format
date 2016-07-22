@@ -6,6 +6,13 @@ biom 2.1.5-dev
 
 Changes since biom 2.1.5 go here.
 
+New Features:
+
+* `Table.from_hdf5` now supports a rapid subset in the event that metadata is
+   not needed. In benchmarking against the Earth Microbiome Project BIOM table,
+   the reduction in runtime was multiple orders of magnitude while additionally
+   preserving substantial memory. 
+
 biom 2.1.5
 ----------
 
