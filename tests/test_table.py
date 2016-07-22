@@ -453,6 +453,32 @@ class TableTests(TestCase):
         npt.assert_equal(list(t.iter_data(axis="observation")), exp)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_from_hdf5_sample_subset_no_metadata(self):
+        """Parse a sample subset of a hdf5 formatted BIOM table"""
+        samples = [b'Sample2', b'Sample4', b'Sample6']
+
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        t = Table.from_hdf5(h5py.File('test_data/test.biom'), ids=samples,
+                            subset_with_metadata=False)
+        os.chdir(cwd)
+
+        npt.assert_equal(t.ids(), [b'Sample2', b'Sample4', b'Sample6'])
+        npt.assert_equal(t.ids(axis='observation'),
+                         [b'GG_OTU_2', b'GG_OTU_3', b'GG_OTU_4', b'GG_OTU_5'])
+        exp_obs_md = None
+        self.assertEqual(t._observation_metadata, exp_obs_md)
+        exp_samp_md = None
+        self.assertEqual(t._sample_metadata, exp_samp_md)
+
+        exp = [np.array([1., 2., 1.]),
+               np.array([0., 4., 2.]),
+               np.array([1., 0., 1.]),
+               np.array([1., 0., 0.])]
+        npt.assert_equal(list(t.iter_data(axis='observation')), exp)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5_sample_subset(self):
         """Parse a sample subset of a hdf5 formatted BIOM table"""
         samples = [u'Sample2', u'Sample4', u'Sample6']
@@ -514,6 +540,34 @@ class TableTests(TestCase):
                np.array([0., 4., 2.]),
                np.array([1., 0., 1.]),
                np.array([1., 0., 0.])]
+        npt.assert_equal(list(t.iter_data(axis='observation')), exp)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_from_hdf5_observation_subset_no_metadata(self):
+        """Parse a observation subset of a hdf5 formatted BIOM table"""
+        observations = [b'GG_OTU_1', b'GG_OTU_3', b'GG_OTU_5']
+
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        t = Table.from_hdf5(h5py.File('test_data/test.biom'),
+                            ids=observations, axis='observation',
+                            subset_with_metadata=False)
+        os.chdir(cwd)
+
+        npt.assert_equal(t.ids(), [b'Sample2', b'Sample3', b'Sample4',
+                                   b'Sample6'])
+        npt.assert_equal(t.ids(axis='observation'),
+                         [b'GG_OTU_1', b'GG_OTU_3', b'GG_OTU_5'])
+        exp_obs_md = None
+        self.assertEqual(t._observation_metadata, exp_obs_md)
+
+        exp_samp_md = None
+        self.assertEqual(t._sample_metadata, exp_samp_md)
+
+        exp = [np.array([0., 1., 0., 0.]),
+               np.array([0., 1., 4., 2.]),
+               np.array([1., 1., 0., 0.])]
         npt.assert_equal(list(t.iter_data(axis='observation')), exp)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
