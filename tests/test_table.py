@@ -466,13 +466,15 @@ class TableTests(TestCase):
 
         npt.assert_equal(t.ids(), [b'Sample2', b'Sample4', b'Sample6'])
         npt.assert_equal(t.ids(axis='observation'),
-                         [b'GG_OTU_2', b'GG_OTU_3', b'GG_OTU_4', b'GG_OTU_5'])
+                         [b'GG_OTU_1', b'GG_OTU_2', b'GG_OTU_3', b'GG_OTU_4',
+                          b'GG_OTU_5'])
         exp_obs_md = None
         self.assertEqual(t._observation_metadata, exp_obs_md)
         exp_samp_md = None
         self.assertEqual(t._sample_metadata, exp_samp_md)
 
-        exp = [np.array([1., 2., 1.]),
+        exp = [np.array([0, 0, 0]),
+               np.array([1., 2., 1.]),
                np.array([0., 4., 2.]),
                np.array([1., 0., 1.]),
                np.array([1., 0., 0.])]
@@ -555,8 +557,8 @@ class TableTests(TestCase):
                             subset_with_metadata=False)
         os.chdir(cwd)
 
-        npt.assert_equal(t.ids(), [b'Sample2', b'Sample3', b'Sample4',
-                                   b'Sample6'])
+        npt.assert_equal(t.ids(), [b'Sample1', b'Sample2', b'Sample3',
+                                   b'Sample4', b'Sample5', b'Sample6'])
         npt.assert_equal(t.ids(axis='observation'),
                          [b'GG_OTU_1', b'GG_OTU_3', b'GG_OTU_5'])
         exp_obs_md = None
@@ -565,9 +567,9 @@ class TableTests(TestCase):
         exp_samp_md = None
         self.assertEqual(t._sample_metadata, exp_samp_md)
 
-        exp = [np.array([0., 1., 0., 0.]),
-               np.array([0., 1., 4., 2.]),
-               np.array([1., 1., 0., 0.])]
+        exp = [np.array([0, 0., 1., 0., 0, 0.]),
+               np.array([0, 0., 1., 4., 0, 2.]),
+               np.array([0, 1., 1., 0., 0, 0.])]
         npt.assert_equal(list(t.iter_data(axis='observation')), exp)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')

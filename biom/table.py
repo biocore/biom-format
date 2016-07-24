@@ -3287,17 +3287,17 @@ html
                 samp_ids = axis_ids[to_keep]
                 shape = (len(obs_ids), len(to_keep))
                 mat = csc_matrix((data, indices, indptr), shape=shape)
-                mat_nz = np.unique(mat.nonzero()[0])  # nz rows
-                obs_ids = obs_ids[mat_nz]
-                mat = mat[mat_nz]
+                #mat_nz = np.unique(mat.nonzero()[0])  # nz rows
+                #obs_ids = obs_ids[mat_nz]
+                #mat = mat[mat_nz]
             else:
                 samp_ids = h5grp['sample/ids'][:]
                 obs_ids = axis_ids[to_keep]
                 shape = (len(to_keep), len(samp_ids))
                 mat = csr_matrix((data, indices, indptr), shape=shape)
-                mat_nz = np.unique(mat.nonzero()[1])  # nz columns
-                samp_ids = samp_ids[mat_nz]
-                mat = mat[:, mat_nz]
+                #mat_nz = np.unique(mat.nonzero()[1])  # nz columns
+                #samp_ids = samp_ids[mat_nz]
+                #mat = mat[:, mat_nz]
 
             return Table(mat, obs_ids, samp_ids)
 
