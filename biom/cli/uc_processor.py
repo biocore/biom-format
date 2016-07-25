@@ -20,9 +20,9 @@ from biom.exception import TableException
 @click.option('-i', '--input-fp', required=True,
               type=click.Path(exists=True, dir_okay=False),
               help='The input uc filepath.')
-@click.option('-o', '--output-fp', default=None,
+@click.option('-o', '--output-fp', required=True,
               type=click.Path(writable=True),
-              help='The output BIOM filepath', required=False)
+              help='The output BIOM filepath')
 @click.option('--rep-set-fp', type=click.Path(exists=True, dir_okay=False),
               help="Fasta file containing representative sequences with "
                    "where sequences are labeled with OTU identifiers, and "

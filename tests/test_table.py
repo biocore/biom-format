@@ -2376,6 +2376,60 @@ class SparseTableTests(TestCase):
         with self.assertRaises(UnknownAxisError):
             self.st1.transform(sample_transform_f, axis='foo')
 
+    def test_rank_observation_by_sample(self):
+        """rank observations by sample"""
+        data = np.array([[ 99,  12,   8],
+                         [  0,  42,   7],
+                         [112,  42,   6],
+                         [  5,  75,   5]])
+        data_exp = np.array([[ 2. ,  1. ,  4. ],
+                             [ 0. ,  2.5,  3. ],
+                             [ 3. ,  2.5,  2. ],
+                             [ 1. ,  4. ,  1. ]])
+
+        st = Table(data, sample_ids=['s1', 's2', 's3'],
+                   observation_ids=['o1', 'o2', 'o3', 'o4'])
+        exp = Table(data_exp, sample_ids=['s1', 's2', 's3'],
+                   observation_ids=['o1', 'o2', 'o3', 'o4'])
+        st.rankdata(axis='sample')
+        self.assertEqual(st, exp)
+
+    def test_rank_observation_by_sample_alt_method(self):
+        """rank observations by sample with alt method"""
+        data = np.array([[ 99,  12,   8],
+                         [  0,  42,   7],
+                         [112,  42,   6],
+                         [  5,  75,   5]])
+        data_exp = np.array([[ 2. ,  1. , 4. ],
+                             [ 0. ,  2.,  3. ],
+                             [ 3. ,  2.,  2. ],
+                             [ 1. ,  4. , 1. ]])
+
+        st = Table(data, sample_ids=['s1', 's2', 's3'],
+                   observation_ids=['o1', 'o2', 'o3', 'o4'])
+        exp = Table(data_exp, sample_ids=['s1', 's2', 's3'],
+                   observation_ids=['o1', 'o2', 'o3', 'o4'])
+        st.rankdata(axis='sample', method='min')
+        self.assertEqual(st, exp)
+
+    def test_rank_sample_by_observation(self):
+        """rank samples by observation"""
+        data = np.array([[ 99,  12,   8],
+                         [  0,  42,   7],
+                         [112,  42,   6],
+                         [  5,  75,   5]])
+        data_exp = np.array([[ 3. ,  2. ,  1. ],
+                             [ 0. ,  2.,  1. ],
+                             [ 3. ,  2.,  1. ],
+                             [ 1.5,  3.,  1.5 ]])
+
+        st = Table(data, sample_ids=['s1', 's2', 's3'],
+                   observation_ids=['o1', 'o2', 'o3', 'o4'])
+        exp = Table(data_exp, sample_ids=['s1', 's2', 's3'],
+                   observation_ids=['o1', 'o2', 'o3', 'o4'])
+        st.rankdata(axis='observation')
+        self.assertEqual(st, exp)
+
     def test_norm_observation_by_sample(self):
         """normalize observations by sample"""
         data = {(0, 0): 2, (0, 1): 0, (1, 0): 6, (1, 1): 1}

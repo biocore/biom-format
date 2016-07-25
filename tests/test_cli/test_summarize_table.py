@@ -76,8 +76,8 @@ Total count: 200
 Table density (fraction of non-zero values): 0.238
 
 Counts/sample summary:
- Min: 22.0
- Max: 23.0
+ Min: 22.000
+ Max: 23.000
  Median: 22.000
  Mean: 22.222
  Std. dev.: 0.416
@@ -85,22 +85,22 @@ Counts/sample summary:
  Observation Metadata Categories: taxonomy
 
 Counts/sample detail:
-p2: 22.0
-f1: 22.0
-f2: 22.0
-f3: 22.0
-f4: 22.0
-t2: 22.0
-not16S.1: 22.0
-t1: 23.0
-p1: 23.0"""
+p2: 22.000
+f1: 22.000
+f2: 22.000
+f3: 22.000
+f4: 22.000
+t2: 22.000
+not16S.1: 22.000
+t1: 23.000
+p1: 23.000"""
 
 summary_qualitative = """Num samples: 9
 Num observations: 14
 
 Observations/sample summary:
- Min: 1
- Max: 9
+ Min: 1.000
+ Max: 9.000
  Median: 3.000
  Mean: 3.333
  Std. dev.: 2.211
@@ -108,15 +108,15 @@ Observations/sample summary:
  Observation Metadata Categories: taxonomy
 
 Observations/sample detail:
-f4: 1
-f1: 2
-f3: 2
-not16S.1: 2
-f2: 3
-t2: 3
-t1: 4
-p1: 4
-p2: 9"""
+f4: 1.000
+f1: 2.000
+f3: 2.000
+not16S.1: 2.000
+f2: 3.000
+t2: 3.000
+t1: 4.000
+p1: 4.000
+p2: 9.000"""
 
 if __name__ == "__main__":
     main()

@@ -174,6 +174,7 @@ Bacteria; Proteobacteria  1.0 1.0 1.0 1.0
 
 from __future__ import division
 import numpy as np
+import scipy.stats
 from copy import deepcopy
 from datetime import datetime
 from json import dumps
@@ -2722,16 +2723,69 @@ class Table(object):
 
         return table
 
+    def rankdata(self, axis='sample', inplace=True, method='average'):
+        """Convert values to rank abundances from smallest to largest
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}, optional
+            The axis to use for ranking.
+        inplace : bool, optional
+            Defaults to ``True``. If ``True``, performs the ranking in
+            place. Otherwise, returns a new table with ranking applied.
+        method : str, optional
+            The method for handling ties in counts. This can be any valid
+            string that can be passed to `scipy.stats.rankdata`.
+
+        Returns
+        -------
+        biom.Table
+            The rank-abundance-transformed table.
+
+        Raises
+        ------
+        ValueError
+            If unknown ``method`` is provided.
+
+        See Also
+        --------
+        scipy.stats.rankdata
+
+        Examples
+        --------
+        >>> import numpy as np
+        >>> from biom import Table
+        >>> data = np.array([[ 99,  12,   8], [  0,  42,   7],
+        ...                  [112,  42,   6], [  5,  75,   5]])
+        >>> t = Table(data, sample_ids=['s1', 's2', 's3'],
+        ...           observation_ids=['o1', 'o2', 'o3', 'o4'])
+
+        Convert observation counts to their ranked abundance, from smallest
+        to largest.
+
+        >>> print t.rankdata()  # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID	s1	s2	s3
+        o1	2.0	1.0	4.0
+        o2	0.0	2.5	3.0
+        o3	3.0	2.5	2.0
+        o4	1.0	4.0	1.0
+
+        """
+        def f(val, id_, _):
+            return scipy.stats.rankdata(val, method=method)
+        return self.transform(f, axis=axis, inplace=inplace)
+
     def norm(self, axis='sample', inplace=True):
         """Normalize in place sample values by an observation, or vice versa.
 
         Parameters
         ----------
         axis : {'sample', 'observation'}, optional
-            The axis to use for normalization
+            The axis to use for normalization.
         inplace : bool, optional
             Defaults to ``True``. If ``True``, performs the normalization in
-            place. Otherwise, returns a new table with the noramlization
+            place. Otherwise, returns a new table with the normalization
             applied.
 
         Returns
