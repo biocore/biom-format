@@ -31,6 +31,7 @@ Projects using the BIOM format
 * `Phinch <http://phinch.org>`_
 * `RDP Classifier <https://github.com/rdpstaff/classifier>`_
 * `USEARCH <http://www.drive5.com/usearch/>`_
+* `PhyloToAST <http://phylotoast.org/>`_
 
 If you are using BIOM in your project, and would like your project to be listed, please submit a `pull request <https://github.com/biocore/biom-format/pulls>`_ to the BIOM project. More information on `submitting pull requests can be found here <https://help.github.com/articles/using-pull-requests>`_.
 
