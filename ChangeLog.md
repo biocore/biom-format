@@ -49,6 +49,10 @@ Bug fixes:
  [issue #633](https://github.com/biocore/biom-format/issues/633).
 * `biom --version` now prints the software version (previously the individual
   commands did this, but not the base command).
+* `Table.vlen_list_of_str_formatter` was considering a `str` to be valid for
+  formatting resulting in an obscure error when a `str`, as opposed to a 
+  `list` of `str`, was used for taxonomy. See 
+  [issue #709](https://github.com/biocore/biom-format/issues/709).
 
 biom 2.1.4
 ----------

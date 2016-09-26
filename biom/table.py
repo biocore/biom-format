@@ -257,6 +257,8 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
     for m in md:
         if m[header] is None:
             iterable_checks.append(True)
+        elif isinstance(m.get(header), str):
+            iterable_checks.append(False)
         else:
             iterable_checks.append(
                 isinstance(m.get(header, []), Iterable))
@@ -266,7 +268,8 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
         raise TypeError(
             "Category %s not formatted correctly. Did you pass"
             " --process-obs-metadata taxonomy when converting "
-            " from tsv?")
+            " from tsv? Please see Table.to_hdf5 docstring for"
+            " more information")
 
     max_list_len = max(lengths)
     shape = (len(md), max_list_len)
