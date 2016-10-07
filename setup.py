@@ -69,11 +69,14 @@ classifiers = [s.strip() for s in classes.split('\n') if s]
 USE_CYTHON = os.environ.get('USE_CYTHON', False)
 ext = '.pyx' if USE_CYTHON else '.c'
 extensions = [Extension("biom._filter",
-                        ["biom/_filter" + ext]),
+                        ["biom/_filter" + ext],
+                        include_dirs=[np.get_include()]),
               Extension("biom._transform",
-                        ["biom/_transform" + ext]),
+                        ["biom/_transform" + ext],
+                        include_dirs=[np.get_include()]),
               Extension("biom._subsample",
-                        ["biom/_subsample" + ext])]
+                        ["biom/_subsample" + ext],
+                        include_dirs=[np.get_include()])]
 
 if USE_CYTHON:
     from Cython.Build import cythonize
