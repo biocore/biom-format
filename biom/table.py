@@ -196,7 +196,7 @@ from biom.err import errcheck
 from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
-
+from biom.util import pad_taxa
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -521,6 +521,39 @@ class Table(object):
     def matrix_data(self):
         """The sparse matrix object"""
         return self._data
+
+    def to_pandas(self):
+        """
+        Returns
+        ----------
+        counts : pd.SparseDataFrame
+            Pandas representation of counts
+        sample_metadata : pd.DataFrame
+            Pandas representation of the sample metadata
+        observation_metadata : pd.DataFrame
+            Pandas representation of the observation metadata
+
+        Note
+        ----
+        This can only handle
+        """
+        m = self.matrix_data
+        data = [pd.SparseSeries(m[i].toarray().ravel()) for i in np.arange(m.shape[0])]
+        counts = pd.SparseDataFrame(data, index=_bt.ids('observation'),
+                                    columns=_bt.ids('sample'))
+
+        obs_mapping = {}
+        for i in otu_ids:
+            if 'taxonomy' in self.metadata(id=i, axis='observation'):
+                m = self.metadata(id=i, axis='observation')
+                obs_mapping[i] = pad_taxa(m['taxonomy'])
+
+        observation_metadata = pd.DataFrame(obs_mapping,
+                                index=['kingdom', 'phylum', 'class', 'order',
+                                       'family', 'genus', 'species']).T
+
+        sample_metadata = None
+        return counts, sample_metadata, observation_metadata
 
     def length(self, axis='sample'):
         """Return the length of an axis

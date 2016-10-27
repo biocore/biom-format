@@ -513,3 +513,8 @@ def is_hdf5_file(fp):
     with open(fp, 'rb') as f:
         # from the HDF5 documentation about format signature
         return f.read(8) == b'\x89HDF\r\n\x1a\n'
+
+
+def pad_taxa(taxa_list):
+    taxa_blank = ['k__', 'p__', 'c__', 'o__', 'f__', 'g__', 's__']
+    return taxa_list + taxa_blank[-(7-len(taxa_list)):]
