@@ -547,7 +547,8 @@ class Table(object):
 
         # Extract count data
         m = self.matrix_data
-        data = [pd.SparseSeries(np.squeeze(row.toarray())) for row in self.matrix_data]
+        data = [pd.SparseSeries(np.squeeze(row.toarray()))
+                for row in self.matrix_data]
         counts = pd.SparseDataFrame(data, index=self.ids('observation'),
                                     columns=self.ids('sample'))
 
