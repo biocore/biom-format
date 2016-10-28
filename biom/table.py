@@ -522,11 +522,12 @@ class Table(object):
         return self._data
 
     def to_pandas(self):
-        """
+        """ Converts biom table into 3 pandas dataframes.
+
         Returns
         ----------
         counts : pd.SparseDataFrame
-            Pandas representation of counts
+            Pandas representation of table values (i.e. counts)
         sample_metadata : pd.DataFrame
             Pandas representation of the sample metadata
         observation_metadata : pd.DataFrame
@@ -536,7 +537,7 @@ class Table(object):
         ----
         This assumes that the keys across the metadata fields are consistent.
         For example, if the first observation has taxonomy, it is assumed that
-        all of the features also have taxonomy.
+        all of the observations also have taxonomy.
         """
         # Double check to see if pandas is installed properly
         try:
