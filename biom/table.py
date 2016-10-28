@@ -197,7 +197,6 @@ from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
 
-
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
@@ -521,6 +520,61 @@ class Table(object):
     def matrix_data(self):
         """The sparse matrix object"""
         return self._data
+
+    def to_pandas(self):
+        """ Converts biom table into 3 pandas dataframes.
+
+        Returns
+        ----------
+        counts : pd.SparseDataFrame
+            Pandas representation of table values (i.e. counts)
+        sample_metadata : pd.DataFrame
+            Pandas representation of the sample metadata
+        observation_metadata : pd.DataFrame
+            Pandas representation of the observation metadata
+
+        Note
+        ----
+        This assumes that the keys across the metadata fields are consistent.
+        For example, if the first observation has taxonomy, it is assumed that
+        all of the observations also have taxonomy.
+        """
+        # Double check to see if pandas is installed properly
+        try:
+            import pandas as pd
+        except:
+            ImportError("pandas installation not found")
+
+        # Extract count data
+        m = self.matrix_data
+        data = [pd.SparseSeries(np.squeeze(row.toarray()))
+                for row in self.matrix_data]
+        counts = pd.SparseDataFrame(data, index=self.ids('observation'),
+                                    columns=self.ids('sample'))
+
+        # Extract observational metadata
+        obs_mapping = []
+        obs_ids = self.ids(axis='observation')
+        obs_md_cols = self.metadata(id=obs_ids[0], axis='observation').keys()
+        for i in obs_ids:
+            for k in obs_md_cols:
+                m = self.metadata(id=i, axis='observation')
+                obs_mapping.append(m)
+
+        observation_metadata = pd.DataFrame(obs_mapping, index=obs_ids)
+
+        # Extract sample metadata
+        samp_mapping = []
+        samp_ids = self.ids(axis='sample')
+        samp_md_cols = self.metadata(id=samp_ids[0], axis='sample').keys()
+        for i in samp_ids:
+            for k in samp_md_cols:
+                m = self.metadata(id=i, axis='sample')
+                samp_mapping.append(m)
+
+        sample_metadata = pd.DataFrame(samp_mapping, index=samp_ids)
+
+        return counts, sample_metadata, observation_metadata
 
     def length(self, axis='sample'):
         """Return the length of an axis

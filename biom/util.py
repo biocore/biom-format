@@ -36,6 +36,12 @@ except ImportError:
     H5PY_VLEN_STR = None
     H5PY_VLEN_UNICODE = None
 
+try:
+    import pandas
+    HAVE_PD = True
+except ImportError:
+    HAVE_PD = False
+
 from numpy import mean, median, min, max
 
 __author__ = "Daniel McDonald"

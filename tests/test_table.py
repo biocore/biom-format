@@ -22,7 +22,7 @@ from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 
 from biom import example_table
 from biom.exception import UnknownAxisError, UnknownIDError, TableException
-from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
+from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR, HAVE_PD
 from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
                         list_dict_to_sparse, dict_to_sparse,
                         coo_arrays_to_sparse, list_list_to_sparse,
@@ -30,8 +30,14 @@ from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
 from biom.parse import parse_biom_table
 from biom.err import errstate
 
+
 if HAVE_H5PY:
     import h5py
+
+if HAVE_PD:
+    import pandas as pd
+    import pandas.util.testing as pdt
+
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -3288,6 +3294,53 @@ class SparseTableTests(TestCase):
         # Tables with some zeros explicitly defined.
         npt.assert_almost_equal(self.st7.get_table_density(), 0.75)
 
+    def test_to_pandas_pathways(self):
+        dt_rich = Table(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
+                        ['1', '2', '3'], ['a', 'b', 'c'],
+                        [{'pathways': [['a', 'bx'], ['a', 'd']]},
+                         {'pathways': [['a', 'bx'], ['a', 'c']]},
+                         {'pathways': [['a']]}],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
+        exp_obs = pd.DataFrame(
+            {'pathways': [[['a', 'bx'], ['a', 'd']],
+                          [['a', 'bx'], ['a', 'c']],
+                          [['a']]]}, index=['1', '2', '3'])
+        exp_samp = pd.DataFrame(
+            {'barcode': ['aatt', 'ttgg', 'aatt']},
+            index=['a', 'b', 'c'])
+        exp_counts = pd.SparseDataFrame(
+            np.array([[5., 6., 7.], [8., 9., 10.], [11., 12., 13.]]),
+            index=['1', '2', '3'],
+            columns=['a', 'b', 'c'])
+
+        res_counts, res_samp, res_obs = dt_rich.to_pandas()
+        pdt.assert_frame_equal(res_counts, exp_counts)
+        pdt.assert_frame_equal(res_samp, exp_samp)
+        pdt.assert_frame_equal(res_obs, exp_obs)
+
+    @npt.dec.skipif(HAVE_PD is False, msg='pandas is not installed')
+    def test_to_pandas_taxonomy(self):
+
+        st_rich = Table(self.vals,
+                        ['1', '2'], ['a', 'b'],
+                        [{'taxonomy': ['k__a', 'p__b']},
+                         {'taxonomy': ['k__a', 'p__c']}],
+                        [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+
+        exp_counts = pd.SparseDataFrame([[5., 6.], [7., 8.]],
+                                        index=['1', '2'],
+                                        columns=['a', 'b'])
+        exp_obs = pd.DataFrame({'taxonomy': [['k__a', 'p__b'],
+                                              ['k__a', 'p__c']]},
+                               index=['1', '2'])
+        exp_samp = pd.DataFrame({'barcode': ['aatt',  'ttgg']},
+                                index=['a', 'b'])
+        res_counts, res_samp, res_obs = st_rich.to_pandas()
+        pdt.assert_frame_equal(res_counts, exp_counts)
+        pdt.assert_frame_equal(res_samp, exp_samp)
+        pdt.assert_frame_equal(res_obs, exp_obs)
 
 class SupportTests2(TestCase):
 
@@ -3447,6 +3500,7 @@ class SupportTests2(TestCase):
         exp[1, 3] = 2
         obs = list_sparse_to_sparse(ins)
         self.assertEqual((obs != exp).sum(), 0)
+
 
 legacy_otu_table1 = u"""# some comment goes here
 #OTU id\tFing\tKey\tNA\tConsensus Lineage
