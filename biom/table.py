@@ -196,7 +196,6 @@ from biom.err import errcheck
 from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
-from biom.util import pad_taxa
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -535,24 +534,44 @@ class Table(object):
 
         Note
         ----
-        This can only handle
+        This assumes that the keys across the metadata fields are consistent.
+        For example, if the first observation has taxonomy, it is assumed that
+        all of the features also have taxonomy.
         """
+        # Double check to see if pandas is installed properly
+        try:
+            import pandas as pd
+        except:
+            ImportError("pandas installation not found")
+
+        # Extract count data
         m = self.matrix_data
-        data = [pd.SparseSeries(m[i].toarray().ravel()) for i in np.arange(m.shape[0])]
-        counts = pd.SparseDataFrame(data, index=_bt.ids('observation'),
-                                    columns=_bt.ids('sample'))
+        data = [pd.SparseSeries(np.squeeze(row.toarray())) for row in self.matrix_data]
+        counts = pd.SparseDataFrame(data, index=self.ids('observation'),
+                                    columns=self.ids('sample'))
 
-        obs_mapping = {}
-        for i in otu_ids:
-            if 'taxonomy' in self.metadata(id=i, axis='observation'):
+        # Extract observational metadata
+        obs_mapping = []
+        obs_ids = self.ids(axis='observation')
+        obs_md_cols = self.metadata(id=obs_ids[0], axis='observation').keys()
+        for i in obs_ids:
+            for k in obs_md_cols:
                 m = self.metadata(id=i, axis='observation')
-                obs_mapping[i] = pad_taxa(m['taxonomy'])
+                obs_mapping.append(m)
 
-        observation_metadata = pd.DataFrame(obs_mapping,
-                                index=['kingdom', 'phylum', 'class', 'order',
-                                       'family', 'genus', 'species']).T
+        observation_metadata = pd.DataFrame(obs_mapping, index=obs_ids)
 
-        sample_metadata = None
+        # Extract sample metadata
+        samp_mapping = []
+        samp_ids = self.ids(axis='sample')
+        samp_md_cols = self.metadata(id=samp_ids[0], axis='sample').keys()
+        for i in samp_ids:
+            for k in samp_md_cols:
+                m = self.metadata(id=i, axis='sample')
+                samp_mapping.append(m)
+
+        sample_metadata = pd.DataFrame(samp_mapping, index=samp_ids)
+
         return counts, sample_metadata, observation_metadata
 
     def length(self, axis='sample'):

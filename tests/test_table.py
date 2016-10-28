@@ -22,17 +22,22 @@ from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 
 from biom import example_table
 from biom.exception import UnknownAxisError, UnknownIDError, TableException
-from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
+from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR, HAVE_PD
 from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
                         list_dict_to_sparse, dict_to_sparse,
                         coo_arrays_to_sparse, list_list_to_sparse,
                         nparray_to_sparse, list_sparse_to_sparse)
 from biom.parse import parse_biom_table
 from biom.err import errstate
-import pandas.util.testing as pdt
+
 
 if HAVE_H5PY:
     import h5py
+
+if HAVE_PD:
+    import pandas as pd
+    import pandas.util.testing as pdt
+
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
@@ -3289,6 +3294,53 @@ class SparseTableTests(TestCase):
         # Tables with some zeros explicitly defined.
         npt.assert_almost_equal(self.st7.get_table_density(), 0.75)
 
+    def test_to_pandas_pathways(self):
+        dt_rich = Table(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
+                        ['1', '2', '3'], ['a', 'b', 'c'],
+                        [{'pathways': [['a', 'bx'], ['a', 'd']]},
+                         {'pathways': [['a', 'bx'], ['a', 'c']]},
+                         {'pathways': [['a']]}],
+                        [{'barcode': 'aatt'},
+                         {'barcode': 'ttgg'},
+                         {'barcode': 'aatt'}])
+        exp_obs = pd.DataFrame(
+            {'pathways': [[['a', 'bx'], ['a', 'd']],
+                          [['a', 'bx'], ['a', 'c']],
+                          [['a']]]}, index=['1', '2', '3'])
+        exp_samp = pd.DataFrame(
+            {'barcode': ['aatt', 'ttgg', 'aatt']},
+            index=['a', 'b', 'c'])
+        exp_counts = pd.SparseDataFrame(
+            np.array([[5., 6., 7.], [8., 9., 10.], [11., 12., 13.]]),
+            index=['1', '2', '3'],
+            columns=['a', 'b', 'c'])
+
+        res_counts, res_samp, res_obs = dt_rich.to_pandas()
+        pdt.assert_frame_equal(res_counts, exp_counts)
+        pdt.assert_frame_equal(res_samp, exp_samp)
+        pdt.assert_frame_equal(res_obs, exp_obs)
+
+    @npt.dec.skipif(HAVE_PD is False, msg='pandas is not installed')
+    def test_to_pandas_taxonomy(self):
+
+        st_rich = Table(self.vals,
+                        ['1', '2'], ['a', 'b'],
+                        [{'taxonomy': ['k__a', 'p__b']},
+                         {'taxonomy': ['k__a', 'p__c']}],
+                        [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+
+        exp_counts = pd.SparseDataFrame([[5., 6.], [7., 8.]],
+                                        index=['1', '2'],
+                                        columns=['a', 'b'])
+        exp_obs = pd.DataFrame({'taxonomy': [['k__a', 'p__b'],
+                                              ['k__a', 'p__c']]},
+                               index=['1', '2'])
+        exp_samp = pd.DataFrame({'barcode': ['aatt',  'ttgg']},
+                                index=['a', 'b'])
+        res_counts, res_samp, res_obs = st_rich.to_pandas()
+        pdt.assert_frame_equal(res_counts, exp_counts)
+        pdt.assert_frame_equal(res_samp, exp_samp)
+        pdt.assert_frame_equal(res_obs, exp_obs)
 
 class SupportTests2(TestCase):
 
@@ -3448,121 +3500,6 @@ class SupportTests2(TestCase):
         exp[1, 3] = 2
         obs = list_sparse_to_sparse(ins)
         self.assertEqual((obs != exp).sum(), 0)
-
-    def test_to_pandas_pathways(self):
-        dt_rich = Table(np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
-                        ['1', '2', '3'], ['a', 'b', 'c'],
-                        [{'pathways': [['a', 'bx'], ['a', 'd']]},
-                         {'pathways': [['a', 'bx'], ['a', 'c']]},
-                         {'pathways': [['a']]}],
-                        [{'barcode': 'aatt'},
-                         {'barcode': 'ttgg'},
-                         {'barcode': 'aatt'}])
-        pass
-
-    def test_to_pandas_taxonomy(self):
-        self.st_rich = Table(self.vals,
-                             ['1', '2'], ['a', 'b'],
-                             [{'taxonomy': ['k__a', 'p__b']},
-                              {'taxonomy': ['k__a', 'p__c']}],
-                             [{'barcode': 'aatt'}, {'barcode': 'ttgg'}],
-                             )
-        pass
-
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
-    def test_to_pandas(self):
-        """Parse a hdf5 formatted BIOM table"""
-
-        exp_obs_md = pd.DataFrame(
-            [[u'k__Bacteria',
-              u'p__Proteobacteria',
-              u'c__Gammaproteobacteria',
-              u'o__Enterobacteriales',
-              u'f__Enterobacteriaceae',
-              u'g__Escherichia',
-              u's__'],
-             [u'k__Bacteria',
-              u'p__Cyanobacteria',
-              u'c__Nostocophycideae',
-              u'o__Nostocales',
-              u'f__Nostocaceae',
-              u'g__Dolichospermum',
-              u's__'],
-             [u'k__Archaea',
-              u'p__Euryarchaeota',
-              u'c__Methanomicrobia',
-              u'o__Methanosarcinales',
-              u'f__Methanosarcinaceae',
-              u'g__Methanosarcina',
-              u's__'],
-             [u'k__Bacteria',
-              u'p__Firmicutes',
-              u'c__Clostridia',
-              u'o__Halanaerobiales',
-              u'f__Halanaerobiaceae',
-              u'g__Halanaerobium',
-              u's__Halanaerobiumsaccharolyticum'],
-             [u'k__Bacteria',
-              u'p__Proteobacteria',
-              u'c__Gammaproteobacteria',
-              u'o__Enterobacteriales',
-              u'f__Enterobacteriaceae',
-              u'g__Escherichia',
-              u's__']],
-            columns=['kingdom', 'phylum', 'class', 'order',
-                     'family', 'genus', 'species'],
-            index=(u'GG_OTU_1', u'GG_OTU_2', u'GG_OTU_3',
-                   u'GG_OTU_4', u'GG_OTU_5')))
-
-        exp_samp_md = pd.DataFrame(
-            [[u'CATGCTGCCTCCCGTAGGAGT',
-              u'CGCTTATCGAGA',
-              u'human gut',
-              u'gut'],
-             [u'CATGCTGCCTCCCGTAGGAGT',
-              u'CATACCAGTAGC',
-              u'human gut',
-              u'gut'],
-             [u'CATGCTGCCTCCCGTAGGAGT',
-              u'CTCTCTACCTGT',
-              u'human gut',
-              u'gut'],
-             [u'CATGCTGCCTCCCGTAGGAGT',
-              u'CTCTCGGCCTGT',
-              u'human skin',
-              u'skin'],
-             [u'CATGCTGCCTCCCGTAGGAGT',
-              u'CTCTCTACCAAT',
-              u'human skin',
-              u'skin'],
-             [u'CATGCTGCCTCCCGTAGGAGT',
-              u'CTAACTACCAAT',
-              u'human skin',
-              u'skin']],
-            index=(u'Sample1', u'Sample2', u'Sample3',
-                   u'Sample4', u'Sample5', u'Sample6'),
-            columns=[u'LinkerPrimerSequence', u'BarcodeSequence',
-                     u'Description', u'BODY_SITE'])
-
-        exp_counts = pd.SparseDataFrame({
-            'GG_OTU_1': np.array([0., 0., 1., 0., 0., 0.]),
-            'GG_OTU_2': np.array([5., 1., 0., 2., 3., 1.]),
-            'GG_OTU_3': np.array([0., 0., 1., 4., 0., 2.]),
-            'GG_OTU_4': np.array([2., 1., 1., 0., 0., 1.]),
-            'GG_OTU_5': np.array([0., 1., 1., 0., 0., 0.]),
-            index=(u'Sample1', u'Sample2', u'Sample3',
-                   u'Sample4', u'Sample5', u'Sample6')}).T
-
-        cwd = os.getcwd()
-        if '/' in __file__:
-            os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'))
-        os.chdir(cwd)
-
-        res_counts, res_samp_md, res_obs_md = t.to_pandas()
-        self.assert_frame_equal(exp_counts, res_counts)
-        self.assert_frame_equal(exp_samp_md, res_samp_md)
-        self.assert_frame_equal(exp_obs_md, res_obs_md)
 
 
 legacy_otu_table1 = u"""# some comment goes here
