@@ -97,6 +97,75 @@ class SupportTests(TestCase):
         with self.assertRaises(IndexError):
             example_table.head(5, 0)
 
+    def test_concat_samples(self):
+        table2 = example_table.copy()
+        table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
+        
+        exp = Table(np.array([[0, 1, 2, 0, 1, 2],
+                              [3, 4, 5, 3, 4, 5]]), 
+                    ['O1', 'O2'],
+                    ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
+                    example_table.metadata(axis='observation'),
+                    list(example_table.metadata()) * 2)
+        obs = example_table.concat([table2, ], axis='observation')
+        self.assertEqual(obs, exp)
+
+    def test_concat_observations(self):
+        table2 = example_table.copy()
+        table2.update_ids({'O1': 'O3', 'O2': 'O4'}, axis='observation')
+        
+        exp = Table(np.array([[0, 1, 2],
+                              [3, 4, 5],
+                              [0, 1, 2],
+                              [3, 4, 5]]), 
+                    ['O1', 'O2', 'O3', 'O4'],
+                    ['S1', 'S2', 'S3'],
+                    list(example_table.metadata(axis='observation')) * 2,
+                    example_table.metadata())
+        obs = example_table.concat([table2, ], axis='sample')
+        self.assertEqual(obs, exp)
+
+    def test_concat_multiple(self):
+        table2 = example_table.copy()
+        table2.update_ids({'O1': 'O3', 'O2': 'O4'}, axis='observation')
+        table3 = example_table.copy()
+        table3.update_ids({'O1': 'O5', 'O2': 'O6'}, axis='observation')
+        
+        exp = Table(np.array([[0, 1, 2],
+                              [3, 4, 5],
+                              [0, 1, 2],
+                              [3, 4, 5],
+                              [0, 1, 2],
+                              [3, 4, 5]]), 
+                    ['O1', 'O2', 'O3', 'O4', 'O5', 'O6'],
+                    ['S1', 'S2', 'S3'],
+                    list(example_table.metadata(axis='observation')) * 3,
+                    example_table.metadata())
+        obs = example_table.concat([table2, table3], axis='sample')
+        self.assertEqual(obs, exp)
+
+    def test_concat_different_order(self):
+        table2 = example_table.sort_order(['S3', 'S2', 'S1'])
+        table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
+        table3 = example_table.sort_order(['S2', 'S1', 'S3'])
+        table3.update_ids({'S1': 'S7', 'S2': 'S8', 'S3': 'S9'})
+        
+        exp = Table(np.array([[0, 1, 2, 0, 1, 2, 0, 1, 2],
+                              [3, 4, 5, 3, 4, 5, 3, 4, 5]]), 
+                    ['O1', 'O2'],
+                    ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9'],
+                    example_table.metadata(axis='observation'),
+                    list(example_table.metadata()) * 3)
+        obs = example_table.concat([table2, table3], axis='observation')
+        self.assertEqual(obs, exp)
+
+    def test_concat_raise_overlap(self):
+        with self.assertRaises(BiomException):
+            example_table.concat(example_table)
+
+        with self.assertRaises(BiomException):
+            example_table.concat(example_table, axis='observation')
+
     def test_table_sparse_nparray(self):
         """beat the table sparsely to death"""
         # nparray test
