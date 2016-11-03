@@ -21,7 +21,8 @@ import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 
 from biom import example_table
-from biom.exception import UnknownAxisError, UnknownIDError, TableException
+from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
+                            DisjointIDError)
 from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
 from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
                         list_dict_to_sparse, dict_to_sparse,
@@ -107,7 +108,7 @@ class SupportTests(TestCase):
                     ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
                     example_table.metadata(axis='observation'),
                     list(example_table.metadata()) * 2)
-        obs = example_table.concat([table2, ], axis='observation')
+        obs = example_table.concat([table2, ], axis='sample')
         self.assertEqual(obs, exp)
 
     def test_concat_observations(self):
@@ -122,7 +123,7 @@ class SupportTests(TestCase):
                     ['S1', 'S2', 'S3'],
                     list(example_table.metadata(axis='observation')) * 2,
                     example_table.metadata())
-        obs = example_table.concat([table2, ], axis='sample')
+        obs = example_table.concat([table2, ], axis='observation')
         self.assertEqual(obs, exp)
 
     def test_concat_multiple(self):
@@ -141,30 +142,51 @@ class SupportTests(TestCase):
                     ['S1', 'S2', 'S3'],
                     list(example_table.metadata(axis='observation')) * 3,
                     example_table.metadata())
-        obs = example_table.concat([table2, table3], axis='sample')
+        obs = example_table.concat([table2, table3], axis='observation')
         self.assertEqual(obs, exp)
 
     def test_concat_different_order(self):
         table2 = example_table.sort_order(['S3', 'S2', 'S1'])
         table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
+        table2 = table2.sort_order(['O2', 'O1'], axis='observation')
         table3 = example_table.sort_order(['S2', 'S1', 'S3'])
         table3.update_ids({'S1': 'S7', 'S2': 'S8', 'S3': 'S9'})
         
-        exp = Table(np.array([[0, 1, 2, 0, 1, 2, 0, 1, 2],
-                              [3, 4, 5, 3, 4, 5, 3, 4, 5]]), 
+        exp = Table(np.array([[0, 1, 2, 2, 1, 0, 1, 0, 2],
+                              [3, 4, 5, 5, 4, 3, 4, 3, 5]]), 
                     ['O1', 'O2'],
-                    ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8', 'S9'],
+                    ['S1', 'S2', 'S3', 'S6', 'S5', 'S4', 'S8', 'S7', 'S9'],
                     example_table.metadata(axis='observation'),
-                    list(example_table.metadata()) * 3)
-        obs = example_table.concat([table2, table3], axis='observation')
+                    list(example_table.metadata()) + \
+                            list(table2.metadata()) + \
+                            list(table3.metadata()))
+        obs = example_table.concat([table2, table3], axis='sample')
+        self.assertEqual(obs, exp)
+
+    def test_concat_pad_on_subset(self):
+        table2 = example_table.copy()
+        table2.update_ids({'O2': 'O3'}, axis='observation', strict=False)
+        table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
+        exp_obs_md = list(example_table.metadata(axis='observation'))
+        exp_obs_md.append(example_table.metadata('O2', axis='observation'))
+
+        exp = Table(np.array([[0, 1, 2, 0, 1, 2],
+                              [3, 4, 5, 0, 0, 0],
+                              [0, 0, 0, 3, 4, 5]]),
+                    ['O1', 'O2', 'O3'],
+                    ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
+                    exp_obs_md,
+                    list(example_table.metadata()) * 2)
+
+        obs = example_table.concat([table2, ], axis='sample')
         self.assertEqual(obs, exp)
 
     def test_concat_raise_overlap(self):
-        with self.assertRaises(BiomException):
-            example_table.concat(example_table)
+        with self.assertRaises(DisjointIDError):
+            example_table.concat([example_table])
 
-        with self.assertRaises(BiomException):
-            example_table.concat(example_table, axis='observation')
+        with self.assertRaises(DisjointIDError):
+            example_table.concat([example_table], axis='observation')
 
     def test_table_sparse_nparray(self):
         """beat the table sparsely to death"""
@@ -922,7 +944,7 @@ class TableTests(TestCase):
             else:
                 raise RuntimeError('obs_id incorrect?')
 
-        self.assertEquals(sparse_rich._sample_metadata, None)
+        self.assertEqual(sparse_rich._sample_metadata, None)
 
         for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
             for j, sample_id in enumerate(sparse_rich.ids()):
@@ -963,7 +985,7 @@ class TableTests(TestCase):
             else:
                 raise RuntimeError('obs_id incorrect?')
 
-        self.assertEquals(sparse_rich._sample_metadata, None)
+        self.assertEqual(sparse_rich._sample_metadata, None)
 
         for i, obs_id in enumerate(sparse_rich.ids(axis='observation')):
             for j, sample_id in enumerate(sparse_rich.ids()):

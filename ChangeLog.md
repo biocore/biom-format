@@ -15,6 +15,7 @@ New Features:
 * `Table.rankdata` has been added to convert values to ranked abundances on
   either axis. See [issue #645](https://github.com/biocore/biom-format/issues/639).
 * Format of numbers in ``biom summarize-table`` output is now more readable and localized. See [issue #679](https://github.com/biocore/biom-format/issues/679).
+* `Table.concat` has been added to the API and allows for concatenating multiple tables in which the IDs of one of the axes are known to be disjoint. This has substantial performance benefit over `Table.merge`.
 
 Bug fixes:
 * ``-o`` is now a required parameter of ``biom from-uc``. This was not the case previously, which resulted in a cryptic error message if ``-o`` was not provided. See [issue #683](https://github.com/biocore/biom-format/issues/683).
