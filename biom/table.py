@@ -2986,6 +2986,7 @@ class Table(object):
         all_tables = others[:]
         all_tables.insert(0, self)
 
+        # verify disjoint, and fetch all ids from all tables
         for table in all_tables:
             table_axis_ids = table.ids(axis=axis)
             table_invaxis_order = table.ids(axis=invaxis)
@@ -3005,7 +3006,8 @@ class Table(object):
 
         invaxis_order = sorted(invaxis_ids)
 
-        # determine what inv axis IDs do not exist per table
+        # determine what inv axis IDs do not exist per table, and pad and sort
+        # as necessary
         padded_tables = []
         for table in all_tables:
             missing_ids = list(invaxis_ids - set(table.ids(axis=invaxis)))
