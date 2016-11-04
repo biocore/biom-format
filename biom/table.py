@@ -185,7 +185,7 @@ from future.utils import viewitems
 from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
-                          vstack, hstack, lil_matrix)
+                          vstack, hstack)
 
 from future.utils import string_types
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
