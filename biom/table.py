@@ -185,7 +185,7 @@ from future.utils import viewitems
 from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
-                          vstack, hstack)
+                          vstack, hstack, lil_matrix)
 
 from future.utils import string_types
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
@@ -315,7 +315,7 @@ class Table(object):
             self._data = Table._to_sparse(data, input_is_dense=input_is_dense,
                                           shape=shape)
         else:
-            self._data = data
+            self._data = data.tocsr()
 
         # using object to allow for variable length strings
         self._sample_ids = np.asarray(sample_ids, dtype=object)
@@ -1797,39 +1797,23 @@ class Table(object):
         O2	1.0	0.0	4.0
 
         """
-        md = []
-        vals = []
+        fancy = np.array([self.index(i, axis=axis) for i in order], dtype=int)
         metadata = self.metadata(axis=axis)
+        if metadata is not None:
+            metadata = np.array(metadata)[fancy]
+
         if axis == 'sample':
-            for id_ in order:
-                cur_idx = self.index(id_, 'sample')
-                vals.append(self._to_dense(self[:, cur_idx]))
-
-                if metadata is not None:
-                    md.append(metadata[cur_idx])
-
-            if not md:
-                md = None
-
-            return self.__class__(self._conv_to_self_type(vals,
-                                                          transpose=True),
+            mat = self.matrix_data[:, fancy]
+            return self.__class__(mat,
                                   self.ids(axis='observation')[:], order[:],
-                                  self.metadata(axis='observation'), md,
+                                  self.metadata(axis='observation'), metadata,
                                   self.table_id, self.type)
+
         elif axis == 'observation':
-            for id_ in order:
-                cur_idx = self.index(id_, 'observation')
-                vals.append(self[cur_idx, :])
-
-                if metadata is not None:
-                    md.append(metadata[cur_idx])
-
-            if not md:
-                md = None
-
-            return self.__class__(self._conv_to_self_type(vals),
+            mat = self.matrix_data[fancy, :]
+            return self.__class__(mat,
                                   order[:], self.ids()[:],
-                                  md, self.metadata(), self.table_id,
+                                  metadata, self.metadata(), self.table_id,
                                   self.type)
         else:
             raise UnknownAxisError(axis)
