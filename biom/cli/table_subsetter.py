@@ -64,7 +64,10 @@ def subset_table(input_hdf5_fp, input_json_fp, axis, ids, output_fp):
             input_json_fp = f.read()
 
     with open(ids, 'U') as f:
-        ids = [line.strip() for line in f]
+        ids = []
+        for line in f:
+            if not line.startswith('#'):
+                ids.append(line.strip().split('\t')[0])
 
     table, format_ = _subset_table(input_hdf5_fp, input_json_fp, axis, ids)
 

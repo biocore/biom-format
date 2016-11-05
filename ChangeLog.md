@@ -17,6 +17,7 @@ New Features:
 * Format of numbers in ``biom summarize-table`` output is now more readable and localized. See [issue #679](https://github.com/biocore/biom-format/issues/679).
 * `Table.concat` has been added to the API and allows for concatenating multiple tables in which the IDs of one of the axes are known to be disjoint. This has substantial performance benefit over `Table.merge`.
 * `Table.sort_order` was performing an implicit cast to dense, and not leveraging fancy indexing. A substantial performance gain was acheived. See [PR #720](https://github.com/biocore/biom-format/pull/720)
+* `biom subset-table` now accepts a QIIME-like mapping file when subsetting by IDs [Issue #587](https://github.com/biocore/biom-format/issues/587)
 
 Bug fixes:
 
