@@ -2928,7 +2928,7 @@ class Table(object):
         ----------
         others : iterable of biom.Table
             Tables to concatenate
-        axis : {'sample', 'observation'}
+        axis : {'sample', 'observation'}, optional
             The axis to concatenate on. i.e., if axis is 'sample', then tables
             will be joined such that the set of sample IDs in the resulting
             table will be the union of sample IDs across all tables in others.
