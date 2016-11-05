@@ -19,6 +19,7 @@ from future.utils import viewkeys
 import numpy.testing as npt
 import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
+import scipy.sparse
 
 from biom import example_table
 from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
@@ -1710,6 +1711,15 @@ class SparseTableTests(TestCase):
         obs = self.st1.update_ids({'a': 'x', 'b': 'y'}, inplace=False)
         exp_index = {'x': 0, 'y': 1}
         self.assertEqual(obs._sample_index, exp_index)
+
+    def test_other_spmatrix_type(self):
+        # I dont actually remember what bug stemmed from this...
+        ss = scipy.sparse
+        for c in [ss.lil_matrix, ss.bsr_matrix, ss.coo_matrix, ss.dia_matrix,
+                  ss.dok_matrix, ss.csc_matrix, ss.csr_matrix]:
+            mat = c((2, 2))
+            t = Table(mat, ['a', 'b'], [1, 2])
+            self.assertTrue(isinstance(t.matrix_data, (csr_matrix, csc_matrix)))
 
     def test_sort_order(self):
         """sorts tables by arbitrary order"""
