@@ -2867,8 +2867,8 @@ class Table(object):
         axis : {'sample', 'observation', 'whole'}
             The axis on which to count nonzero entries
         binary : bool, optional
-            Defaults to ``False``. If ``False``, return number of nonzero
-            entries. If ``True``, sum the values of the entries.
+            Defaults to ``False``. If ``True``, return number of nonzero
+            entries. If ``False``, sum the values of the entries.
 
         Returns
         -------
