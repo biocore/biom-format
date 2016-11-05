@@ -2966,8 +2966,6 @@ class Table(object):
         O5	0.0	0.0	0.0	0.0	0.0	0.0	15.0	16.0	17.0
 
         """
-        # should this be a staticmethod?
-
         # we grow along the opposite axis
         invaxis = self._invert_axis(axis)
         if axis == 'sample':
@@ -3039,7 +3037,8 @@ class Table(object):
                 tmp_ids = list(table.ids(axis=axis))
                 tmp_md = table.metadata(axis=axis)
 
-                # this sucks.
+                # resolve construction based off axis. This really should be
+                # pushed to a classmethod.
                 if axis == 'sample':
                     tmp_table = self.__class__(tmp_mat, tmp_inv_ids, tmp_ids,
                                                tmp_inv_md, tmp_md)
