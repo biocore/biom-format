@@ -99,6 +99,11 @@ class SupportTests(TestCase):
         with self.assertRaises(IndexError):
             example_table.head(5, 0)
 
+    def test_concat_empty(self):
+        exp = example_table.copy()
+        obs = example_table.concat([])
+        self.assertEqual(obs, exp)
+
     def test_concat_samples(self):
         table2 = example_table.copy()
         table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
