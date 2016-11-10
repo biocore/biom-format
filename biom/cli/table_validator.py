@@ -387,7 +387,7 @@ class TableValidator(object):
         else:
             return ''
 
-    def _check_date(self, val):
+    def _valid_date(self, val):
         valid_times = ["%Y-%m-%d",
                        "%Y-%m-%dT%H:%M",
                        "%Y-%m-%dT%H:%M:%S",
@@ -416,7 +416,7 @@ class TableValidator(object):
                                           note that a 'T' separates the date
                                           and time)
         """
-        return self._check_date(table.attrs['creation-date'])
+        return self._valid_date(table.attrs['creation-date'])
 
     def _valid_datetime(self, table):
         """Verify datetime can be parsed
@@ -425,7 +425,7 @@ class TableValidator(object):
                                           note that a 'T' separates the date
                                           and time)
         """
-        return self._check_date(table['date'])
+        return self._valid_date(table['date'])
 
     def _valid_sparse_data(self, table_json):
         """All index positions must be integers and values are of dtype"""
