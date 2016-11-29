@@ -455,10 +455,12 @@ def biom_open(fp, permission='U'):
             opener = h5py.File
 
     if mode in ['U', 'r', 'rb'] and is_gzip(fp):
-        opener = lambda fp, mode: codecs.getreader('utf-8')(gzip_open(fp, mode))
+        def opener(fp, mode):
+            return codecs.getreader('utf-8')(gzip_open(fp, mode))
         mode = 'rb' if permission in ['U', 'r'] else permission
     elif mode in ['w', 'wb'] and fp.endswith('.gz'):
-        opener = lambda fp, mode: codecs.getwriter('utf-8')(gzip_open(fp, mode))
+        def opener(fp, mode):
+            codecs.getwriter('utf-8')(gzip_open(fp, mode))
 
     f = opener(fp, mode)
     try:
