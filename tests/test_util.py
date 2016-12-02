@@ -287,15 +287,6 @@ class UtilTests(TestCase):
         with biom_open(get_data_path('test.json')) as f:
             self.assertTrue(hasattr(f, 'read'))
 
-    def test_biom_open_gz(self):
-        with biom_open(get_data_path('test.json.gz')) as f:
-            self.assertTrue(isinstance(f, gzip.GzipFile))
-
-        with biom_open(get_data_path('test_writing.json.gz'), 'w') as f:
-            self.assertTrue(isinstance(f, gzip.GzipFile))
-
-        remove(get_data_path('test_writing.json.gz'))
-
     def test_load_table_gzip_unicode(self):
         t = load_table(get_data_path('bad_table.txt.gz'))
         self.assertEqual(u's__Cortinarius grosmornënsis',
