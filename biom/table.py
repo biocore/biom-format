@@ -3028,7 +3028,7 @@ class Table(object):
                 tmp_inv_ids.extend(missing_ids)
                 tmp_inv_md = table.metadata(axis=invaxis)
                 if tmp_inv_md is None:
-                    tmp_inv_md = [None] * len(table.ids())
+                    tmp_inv_md = [None] * len(table.ids(axis=invaxis))
                 else:
                     tmp_inv_md = list(tmp_inv_md)
                 tmp_inv_md.extend([invaxis_metadata[i] for i in missing_ids])

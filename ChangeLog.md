@@ -23,6 +23,7 @@ Bug fixes:
 
 * ``-o`` is now a required parameter of ``biom from-uc``. This was not the case previously, which resulted in a cryptic error message if ``-o`` was not provided. See [issue #683](https://github.com/biocore/biom-format/issues/683).
 * Matrices are now cast to csr on `Table` construction if the data evaluate as `isspmatrix`. This fixes [#717](https://github.com/biocore/biom-format/issues/717) where some API methods assumed the data were csc or csr.
+* `Table.concat` was not handling the situation where tables did not have metadata correctly, resulting in an exception due to mismatches metadata shape. 
 
 biom 2.1.5
 ----------
