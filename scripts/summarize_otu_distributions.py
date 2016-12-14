@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2016, The Deblur Development Team.
+# Copyright (c) 2016, The BIOM Development Team.
 #
 # Distributed under the terms of the BSD 3-clause License.
 #
