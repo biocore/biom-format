@@ -83,7 +83,7 @@ if USE_CYTHON:
     extensions = cythonize(extensions)
 
 install_requires = ["click", "numpy >= 1.3.0", "future >= 0.15.0",
-                    "scipy >= 0.13.0"]
+                    "scipy >= 0.13.0", "pandas"]
 # HACK: for backward-compatibility with QIIME 1.9.x, pyqi must be installed.
 # pyqi is not used anymore in this project.
 if sys.version_info[0] < 3:

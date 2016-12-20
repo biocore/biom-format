@@ -175,6 +175,7 @@ Bacteria; Proteobacteria  1.0 1.0 1.0 1.0
 from __future__ import division
 import numpy as np
 import scipy.stats
+import pandas as pd
 from copy import deepcopy
 from datetime import datetime
 from json import dumps
@@ -319,12 +320,13 @@ class Table(object):
         self._observation_ids = np.asarray(observation_ids, dtype=object)
 
         if sample_metadata is not None:
-            self._sample_metadata = tuple(sample_metadata)
+            self._sample_metadata = pd.DataFrame(sample_metadata, index=self._sample_ids)
         else:
             self._sample_metadata = None
 
         if observation_metadata is not None:
-            self._observation_metadata = tuple(observation_metadata)
+            self._observation_metadata = pd.DataFrame(observation_metadata,
+                                                      index=self._observation_ids)
         else:
             self._observation_metadata = None
 
@@ -337,7 +339,7 @@ class Table(object):
         self._sample_index = None
         self._obs_index = None
 
-        self._cast_metadata()
+        #self._cast_metadata()
         self._index_ids()
 
     def _index_ids(self):
@@ -462,44 +464,6 @@ class Table(object):
             return mat
         else:
             raise TableException("Unknown input type")
-
-    def _cast_metadata(self):
-        """Casts all metadata to defaultdict to support default values.
-
-        Should be called after any modifications to sample/observation
-        metadata.
-        """
-        def cast_metadata(md):
-            """Do the actual casting"""
-            default_md = []
-            # if we have a list of [None], set to None
-            if md is not None:
-                if md.count(None) == len(md):
-                    return None
-            if md is not None:
-                for item in md:
-                    d = defaultdict(lambda: None)
-
-                    if isinstance(item, dict):
-                        d.update(item)
-                    elif item is None:
-                        pass
-                    else:
-                        raise TableException("Unable to cast metadata: %s" %
-                                             repr(item))
-                    default_md.append(d)
-                return tuple(default_md)
-            return md
-
-        self._sample_metadata = cast_metadata(self._sample_metadata)
-        self._observation_metadata = cast_metadata(self._observation_metadata)
-
-        self._sample_group_metadata = (
-            self._sample_group_metadata
-            if self._sample_group_metadata else None)
-        self._observation_group_metadata = (
-            self._observation_group_metadata
-            if self._observation_group_metadata else None)
 
     @property
     def shape(self):
@@ -635,28 +599,34 @@ class Table(object):
 
         Parameters
         ----------
-        md : dict of dict
+        md : dict of dict or pd.DataFrame
             `md` should be of the form ``{id: {dict_of_metadata}}``
         axis : {'sample', 'observation'}, optional
             The axis to operate on
         """
         metadata = self.metadata(axis=axis)
         if metadata is not None:
-            for id_, md_entry in viewitems(md):
-                if self.exists(id_, axis=axis):
-                    idx = self.index(id_, axis=axis)
-                    metadata[idx].update(md_entry)
+            ids = self.ids(axis=axis)
+            if axis == 'sample':
+                s = pd.DataFrame(md).reindex(columns=ids).T
+                self._sample_metadata = pd.merge(self._sample_metadata, s,
+                                                 left_index=True, right_index=True,
+                                                 how='left')
+            elif axis == 'observation':
+                o = pd.DataFrame(md).reindex(columns=ids).T
+                self._observation_metadata = pd.merge(self._observation_metadata, o,
+                                                      left_index=True, right_index=True,
+                                                      how='left')
+            else:
+                raise UnknownAxisError(axis)
         else:
             ids = self.ids(axis=axis)
             if axis == 'sample':
-                self._sample_metadata = tuple(
-                    [md[id_] if id_ in md else None for id_ in ids])
+                self._sample_metadata = pd.DataFrame(md).reindex(columns=ids).T
             elif axis == 'observation':
-                self._observation_metadata = tuple(
-                    [md[id_] if id_ in md else None for id_ in ids])
+                self._observation_metadata = pd.DataFrame(md).reindex(columns=ids).T
             else:
                 raise UnknownAxisError(axis)
-        self._cast_metadata()
 
     def __getitem__(self, args):
         """Handles row or column slices
@@ -1207,7 +1177,7 @@ class Table(object):
 
         idx = self.index(id, axis=axis)
 
-        return md[idx] if md is not None else None
+        return md.loc[idx] if md is not None else None
 
     def index(self, id, axis):
         """Return the index of the identified sample/observation.
@@ -3812,6 +3782,7 @@ html
         >>> t = Table.from_json(json_obj)
 
         """
+        # TODO: Need to make sure ids are in order
         sample_ids = [col['id'] for col in json_table['columns']]
         sample_metadata = [col['metadata'] for col in json_table['columns']]
         obs_ids = [row['id'] for row in json_table['rows']]
@@ -4048,6 +4019,7 @@ html
         if sample_mapping is None:
             sample_metadata = None
         else:
+            # TODO: Need to make sure that ids are in order
             sample_metadata = [sample_mapping[sample_id]
                                for sample_id in sample_ids]
 
