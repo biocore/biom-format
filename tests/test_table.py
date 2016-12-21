@@ -951,10 +951,11 @@ class TableTests(TestCase):
 
     def test_metadata_sample_id(self):
         """returns the sample metadata for a given id"""
+
         self.assertEqual({'barcode': 'aatt'},
-                         self.st_rich.metadata('a'))
+                         self.st_rich.metadata('a').to_dict())
         self.assertEqual({'barcode': 'ttgg'},
-                         self.st_rich.metadata('b'))
+                         self.st_rich.metadata('b').to_dict())
 
         with self.assertRaises(UnknownIDError):
             self.st_rich.metadata(3, 'sample')
@@ -962,16 +963,17 @@ class TableTests(TestCase):
     def test_metadata_sample(self):
         """Return the sample metadata"""
         obs = self.st_rich.metadata()
-        exp = [{'barcode': 'aatt'}, {'barcode': 'ttgg'}]
-        for o, e in zip(obs, exp):
-            self.assertDictEqual(o, e)
+        exp = pd.DataFrame({'barcode': ['aatt', 'ttgg']},
+                            index=['a', 'b'])
+        pdt.assert_frame_equal(exp, obs)
+
 
     def test_metadata_observation_id(self):
         """returns the observation metadata for a given id"""
         self.assertEqual({'taxonomy': ['k__a', 'p__b']},
-                         self.st_rich.metadata('1', 'observation'))
+                         self.st_rich.metadata('1', 'observation').to_dict())
         self.assertEqual({'taxonomy': ['k__a', 'p__c']},
-                         self.st_rich.metadata('2', 'observation'))
+                         self.st_rich.metadata('2', 'observation').to_dict())
 
         with self.assertRaises(UnknownIDError):
             self.simple_derived.metadata('3', 'observation')
@@ -979,9 +981,10 @@ class TableTests(TestCase):
     def test_metadata_observation(self):
         """returns the observation metadata"""
         obs = self.st_rich.metadata(axis='observation')
-        exp = [{'taxonomy': ['k__a', 'p__b']}, {'taxonomy': ['k__a', 'p__c']}]
-        for o, e in zip(obs, exp):
-            self.assertDictEqual(o, e)
+        exp = pd.DataFrame({'taxonomy': [['k__a', 'p__b'],
+                                         ['k__a', 'p__c']]},
+                           index=['1', '2'])
+        pdt.assert_frame_equal(exp, obs)
 
     def test_index_invalid_input(self):
         """Correctly handles invalid input."""
