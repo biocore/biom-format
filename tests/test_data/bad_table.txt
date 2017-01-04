@@ -1,0 +1,2 @@
+#OTU ID	sample1	taxonomy
+otu1	10	s__Cortinarius grosmornënsis

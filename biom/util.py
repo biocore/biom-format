@@ -12,6 +12,9 @@ import os
 import sys
 import inspect
 from contextlib import contextmanager
+import io
+import codecs
+import functools
 
 from collections import defaultdict
 from os import getenv
@@ -431,7 +434,7 @@ def biom_open(fp, permission='U'):
     if permission not in ['r', 'w', 'U', 'rb', 'wb']:
         raise IOError("Unknown mode: %s" % permission)
 
-    opener = open
+    opener = functools.partial(io.open, encoding='utf-8')
     mode = permission
 
     # don't try to open an HDF5 file if H5PY is not installed, this can only
@@ -452,10 +455,12 @@ def biom_open(fp, permission='U'):
             opener = h5py.File
 
     if mode in ['U', 'r', 'rb'] and is_gzip(fp):
-        opener = gzip_open
+        def opener(fp, mode):
+            return codecs.getreader('utf-8')(gzip_open(fp, mode))
         mode = 'rb' if permission in ['U', 'r'] else permission
     elif mode in ['w', 'wb'] and fp.endswith('.gz'):
-        opener = gzip_open
+        def opener(fp, mode):
+            codecs.getwriter('utf-8')(gzip_open(fp, mode))
 
     f = opener(fp, mode)
     try:

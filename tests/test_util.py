@@ -18,7 +18,7 @@ import numpy as np
 import numpy.testing as npt
 
 from biom.table import Table
-from biom.parse import parse_biom_table
+from biom.parse import parse_biom_table, load_table
 from biom.util import (natsort, flatten, unzip, HAVE_H5PY,
                        get_biom_project_dir, parse_biom_config_files,
                        compute_counts_per_sample_stats, safe_md5, biom_open,
@@ -287,14 +287,15 @@ class UtilTests(TestCase):
         with biom_open(get_data_path('test.json')) as f:
             self.assertTrue(hasattr(f, 'read'))
 
-    def test_biom_open_gz(self):
-        with biom_open(get_data_path('test.json.gz')) as f:
-            self.assertTrue(isinstance(f, gzip.GzipFile))
+    def test_load_table_gzip_unicode(self):
+        t = load_table(get_data_path('bad_table.txt.gz'))
+        self.assertEqual(u's__Cortinarius grosmornënsis',
+                         t.metadata('otu1', 'observation')['taxonomy'])
 
-        with biom_open(get_data_path('test_writing.json.gz'), 'w') as f:
-            self.assertTrue(isinstance(f, gzip.GzipFile))
-
-        remove(get_data_path('test_writing.json.gz'))
+    def test_load_table_unicode(self):
+        t = load_table(get_data_path('bad_table.txt'))
+        self.assertEqual(u's__Cortinarius grosmornënsis',
+                         t.metadata('otu1', 'observation')['taxonomy'])
 
     def test_is_hdf5_file(self):
         self.assertTrue(is_hdf5_file(get_data_path('test.biom')))
