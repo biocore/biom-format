@@ -186,6 +186,25 @@ class SupportTests(TestCase):
 
         obs = example_table.concat([table2, ], axis='sample')
         self.assertEqual(obs, exp)
+    
+    def test_concat_no_metadata_bug(self):
+        table1 = example_table.copy()
+        table1._sample_metadata = None
+        table1._observation_metadata = None
+        table2 = example_table.copy()
+        table2._sample_metadata = None
+        table2._observation_metadata = None
+        table2.update_ids({'O2': 'O3'}, axis='observation', strict=False)
+        table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
+
+        exp = Table(np.array([[0, 1, 2, 0, 1, 2],
+                              [3, 4, 5, 0, 0, 0],
+                              [0, 0, 0, 3, 4, 5]]),
+                    ['O1', 'O2', 'O3'],
+                    ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'])
+
+        obs = table1.concat([table2, ], axis='sample')
+        self.assertEqual(obs, exp)
 
     def test_concat_raise_overlap(self):
         with self.assertRaises(DisjointIDError):
@@ -1718,7 +1737,6 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs._sample_index, exp_index)
 
     def test_other_spmatrix_type(self):
-        # I dont actually remember what bug stemmed from this...
         ss = scipy.sparse
         for c in [ss.lil_matrix, ss.bsr_matrix, ss.coo_matrix, ss.dia_matrix,
                   ss.dok_matrix, ss.csc_matrix, ss.csr_matrix]:
