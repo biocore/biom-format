@@ -186,6 +186,7 @@ from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
 
+import six
 from future.utils import string_types
 from biom.exception import TableException, UnknownAxisError, UnknownIDError
 from biom.util import (get_biom_format_version_string,
@@ -3359,16 +3360,17 @@ html
         shape = h5grp.attrs['shape']
         type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
-        # do the ghetto thing for py2/3 support in case these are bytes
-        try:
-            id_ = id_.decode('ascii')
-        except:
-            pass
+        if isinstance(id_, six.binary_type):
+            if six.PY3:
+                id_ = id_.decode('ascii')
+            else:
+                id_ = str(id_)
 
-        try:
-            type_ = type_.decode('ascii')
-        except:
-            pass
+        if isinstance(type_, six.binary_type):
+            if six.PY3:
+                type_ = type_.decode('ascii')
+            else:
+                type_ = str(type_)
 
         def axis_load(grp):
             """Loads all the data of the given group"""
