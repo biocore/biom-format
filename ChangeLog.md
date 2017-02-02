@@ -19,6 +19,7 @@ New Features:
 * `Table.sort_order` was performing an implicit cast to dense, and not leveraging fancy indexing. A substantial performance gain was acheived. See [PR #720](https://github.com/biocore/biom-format/pull/720)
 * `biom subset-table` now accepts a QIIME-like mapping file when subsetting by IDs [Issue #587](https://github.com/biocore/biom-format/issues/587)
 * `test_table.py` and `test_util.py` now use a stable random seed. See issue [#728](https://github.com/biocore/biom-format/issues/728)
+* Failure to cast a value when parsing a TSV will now print the associated line number which had the bad value. See [#284](https://github.com/biocore/biom-format/issues/284).
 
 Bug fixes:
 
