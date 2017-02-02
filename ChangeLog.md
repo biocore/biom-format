@@ -15,9 +15,15 @@ New Features:
 * `Table.rankdata` has been added to convert values to ranked abundances on
   either axis. See [issue #645](https://github.com/biocore/biom-format/issues/639).
 * Format of numbers in ``biom summarize-table`` output is now more readable and localized. See [issue #679](https://github.com/biocore/biom-format/issues/679).
+* `Table.concat` has been added to the API and allows for concatenating multiple tables in which the IDs of one of the axes are known to be disjoint. This has substantial performance benefits over `Table.merge`.
+* `Table.sort_order` was performing an implicit cast to dense, and not leveraging fancy indexing. A substantial performance gain was acheived. See [PR #720](https://github.com/biocore/biom-format/pull/720)
+* `biom subset-table` now accepts a QIIME-like mapping file when subsetting by IDs [Issue #587](https://github.com/biocore/biom-format/issues/587)
 
 Bug fixes:
+
 * ``-o`` is now a required parameter of ``biom from-uc``. This was not the case previously, which resulted in a cryptic error message if ``-o`` was not provided. See [issue #683](https://github.com/biocore/biom-format/issues/683).
+* Matrices are now cast to csr on `Table` construction if the data evaluate as `isspmatrix`. This fixes [#717](https://github.com/biocore/biom-format/issues/717) where some API methods assumed the data were csc or csr.
+* `Table.concat` was not handling tables without metadata, resulting in an exception due to mismatches metadata shape. See [#724](https://github.com/biocore/biom-format/issues/724).
 
 biom 2.1.5
 ----------

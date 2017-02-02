@@ -6,7 +6,7 @@ The error profile object to define different error types and handling within
 BIOM. The following types are registered with the associated default states
 
 empty : 'ignore'
-    Treatment of an empty table (e.g., Table.sum(axis='whole') == 0). If a
+    Treatment of an empty table (e.g., if Table.is_empty() is True). If a
     callable is provided, it implies 'call' and will set the callback function.
 
 obssize : 'raise'

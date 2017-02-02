@@ -31,6 +31,10 @@ class TableException(BiomException):
     pass
 
 
+class DisjointIDError(BiomException):
+    pass
+
+
 class UnknownAxisError(TableException):
     def __init__(self, axis):
         super(UnknownAxisError, self).__init__()

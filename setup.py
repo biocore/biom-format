@@ -58,6 +58,8 @@ classes = """
     Topic :: Software Development :: Libraries :: Python Modules
     Programming Language :: Python
     Programming Language :: Python :: 2.7
+    Programming Language :: Python :: 3.4
+    Programming Language :: Python :: 3.5
     Programming Language :: Python :: Implementation :: CPython
     Operating System :: OS Independent
     Operating System :: POSIX :: Linux
@@ -82,7 +84,7 @@ if USE_CYTHON:
     from Cython.Build import cythonize
     extensions = cythonize(extensions)
 
-install_requires = ["click", "numpy >= 1.3.0", "future >= 0.15.0",
+install_requires = ["click", "numpy >= 1.3.0", "future >= 0.16.0",
                     "scipy >= 0.13.0", "six >= 1.10.0"]
 # HACK: for backward-compatibility with QIIME 1.9.x, pyqi must be installed.
 # pyqi is not used anymore in this project.

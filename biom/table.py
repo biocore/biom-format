@@ -184,11 +184,13 @@ from future.builtins import zip
 from future.utils import viewitems
 from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
-from scipy.sparse import coo_matrix, csc_matrix, csr_matrix, isspmatrix, vstack
+from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
+                          vstack, hstack)
 
 import six
 from future.utils import string_types
-from biom.exception import TableException, UnknownAxisError, UnknownIDError
+from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
+                            DisjointIDError)
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
@@ -314,7 +316,7 @@ class Table(object):
             self._data = Table._to_sparse(data, input_is_dense=input_is_dense,
                                           shape=shape)
         else:
-            self._data = data
+            self._data = data.tocsr()
 
         # using object to allow for variable length strings
         self._sample_ids = np.asarray(sample_ids, dtype=object)
@@ -1796,39 +1798,23 @@ class Table(object):
         O2	1.0	0.0	4.0
 
         """
-        md = []
-        vals = []
+        fancy = np.array([self.index(i, axis=axis) for i in order], dtype=int)
         metadata = self.metadata(axis=axis)
+        if metadata is not None:
+            metadata = np.array(metadata)[fancy]
+
         if axis == 'sample':
-            for id_ in order:
-                cur_idx = self.index(id_, 'sample')
-                vals.append(self._to_dense(self[:, cur_idx]))
-
-                if metadata is not None:
-                    md.append(metadata[cur_idx])
-
-            if not md:
-                md = None
-
-            return self.__class__(self._conv_to_self_type(vals,
-                                                          transpose=True),
+            mat = self.matrix_data[:, fancy]
+            return self.__class__(mat,
                                   self.ids(axis='observation')[:], order[:],
-                                  self.metadata(axis='observation'), md,
+                                  self.metadata(axis='observation'), metadata,
                                   self.table_id, self.type)
+
         elif axis == 'observation':
-            for id_ in order:
-                cur_idx = self.index(id_, 'observation')
-                vals.append(self[cur_idx, :])
-
-                if metadata is not None:
-                    md.append(metadata[cur_idx])
-
-            if not md:
-                md = None
-
-            return self.__class__(self._conv_to_self_type(vals),
+            mat = self.matrix_data[fancy, :]
+            return self.__class__(mat,
                                   order[:], self.ids()[:],
-                                  md, self.metadata(), self.table_id,
+                                  metadata, self.metadata(), self.table_id,
                                   self.type)
         else:
             raise UnknownAxisError(axis)
@@ -2882,8 +2868,8 @@ class Table(object):
         axis : {'sample', 'observation', 'whole'}
             The axis on which to count nonzero entries
         binary : bool, optional
-            Defaults to ``False``. If ``False``, return number of nonzero
-            entries. If ``True``, sum the values of the entries.
+            Defaults to ``False``. If ``True``, return number of nonzero
+            entries. If ``False``, sum the values of the entries.
 
         Returns
         -------
@@ -2935,6 +2921,161 @@ class Table(object):
                 new_order[id_] = idx
                 idx += 1
         return new_order
+
+    def concat(self, others, axis='sample'):
+        """Concatenate tables if axis is disjoint
+
+        Parameters
+        ----------
+        others : iterable of biom.Table
+            Tables to concatenate
+        axis : {'sample', 'observation'}, optional
+            The axis to concatenate on. i.e., if axis is 'sample', then tables
+            will be joined such that the set of sample IDs in the resulting
+            table will be the union of sample IDs across all tables in others.
+
+        Raises
+        ------
+        DisjointIDError
+            If IDs over the axis are not disjoint.
+
+        Examples
+        --------
+        Concatenate three tables in which the sample IDs are disjoint. Note
+        the observation IDs in this example are not disjoint (although they
+        can be):
+
+        >>> from biom import Table
+        >>> import numpy as np
+        >>> a = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['O1', 'O2'],
+        ...                     ['S1', 'S2', 'S3'],
+        ...                     [{'taxonomy': 'foo'}, {'taxonomy': 'bar'}])
+        >>> b = Table(np.array([[6, 7, 8], [9, 10, 11]]), ['O3', 'O4'],
+        ...                     ['S4', 'S5', 'S6'],
+        ...                     [{'taxonomy': 'baz'}, {'taxonomy': 'foobar'}])
+        >>> c = Table(np.array([[12, 13, 14], [15, 16, 17]]), ['O1', 'O5'],
+        ...                     ['S7', 'S8', 'S9'],
+        ...                     [{'taxonomy': 'foo'}, {'taxonomy': 'biz'}])
+        >>> d = a.concat([b, c])
+        >>> print(d)  # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID	S1	S2	S3	S4	S5	S6	S7	S8	S9
+        O1	0.0	1.0	2.0	0.0	0.0	0.0	12.0	13.0	14.0
+        O2	3.0	4.0	5.0	0.0	0.0	0.0	0.0	0.0	0.0
+        O3	0.0	0.0	0.0	6.0	7.0	8.0	0.0	0.0	0.0
+        O4	0.0	0.0	0.0	9.0	10.0	11.0	0.0	0.0	0.0
+        O5	0.0	0.0	0.0	0.0	0.0	0.0	15.0	16.0	17.0
+
+        """
+        # we grow along the opposite axis
+        invaxis = self._invert_axis(axis)
+        if axis == 'sample':
+            dim_getter = itemgetter(1)
+            stack = hstack
+            invstack = vstack
+        else:
+            dim_getter = itemgetter(0)
+            stack = vstack
+            invstack = hstack
+
+        axis_ids = set()
+        invaxis_ids = set()
+        invaxis_metadata = {}
+
+        all_tables = others[:]
+        all_tables.insert(0, self)
+
+        # verify disjoint, and fetch all ids from all tables
+        for table in all_tables:
+            table_axis_ids = table.ids(axis=axis)
+            table_invaxis_order = table.ids(axis=invaxis)
+            table_invaxis = set(table_invaxis_order)
+
+            # test we have disjoint IDs
+            if not axis_ids.isdisjoint(table_axis_ids):
+                raise DisjointIDError("IDs are not disjoint")
+            axis_ids.update(table_axis_ids)
+
+            if set(table_invaxis) - invaxis_ids:
+                for i in (set(table_invaxis) - invaxis_ids):
+                    invaxis_metadata[i] = table.metadata(i, axis=invaxis)
+
+                # add to our perspective all inv axis IDs
+                invaxis_ids.update(table_invaxis)
+
+        invaxis_order = sorted(invaxis_ids)
+
+        # determine what inv axis IDs do not exist per table, and pad and sort
+        # as necessary
+        padded_tables = []
+        for table in all_tables:
+            missing_ids = list(invaxis_ids - set(table.ids(axis=invaxis)))
+
+            if missing_ids:
+                # determine new shape
+                n_invaxis = len(missing_ids)
+                n_axis = len(table.ids(axis=axis))
+                if axis == 'sample':
+                    shape = (n_invaxis, n_axis)
+                else:
+                    shape = (n_axis, n_invaxis)
+
+                # create the padded matrix
+                zerod = csr_matrix(shape)
+                tmp_mat = invstack([table.matrix_data, zerod])
+
+                # resolve invert axis ids and metadata
+                tmp_inv_ids = list(table.ids(axis=invaxis))
+                tmp_inv_ids.extend(missing_ids)
+                tmp_inv_md = table.metadata(axis=invaxis)
+                if tmp_inv_md is None:
+                    tmp_inv_md = [None] * len(table.ids(axis=invaxis))
+                else:
+                    tmp_inv_md = list(tmp_inv_md)
+                tmp_inv_md.extend([invaxis_metadata[i] for i in missing_ids])
+
+                # resolve axis ids and metadata
+                tmp_ids = list(table.ids(axis=axis))
+                tmp_md = table.metadata(axis=axis)
+
+                # resolve construction based off axis. This really should be
+                # pushed to a classmethod.
+                if axis == 'sample':
+                    tmp_table = self.__class__(tmp_mat, tmp_inv_ids, tmp_ids,
+                                               tmp_inv_md, tmp_md)
+                else:
+                    tmp_table = self.__class__(tmp_mat, tmp_ids, tmp_inv_ids,
+                                               tmp_md, tmp_inv_md)
+            else:
+                tmp_table = table
+
+            # sort the table if necessary
+            if (tmp_table.ids(axis=invaxis) == invaxis_order).all():
+                padded_tables.append(tmp_table)
+            else:
+                padded_tables.append(tmp_table.sort_order(invaxis_order,
+                                                          axis=invaxis))
+
+        # actually concatenate the matrices, IDs and metadata
+        concat_mat = stack([t.matrix_data for t in padded_tables])
+        concat_ids = np.concatenate([t.ids(axis=axis) for t in padded_tables])
+        concat_md = []
+        for table in padded_tables:
+            metadata = table.metadata(axis=axis)
+            if metadata is None:
+                metadata = [None] * dim_getter(table.shape)
+            concat_md.extend(metadata)
+
+        # inverse axis sourced from whatever is in the first table
+        inv_md = padded_tables[0].metadata(axis=invaxis)
+        if axis == 'sample':
+            concat = self.__class__(concat_mat, invaxis_order, concat_ids,
+                                    inv_md, concat_md)
+        else:
+            concat = self.__class__(concat_mat, concat_ids, invaxis_order,
+                                    concat_md, inv_md)
+
+        return concat
 
     def merge(self, other, sample='union', observation='union',
               sample_metadata_f=prefer_self,
