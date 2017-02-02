@@ -15,6 +15,7 @@ from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 from io import StringIO
 
+import six
 from future.utils import viewkeys
 import numpy.testing as npt
 import numpy as np
@@ -3282,8 +3283,13 @@ class SparseTableTests(TestCase):
     def test_extract_data_from_tsv_badvalue_complaint(self):
         tsv = ['#OTU ID\ta\tb', '1\t2\t3', '2\tfoo\t6']
 
-        with self.assertRaisesRegex(TypeError, "Invalid value on line \d+."):
-            Table._extract_data_from_tsv(tsv, dtype=int)
+        if six.PY3:
+            with self.assertRaisesRegex(TypeError,
+                                        "Invalid value on line \d+."):
+                Table._extract_data_from_tsv(tsv, dtype=int)
+        else:
+            with self.assertRaises(TypeError):
+                Table._extract_data_from_tsv(tsv, dtype=int)
 
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
