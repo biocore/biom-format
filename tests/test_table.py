@@ -32,6 +32,8 @@ from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
 from biom.parse import parse_biom_table
 from biom.err import errstate
 
+np.random.seed(1234)
+
 if HAVE_H5PY:
     import h5py
 
@@ -107,9 +109,9 @@ class SupportTests(TestCase):
     def test_concat_samples(self):
         table2 = example_table.copy()
         table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
-        
+
         exp = Table(np.array([[0, 1, 2, 0, 1, 2],
-                              [3, 4, 5, 3, 4, 5]]), 
+                              [3, 4, 5, 3, 4, 5]]),
                     ['O1', 'O2'],
                     ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
                     example_table.metadata(axis='observation'),
@@ -120,11 +122,11 @@ class SupportTests(TestCase):
     def test_concat_observations(self):
         table2 = example_table.copy()
         table2.update_ids({'O1': 'O3', 'O2': 'O4'}, axis='observation')
-        
+
         exp = Table(np.array([[0, 1, 2],
                               [3, 4, 5],
                               [0, 1, 2],
-                              [3, 4, 5]]), 
+                              [3, 4, 5]]),
                     ['O1', 'O2', 'O3', 'O4'],
                     ['S1', 'S2', 'S3'],
                     list(example_table.metadata(axis='observation')) * 2,
@@ -137,13 +139,13 @@ class SupportTests(TestCase):
         table2.update_ids({'O1': 'O3', 'O2': 'O4'}, axis='observation')
         table3 = example_table.copy()
         table3.update_ids({'O1': 'O5', 'O2': 'O6'}, axis='observation')
-        
+
         exp = Table(np.array([[0, 1, 2],
                               [3, 4, 5],
                               [0, 1, 2],
                               [3, 4, 5],
                               [0, 1, 2],
-                              [3, 4, 5]]), 
+                              [3, 4, 5]]),
                     ['O1', 'O2', 'O3', 'O4', 'O5', 'O6'],
                     ['S1', 'S2', 'S3'],
                     list(example_table.metadata(axis='observation')) * 3,
@@ -157,9 +159,9 @@ class SupportTests(TestCase):
         table2 = table2.sort_order(['O2', 'O1'], axis='observation')
         table3 = example_table.sort_order(['S2', 'S1', 'S3'])
         table3.update_ids({'S1': 'S7', 'S2': 'S8', 'S3': 'S9'})
-        
+
         exp = Table(np.array([[0, 1, 2, 2, 1, 0, 1, 0, 2],
-                              [3, 4, 5, 5, 4, 3, 4, 3, 5]]), 
+                              [3, 4, 5, 5, 4, 3, 4, 3, 5]]),
                     ['O1', 'O2'],
                     ['S1', 'S2', 'S3', 'S6', 'S5', 'S4', 'S8', 'S7', 'S9'],
                     example_table.metadata(axis='observation'),
@@ -186,7 +188,7 @@ class SupportTests(TestCase):
 
         obs = example_table.concat([table2, ], axis='sample')
         self.assertEqual(obs, exp)
-    
+
     def test_concat_no_metadata_bug(self):
         table1 = example_table.copy()
         table1._sample_metadata = None
