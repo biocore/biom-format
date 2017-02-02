@@ -18,6 +18,7 @@ New Features:
 * `Table.concat` has been added to the API and allows for concatenating multiple tables in which the IDs of one of the axes are known to be disjoint. This has substantial performance benefits over `Table.merge`.
 * `Table.sort_order` was performing an implicit cast to dense, and not leveraging fancy indexing. A substantial performance gain was acheived. See [PR #720](https://github.com/biocore/biom-format/pull/720)
 * `biom subset-table` now accepts a QIIME-like mapping file when subsetting by IDs [Issue #587](https://github.com/biocore/biom-format/issues/587)
+* `test_table.py` and `test_util.py` now use a stable random seed. See issue [#728](https://github.com/biocore/biom-format/issues/728)
 
 Bug fixes:
 
