@@ -3273,6 +3273,12 @@ class SparseTableTests(TestCase):
         obs = Table._extract_data_from_tsv(input, dtype=int)
         npt.assert_equal(obs, exp)
 
+    def test_extract_data_from_tsv_badvalue_complaint(self):
+        tsv = ['#OTU ID\ta\tb', '1\t2\t3', 'foo\t5\t6']
+
+        with self.assertRaisesRegexp(TypeError, "Invalid value on line \d+."):
+            Table._extract_data_from_tsv(tsv, dtype=int)
+
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
         f = lambda id_, md: md.get('age', np.inf)
