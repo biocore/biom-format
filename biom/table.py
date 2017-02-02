@@ -3359,6 +3359,12 @@ html
         shape = h5grp.attrs['shape']
         type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
+        if isinstance(id_, bytes):
+            id_ = id_.decode('ascii')
+
+        if isinstance(type_, bytes):
+            type_ = type_.decode('ascii')
+
         def axis_load(grp):
             """Loads all the data of the given group"""
             # fetch all of the IDs
