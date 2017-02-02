@@ -517,6 +517,7 @@ class Table(object):
     @property
     def nnz(self):
         """Number of non-zero elements of the underlying contingency matrix"""
+        self._data.eliminate_zeros()
         return self._data.nnz
 
     @property
