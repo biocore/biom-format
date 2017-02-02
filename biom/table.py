@@ -4257,7 +4257,7 @@ html
         else:
             lines = lines[data_start:]
 
-        for line in lines:
+        for lineno, line in enumerate(lines):
             line = line.strip()
             if not line:
                 continue
@@ -4268,9 +4268,15 @@ html
             obs_ids.append(fields[0])
 
             if last_column_is_numeric:
-                values = list(map(dtype, fields[1:]))
+                try:
+                    values = list(map(dtype, fields[1:]))
+                except ValueError:
+                    raise TypeError("Invalid value on line %d." % lineno)
             else:
-                values = list(map(dtype, fields[1:-1]))
+                try:
+                    values = list(map(dtype, fields[1:-1]))
+                except ValueError:
+                    raise TypeError("Invalid value on line %d." % lineno)
 
                 if md_parse is not None:
                     metadata.append(md_parse(fields[-1]))
