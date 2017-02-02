@@ -24,6 +24,7 @@ Bug fixes:
 * ``-o`` is now a required parameter of ``biom from-uc``. This was not the case previously, which resulted in a cryptic error message if ``-o`` was not provided. See [issue #683](https://github.com/biocore/biom-format/issues/683).
 * Matrices are now cast to csr on `Table` construction if the data evaluate as `isspmatrix`. This fixes [#717](https://github.com/biocore/biom-format/issues/717) where some API methods assumed the data were csc or csr.
 * `Table.concat` was not handling tables without metadata, resulting in an exception due to mismatches metadata shape. See [#724](https://github.com/biocore/biom-format/issues/724).
+* `Table.from_hdf5` was not properly turning `bytes` into `str` for the `table_id` and the `type` HDF5 attributes. See [#731](https://github.com/biocore/biom-format/issues/731).
 
 biom 2.1.5
 ----------
