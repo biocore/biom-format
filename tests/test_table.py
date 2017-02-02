@@ -1447,6 +1447,12 @@ class TableTests(TestCase):
         self.assertEqual(self.mat1.nnz, 4)
         self.assertEqual(self.explicit_zeros.nnz, 4)
 
+    def test_nnz_issue_727(self):
+        tab = Table(np.array([[0, 1], [0, 0]]), ['a', 'b'], ['1', '2'])
+        self.assertEqual(tab.nnz, 1)
+        tab._data[0, 0] = 0
+        self.assertEqual(tab.nnz, 1)
+
     def test_get_row(self):
         """Test grabbing a row from the matrix."""
         # note that we only have to test the first two elements don't have that
