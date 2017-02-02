@@ -485,6 +485,12 @@ class TableTests(TestCase):
             self.assertIn(m['BODY_SITE'], ('GUT', 'SKIN'))
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_from_hdf5_issue_731(self):
+        t = Table.from_hdf5(h5py.File('test_data/test.biom'))
+        self.assertTrue(isinstance(t.table_id, str))
+        self.assertTrue(isinstance(t.type, str))
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
         cwd = os.getcwd()
