@@ -318,6 +318,8 @@ class Table(object):
         else:
             self._data = data.tocsr()
 
+        self._data = self._data.astype(float)
+
         # using object to allow for variable length strings
         self._sample_ids = np.asarray(sample_ids, dtype=object)
         self._observation_ids = np.asarray(observation_ids, dtype=object)
