@@ -6,7 +6,7 @@ Converting between file formats
 
 The ``convert`` command in the biom-format project can be used to convert between biom and tab-delimited table formats. This is useful for several reasons:
  - converting biom format tables to tab-delimited tables for easy viewing in programs such as Excel
- - converting between sparse and dense biom formats
+ - converting between sparse and dense biom formats (note: dense is only supported in biom-format 1.0.0)
 
  .. note:: The tab-delimited tables are commonly referred to as the `classic format` tables, while BIOM formatted tables are referred to as `biom tables`.
 

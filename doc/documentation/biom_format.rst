@@ -50,7 +50,7 @@ A sparse representation of an OTU table::
     PC.356 OTU2 7
     PC.356 OTU3 3
 
-OTU table data tends to be sparse (e.g., greater than 90% of counts are zero, and frequently as many as 99% of counts are zero) in which case the latter format is more convenient to work with as it has a smaller memory footprint. Both of these representations are supported in the biom-format project via dense and sparse Table types. Generally if less than 85% of your counts are zero, a dense representation will be more efficient.
+OTU table data tends to be sparse (e.g., greater than 90% of counts are zero, and frequently as many as 99% of counts are zero) in which case the latter format is more convenient to work with as it has a smaller memory footprint. In biom-format 1.0.0, Both of these representations are supported in the biom-format project via dense and sparse Table types. In biom-format 2.x, only sparse is supported as in practice, dense was not useful especially with improved study designs that utilize increasing numbers of samples. 
 
 Encapsulation of core study data (OTU table data and sample/OTU metadata) in a single file
 ------------------------------------------------------------------------------------------
