@@ -3084,6 +3084,13 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
         self.assertEqual(type(obs), Table)
 
+    def test_from_json_issue_697(self):
+        t = Table({}, [], [])
+        serialized = t.to_json('foo')
+        reloaded = Table.from_json(loads(serialized))
+        self.assertEqual(t, reloaded)
+        self.assertEqual(t.generated_by, 'foo')
+
     def test_to_json_empty(self):
         t = Table({}, [], [])
         serialized = t.to_json('foo')
