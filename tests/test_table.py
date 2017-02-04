@@ -107,7 +107,7 @@ class SupportTests(TestCase):
         t._data[:, 0] = 0
         t.remove_empty()
         exp = example_table.filter({'S2', 'S3'}, inplace=False)
-        self.assertEqual(obs, exp)
+        self.assertEqual(t, exp)
 
     def test_remove_empty_obs(self):
         t = example_table.copy()
@@ -115,20 +115,30 @@ class SupportTests(TestCase):
         t.remove_empty()
         exp = example_table.filter({'O2', }, axis='observation',
                                    inplace=False)
-        self.assertEqual(obs, exp)
+        self.assertEqual(t, exp)
 
     def test_remove_empty_both(self):
         t = example_table.copy()
         t._data[:, 0] = 0
         t._data[0, :] = 0
-        t.remove_empty()
+        obs_base = t.copy()
+
+        obs = obs_base.remove_empty()
         exp = example_table.filter({'S2', 'S3'}, inplace=False)
         exp = exp.filter({'O2', }, axis='observation', inplace=False)
         self.assertEqual(obs, exp)
 
+        obs = obs_base.remove_empty('sample')
+        exp = example_table.filter({'S2', 'S3'}, inplace=False)
+        self.assertEqual(obs, exp)
+
+        obs = obs_base.remove_empty('observation')
+        exp = exp.filter({'O2', }, axis='observation', inplace=False)
+        self.assertEqual(obs, exp)
+
     def test_remove_empty_both(self):
-        t = example_table.copy()
-        t.remove_empty()
+        obs = example_table.copy()
+        obs.remove_empty()
         exp = example_table.copy()
         self.assertEqual(obs, exp)
 

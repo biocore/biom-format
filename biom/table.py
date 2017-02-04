@@ -2925,6 +2925,46 @@ class Table(object):
                 idx += 1
         return new_order
 
+    def remove_empty(self, axis='whole', inplace=True):
+        """Remove empty samples or observations from the table
+
+        Parameters
+        ----------
+        axis : {'whole', 'sample', 'observation'}, optional
+            The axis on which to operate.
+        inplace : bool, optional
+            If ``True`` vectors are removed in ``self``; if ``False`` the
+            vectors are removed in a new table is returned.
+
+        Raises
+        ------
+        UnknownAxisError
+            If the axis is not recognized.
+
+        Returns
+        -------
+        Table
+            A table object with the zero'd rows, or columns removed as
+            specified by the `axis` parameter.
+        """
+        if axis not in ['sample', 'observation', 'whole']:
+            raise UnknownAxisError(axis)
+
+        if inplace:
+            table = self
+        else:
+            table = self.copy()
+
+        if axis == 'whole':
+            axes = ['sample', 'observation']
+        else:
+            axes = [axis]
+
+        for ax in axes:
+            table.filter(lambda v, i, md: (v > 0).sum(), axis=ax)
+
+        return table
+
     def concat(self, others, axis='sample'):
         """Concatenate tables if axis is disjoint
 
