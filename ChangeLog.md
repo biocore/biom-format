@@ -20,6 +20,7 @@ New Features:
 * `biom subset-table` now accepts a QIIME-like mapping file when subsetting by IDs [Issue #587](https://github.com/biocore/biom-format/issues/587)
 * `test_table.py` and `test_util.py` now use a stable random seed. See issue [#728](https://github.com/biocore/biom-format/issues/728)
 * Failure to cast a value when parsing a TSV will now print the associated line number which had the bad value. See [#284](https://github.com/biocore/biom-format/issues/284).
+* `Table.remove_empty` has been added to remove zero'd samples, observations or both. See [#721](https://github.com/biocore/biom-format/issues/721).
 
 Bug fixes:
 
