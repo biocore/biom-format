@@ -28,6 +28,7 @@ Bug fixes:
 * `Table.concat` was not handling tables without metadata, resulting in an exception due to mismatches metadata shape. See [#724](https://github.com/biocore/biom-format/issues/724).
 * `Table.nnz` was not calling `eliminate_zeros()` on the underlying sparse matrix, resulting in the possibility of counting explicitly set zero values. See [#727](https://github.com/biocore/biom-format/issues/727).
 * `Table.from_hdf5` was not properly turning `bytes` into `str` for the `table_id` and the `type` HDF5 attributes. See [#731](https://github.com/biocore/biom-format/issues/731).
+* `Table.__init__` now always performs an `astype(float)` on the contained `spmatrix`. This type normalization is beneficial for underlying Cython code on the filtering and transform operations. It is possible this will introduce some performance overhead, however in _most_ cases the data should already be float. See [#718](https://github.com/biocore/biom-format/issues/718).
 
 biom 2.1.5
 ----------
