@@ -1506,7 +1506,7 @@ class Table(object):
         Parameters
         ----------
         id : str
-            ID of the samples or observations whose data will be returned.
+            ID of the sample or observation whose data will be returned.
         axis : {'sample', 'observation'}
             Axis to search for `id`.
         dense : bool, optional
