@@ -62,7 +62,7 @@ Metadata description::
 Example biom files
 ==================
 
-Below are examples of minimal and rich biom files in both sparse and dense formats. To decide which of these you should generate for new data types, see the section on :ref:`sparse-or-dense`.
+Below are examples of minimal and rich biom files.
 
 BIOM 2.0 OTU table in the HDF5 data description langauge (DDL)
 --------------------------------------------------------------

@@ -60,7 +60,7 @@ Under the ``observation/group-metadata`` and ``sample/group-metadata`` groups, t
 Example biom files
 ==================
 
-Below is an examples of a rich biom file. To decide which of these you should generate for new data types, see the section on :ref:`sparse-or-dense`.
+Below is an examples of a rich biom file.
 
 BIOM 2.1 OTU table in the HDF5 data description language (DDL)
 --------------------------------------------------------------
