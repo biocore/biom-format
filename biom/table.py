@@ -3931,6 +3931,7 @@ html
                               shape=json_table['shape'],
                               dtype=dtype,
                               type=type_,
+                              generated_by=json_table['generated_by'],
                               input_is_dense=input_is_dense)
         else:
             table_obj = Table(data_pump, obs_ids, sample_ids,
@@ -3938,8 +3939,8 @@ html
                               shape=json_table['shape'],
                               dtype=dtype,
                               type=type_,
+                              generated_by=json_table['generated_by'],
                               input_is_dense=input_is_dense)
-
         return table_obj
 
     def to_json(self, generated_by, direct_io=None):
