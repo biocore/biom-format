@@ -494,7 +494,7 @@ class TableValidator(object):
         key = self._json_or_hdf5_key(table, 'type')
         value = self._json_or_hdf5_get(table, key)
         if value is None or value == "":
-            return "Unknown table table, however that is likely okay."
+            return "Unknown table type, however that is likely okay."
         if value.lower() not in self.TableTypes:
             return "Unknown BIOM type: %s" % value
         else:

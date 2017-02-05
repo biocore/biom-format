@@ -29,7 +29,8 @@ from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
 from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
                         list_dict_to_sparse, dict_to_sparse,
                         coo_arrays_to_sparse, list_list_to_sparse,
-                        nparray_to_sparse, list_sparse_to_sparse)
+                        nparray_to_sparse, list_sparse_to_sparse,
+                        _identify_bad_value)
 from biom.parse import parse_biom_table
 from biom.err import errstate
 
@@ -3327,12 +3328,23 @@ class SparseTableTests(TestCase):
         obs = Table._extract_data_from_tsv(input, dtype=int)
         npt.assert_equal(obs, exp)
 
+    def test_identify_bad_value(self):
+        pos = [str(i) for i in range(10)]
+        exp = (None, None)
+        obs = _identify_bad_value(int, pos)
+        self.assertEqual(obs, exp)
+
+        neg = list('01234x6789')
+        exp = ('x', 5)
+        obs = _identify_bad_value(int, neg)
+        self.assertEqual(obs, exp)
+
     def test_extract_data_from_tsv_badvalue_complaint(self):
         tsv = ['#OTU ID\ta\tb', '1\t2\t3', '2\tfoo\t6']
 
         if six.PY3:
-            with self.assertRaisesRegex(TypeError,
-                                        "Invalid value on line \d+."):
+            msg = "Invalid value on line 2, column 1, value foo"
+            with self.assertRaisesRegex(TypeError, msg):
                 Table._extract_data_from_tsv(tsv, dtype=int)
         else:
             with self.assertRaises(TypeError):

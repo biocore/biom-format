@@ -217,6 +217,35 @@ MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': str,
                        u'int': int, u'float': float, u'unicode': str}
 
 
+def _identify_bad_value(dtype, fields):
+    """Identify the first value which cannot be cast
+
+    Paramters
+    ---------
+    dtype : type
+        A type to cast to
+    fields : Iterable of str
+        A series of str to cast into dtype
+
+    Returns
+    -------
+    str or None
+        A value that cannot be cast
+    int or None
+        The index of the value that cannot be cast
+    """
+    badval = None
+    badidx = None
+    for idx, v in enumerate(fields):
+        try:
+            dtype(v)
+        except:
+            badval = v
+            badidx = idx
+            break
+    return (badval, badidx)
+
+
 def general_parser(x):
     return x
 
@@ -4313,7 +4342,7 @@ html
         else:
             lines = lines[data_start:]
 
-        for lineno, line in enumerate(lines):
+        for lineno, line in enumerate(lines, data_start):
             line = line.strip()
             if not line:
                 continue
@@ -4327,12 +4356,16 @@ html
                 try:
                     values = list(map(dtype, fields[1:]))
                 except ValueError:
-                    raise TypeError("Invalid value on line %d." % lineno)
+                    badval, badidx = _identify_bad_value(dtype, fields[1:])
+                    msg = "Invalid value on line %d, column %d, value %s"
+                    raise TypeError(msg % (lineno, badidx+1, badval))
             else:
                 try:
                     values = list(map(dtype, fields[1:-1]))
                 except ValueError:
-                    raise TypeError("Invalid value on line %d." % lineno)
+                    badval, badidx = _identify_bad_value(dtype, fields[1:])
+                    msg = "Invalid value on line %d, column %d, value %s"
+                    raise TypeError(msg % (lineno, badidx+1, badval))
 
                 if md_parse is not None:
                     metadata.append(md_parse(fields[-1]))
