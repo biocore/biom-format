@@ -360,5 +360,5 @@ you could name these while adding them as follows::
 
 As a variation on the last command, if you only want to include the ``taxonomy`` column and exclude the ``confidence`` column, you could run::
 
-	biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt --observation-header OTUID,taxonomy
+	biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt --observation-header OTUID,taxonomy --sc-separated taxonomy
 

@@ -217,6 +217,35 @@ MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': str,
                        u'int': int, u'float': float, u'unicode': str}
 
 
+def _identify_bad_value(dtype, fields):
+    """Identify the first value which cannot be cast
+
+    Paramters
+    ---------
+    dtype : type
+        A type to cast to
+    fields : Iterable of str
+        A series of str to cast into dtype
+
+    Returns
+    -------
+    str or None
+        A value that cannot be cast
+    int or None
+        The index of the value that cannot be cast
+    """
+    badval = None
+    badidx = None
+    for idx, v in enumerate(fields):
+        try:
+            dtype(v)
+        except:
+            badval = v
+            badidx = idx
+            break
+    return (badval, badidx)
+
+
 def general_parser(x):
     return x
 
@@ -317,6 +346,8 @@ class Table(object):
                                           shape=shape)
         else:
             self._data = data.tocsr()
+
+        self._data = self._data.astype(float)
 
         # using object to allow for variable length strings
         self._sample_ids = np.asarray(sample_ids, dtype=object)
@@ -518,6 +549,7 @@ class Table(object):
     @property
     def nnz(self):
         """Number of non-zero elements of the underlying contingency matrix"""
+        self._data.eliminate_zeros()
         return self._data.nnz
 
     @property
@@ -1505,7 +1537,7 @@ class Table(object):
         Parameters
         ----------
         id : str
-            ID of the samples or observations whose data will be returned.
+            ID of the sample or observation whose data will be returned.
         axis : {'sample', 'observation'}
             Axis to search for `id`.
         dense : bool, optional
@@ -2922,6 +2954,46 @@ class Table(object):
                 idx += 1
         return new_order
 
+    def remove_empty(self, axis='whole', inplace=True):
+        """Remove empty samples or observations from the table
+
+        Parameters
+        ----------
+        axis : {'whole', 'sample', 'observation'}, optional
+            The axis on which to operate.
+        inplace : bool, optional
+            If ``True`` vectors are removed in ``self``; if ``False`` the
+            vectors are removed in a new table is returned.
+
+        Raises
+        ------
+        UnknownAxisError
+            If the axis is not recognized.
+
+        Returns
+        -------
+        Table
+            A table object with the zero'd rows, or columns removed as
+            specified by the `axis` parameter.
+        """
+        if axis not in ['sample', 'observation', 'whole']:
+            raise UnknownAxisError(axis)
+
+        if inplace:
+            table = self
+        else:
+            table = self.copy()
+
+        if axis == 'whole':
+            axes = ['sample', 'observation']
+        else:
+            axes = [axis]
+
+        for ax in axes:
+            table.filter(lambda v, i, md: (v > 0).sum(), axis=ax)
+
+        return table
+
     def concat(self, others, axis='sample'):
         """Concatenate tables if axis is disjoint
 
@@ -3930,6 +4002,7 @@ html
                               shape=json_table['shape'],
                               dtype=dtype,
                               type=type_,
+                              generated_by=json_table['generated_by'],
                               input_is_dense=input_is_dense)
         else:
             table_obj = Table(data_pump, obs_ids, sample_ids,
@@ -3937,8 +4010,8 @@ html
                               shape=json_table['shape'],
                               dtype=dtype,
                               type=type_,
+                              generated_by=json_table['generated_by'],
                               input_is_dense=input_is_dense)
-
         return table_obj
 
     def to_json(self, generated_by, direct_io=None):
@@ -4269,7 +4342,7 @@ html
         else:
             lines = lines[data_start:]
 
-        for line in lines:
+        for lineno, line in enumerate(lines, data_start):
             line = line.strip()
             if not line:
                 continue
@@ -4280,9 +4353,19 @@ html
             obs_ids.append(fields[0])
 
             if last_column_is_numeric:
-                values = list(map(dtype, fields[1:]))
+                try:
+                    values = list(map(dtype, fields[1:]))
+                except ValueError:
+                    badval, badidx = _identify_bad_value(dtype, fields[1:])
+                    msg = "Invalid value on line %d, column %d, value %s"
+                    raise TypeError(msg % (lineno, badidx+1, badval))
             else:
-                values = list(map(dtype, fields[1:-1]))
+                try:
+                    values = list(map(dtype, fields[1:-1]))
+                except ValueError:
+                    badval, badidx = _identify_bad_value(dtype, fields[1:])
+                    msg = "Invalid value on line %d, column %d, value %s"
+                    raise TypeError(msg % (lineno, badidx+1, badval))
 
                 if md_parse is not None:
                     metadata.append(md_parse(fields[-1]))

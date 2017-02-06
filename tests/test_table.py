@@ -15,6 +15,7 @@ from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 from io import StringIO
 
+import six
 from future.utils import viewkeys
 import numpy.testing as npt
 import numpy as np
@@ -28,9 +29,12 @@ from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
 from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
                         list_dict_to_sparse, dict_to_sparse,
                         coo_arrays_to_sparse, list_list_to_sparse,
-                        nparray_to_sparse, list_sparse_to_sparse)
+                        nparray_to_sparse, list_sparse_to_sparse,
+                        _identify_bad_value)
 from biom.parse import parse_biom_table
 from biom.err import errstate
+
+np.random.seed(1234)
 
 if HAVE_H5PY:
     import h5py
@@ -99,6 +103,46 @@ class SupportTests(TestCase):
         with self.assertRaises(IndexError):
             example_table.head(5, 0)
 
+    def test_remove_empty_sample(self):
+        t = example_table.copy()
+        t._data[:, 0] = 0
+        t.remove_empty()
+        exp = example_table.filter({'S2', 'S3'}, inplace=False)
+        self.assertEqual(t, exp)
+
+    def test_remove_empty_obs(self):
+        t = example_table.copy()
+        t._data[0, :] = 0
+        t.remove_empty()
+        exp = example_table.filter({'O2', }, axis='observation',
+                                   inplace=False)
+        self.assertEqual(t, exp)
+
+    def test_remove_empty_both(self):
+        t = example_table.copy()
+        t._data[:, 0] = 0
+        t._data[0, :] = 0
+        obs_base = t.copy()
+
+        obs = obs_base.remove_empty()
+        exp = example_table.filter({'S2', 'S3'}, inplace=False)
+        exp = exp.filter({'O2', }, axis='observation', inplace=False)
+        self.assertEqual(obs, exp)
+
+        obs = obs_base.remove_empty('sample')
+        exp = example_table.filter({'S2', 'S3'}, inplace=False)
+        self.assertEqual(obs, exp)
+
+        obs = obs_base.remove_empty('observation')
+        exp = exp.filter({'O2', }, axis='observation', inplace=False)
+        self.assertEqual(obs, exp)
+
+    def test_remove_empty_both(self):
+        obs = example_table.copy()
+        obs.remove_empty()
+        exp = example_table.copy()
+        self.assertEqual(obs, exp)
+
     def test_concat_empty(self):
         exp = example_table.copy()
         obs = example_table.concat([])
@@ -107,9 +151,9 @@ class SupportTests(TestCase):
     def test_concat_samples(self):
         table2 = example_table.copy()
         table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
-        
+
         exp = Table(np.array([[0, 1, 2, 0, 1, 2],
-                              [3, 4, 5, 3, 4, 5]]), 
+                              [3, 4, 5, 3, 4, 5]]),
                     ['O1', 'O2'],
                     ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
                     example_table.metadata(axis='observation'),
@@ -120,11 +164,11 @@ class SupportTests(TestCase):
     def test_concat_observations(self):
         table2 = example_table.copy()
         table2.update_ids({'O1': 'O3', 'O2': 'O4'}, axis='observation')
-        
+
         exp = Table(np.array([[0, 1, 2],
                               [3, 4, 5],
                               [0, 1, 2],
-                              [3, 4, 5]]), 
+                              [3, 4, 5]]),
                     ['O1', 'O2', 'O3', 'O4'],
                     ['S1', 'S2', 'S3'],
                     list(example_table.metadata(axis='observation')) * 2,
@@ -137,13 +181,13 @@ class SupportTests(TestCase):
         table2.update_ids({'O1': 'O3', 'O2': 'O4'}, axis='observation')
         table3 = example_table.copy()
         table3.update_ids({'O1': 'O5', 'O2': 'O6'}, axis='observation')
-        
+
         exp = Table(np.array([[0, 1, 2],
                               [3, 4, 5],
                               [0, 1, 2],
                               [3, 4, 5],
                               [0, 1, 2],
-                              [3, 4, 5]]), 
+                              [3, 4, 5]]),
                     ['O1', 'O2', 'O3', 'O4', 'O5', 'O6'],
                     ['S1', 'S2', 'S3'],
                     list(example_table.metadata(axis='observation')) * 3,
@@ -157,9 +201,9 @@ class SupportTests(TestCase):
         table2 = table2.sort_order(['O2', 'O1'], axis='observation')
         table3 = example_table.sort_order(['S2', 'S1', 'S3'])
         table3.update_ids({'S1': 'S7', 'S2': 'S8', 'S3': 'S9'})
-        
+
         exp = Table(np.array([[0, 1, 2, 2, 1, 0, 1, 0, 2],
-                              [3, 4, 5, 5, 4, 3, 4, 3, 5]]), 
+                              [3, 4, 5, 5, 4, 3, 4, 3, 5]]),
                     ['O1', 'O2'],
                     ['S1', 'S2', 'S3', 'S6', 'S5', 'S4', 'S8', 'S7', 'S9'],
                     example_table.metadata(axis='observation'),
@@ -186,7 +230,7 @@ class SupportTests(TestCase):
 
         obs = example_table.concat([table2, ], axis='sample')
         self.assertEqual(obs, exp)
-    
+
     def test_concat_no_metadata_bug(self):
         table1 = example_table.copy()
         table1._sample_metadata = None
@@ -1450,6 +1494,12 @@ class TableTests(TestCase):
         self.assertEqual(self.single_ele.nnz, 1)
         self.assertEqual(self.mat1.nnz, 4)
         self.assertEqual(self.explicit_zeros.nnz, 4)
+
+    def test_nnz_issue_727(self):
+        tab = Table(np.array([[0, 1], [0, 0]]), ['a', 'b'], ['1', '2'])
+        self.assertEqual(tab.nnz, 1)
+        tab._data[0, 0] = 0
+        self.assertEqual(tab.nnz, 1)
 
     def test_get_row(self):
         """Test grabbing a row from the matrix."""
@@ -3075,6 +3125,13 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
         self.assertEqual(type(obs), Table)
 
+    def test_from_json_issue_697(self):
+        t = Table({}, [], [])
+        serialized = t.to_json('foo')
+        reloaded = Table.from_json(loads(serialized))
+        self.assertEqual(t, reloaded)
+        self.assertEqual(reloaded.generated_by, 'foo')
+
     def test_to_json_empty(self):
         t = Table({}, [], [])
         serialized = t.to_json('foo')
@@ -3270,6 +3327,28 @@ class SparseTableTests(TestCase):
         exp = (samp_ids, obs_ids, data, metadata, md_name)
         obs = Table._extract_data_from_tsv(input, dtype=int)
         npt.assert_equal(obs, exp)
+
+    def test_identify_bad_value(self):
+        pos = [str(i) for i in range(10)]
+        exp = (None, None)
+        obs = _identify_bad_value(int, pos)
+        self.assertEqual(obs, exp)
+
+        neg = list('01234x6789')
+        exp = ('x', 5)
+        obs = _identify_bad_value(int, neg)
+        self.assertEqual(obs, exp)
+
+    def test_extract_data_from_tsv_badvalue_complaint(self):
+        tsv = ['#OTU ID\ta\tb', '1\t2\t3', '2\tfoo\t6']
+
+        if six.PY3:
+            msg = "Invalid value on line 2, column 1, value foo"
+            with self.assertRaisesRegex(TypeError, msg):
+                Table._extract_data_from_tsv(tsv, dtype=int)
+        else:
+            with self.assertRaises(TypeError):
+                Table._extract_data_from_tsv(tsv, dtype=int)
 
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""

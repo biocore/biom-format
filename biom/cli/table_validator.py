@@ -493,6 +493,8 @@ class TableValidator(object):
         """Table must be a known table type"""
         key = self._json_or_hdf5_key(table, 'type')
         value = self._json_or_hdf5_get(table, key)
+        if value is None or value == "":
+            return "Unknown table type, however that is likely okay."
         if value.lower() not in self.TableTypes:
             return "Unknown BIOM type: %s" % value
         else:
@@ -534,8 +536,11 @@ class TableValidator(object):
         required_keys = [('id', self._valid_id),
                          ('metadata', self._valid_metadata)]
         required_by_type = {}
+        ttype = table_json.get('type')
+        if ttype is None:
+            ttype = ""
         required_keys.extend(
-            required_by_type.get(table_json['type'].lower(), []))
+            required_by_type.get(ttype.lower(), []))
 
         for idx, row in enumerate(table_json['rows']):
             for key, method in required_keys:
@@ -552,8 +557,11 @@ class TableValidator(object):
         required_keys = [('id', self._valid_id),
                          ('metadata', self._valid_metadata)]
         required_by_type = {}
+        ttype = table_json.get('type')
+        if ttype is None:
+            ttype = ""
         required_keys.extend(
-            required_by_type.get(table_json['type'].lower(), []))
+            required_by_type.get(ttype.lower(), []))
 
         for idx, col in enumerate(table_json['columns']):
             for key, method in required_keys:
