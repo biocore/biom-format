@@ -29,7 +29,7 @@ def _transform(arr, ids, metadata, function, axis):
         metadata along the given axis.
     function : function
         A function that takes three values: an array of nonzero values
-        for each colum or row of `arr`, an id string and a metadata
+        for each column or row of `arr`, an id string and a metadata
         dictionary. It must return an array of transformed values.
     axis : int
         Transform rows of `arr` if 0, columns if 1.
