@@ -865,6 +865,17 @@ class TableTests(TestCase):
             h5.close()
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_to_hdf5_general_fallback_to_list(self):
+        st_rich = Table(self.vals,
+                        ['1', '2'], ['a', 'b'],
+                        [{'foo': ['k__a', 'p__b']},
+                         {'foo': ['k__a', 'p__c']}],
+                        [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            st_rich.to_hdf5(h5, 'tests')
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_custom_formatters(self):
         self.st_rich = Table(self.vals,
                              ['1', '2'], ['a', 'b'],
