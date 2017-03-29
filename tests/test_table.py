@@ -1326,6 +1326,14 @@ class TableTests(TestCase):
         pdt.assert_frame_equal(obs_samp, exp_samp)
         pdt.assert_frame_equal(obs_obs, exp_obs)
 
+    def test_metadata_to_dataframe_uneven_list_metadata(self):
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    [{'taxonomy': ['k__foo', 'p__bar']},
+                     {'taxonomy': 'k__foo'}])
+
+        with self.assertRaises(TypeError):
+            tab.metadata_to_dataframe(axis='observation')
+
     def test_metadata_to_dataframe_badaxis(self):
         with self.assertRaises(UnknownAxisError):
             example_table.metadata_to_dataframe(axis='foo')

@@ -3872,7 +3872,9 @@ html
             If the requested axis isn't recognized
         KeyError
             IF the requested axis does not have metadata
-
+        TypeError
+            If a metadata column is a list or tuple, but is jagged over the
+            axis.
         Returns
         -------
         pd.DataFrame
@@ -3897,18 +3899,20 @@ html
         expand = {}
         for key, value in kv_test:
             if isinstance(value, (tuple, list)):
-                expand[key] = True
+                expand[key] = len(value)
                 for idx in range(len(value)):
                     columns.append("%s_%d" % (key, idx))
             else:
-                expand[key] = False
+                expand[key] = 0
                 columns.append(key)
 
         rows = []
         for m in md:
             row = []
             for key, value in sorted(m.items()):
-                if expand[key]:
+                if expand[key] > 0:
+                    if len(value) != expand[key]:
+                        raise TypeError("'%s' contains jagged entries" % key)
                     for v in value:
                         row.append(v)
                 else:
