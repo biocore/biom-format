@@ -21,6 +21,9 @@ New Features:
 * `Table.del_metadata` was added to support the removal of metadata entries from the table [Issue #708](https://github.com/biocore/biom-format/issues/708).
 * `Table.to_dataframe` was added to cast the internal matrix data to a Pandas `SparseDataFrame` [Issue #622](https://github.com/biocore/biom-format/issues/622).
 * `Table.metadata_to_dataframe` was added to cast axis metadata to a Pandas `DataFrame` [Issue #622](https://github.com/biocore/biom-format/issues/622).
+* `test_table.py` and `test_util.py` now use a stable random seed. See issue [#728](https://github.com/biocore/biom-format/issues/728)
+* Failure to cast a value when parsing a TSV will now print the associated line number which had the bad value. See [#284](https://github.com/biocore/biom-format/issues/284).
+* `Table.remove_empty` has been added to remove zero'd samples, observations or both. See [#721](https://github.com/biocore/biom-format/issues/721).
 
 Bug fixes:
 
@@ -28,6 +31,9 @@ Bug fixes:
 * Matrices are now cast to csr on `Table` construction if the data evaluate as `isspmatrix`. This fixes [#717](https://github.com/biocore/biom-format/issues/717) where some API methods assumed the data were csc or csr.
 * `Table.concat` was not handling tables without metadata, resulting in an exception due to mismatches metadata shape. See [#724](https://github.com/biocore/biom-format/issues/724).
 * When validating a BIOM-Format 1.0.0 table, specifying the version string would trigger an error. See [#664](https://github.com/biocore/biom-format/issues/664). An explicit regression test was not added as this stemmed from an integration, and there currently is not support for script usage tests; see [#656](https://github.com/biocore/biom-format/issues/656).
+* `Table.nnz` was not calling `eliminate_zeros()` on the underlying sparse matrix, resulting in the possibility of counting explicitly set zero values. See [#727](https://github.com/biocore/biom-format/issues/727).
+* `Table.from_hdf5` was not properly turning `bytes` into `str` for the `table_id` and the `type` HDF5 attributes. See [#731](https://github.com/biocore/biom-format/issues/731).
+* `Table.__init__` now always performs an `astype(float)` on the contained `spmatrix`. This type normalization is beneficial for underlying Cython code on the filtering and transform operations. It is possible this will introduce some performance overhead, however in _most_ cases the data should already be float. See [#718](https://github.com/biocore/biom-format/issues/718).
 
 biom 2.1.5
 ----------

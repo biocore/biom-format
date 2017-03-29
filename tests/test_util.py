@@ -24,6 +24,7 @@ from biom.util import (natsort, flatten, unzip, HAVE_H5PY,
                        compute_counts_per_sample_stats, safe_md5, biom_open,
                        get_data_path, generate_subsamples, is_hdf5_file)
 
+np.random.seed(1234)
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
