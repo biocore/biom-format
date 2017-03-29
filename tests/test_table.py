@@ -24,7 +24,7 @@ import scipy.sparse
 import pandas.util.testing as pdt
 import pandas as pd
 
-from biom import example_table
+from biom import example_table, load_table
 from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
                             DisjointIDError)
 from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
@@ -847,22 +847,18 @@ class TableTests(TestCase):
             h5.close()
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
-    def test_to_hdf5_error(self):
-        """Errors if a controlled category is not correctly formatted"""
+    def test_to_hdf5_malformed_taxonomy(self):
+        t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
+                  [{'taxonomy': 'foo; bar'},
+                   {'taxonomy': 'foo; baz'}])
+
         with NamedTemporaryFile() as tmpfile:
-            h5 = h5py.File(tmpfile.name, 'w')
-            t = Table(
-                np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
-                ['1', '2', '3'], ['a', 'b', 'c'],
-                [{'taxonomy': 'k__a; p__b'},
-                 {'taxonomy': 'k__a; p__c'},
-                 {'taxonomy': 'k__a; p__c'}],
-                [{'barcode': 'aatt'},
-                 {'barcode': 'ttgg'},
-                 {'barcode': 'aatt'}])
-            with self.assertRaises(TypeError):
+            with h5py.File(tmpfile.name, 'w') as h5:
                 t.to_hdf5(h5, 'tests')
-            h5.close()
+            obs = load_table(tmpfile.name)
+        self.assertEqual(obs.metadata(axis='observation'),
+                         ({'taxonomy': ['foo', 'bar']},
+                          {'taxonomy': ['foo', 'baz']}))
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_general_fallback_to_list(self):
