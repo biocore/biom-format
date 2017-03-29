@@ -1250,13 +1250,13 @@ class TableTests(TestCase):
 
     def test_del_metadata_full(self):
         obs_ids = [1, 2, 3]
-        obs_md = {1: {'taxonomy': ['A', 'B'], 'other': 'h1'},
-                  2: {'taxonomy': ['B', 'C'], 'other': 'h2'},
-                  3: {'taxonomy': ['E', 'D', 'F'], 'other': 'h3'}}
+        obs_md = [{'taxonomy': ['A', 'B'], 'other': 'h1'},
+                  {'taxonomy': ['B', 'C'], 'other': 'h2'},
+                  {'taxonomy': ['E', 'D', 'F'], 'other': 'h3'}]
         samp_ids = [4, 5, 6, 7]
-        samp_md = [{'d': 0}, {'e': 0}, {'f': 0}, {'g': 0}]
+        samp_md = [{'foo': 1}, {'foo': 2}, {'foo': 3}, {'foo': 4}]
         d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
-        t = Table(d, obs_ids, samp_ids, observation_metadata=None,
+        t = Table(d, obs_ids, samp_ids, observation_metadata=obs_md,
                   sample_metadata=samp_md)
         exp = Table(d, obs_ids, samp_ids)
         obs = t.del_metadata(axis='whole')
@@ -1264,19 +1264,19 @@ class TableTests(TestCase):
 
     def test_del_metadata_partial(self):
         obs_ids = [1, 2, 3]
-        obs_md = {1: {'taxonomy': ['A', 'B'], 'other': 'h1'},
-                  2: {'taxonomy': ['B', 'C'], 'other': 'h2'},
-                  3: {'taxonomy': ['E', 'D', 'F'], 'other': 'h3'}}
+        obs_md = [{'taxonomy': ['A', 'B'], 'other': 'h1'},
+                  {'taxonomy': ['B', 'C'], 'other': 'h2'},
+                  {'taxonomy': ['E', 'D', 'F'], 'other': 'h3'}]
         samp_ids = [4, 5, 6, 7]
         samp_md = [{'d': 0}, {'e': 0}, {'f': 0}, {'g': 0}]
         d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
-        t = Table(d, obs_ids, samp_ids, observation_metadata=None,
+        t = Table(d, obs_ids, samp_ids, observation_metadata=obs_md,
                   sample_metadata=samp_md)
 
-        exp_md = {k: d.copy() for k, d in obs_md.items()}
+        exp_md = [d.copy() for d in obs_md]
+        del exp_md[0]['taxonomy']
         del exp_md[1]['taxonomy']
         del exp_md[2]['taxonomy']
-        del exp_md[3]['taxonomy']
 
         exp = Table(d, obs_ids, samp_ids, observation_metadata=exp_md,
                     sample_metadata=samp_md)
@@ -1286,6 +1286,23 @@ class TableTests(TestCase):
     def test_del_metadata_missing(self):
         with self.assertRaises(KeyError):
             example_table.del_metadata('missing', axis='sample', inplace=False)
+
+    def test_del_metadata_nomd(self):
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'])
+        with self.assertRaises(KeyError):
+            tab.del_metadata(axis='whole')
+
+    def test_del_metadata_badaxis(self):
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'])
+        with self.assertRaises(UnknownAxisError):
+            tab.del_metadata(axis='foo')
+
+    def test_del_metadata_jagged(self):
+        # this situation should never happen but technically can
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    observation_metadata=[{'foo': 1}, {'bar': 2}])
+        with self.assertRaises(KeyError):
+            tab.del_metadata(axis='observation', keys=['foo'])
 
     def test_del_metadata_not_in_place(self):
         exp = example_table.copy()
