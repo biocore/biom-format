@@ -21,6 +21,7 @@ import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 import scipy.sparse
 import pandas.util.testing as pdt
+import pandas as pd
 
 from biom import example_table
 from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
@@ -1257,9 +1258,11 @@ class TableTests(TestCase):
         pdt.assert_frame_equal(obs, exp)
 
     def test_metadata_to_dataframe(self):
-        exp_samp = pd.DataFrame(['A', 'B', 'C'], index=['S1', 'S2', 'S3'],
+        exp_samp = pd.DataFrame(['A', 'B', 'A'], index=['S1', 'S2', 'S3'],
                                 columns=['environment'])
-        exp_obs = pd.DataFrame(['O1', 'O2'], index=['O1', 'O2'],
+        exp_obs = pd.DataFrame([['Bacteria', 'Firmicutes'],
+                                ['Bacteria', 'Bacteroidetes']],
+                               index=['O1', 'O2'],
                                columns=['taxonomy_0', 'taxonomy_1'])
         obs_samp = example_table.metadata_to_dataframe(axis='sample')
         obs_obs = example_table.metadata_to_dataframe(axis='observation')
@@ -1271,7 +1274,7 @@ class TableTests(TestCase):
             example_table.metadata_to_dataframe(axis='foo')
 
     def test_metadata_to_dataframe_nomd(self):
-        tab = Table([[1,2], [3,4]], ['a', 'b'], ['c', 'd'],
+        tab = Table(np.array([[1,2], [3,4]]), ['a', 'b'], ['c', 'd'],
                     [{'foo': 1}, {'foo': 2}])
         with self.assertRaises(KeyError):
             tab.metadata_to_dataframe('sample')

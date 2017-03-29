@@ -186,6 +186,7 @@ from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
                           vstack, hstack)
+import pandas as pd
 
 from future.utils import string_types
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
@@ -656,7 +657,6 @@ class Table(object):
                     table._observation_metadata = None
 
         return table
-
 
     def add_metadata(self, md, axis='sample'):
         """Take a dict of metadata and add it to an axis.
@@ -3707,6 +3707,103 @@ html
             t.filter(any_value, axis=axis)
 
         return t
+
+    def to_dataframe(self):
+        """Convert matrix data to a Pandas SparseDataFrame
+
+        Notes
+        -----
+        Metadata are not included.
+
+        Returns
+        -------
+        pd.SparseDataFrame
+            A SparseDataFrame indexed on the observation IDs, with the column
+            names as the sample IDs.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> df = example_table.to_dataframe()
+        >>> df
+             S1   S2   S3
+        O1  0.0  1.0  2.0
+        O2  3.0  4.0  5.0
+        """
+        # avoid dense conversion
+        # http://stackoverflow.com/a/17819427
+        mat = [pd.SparseSeries(v.toarray().ravel()) for v in self.matrix_data]
+        df = pd.SparseDataFrame(mat, index=self.ids(axis='observation'),
+                                columns=self.ids())
+        return df
+
+    def metadata_to_dataframe(self, axis):
+        """Convert axis metadata to a Pandas DataFrame
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}
+            The axis to operate on.
+
+        Notes
+        -----
+        Nested metadata (e.g., KEGG_Pathways) is not supported.
+
+        Metadata which are lists or tuples (e.g., taxonomy) are expanded such
+        that each index position is a unique column. For instance, the key
+        taxonomy will become "taxonomy_0", "taxonomy_1", etc where "taxonomy_0"
+        corresponds to the 0th index position of the taxonomy.
+
+        Raises
+        ------
+        UnknownAxisError
+            If the requested axis isn't recognized
+        KeyError
+            IF the requested axis does not have metadata
+
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame indexed by the ids of the desired axis, columns by the
+            metadata keys over that axis.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> example_table.metadata_to_dataframe('observation')
+           taxonomy_0     taxonomy_1
+        O1   Bacteria     Firmicutes
+        O2   Bacteria  Bacteroidetes
+        """
+        md = self.metadata(axis=axis)
+        if md is None:
+            raise KeyError("%s does not have metadata" % axis)
+
+        test = md[0]
+        kv_test = sorted(list(test.items()))
+        columns = []
+        expand = {}
+        for key, value in kv_test:
+            if isinstance(value, (tuple, list)):
+                expand[key] = True
+                for idx in range(len(value)):
+                    columns.append("%s_%d" % (key, idx))
+            else:
+                expand[key] = False
+                columns.append(key)
+
+        rows = []
+        for m in md:
+            row = []
+            for key, value in sorted(m.items()):
+                if expand[key]:
+                    for v in value:
+                        row.append(v)
+                else:
+                    row.append(value)
+            rows.append(row)
+
+        return pd.DataFrame(rows, index=self.ids(axis=axis), columns=columns)
 
     def to_hdf5(self, h5grp, generated_by, compress=True, format_fs=None):
         """Store CSC and CSR in place
