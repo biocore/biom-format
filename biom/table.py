@@ -273,12 +273,13 @@ def general_formatter(grp, header, md, compression):
                            dtype=H5PY_VLEN_STR,
                            data=[m[header].encode('utf8') for m in md],
                            compression=compression)
+    elif isinstance(test_val, (list, tuple)):
+        vlen_list_of_str_formatter(grp, header, md, compression)
     else:
         grp.create_dataset(
-            'metadata/%s' % header, shape=(len(md),),
+            name, shape=(len(md),),
             data=[m[header] for m in md],
             compression=compression)
-
 
 def vlen_list_of_str_formatter(grp, header, md, compression):
     """Creates a (N, ?) vlen str dataset"""
