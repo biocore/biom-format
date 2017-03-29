@@ -35,6 +35,7 @@ Bug fixes:
 * `Table.from_hdf5` was not properly turning `bytes` into `str` for the `table_id` and the `type` HDF5 attributes. See [#731](https://github.com/biocore/biom-format/issues/731).
 * `Table.__init__` now always performs an `astype(float)` on the contained `spmatrix`. This type normalization is beneficial for underlying Cython code on the filtering and transform operations. It is possible this will introduce some performance overhead, however in _most_ cases the data should already be float. See [#718](https://github.com/biocore/biom-format/issues/718).
 * `Table.to_hdf5` was not handling lists of str appropriately in the general case. Ssee [#638](https://github.com/biocore/biom-format/issues/638).
+* `Table.to_hdf5` was not handling taxonomy as flat strings, which was a common mistake that was outside of expectations for the formatter. The formatter now attempts to split on semicolon if this scenario is encountered, and errors with a more informative error if a problem occurs. See [#530](https://github.com/biocore/biom-format/issues/530).
 
 biom 2.1.5
 ----------
