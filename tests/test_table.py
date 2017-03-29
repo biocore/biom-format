@@ -20,6 +20,7 @@ import numpy.testing as npt
 import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 import scipy.sparse
+import pandas.util.testing as pdt
 
 from biom import example_table
 from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
@@ -1247,6 +1248,33 @@ class TableTests(TestCase):
             t.group_metadata(),
             {'graph': ('edge_list', '(4,5), (4,6), (5,7), (6,7)'),
              'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')})
+
+    def test_to_dataframe(self):
+        exp = pd.SparseDataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
+                                 index=['O1', 'O2'],
+                                 columns=['S1', 'S2', 'S3'])
+        obs = example_table.to_dataframe()
+        pdt.assert_frame_equal(obs, exp)
+
+    def test_metadata_to_dataframe(self):
+        exp_samp = pd.DataFrame(['A', 'B', 'C'], index=['S1', 'S2', 'S3'],
+                                columns=['environment'])
+        exp_obs = pd.DataFrame(['O1', 'O2'], index=['O1', 'O2'],
+                               columns=['taxonomy_0', 'taxonomy_1'])
+        obs_samp = example_table.metadata_to_dataframe(axis='sample')
+        obs_obs = example_table.metadata_to_dataframe(axis='observation')
+        pdt.assert_frame_equal(obs_samp, exp_samp)
+        pdt.assert_frame_equal(obs_obs, exp_obs)
+
+    def test_metadata_to_dataframe_badaxis(self):
+        with self.assertRaises(UnknownAxisError):
+            example_table.metadata_to_dataframe(axis='foo')
+
+    def test_metadata_to_dataframe_nomd(self):
+        tab = Table([[1,2], [3,4]], ['a', 'b'], ['c', 'd'],
+                    [{'foo': 1}, {'foo': 2}])
+        with self.assertRaises(KeyError):
+            tab.metadata_to_dataframe('sample')
 
     def test_del_metadata_full(self):
         obs_ids = [1, 2, 3]
