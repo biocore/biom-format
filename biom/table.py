@@ -3899,20 +3899,18 @@ html
         expand = {}
         for key, value in kv_test:
             if isinstance(value, (tuple, list)):
-                expand[key] = len(value)
+                expand[key] = True
                 for idx in range(len(value)):
                     columns.append("%s_%d" % (key, idx))
             else:
-                expand[key] = 0
+                expand[key] = False
                 columns.append(key)
 
         rows = []
         for m in md:
             row = []
             for key, value in sorted(m.items()):
-                if expand[key] > 0:
-                    if len(value) != expand[key]:
-                        raise TypeError("'%s' contains jagged entries" % key)
+                if expand[key]:
                     for v in value:
                         row.append(v)
                 else:

@@ -1329,10 +1329,13 @@ class TableTests(TestCase):
     def test_metadata_to_dataframe_uneven_list_metadata(self):
         tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
                     [{'taxonomy': ['k__foo', 'p__bar']},
-                     {'taxonomy': 'k__foo'}])
-
-        with self.assertRaises(TypeError):
-            tab.metadata_to_dataframe(axis='observation')
+                     {'taxonomy': ['k__foo']}])
+        exp_obs = pd.DataFrame([['k__foo', 'p__bar'],
+                                ['k__foo', None]],
+                               index=['a', 'b'],
+                               columns=['taxonomy_0', 'taxonomy_1'])
+        obs_obs = tab.metadata_to_dataframe(axis='observation')
+        pdt.assert_frame_equal(obs_obs, exp_obs)
 
     def test_metadata_to_dataframe_badaxis(self):
         with self.assertRaises(UnknownAxisError):
