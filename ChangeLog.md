@@ -27,6 +27,7 @@ Bug fixes:
 * ``-o`` is now a required parameter of ``biom from-uc``. This was not the case previously, which resulted in a cryptic error message if ``-o`` was not provided. See [issue #683](https://github.com/biocore/biom-format/issues/683).
 * Matrices are now cast to csr on `Table` construction if the data evaluate as `isspmatrix`. This fixes [#717](https://github.com/biocore/biom-format/issues/717) where some API methods assumed the data were csc or csr.
 * `Table.concat` was not handling tables without metadata, resulting in an exception due to mismatches metadata shape. See [#724](https://github.com/biocore/biom-format/issues/724).
+* When validating a BIOM-Format 1.0.0 table, specifying the version string would trigger an error. See [#664](https://github.com/biocore/biom-format/issues/664). An explicit regression test was not added as this stemmed from an integration, and there currently is not support for script usage tests; see [#656](https://github.com/biocore/biom-format/issues/656).
 
 biom 2.1.5
 ----------
