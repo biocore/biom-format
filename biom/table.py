@@ -299,11 +299,37 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
             lengths.append(len(m[header]))
 
     if not np.all(iterable_checks):
-        raise TypeError(
-            "Category %s not formatted correctly. Did you pass"
-            " --process-obs-metadata taxonomy when converting "
-            " from tsv? Please see Table.to_hdf5 docstring for"
-            " more information")
+        if header == 'taxonomy':
+            # attempt to handle the general case issue where the taxonomy
+            # was not split on semicolons and represented as a flat string
+            # instead of a list
+            def split_and_strip(i):
+                parts = i.split(';')
+                return [p.strip() for p in parts]
+            try:
+                new_md = []
+                lengths = []
+                for m in md:
+                    parts = split_and_strip(m[header])
+                    new_md.append({header: parts})
+                    lengths.append(len(parts))
+                old = deepcopy(md)  # attempt to preserve the original metadata
+                md = new_md
+            except:
+                raise TypeError("Category '%s' is not formatted properly. The "
+                                "most common issue is when 'taxonomy' is "
+                                "represented as a flat string instead of a "
+                                "list. An attempt was made to split this "
+                                "field on a ';' to coerce it into a list but "
+                                "it failed. An example entry (which is not "
+                                "assured to be the problematic entry) is "
+                                "below:\n%s" % (header, md[0][header]))
+        else:
+            raise TypeError(
+                "Category %s not formatted correctly. Did you pass"
+                " --process-obs-metadata taxonomy when converting "
+                " from tsv? Please see Table.to_hdf5 docstring for"
+                " more information" % header)
 
     max_list_len = max(lengths)
     shape = (len(md), max_list_len)
