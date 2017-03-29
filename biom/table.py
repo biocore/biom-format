@@ -281,6 +281,7 @@ def general_formatter(grp, header, md, compression):
             data=[m[header] for m in md],
             compression=compression)
 
+
 def vlen_list_of_str_formatter(grp, header, md, compression):
     """Creates a (N, ?) vlen str dataset"""
     # It is possible that the value for some sample/observation
@@ -313,7 +314,6 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
                     parts = split_and_strip(m[header])
                     new_md.append({header: parts})
                     lengths.append(len(parts))
-                old = deepcopy(md)  # attempt to preserve the original metadata
                 md = new_md
             except:
                 raise TypeError("Category '%s' is not formatted properly. The "
