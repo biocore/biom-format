@@ -107,9 +107,9 @@ class SupportTests(TestCase):
     def test_concat_samples(self):
         table2 = example_table.copy()
         table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
-        
+
         exp = Table(np.array([[0, 1, 2, 0, 1, 2],
-                              [3, 4, 5, 3, 4, 5]]), 
+                              [3, 4, 5, 3, 4, 5]]),
                     ['O1', 'O2'],
                     ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
                     example_table.metadata(axis='observation'),
@@ -120,11 +120,11 @@ class SupportTests(TestCase):
     def test_concat_observations(self):
         table2 = example_table.copy()
         table2.update_ids({'O1': 'O3', 'O2': 'O4'}, axis='observation')
-        
+
         exp = Table(np.array([[0, 1, 2],
                               [3, 4, 5],
                               [0, 1, 2],
-                              [3, 4, 5]]), 
+                              [3, 4, 5]]),
                     ['O1', 'O2', 'O3', 'O4'],
                     ['S1', 'S2', 'S3'],
                     list(example_table.metadata(axis='observation')) * 2,
@@ -137,13 +137,13 @@ class SupportTests(TestCase):
         table2.update_ids({'O1': 'O3', 'O2': 'O4'}, axis='observation')
         table3 = example_table.copy()
         table3.update_ids({'O1': 'O5', 'O2': 'O6'}, axis='observation')
-        
+
         exp = Table(np.array([[0, 1, 2],
                               [3, 4, 5],
                               [0, 1, 2],
                               [3, 4, 5],
                               [0, 1, 2],
-                              [3, 4, 5]]), 
+                              [3, 4, 5]]),
                     ['O1', 'O2', 'O3', 'O4', 'O5', 'O6'],
                     ['S1', 'S2', 'S3'],
                     list(example_table.metadata(axis='observation')) * 3,
@@ -157,9 +157,9 @@ class SupportTests(TestCase):
         table2 = table2.sort_order(['O2', 'O1'], axis='observation')
         table3 = example_table.sort_order(['S2', 'S1', 'S3'])
         table3.update_ids({'S1': 'S7', 'S2': 'S8', 'S3': 'S9'})
-        
+
         exp = Table(np.array([[0, 1, 2, 2, 1, 0, 1, 0, 2],
-                              [3, 4, 5, 5, 4, 3, 4, 3, 5]]), 
+                              [3, 4, 5, 5, 4, 3, 4, 3, 5]]),
                     ['O1', 'O2'],
                     ['S1', 'S2', 'S3', 'S6', 'S5', 'S4', 'S8', 'S7', 'S9'],
                     example_table.metadata(axis='observation'),
@@ -186,7 +186,7 @@ class SupportTests(TestCase):
 
         obs = example_table.concat([table2, ], axis='sample')
         self.assertEqual(obs, exp)
-    
+
     def test_concat_no_metadata_bug(self):
         table1 = example_table.copy()
         table1._sample_metadata = None
@@ -1247,6 +1247,54 @@ class TableTests(TestCase):
             t.group_metadata(),
             {'graph': ('edge_list', '(4,5), (4,6), (5,7), (6,7)'),
              'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')})
+
+    def test_del_metadata_full(self):
+        obs_ids = [1, 2, 3]
+        obs_md = {1: {'taxonomy': ['A', 'B'], 'other': 'h1'},
+                  2: {'taxonomy': ['B', 'C'], 'other': 'h2'},
+                  3: {'taxonomy': ['E', 'D', 'F'], 'other': 'h3'}}
+        samp_ids = [4, 5, 6, 7]
+        samp_md = [{'d': 0}, {'e': 0}, {'f': 0}, {'g': 0}]
+        d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+        t = Table(d, obs_ids, samp_ids, observation_metadata=None,
+                  sample_metadata=samp_md)
+        exp = Table(d, obs_ids, samp_ids)
+        obs = t.del_metadata(axis='whole')
+        self.assertEqual(obs, exp)
+
+    def test_del_metadata_partial(self):
+        obs_ids = [1, 2, 3]
+        obs_md = {1: {'taxonomy': ['A', 'B'], 'other': 'h1'},
+                  2: {'taxonomy': ['B', 'C'], 'other': 'h2'},
+                  3: {'taxonomy': ['E', 'D', 'F'], 'other': 'h3'}}
+        samp_ids = [4, 5, 6, 7]
+        samp_md = [{'d': 0}, {'e': 0}, {'f': 0}, {'g': 0}]
+        d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+        t = Table(d, obs_ids, samp_ids, observation_metadata=None,
+                  sample_metadata=samp_md)
+
+        exp_md = {k: d.copy() for k, d in obs_md.items()}
+        del exp_md[1]['taxonomy']
+        del exp_md[2]['taxonomy']
+        del exp_md[3]['taxonomy']
+
+        exp = Table(d, obs_ids, samp_ids, observation_metadata=exp_md,
+                    sample_metadata=samp_md)
+        obs = t.del_metadata(keys=['taxonomy'], axis='observation')
+        self.assertEqual(obs, exp)
+
+    def test_del_metadata_missing(self):
+        with self.assertRaises(KeyError):
+            example_table.del_metadata('missing', axis='sample', inplace=False)
+
+    def test_del_metadata_not_in_place(self):
+        exp = example_table.copy()
+        exp.del_metadata(axis='sample', keys=['environment'], inplace=True)
+        self.assertNotEqual(example_table, exp)
+        obs = example_table.del_metadata(axis='sample', keys=['environment'],
+                                         inplace=False)
+        self.assertEqual(obs, exp)
+        self.assertNotEqual(example_table, obs)
 
     def test_add_metadata_two_entries(self):
         """ add_metadata functions with more than one md entry """
