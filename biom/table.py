@@ -703,7 +703,7 @@ class Table(object):
             # for consistency with init on absence of metadata
             empties = {True if not md else False
                        for md in self.metadata(axis=ax)}
-            if empties == {True,}:
+            if empties == {True, }:
                 if ax == 'sample':
                     self._sample_metadata = None
                 else:

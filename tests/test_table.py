@@ -1358,8 +1358,8 @@ class TableTests(TestCase):
         t = Table(d, obs_ids, samp_ids, observation_metadata=obs_md,
                   sample_metadata=samp_md)
         exp = Table(d, obs_ids, samp_ids)
-        obs = t.del_metadata(axis='whole')
-        self.assertEqual(obs, exp)
+        t.del_metadata(axis='whole')
+        self.assertEqual(t, exp)
 
     def test_del_metadata_partial(self):
         obs_ids = [1, 2, 3]
@@ -1379,38 +1379,53 @@ class TableTests(TestCase):
 
         exp = Table(d, obs_ids, samp_ids, observation_metadata=exp_md,
                     sample_metadata=samp_md)
-        obs = t.del_metadata(keys=['taxonomy'], axis='observation')
-        self.assertEqual(obs, exp)
-
-    def test_del_metadata_missing(self):
-        with self.assertRaises(KeyError):
-            example_table.del_metadata('missing', axis='sample', inplace=False)
+        t.del_metadata(keys=['taxonomy'], axis='observation')
+        self.assertEqual(t, exp)
 
     def test_del_metadata_nomd(self):
         tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'])
-        with self.assertRaises(KeyError):
-            tab.del_metadata(axis='whole')
+        exp = tab.copy()
+        tab.del_metadata(axis='whole')
+        self.assertEqual(tab, exp)
 
     def test_del_metadata_badaxis(self):
         tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'])
         with self.assertRaises(UnknownAxisError):
             tab.del_metadata(axis='foo')
 
+    def test_del_metadata_idempotent(self):
+        ex = example_table.copy()
+        ex.del_metadata()
+        ex_no_md = ex.copy()
+        ex.del_metadata()
+        self.assertEqual(ex, ex_no_md)
+
+    def test_del_metadata_empty_list(self):
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    observation_metadata=[{'foo': 1, 'bar': 2, 'baz': 3},
+                                          {'foo': 4, 'bar': 5, 'baz': 6}])
+        exp = tab.copy()
+        tab.del_metadata(keys=[])
+        self.assertEqual(tab, exp)
+
+    def test_del_metadata_multiple_keys(self):
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    observation_metadata=[{'foo': 1, 'bar': 2, 'baz': 3},
+                                          {'foo': 4, 'bar': 5, 'baz': 6}])
+        exp = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    observation_metadata=[{'baz': 3},
+                                          {'baz': 6}])
+        tab.del_metadata(keys=['foo', 'bar'])
+        self.assertEqual(tab, exp)
+
     def test_del_metadata_jagged(self):
         # this situation should never happen but technically can
         tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
                     observation_metadata=[{'foo': 1}, {'bar': 2}])
-        with self.assertRaises(KeyError):
-            tab.del_metadata(axis='observation', keys=['foo'])
-
-    def test_del_metadata_not_in_place(self):
-        exp = example_table.copy()
-        exp.del_metadata(axis='sample', keys=['environment'], inplace=True)
-        self.assertNotEqual(example_table, exp)
-        obs = example_table.del_metadata(axis='sample', keys=['environment'],
-                                         inplace=False)
-        self.assertEqual(obs, exp)
-        self.assertNotEqual(example_table, obs)
+        tab.del_metadata(axis='observation', keys=['foo'])
+        exp = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    observation_metadata=[{}, {'bar': 2}])
+        self.assertEqual(tab, exp)
 
     def test_add_metadata_two_entries(self):
         """ add_metadata functions with more than one md entry """
