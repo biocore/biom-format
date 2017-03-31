@@ -1372,7 +1372,7 @@ class TableTests(TestCase):
         t = Table(d, obs_ids, samp_ids, observation_metadata=obs_md,
                   sample_metadata=samp_md)
 
-        exp_md = [d.copy() for d in obs_md]
+        exp_md = [md.copy() for md in obs_md]
         del exp_md[0]['taxonomy']
         del exp_md[1]['taxonomy']
         del exp_md[2]['taxonomy']
