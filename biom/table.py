@@ -639,7 +639,7 @@ class Table(object):
         else:
             raise UnknownAxisError(axis)
 
-    def del_metadata(self, keys=None, axis=None, inplace=False):
+    def del_metadata(self, keys=None, axis='whole'):
         """Remove metadata from an axis
 
         Parameters
@@ -650,34 +650,26 @@ class Table(object):
         axis : {'sample', 'observation', 'whole'}, optional
             The axis to operate on. If 'whole', the operation is applied to
             both the sample and observation axes.
-        inplace : bool, optional
-            If True, operate in place. If False, do not operate in place.
 
         Raises
         ------
-        KeyError
-            If a key to remove does not exist.
-            If the axis requested does not contain metadata.
         UnknownAxisError
             If the requested axis does not exist.
 
         Examples
         --------
-        >>> from biom import example_table
-        >>> keys = {tuple(d) for d in example_table.metadata()]
-        >>> print(keys)
-        {('environment',)}
-        >>> example_table.add_metadata([(i, {'ex': i})
-        ...                             for i in example_table.ids()])
-        >>> keys = {tuple(sorted(d.keys())) for d in example_table.metadata()]
-        >>> print(keys)
-        {('environment', 'ex')}
-        >>> modified = example_table.del_metadata(keys=['envionment'],
-        ...                                       axis='sample',
-        ...                                       inplace=False)
-        >>> keys = {tuple(sorted(d.keys())) for d in modified.metadata()]
-        >>> print(keys)
-        {('ex',)}
+        >>> from biom import Table
+        >>> import numpy as np
+        >>> tab = Table(np.array([[1, 2], [3, 4]]),
+        ...             ['O1', 'O2'],
+        ...             ['S1', 'S2'],
+        ...             sample_metadata=[{'barcode': 'ATGC', 'env': 'A'},
+        ...                              {'barcode': 'GGTT', 'env': 'B'}])
+        >>> tab.del_metadata(keys=['env'])
+        >>> for id, md in zip(tab.ids(), tab.metadata()):
+        ...     print(id, list(md.items()))
+        S1 [('barcode', 'ATGC')]
+        S2 [('barcode', 'GGTT')]
         """
         if axis == 'whole':
             axes = ['sample', 'observation']
@@ -686,37 +678,36 @@ class Table(object):
         else:
             raise UnknownAxisError("%s is not recognized" % axis)
 
-        if inplace:
-            table = self
-        else:
-            table = self.copy()
+        if keys is None and axis == 'whole':
+            self._sample_metadata = None
+            self._observation_metadata = None
+            return
 
         for ax in axes:
-            if table.metadata(axis=ax) is None:
-                raise KeyError("%s does not contain metadata." % ax)
+            if self.metadata(axis=ax) is None:
+                continue
 
             if keys is None:
-                test = table.metadata(axis=ax)[0]
-                keys_to_drop = list(test.keys())
+                keys_to_drop = set()
+                for md in self.metadata(axis=ax):
+                    keys_to_drop.update(set(md))
+                keys_to_drop = list(keys_to_drop)
             else:
                 keys_to_drop = keys[:]
 
-            for i, md in zip(table.ids(axis=ax), table.metadata(axis=ax)):
+            for i, md in zip(self.ids(axis=ax), self.metadata(axis=ax)):
                 for k in keys_to_drop:
                     if k in md:
                         del md[k]
-                    else:
-                        raise KeyError("id %s on %s axis is missing %s" % (
-                                       i, ax, k))
 
             # for consistency with init on absence of metadata
-            if not table.metadata(axis=ax)[0]:
+            empties = {True if not md else False
+                       for md in self.metadata(axis=ax)}
+            if empties == {True,}:
                 if ax == 'sample':
-                    table._sample_metadata = None
+                    self._sample_metadata = None
                 else:
-                    table._observation_metadata = None
-
-        return table
+                    self._observation_metadata = None
 
     def add_metadata(self, md, axis='sample'):
         """Take a dict of metadata and add it to an axis.
