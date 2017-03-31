@@ -1427,6 +1427,24 @@ class TableTests(TestCase):
                     observation_metadata=[{}, {'bar': 2}])
         self.assertEqual(tab, exp)
 
+    def test_del_metadata_keys_none(self):
+        tab = example_table.copy()
+        tab.del_metadata(axis='sample')
+        self.assertEqual(tab.metadata(), None)
+        tab.del_metadata(axis='observation')
+        self.assertEqual(tab.metadata(axis='observation'), None)
+        tab = example_table.copy()
+        tab.del_metadata(axis='whole')
+        self.assertEqual(tab.metadata(), None)
+        self.assertEqual(tab.metadata(axis='observation'), None)
+
+    def test_all_keys_dropped(self):
+        tab = example_table.copy()
+        tab.del_metadata(keys=['taxonomy', 'environment'], axis='whole')
+        self.assertEqual(tab, Table(tab.matrix_data,
+                                    tab.ids(axis='observation'),
+                                    tab.ids()))
+
     def test_add_metadata_two_entries(self):
         """ add_metadata functions with more than one md entry """
         obs_ids = [1, 2, 3]

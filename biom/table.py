@@ -678,25 +678,22 @@ class Table(object):
         else:
             raise UnknownAxisError("%s is not recognized" % axis)
 
-        if keys is None and axis == 'whole':
-            self._sample_metadata = None
-            self._observation_metadata = None
+        if keys is None:
+            if axis == 'whole':
+                self._sample_metadata = None
+                self._observation_metadata = None
+            elif axis == 'sample':
+                self._sample_metadata = None
+            else:
+                self._observation_metadata = None
             return
 
         for ax in axes:
             if self.metadata(axis=ax) is None:
                 continue
 
-            if keys is None:
-                keys_to_drop = set()
-                for md in self.metadata(axis=ax):
-                    keys_to_drop.update(set(md))
-                keys_to_drop = list(keys_to_drop)
-            else:
-                keys_to_drop = keys[:]
-
             for i, md in zip(self.ids(axis=ax), self.metadata(axis=ax)):
-                for k in keys_to_drop:
+                for k in keys:
                     if k in md:
                         del md[k]
 
