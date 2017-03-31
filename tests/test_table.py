@@ -1427,12 +1427,17 @@ class TableTests(TestCase):
                     observation_metadata=[{}, {'bar': 2}])
         self.assertEqual(tab, exp)
 
-    def test_del_metadata_keys_none(self):
+    def test_del_metadata_keys_none_sample(self):
         tab = example_table.copy()
         tab.del_metadata(axis='sample')
         self.assertEqual(tab.metadata(), None)
+
+    def test_del_metadata_keys_none_observation(self):
+        tab = example_table.copy()
         tab.del_metadata(axis='observation')
         self.assertEqual(tab.metadata(axis='observation'), None)
+
+    def test_del_metadata_keys_none_whole(self):
         tab = example_table.copy()
         tab.del_metadata(axis='whole')
         self.assertEqual(tab.metadata(), None)
