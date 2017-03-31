@@ -1393,6 +1393,14 @@ class TableTests(TestCase):
         with self.assertRaises(UnknownAxisError):
             tab.del_metadata(axis='foo')
 
+    def test_del_metadata_defaults(self):
+        tab = example_table.copy()
+        tab.del_metadata()
+        exp = Table(example_table.matrix_data,
+                    example_table.ids(axis='observation'),
+                    example_table.ids())
+        self.assertEqual(tab, exp)
+
     def test_del_metadata_idempotent(self):
         ex = example_table.copy()
         ex.del_metadata()
