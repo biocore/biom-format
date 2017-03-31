@@ -668,8 +668,8 @@ class Table(object):
         >>> tab.del_metadata(keys=['env'])
         >>> for id, md in zip(tab.ids(), tab.metadata()):
         ...     print(id, list(md.items()))
-        S1 [('barcode', 'ATGC')]
-        S2 [('barcode', 'GGTT')]
+        (S1, [('barcode', 'ATGC')])
+        (S2, [('barcode', 'GGTT')])
         """
         if axis == 'whole':
             axes = ['sample', 'observation']
