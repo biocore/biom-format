@@ -21,8 +21,10 @@ import numpy.testing as npt
 import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 import scipy.sparse
+import pandas.util.testing as pdt
+import pandas as pd
 
-from biom import example_table
+from biom import example_table, load_table
 from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
                             DisjointIDError)
 from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
@@ -845,22 +847,29 @@ class TableTests(TestCase):
             h5.close()
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
-    def test_to_hdf5_error(self):
-        """Errors if a controlled category is not correctly formatted"""
+    def test_to_hdf5_malformed_taxonomy(self):
+        t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
+                  [{'taxonomy': 'foo; bar'},
+                   {'taxonomy': 'foo; baz'}])
+
+        with NamedTemporaryFile() as tmpfile:
+            with h5py.File(tmpfile.name, 'w') as h5:
+                t.to_hdf5(h5, 'tests')
+            obs = load_table(tmpfile.name)
+        self.assertEqual(obs.metadata(axis='observation'),
+                         ({'taxonomy': ['foo', 'bar']},
+                          {'taxonomy': ['foo', 'baz']}))
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_to_hdf5_general_fallback_to_list(self):
+        st_rich = Table(self.vals,
+                        ['1', '2'], ['a', 'b'],
+                        [{'foo': ['k__a', 'p__b']},
+                         {'foo': ['k__a', 'p__c']}],
+                        [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
         with NamedTemporaryFile() as tmpfile:
             h5 = h5py.File(tmpfile.name, 'w')
-            t = Table(
-                np.array([[5, 6, 7], [8, 9, 10], [11, 12, 13]]),
-                ['1', '2', '3'], ['a', 'b', 'c'],
-                [{'taxonomy': 'k__a; p__b'},
-                 {'taxonomy': 'k__a; p__c'},
-                 {'taxonomy': 'k__a; p__c'}],
-                [{'barcode': 'aatt'},
-                 {'barcode': 'ttgg'},
-                 {'barcode': 'aatt'}])
-            with self.assertRaises(TypeError):
-                t.to_hdf5(h5, 'tests')
-            h5.close()
+            st_rich.to_hdf5(h5, 'tests')
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_custom_formatters(self):
@@ -1297,6 +1306,157 @@ class TableTests(TestCase):
             t.group_metadata(),
             {'graph': ('edge_list', '(4,5), (4,6), (5,7), (6,7)'),
              'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')})
+
+    def test_to_dataframe(self):
+        exp = pd.SparseDataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
+                                 index=['O1', 'O2'],
+                                 columns=['S1', 'S2', 'S3'])
+        obs = example_table.to_dataframe()
+        pdt.assert_frame_equal(obs, exp)
+
+    def test_metadata_to_dataframe(self):
+        exp_samp = pd.DataFrame(['A', 'B', 'A'], index=['S1', 'S2', 'S3'],
+                                columns=['environment'])
+        exp_obs = pd.DataFrame([['Bacteria', 'Firmicutes'],
+                                ['Bacteria', 'Bacteroidetes']],
+                               index=['O1', 'O2'],
+                               columns=['taxonomy_0', 'taxonomy_1'])
+        obs_samp = example_table.metadata_to_dataframe(axis='sample')
+        obs_obs = example_table.metadata_to_dataframe(axis='observation')
+        pdt.assert_frame_equal(obs_samp, exp_samp)
+        pdt.assert_frame_equal(obs_obs, exp_obs)
+
+    def test_metadata_to_dataframe_uneven_list_metadata(self):
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    [{'taxonomy': ['k__foo', 'p__bar']},
+                     {'taxonomy': ['k__foo']}])
+        exp_obs = pd.DataFrame([['k__foo', 'p__bar'],
+                                ['k__foo', None]],
+                               index=['a', 'b'],
+                               columns=['taxonomy_0', 'taxonomy_1'])
+        obs_obs = tab.metadata_to_dataframe(axis='observation')
+        pdt.assert_frame_equal(obs_obs, exp_obs)
+
+    def test_metadata_to_dataframe_badaxis(self):
+        with self.assertRaises(UnknownAxisError):
+            example_table.metadata_to_dataframe(axis='foo')
+
+    def test_metadata_to_dataframe_nomd(self):
+        tab = Table(np.array([[1,2], [3,4]]), ['a', 'b'], ['c', 'd'],
+                    [{'foo': 1}, {'foo': 2}])
+        with self.assertRaises(KeyError):
+            tab.metadata_to_dataframe('sample')
+
+    def test_del_metadata_full(self):
+        obs_ids = [1, 2, 3]
+        obs_md = [{'taxonomy': ['A', 'B'], 'other': 'h1'},
+                  {'taxonomy': ['B', 'C'], 'other': 'h2'},
+                  {'taxonomy': ['E', 'D', 'F'], 'other': 'h3'}]
+        samp_ids = [4, 5, 6, 7]
+        samp_md = [{'foo': 1}, {'foo': 2}, {'foo': 3}, {'foo': 4}]
+        d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+        t = Table(d, obs_ids, samp_ids, observation_metadata=obs_md,
+                  sample_metadata=samp_md)
+        exp = Table(d, obs_ids, samp_ids)
+        t.del_metadata(axis='whole')
+        self.assertEqual(t, exp)
+
+    def test_del_metadata_partial(self):
+        obs_ids = [1, 2, 3]
+        obs_md = [{'taxonomy': ['A', 'B'], 'other': 'h1'},
+                  {'taxonomy': ['B', 'C'], 'other': 'h2'},
+                  {'taxonomy': ['E', 'D', 'F'], 'other': 'h3'}]
+        samp_ids = [4, 5, 6, 7]
+        samp_md = [{'d': 0}, {'e': 0}, {'f': 0}, {'g': 0}]
+        d = np.array([[1, 2, 3, 4], [5, 6, 7, 8], [9, 10, 11, 12]])
+        t = Table(d, obs_ids, samp_ids, observation_metadata=obs_md,
+                  sample_metadata=samp_md)
+
+        exp_md = [md.copy() for md in obs_md]
+        del exp_md[0]['taxonomy']
+        del exp_md[1]['taxonomy']
+        del exp_md[2]['taxonomy']
+
+        exp = Table(d, obs_ids, samp_ids, observation_metadata=exp_md,
+                    sample_metadata=samp_md)
+        t.del_metadata(keys=['taxonomy'], axis='observation')
+        self.assertEqual(t, exp)
+
+    def test_del_metadata_nomd(self):
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'])
+        exp = tab.copy()
+        tab.del_metadata(axis='whole')
+        self.assertEqual(tab, exp)
+
+    def test_del_metadata_badaxis(self):
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'])
+        with self.assertRaises(UnknownAxisError):
+            tab.del_metadata(axis='foo')
+
+    def test_del_metadata_defaults(self):
+        tab = example_table.copy()
+        tab.del_metadata()
+        exp = Table(example_table.matrix_data,
+                    example_table.ids(axis='observation'),
+                    example_table.ids())
+        self.assertEqual(tab, exp)
+
+    def test_del_metadata_idempotent(self):
+        ex = example_table.copy()
+        ex.del_metadata()
+        ex_no_md = ex.copy()
+        ex.del_metadata()
+        self.assertEqual(ex, ex_no_md)
+
+    def test_del_metadata_empty_list(self):
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    observation_metadata=[{'foo': 1, 'bar': 2, 'baz': 3},
+                                          {'foo': 4, 'bar': 5, 'baz': 6}])
+        exp = tab.copy()
+        tab.del_metadata(keys=[])
+        self.assertEqual(tab, exp)
+
+    def test_del_metadata_multiple_keys(self):
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    observation_metadata=[{'foo': 1, 'bar': 2, 'baz': 3},
+                                          {'foo': 4, 'bar': 5, 'baz': 6}])
+        exp = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    observation_metadata=[{'baz': 3},
+                                          {'baz': 6}])
+        tab.del_metadata(keys=['foo', 'bar'])
+        self.assertEqual(tab, exp)
+
+    def test_del_metadata_jagged(self):
+        # this situation should never happen but technically can
+        tab = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    observation_metadata=[{'foo': 1}, {'bar': 2}])
+        tab.del_metadata(axis='observation', keys=['foo'])
+        exp = Table(np.array([[1,2],[3,4]]), ['a', 'b'], ['c', 'd'],
+                    observation_metadata=[{}, {'bar': 2}])
+        self.assertEqual(tab, exp)
+
+    def test_del_metadata_keys_none_sample(self):
+        tab = example_table.copy()
+        tab.del_metadata(axis='sample')
+        self.assertEqual(tab.metadata(), None)
+
+    def test_del_metadata_keys_none_observation(self):
+        tab = example_table.copy()
+        tab.del_metadata(axis='observation')
+        self.assertEqual(tab.metadata(axis='observation'), None)
+
+    def test_del_metadata_keys_none_whole(self):
+        tab = example_table.copy()
+        tab.del_metadata(axis='whole')
+        self.assertEqual(tab.metadata(), None)
+        self.assertEqual(tab.metadata(axis='observation'), None)
+
+    def test_all_keys_dropped(self):
+        tab = example_table.copy()
+        tab.del_metadata(keys=['taxonomy', 'environment'], axis='whole')
+        self.assertEqual(tab, Table(tab.matrix_data,
+                                    tab.ids(axis='observation'),
+                                    tab.ids()))
 
     def test_add_metadata_two_entries(self):
         """ add_metadata functions with more than one md entry """

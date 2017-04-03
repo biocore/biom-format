@@ -82,10 +82,10 @@ class TableValidator(object):
                 kwargs['format_version'] = '1.0.0'
             else:
                 kwargs['format_version'] = '2.1'
-        else:
-            if is_json:
+        elif is_json:
+            if kwargs['format_version'] != "1.0.0":
                 raise ValueError("Only format 1.0.0 is valid for JSON")
-
+        else:
             fmt_ver = [int(v) for v in kwargs['format_version'].split('.')]
             if tuple(fmt_ver) not in self.HDF5FormatVersions:
                 raise ValueError("Unrecognized format version: %s" %

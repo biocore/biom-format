@@ -302,6 +302,19 @@ class UtilTests(TestCase):
         self.assertTrue(is_hdf5_file(get_data_path('test.biom')))
         self.assertFalse(is_hdf5_file(get_data_path('test.json')))
 
+    def test_load_classic(self):
+        tab = load_table(get_data_path('test.json'))
+        with NamedTemporaryFile(mode='w') as fp:
+            fp.write(str(tab))
+            fp.flush()
+
+            obs = load_table(fp.name)
+
+        npt.assert_equal(obs.ids(), tab.ids())
+        npt.assert_equal(obs.ids(axis='observation'),
+                         tab.ids(axis='observation'))
+        npt.assert_equal(obs.matrix_data.toarray(), tab.matrix_data.toarray())
+
 
 biom_otu_table1_w_tax = """{
      "id":null,

@@ -186,6 +186,7 @@ from collections import defaultdict, Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
                           vstack, hstack)
+import pandas as pd
 
 import six
 from future.utils import string_types
@@ -272,9 +273,11 @@ def general_formatter(grp, header, md, compression):
                            dtype=H5PY_VLEN_STR,
                            data=[m[header].encode('utf8') for m in md],
                            compression=compression)
+    elif isinstance(test_val, (list, tuple)):
+        vlen_list_of_str_formatter(grp, header, md, compression)
     else:
         grp.create_dataset(
-            'metadata/%s' % header, shape=(len(md),),
+            name, shape=(len(md),),
             data=[m[header] for m in md],
             compression=compression)
 
@@ -297,11 +300,36 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
             lengths.append(len(m[header]))
 
     if not np.all(iterable_checks):
-        raise TypeError(
-            "Category %s not formatted correctly. Did you pass"
-            " --process-obs-metadata taxonomy when converting "
-            " from tsv? Please see Table.to_hdf5 docstring for"
-            " more information")
+        if header == 'taxonomy':
+            # attempt to handle the general case issue where the taxonomy
+            # was not split on semicolons and represented as a flat string
+            # instead of a list
+            def split_and_strip(i):
+                parts = i.split(';')
+                return [p.strip() for p in parts]
+            try:
+                new_md = []
+                lengths = []
+                for m in md:
+                    parts = split_and_strip(m[header])
+                    new_md.append({header: parts})
+                    lengths.append(len(parts))
+                md = new_md
+            except:
+                raise TypeError("Category '%s' is not formatted properly. The "
+                                "most common issue is when 'taxonomy' is "
+                                "represented as a flat string instead of a "
+                                "list. An attempt was made to split this "
+                                "field on a ';' to coerce it into a list but "
+                                "it failed. An example entry (which is not "
+                                "assured to be the problematic entry) is "
+                                "below:\n%s" % (header, md[0][header]))
+        else:
+            raise TypeError(
+                "Category %s not formatted correctly. Did you pass"
+                " --process-obs-metadata taxonomy when converting "
+                " from tsv? Please see Table.to_hdf5 docstring for"
+                " more information" % header)
 
     max_list_len = max(lengths)
     shape = (len(md), max_list_len)
@@ -610,6 +638,73 @@ class Table(object):
                 self._observation_group_metadata = group_md
         else:
             raise UnknownAxisError(axis)
+
+    def del_metadata(self, keys=None, axis='whole'):
+        """Remove metadata from an axis
+
+        Parameters
+        ----------
+        keys : list of str, optional
+            The keys to remove from metadata. If None, all keys from the axis
+            are removed.
+        axis : {'sample', 'observation', 'whole'}, optional
+            The axis to operate on. If 'whole', the operation is applied to
+            both the sample and observation axes.
+
+        Raises
+        ------
+        UnknownAxisError
+            If the requested axis does not exist.
+
+        Examples
+        --------
+        >>> from biom import Table
+        >>> import numpy as np
+        >>> tab = Table(np.array([[1, 2], [3, 4]]),
+        ...             ['O1', 'O2'],
+        ...             ['S1', 'S2'],
+        ...             sample_metadata=[{'barcode': 'ATGC', 'env': 'A'},
+        ...                              {'barcode': 'GGTT', 'env': 'B'}])
+        >>> tab.del_metadata(keys=['env'])
+        >>> for id, md in zip(tab.ids(), tab.metadata()):
+        ...     print(id, list(md.items()))
+        ('S1', [('barcode', 'ATGC')])
+        ('S2', [('barcode', 'GGTT')])
+        """
+        if axis == 'whole':
+            axes = ['sample', 'observation']
+        elif axis in ('sample', 'observation'):
+            axes = [axis]
+        else:
+            raise UnknownAxisError("%s is not recognized" % axis)
+
+        if keys is None:
+            if axis == 'whole':
+                self._sample_metadata = None
+                self._observation_metadata = None
+            elif axis == 'sample':
+                self._sample_metadata = None
+            else:
+                self._observation_metadata = None
+            return
+
+        for ax in axes:
+            if self.metadata(axis=ax) is None:
+                continue
+
+            for i, md in zip(self.ids(axis=ax), self.metadata(axis=ax)):
+                for k in keys:
+                    if k in md:
+                        del md[k]
+
+            # for consistency with init on absence of metadata
+            empties = {True if not md else False
+                       for md in self.metadata(axis=ax)}
+            if empties == {True, }:
+                if ax == 'sample':
+                    self._sample_metadata = None
+                else:
+                    self._observation_metadata = None
 
     def add_metadata(self, md, axis='sample'):
         """Take a dict of metadata and add it to an axis.
@@ -3712,6 +3807,105 @@ html
             t.filter(any_value, axis=axis)
 
         return t
+
+    def to_dataframe(self):
+        """Convert matrix data to a Pandas SparseDataFrame
+
+        Notes
+        -----
+        Metadata are not included.
+
+        Returns
+        -------
+        pd.SparseDataFrame
+            A SparseDataFrame indexed on the observation IDs, with the column
+            names as the sample IDs.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> df = example_table.to_dataframe()
+        >>> df
+             S1   S2   S3
+        O1  0.0  1.0  2.0
+        O2  3.0  4.0  5.0
+        """
+        # avoid dense conversion
+        # http://stackoverflow.com/a/17819427
+        mat = [pd.SparseSeries(v.toarray().ravel()) for v in self.matrix_data]
+        df = pd.SparseDataFrame(mat, index=self.ids(axis='observation'),
+                                columns=self.ids())
+        return df
+
+    def metadata_to_dataframe(self, axis):
+        """Convert axis metadata to a Pandas DataFrame
+
+        Parameters
+        ----------
+        axis : {'sample', 'observation'}
+            The axis to operate on.
+
+        Notes
+        -----
+        Nested metadata (e.g., KEGG_Pathways) is not supported.
+
+        Metadata which are lists or tuples (e.g., taxonomy) are expanded such
+        that each index position is a unique column. For instance, the key
+        taxonomy will become "taxonomy_0", "taxonomy_1", etc where "taxonomy_0"
+        corresponds to the 0th index position of the taxonomy.
+
+        Raises
+        ------
+        UnknownAxisError
+            If the requested axis isn't recognized
+        KeyError
+            IF the requested axis does not have metadata
+        TypeError
+            If a metadata column is a list or tuple, but is jagged over the
+            axis.
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame indexed by the ids of the desired axis, columns by the
+            metadata keys over that axis.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> example_table.metadata_to_dataframe('observation')
+           taxonomy_0     taxonomy_1
+        O1   Bacteria     Firmicutes
+        O2   Bacteria  Bacteroidetes
+        """
+        md = self.metadata(axis=axis)
+        if md is None:
+            raise KeyError("%s does not have metadata" % axis)
+
+        test = md[0]
+        kv_test = sorted(list(test.items()))
+        columns = []
+        expand = {}
+        for key, value in kv_test:
+            if isinstance(value, (tuple, list)):
+                expand[key] = True
+                for idx in range(len(value)):
+                    columns.append("%s_%d" % (key, idx))
+            else:
+                expand[key] = False
+                columns.append(key)
+
+        rows = []
+        for m in md:
+            row = []
+            for key, value in sorted(m.items()):
+                if expand[key]:
+                    for v in value:
+                        row.append(v)
+                else:
+                    row.append(value)
+            rows.append(row)
+
+        return pd.DataFrame(rows, index=self.ids(axis=axis), columns=columns)
 
     def to_hdf5(self, h5grp, generated_by, compress=True, format_fs=None):
         """Store CSC and CSR in place
