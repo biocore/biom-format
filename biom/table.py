@@ -3845,6 +3845,12 @@ html
         axis : {'sample', 'observation'}
             The axis to operate on.
 
+        Returns
+        -------
+        pd.DataFrame
+            A DataFrame indexed by the ids of the desired axis, columns by the
+            metadata keys over that axis.
+
         Raises
         ------
         UnknownAxisError
@@ -3854,12 +3860,6 @@ html
         TypeError
             If a metadata column is a list or tuple, but is jagged over the
             axis.
-
-        Returns
-        -------
-        pd.DataFrame
-            A DataFrame indexed by the ids of the desired axis, columns by the
-            metadata keys over that axis.
 
         Notes
         -----
