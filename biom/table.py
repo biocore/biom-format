@@ -3811,15 +3811,15 @@ html
     def to_dataframe(self):
         """Convert matrix data to a Pandas SparseDataFrame
 
-        Notes
-        -----
-        Metadata are not included.
-
         Returns
         -------
         pd.SparseDataFrame
             A SparseDataFrame indexed on the observation IDs, with the column
             names as the sample IDs.
+
+        Notes
+        -----
+        Metadata are not included.
 
         Examples
         --------
@@ -3845,15 +3845,6 @@ html
         axis : {'sample', 'observation'}
             The axis to operate on.
 
-        Notes
-        -----
-        Nested metadata (e.g., KEGG_Pathways) is not supported.
-
-        Metadata which are lists or tuples (e.g., taxonomy) are expanded such
-        that each index position is a unique column. For instance, the key
-        taxonomy will become "taxonomy_0", "taxonomy_1", etc where "taxonomy_0"
-        corresponds to the 0th index position of the taxonomy.
-
         Raises
         ------
         UnknownAxisError
@@ -3863,11 +3854,21 @@ html
         TypeError
             If a metadata column is a list or tuple, but is jagged over the
             axis.
+
         Returns
         -------
         pd.DataFrame
             A DataFrame indexed by the ids of the desired axis, columns by the
             metadata keys over that axis.
+
+        Notes
+        -----
+        Nested metadata (e.g., KEGG_Pathways) is not supported.
+
+        Metadata which are lists or tuples (e.g., taxonomy) are expanded such
+        that each index position is a unique column. For instance, the key
+        taxonomy will become "taxonomy_0", "taxonomy_1", etc where "taxonomy_0"
+        corresponds to the 0th index position of the taxonomy.
 
         Examples
         --------
