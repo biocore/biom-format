@@ -21,7 +21,7 @@ from biom import load_table
 def summarize_table(input_fp, observations):
     """Dump IDs in a table.
 
-    Dump out the IDs found within a table/
+    Dump out the IDs found within a table:
 
     Example usage:
 
