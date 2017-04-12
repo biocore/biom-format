@@ -68,6 +68,7 @@ assert regrouped == table
 pa = table.pa(inplace=False)
 assert pa.sum() == table.matrix_data.nnz
 
+
 class inc:
     def __init__(self):
         self.scaler = 0
@@ -76,6 +77,7 @@ class inc:
         new_v = v + self.scaler
         self.scaler += 1
         return new_v
+
 
 scaled = pa.transform(inc(), inplace=False, axis=axis)
 for idx, v in enumerate(scaled.iter_data(axis=axis, dense=False)):
