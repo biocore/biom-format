@@ -4068,7 +4068,7 @@ html
                 # is cleaner, as is the parse
                 grp.create_dataset('ids', shape=(len_ids,),
                                    dtype=H5PY_VLEN_STR,
-                                   data=[i.encode('utf8') for i in ids],
+                                   data=[str(i).encode('utf8') for i in ids],
                                    compression=compression)
             else:
                 # Empty H5PY_VLEN_STR datasets are not supported.
