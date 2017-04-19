@@ -23,7 +23,7 @@ table = biom.load_table(fp)
 # drop some samples, verify what gets dropped
 sample_sums = table.sum(axis=axis)
 idx = np.argsort(sample_sums)[:int(len(table.ids()) / 2)]
-dropped_ids = table.ids()[idx]
+dropped_ids = table.ids(axis=axis)[idx]
 obs_by_id = table.filter(lambda v, i, md: i not in set(dropped_ids),
                          axis=axis, inplace=False)
 assert set(obs_by_id.ids()).intersection(set(dropped_ids)) == set()
@@ -34,7 +34,7 @@ assert set(obs_by_id.ids()).intersection(set(dropped_ids)) == set()
 obs_without_top = table.filter(lambda v, i, md: v.sum() < sample_sums.max(),
                                inplace=False, axis=axis)
 exp = table.ids(axis=axis)[sample_sums != sample_sums.max()]
-assert set(obs_without_top.ids()) == set(exp)
+assert set(obs_without_top.ids(axis=axis)) == set(exp)
 
 # arbitrary partitioning and collapsing
 md = {i: {'partition': True if idx % 2 else False}
