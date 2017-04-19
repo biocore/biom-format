@@ -79,7 +79,7 @@ class inc:
 
 scaled = pa.transform(inc(), inplace=False, axis=axis)
 for idx, v in enumerate(scaled.iter_data(axis=axis, dense=False)):
-    assert set(v.data) == set(np.ones(1) + idx)
+    assert np.allclose(v.data, np.ones(1) + idx)
 
 # roundtrips
 _, filepath = tempfile.mkstemp()
