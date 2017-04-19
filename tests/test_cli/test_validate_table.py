@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright (c) 2011-2013, The BIOM Format Development Team.
+# Copyright (c) 2011-2017, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -9,7 +9,7 @@
 # -----------------------------------------------------------------------------
 
 __author__ = "Jai Ram Rideout"
-__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
+__copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Jai Ram Rideout", "Daniel McDonald",
                "Jorge Cañardo Alastuey"]
 __license__ = "BSD"

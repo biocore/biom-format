@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2011-2015, The BIOM Format Development Team.
+# Copyright (c) 2011-2017, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -31,11 +31,11 @@ for m in ('multiprocessing', 'logging'):
         pass
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
+__copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente",
                "Jai Ram Rideout", "Jorge Cañardo Alastuey", "Michael Hall"]
 __license__ = "BSD"
-__version__ = "2.1.5-dev"
+__version__ = "2.1.6"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 

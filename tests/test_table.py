@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2011-2013, The BIOM Format Development Team.
+# Copyright (c) 2011-2017, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -42,7 +42,7 @@ if HAVE_H5PY:
     import h5py
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
+__copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
                "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka",
                "Joshua Shorenstein", "Jose Antonio Navas Molina",
