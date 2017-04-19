@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from urllib import request
 import sys
 import biom
 import numpy as np
@@ -14,6 +13,7 @@ import tempfile
 import h5py
 
 if '://' in sys.argv[1]:
+    from urllib import request
     fp, _ = request.urlretrieve(sys.argv[1])
 else:
     fp = sys.argv[1]
@@ -53,10 +53,8 @@ for name, obs in zip(collapsed.ids(axis=axis), collapsed_sums):
 
 regrouped = parts[0][1].concat([parts[1][1]], axis=axis)
 regrouped = regrouped.sort_order(table.ids(axis=axis), axis=axis)
-
-# table type is not inherited on partition, see issue XXX
-# TODO: CREATE THE ISSUE
-regrouped.type = table.type
+invaxis = 'sample' if axis == 'observation' else 'observation'
+regrouped = regrouped.sort_order(table.ids(axis=invaxis), axis=invaxis)
 assert regrouped == table
 
 regrouped.del_metadata(keys=['partition'], axis=axis)
