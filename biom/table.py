@@ -3106,6 +3106,10 @@ class Table(object):
         DisjointIDError
             If IDs over the axis are not disjoint.
 
+        Notes
+        -----
+        The type of the table is inherited from self.
+
         Examples
         --------
         Concatenate three tables in which the sample IDs are disjoint. Note
@@ -3237,10 +3241,10 @@ class Table(object):
         inv_md = padded_tables[0].metadata(axis=invaxis)
         if axis == 'sample':
             concat = self.__class__(concat_mat, invaxis_order, concat_ids,
-                                    inv_md, concat_md)
+                                    inv_md, concat_md, type=self.type)
         else:
             concat = self.__class__(concat_mat, concat_ids, invaxis_order,
-                                    concat_md, inv_md)
+                                    concat_md, inv_md, type=self.type)
 
         return concat
 
