@@ -33,9 +33,9 @@ script:
   # validate JSON formatted tables
   - for table in examples/*table.biom; do echo ${table}; biom validate-table -i ${table}; done;
   - pushd biom/assets
-  - python exercise_api.py ../../examples/rich_sparse_otu_table_hdf5.biom sample
-  - python exercise_api.py ../../examples/rich_sparse_otu_table_hdf5.biom observation
-  - sh exercise_cli.sh
+  - if [ ${USE_H5PY} ]; then python exercise_api.py ../../examples/rich_sparse_otu_table_hdf5.biom sample; fi
+  - if [ ${USE_H5PY} ]; then python exercise_api.py ../../examples/rich_sparse_otu_table_hdf5.biom observation; fi
+  - if [ ${USE_H5PY} ]; then sh exercise_cli.sh; fi
   - popd
 after_success:
   - coveralls
