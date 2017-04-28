@@ -1,5 +1,5 @@
 # ----------------------------------------------------------------------------
-# Copyright (c) 2011-2015, The BIOM Format Development Team.
+# Copyright (c) 2011-2017, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #

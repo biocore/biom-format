@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
-# Copyright (c) 2011-2013, The BIOM Format Development Team.
+# Copyright (c) 2011-2017, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -27,7 +27,7 @@ from biom.util import (natsort, flatten, unzip, HAVE_H5PY,
 np.random.seed(1234)
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
+__copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Rob Knight", "Peter Maxwell", "Sandra Smit",
                "Zongzhi Liu", "Micah Hamady", "Daniel McDonald",
                "Jai Ram Rideout", "Jorge Cañardo Alastuey"]

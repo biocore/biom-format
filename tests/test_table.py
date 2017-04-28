@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # ----------------------------------------------------------------------------
-# Copyright (c) 2011-2013, The BIOM Format Development Team.
+# Copyright (c) 2011-2017, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -42,7 +42,7 @@ if HAVE_H5PY:
     import h5py
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2011-2013, The BIOM Format Development Team"
+__copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
                "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka",
                "Joshua Shorenstein", "Jose Antonio Navas Molina",
@@ -143,6 +143,22 @@ class SupportTests(TestCase):
         obs = example_table.copy()
         obs.remove_empty()
         exp = example_table.copy()
+        self.assertEqual(obs, exp)
+
+    def test_concat_table_type(self):
+        table1 = example_table.copy()
+        table1.type = 'foo'
+        table2 = example_table.copy()
+        table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
+
+        exp = Table(np.array([[0, 1, 2, 0, 1, 2],
+                              [3, 4, 5, 3, 4, 5]]),
+                    ['O1', 'O2'],
+                    ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
+                    example_table.metadata(axis='observation'),
+                    list(example_table.metadata()) * 2,
+                    type='foo')
+        obs = table1.concat([table2, ], axis='sample')
         self.assertEqual(obs, exp)
 
     def test_concat_empty(self):
