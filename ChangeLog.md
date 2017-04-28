@@ -16,7 +16,7 @@ New Features:
   either axis. See [issue #645](https://github.com/biocore/biom-format/issues/639).
 * Format of numbers in ``biom summarize-table`` output is now more readable and localized. See [issue #679](https://github.com/biocore/biom-format/issues/679).
 * `Table.concat` has been added to the API and allows for concatenating multiple tables in which the IDs of one of the axes are known to be disjoint. This has substantial performance benefits over `Table.merge`.
-* `Table.sort_order` was performing an implicit cast to dense, and not leveraging fancy indexing. A substantial performance gain was acheived. See [PR #720](https://github.com/biocore/biom-format/pull/720.
+* `Table.sort_order` was performing an implicit cast to dense, and not leveraging fancy indexing. A substantial performance gain was acheived. See [PR #720](https://github.com/biocore/biom-format/pull/720).
 * `biom subset-table` now accepts a QIIME-like mapping file when subsetting by IDs [Issue #587](https://github.com/biocore/biom-format/issues/587)
 * `Table.del_metadata` was added to support the removal of metadata entries from the table [Issue #708](https://github.com/biocore/biom-format/issues/708).
 * `Table.to_dataframe` was added to cast the internal matrix data to a Pandas `SparseDataFrame` [Issue #622](https://github.com/biocore/biom-format/issues/622).
