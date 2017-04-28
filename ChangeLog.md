@@ -1,10 +1,10 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.5-dev
---------------
+biom 2.1.6
+----------
 
-Changes since biom 2.1.5 go here.
+New features and bug fixes, released on 27 April 2017.
 
 New Features:
 
