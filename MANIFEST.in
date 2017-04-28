@@ -6,9 +6,12 @@ graft biom
 graft support_files
 graft examples
 graft doc
+graft licenses
 
 prune docs/_build
 
 global-exclude *.pyc
 global-exclude *.pyo
 global-exclude .git
+global-exclude *.so
+global-exclude .*.swp
