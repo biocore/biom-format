@@ -353,21 +353,21 @@ class Table(object):
 
     Give in to the power of the Table!
 
-    Creates a table object in support of the BIOM file format. BIOM version
-    1.0 is based on JSON to provide the overall structure for the format
-    while versions 2.0 and 2.1 are based on HDF5. For more information see [1]_
+    Creates an in-memory representation of a BIOM file. BIOM version 1.0 is
+    based on JSON to provide the overall structure for the format while 
+    versions 2.0 and 2.1 are based on HDF5. For more information see [1]_
     and [2]_
 
     Paramaters
     ----------
-    data : array_like,
-        An (N,M)sample by observation matrix represented as one of these
+    data : array_like
+        An (N,M) sample by observation matrix represented as one of these
         types:
             An 1-dimensional array of values
             An n-dimensional array of values
             An empty list
             A list of numpy arrays
-            A list of dictionaries
+            A list of dict
             A list of sparse matrices
             A dictionary of values
             A list of lists
@@ -377,14 +377,14 @@ class Table(object):
         of IDs
     sample_ids : array_like of str
         A (M,) dataset of the sample IDs, where M is the total number of IDs
-    observation_metadata : list of dicts
+    observation_metadata : list of dicts, optional
         per observation dictionary of annotations where every key represents a
         metadata field that contains specific metadata information,
         ie taxonomy, KEGG pathway, etc
-    sample_metadata : array_like of dicts
+    sample_metadata : array_like of dicts, optional
         per sample dictionary of annotations where every key represents a
         metadata field that contains sample specific metadata information, ie
-    table_id : str or None, Optional
+    table_id : str, optional
         A field that can be used to identify the table
     type : {None, "OTU table", "Pathway table", "Function table",
             "Ortholog table", "Gene table", "Metabolite table", "Taxon table"}
@@ -393,24 +393,24 @@ class Table(object):
         Date that this table was built
     generated_by : str, optional
         Individual who built the table
-    observation_group_metadata : list
+    observation_group_metadata : list, optional
         group that contains observation specific group metadata information
         (e.g., phylogenetic tree)
-    sample_group_metadata : list
+    sample_group_metadata : list, optional
         group that contains sample specific group metadata information
         (e.g., relationships between samples)
 
     Attributes
     ----------
-    data
-    observation_ids
-    sample_ids
-    observation_metadata
-    sample_metadata
-    table_id
+    shape
+    dtype
+    nnz
+    matrix_data
     type
-    observation_group_metadata
-    sample_group_metadata
+    table_id
+    create_date
+    generated_by
+    format_version
 
     Raises
     ------
