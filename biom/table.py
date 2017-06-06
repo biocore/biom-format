@@ -354,7 +354,7 @@ class Table(object):
     Give in to the power of the Table!
 
     Creates an in-memory representation of a BIOM file. BIOM version 1.0 is
-    based on JSON to provide the overall structure for the format while 
+    based on JSON to provide the overall structure for the format while
     versions 2.0 and 2.1 are based on HDF5. For more information see [1]_
     and [2]_
 
