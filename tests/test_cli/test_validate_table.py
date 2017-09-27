@@ -22,6 +22,7 @@ import json
 from unittest import TestCase, main
 from shutil import copy
 
+import numpy as np
 import numpy.testing as npt
 
 from biom.cli.table_validator import TableValidator
@@ -161,6 +162,19 @@ class TableValidatorTests(TestCase):
         table['format_url'] = 'foo'
         obs = self.cmd._valid_format_url(table)
         self.assertTrue(len(obs) > 0)
+
+    def test_is_int(self):
+        self.assertTrue(self.cmd._is_int(3))
+
+        self.assertFalse(self.cmd._is_int(3.5))
+
+        # checking with numpy dtypes
+        self.assertFalse(self.cmd._is_int(np.float64(3)))
+        self.assertFalse(self.cmd._is_int(np.float32(3)))
+
+        self.assertTrue(self.cmd._is_int(np.int64(3)))
+        self.assertTrue(self.cmd._is_int(np.int32(3)))
+        self.assertTrue(self.cmd._is_int(np.int16(3)))
 
     def test_valid_format(self):
         """Should match format string"""
