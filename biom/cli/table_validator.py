@@ -343,8 +343,8 @@ class TableValidator(object):
             return key
 
     def _is_int(self, x):
-        """Return True if x is an int"""
-        return isinstance(x, (int, np.int64))
+        """Return True if x is an int or numpy int"""
+        return np.issubdtype(type(x), np.integer)
 
     def _valid_nnz(self, table):
         """Check if nnz seems correct"""
