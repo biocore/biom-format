@@ -2628,6 +2628,18 @@ class SparseTableTests(TestCase):
         self.assertEqual(actual_o1, {(3, 1), (1, 2), (3, 2)})
         self.assertEqual(actual_o2, {(0, 3), (3, 4), (0, 4)}),
 
+    def test_subsample_by_id_observations_bug(self):
+        table = Table(np.array([[3, 1, 2], [0, 3, 4]]).T, ['O1', 'O2', 'O3'],
+                      ['S1', 'S2'])
+        actual_o1 = set()
+        actual_o2 = set()
+        for i in range(100):
+            obs = table.subsample(2, axis='observation', by_id=True)
+            actual_o1.add(tuple(obs.data('S1', 'sample')))
+            actual_o2.add(tuple(obs.data('S2', 'sample')))
+        self.assertEqual(actual_o1, {(3, 1), (1, 2), (3, 2)})
+        self.assertEqual(actual_o2, {(0, 3), (3, 4), (0, 4)}),
+
     def test_filter_using_list_of_ids(self):
         ids = ['S1', 'S4']
         obs = self.sparse_table.filter(ids, inplace=False)

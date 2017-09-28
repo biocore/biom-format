@@ -2757,7 +2757,7 @@ class Table(object):
             ids = table.ids(axis=axis).copy()
             np.random.shuffle(ids)
             subset = set(ids[:n])
-            table.filter(lambda v, i, md: i in subset)
+            table.filter(lambda v, i, md: i in subset, axis=axis)
         else:
             data = table._get_sparse_data()
             _subsample(data, n)
