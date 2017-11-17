@@ -7,6 +7,7 @@ graft support_files
 graft examples
 graft doc
 graft licenses
+graft tests/test_data
 
 prune docs/_build
 
