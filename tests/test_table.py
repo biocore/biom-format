@@ -863,6 +863,61 @@ class TableTests(TestCase):
             h5.close()
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_to_hdf5_missing_metadata_observation(self):
+        # exercises a vlen_list
+        t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
+                  [{'taxonomy': None},
+                   {'taxonomy': ['foo', 'baz']}])
+
+        with NamedTemporaryFile() as tmpfile:
+            with h5py.File(tmpfile.name, 'w') as h5:
+                t.to_hdf5(h5, 'tests')
+            obs = load_table(tmpfile.name)
+        self.assertEqual(obs.metadata(axis='observation'),
+                         ({'taxonomy': None},
+                          {'taxonomy': ['foo', 'baz']}))
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_to_hdf5_missing_metadata_sample(self):
+        # exercises general formatter
+        t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'], None,
+                  [{'dat': None},
+                   {'dat': 'foo'}])
+
+        with NamedTemporaryFile() as tmpfile:
+            with h5py.File(tmpfile.name, 'w') as h5:
+                t.to_hdf5(h5, 'tests')
+            obs = load_table(tmpfile.name)
+        self.assertEqual(obs.metadata(axis='sample'),
+                         ({'dat': ''},
+                          {'dat': 'foo'}))
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_to_hdf5_inconsistent_metadata_categories_observation(self):
+        t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
+                  [{'taxonomy_A': 'foo; bar'},
+                   {'taxonomy_B': 'foo; baz'}])
+
+        with NamedTemporaryFile() as tmpfile:
+            with h5py.File(tmpfile.name, 'w') as h5:
+                with self.assertRaisesRegex(ValueError,
+                                            'inconsistent metadata'):
+                    t.to_hdf5(h5, 'tests')
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_to_hdf5_inconsistent_metadata_categories_sample(self):
+        t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
+                  None,
+                  [{'dat_A': 'foo; bar'},
+                   {'dat_B': 'foo; baz'}])
+
+        with NamedTemporaryFile() as tmpfile:
+            with h5py.File(tmpfile.name, 'w') as h5:
+                with self.assertRaisesRegex(ValueError,
+                                            'inconsistent metadata'):
+                    t.to_hdf5(h5, 'tests')
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_malformed_taxonomy(self):
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
                   [{'taxonomy': 'foo; bar'},
