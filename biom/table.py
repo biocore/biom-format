@@ -4156,7 +4156,6 @@ html
         formatter.update(format_fs)
 
         for axis, order in zip(['observation', 'sample'], ['csr', 'csc']):
-        #def axis_dump(grp, ids, md, group_md, order, compression=None):
             grp = h5grp.create_group(axis)
 
             self._data = self._data.asformat(order)
@@ -4225,11 +4224,6 @@ html
                 # Empty H5PY_VLEN_STR datasets are not supported.
                 grp.create_dataset('ids', shape=(0, ), data=[],
                                    compression=compression)
-
-        #axis_dump(h5grp.create_group('observation'),
-         #         self.ids(axis='observation'),
-          #        self.metadata(axis='observation'),
-           #       self.group_metadata(axis='observation'), 'csr', compression)
 
     @classmethod
     def from_json(self, json_table, data_pump=None,

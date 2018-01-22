@@ -8,7 +8,7 @@ Changes since 2.1.6 go here.
 
 New Features:
 
-* Added additional sanity checks when calling `Table.to_hdf5`, see [PR #foo](...).
+* Added additional sanity checks when calling `Table.to_hdf5`, see [PR #769](https://github.com/biocore/biom-format/pull/769).
 
 Bug fixes:
 
