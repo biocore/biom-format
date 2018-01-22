@@ -900,9 +900,13 @@ class TableTests(TestCase):
 
         with NamedTemporaryFile() as tmpfile:
             with h5py.File(tmpfile.name, 'w') as h5:
-                with self.assertRaisesRegex(ValueError,
-                                            'inconsistent metadata'):
-                    t.to_hdf5(h5, 'tests')
+                if six.PY3:
+                    with self.assertRaisesRegex(ValueError,
+                                                'inconsistent metadata'):
+                        t.to_hdf5(h5, 'tests')
+                else:
+                    with self.assertRaises(ValueError):
+                        t.to_hdf5(h5, 'tests')
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_inconsistent_metadata_categories_sample(self):
@@ -913,9 +917,13 @@ class TableTests(TestCase):
 
         with NamedTemporaryFile() as tmpfile:
             with h5py.File(tmpfile.name, 'w') as h5:
-                with self.assertRaisesRegex(ValueError,
-                                            'inconsistent metadata'):
-                    t.to_hdf5(h5, 'tests')
+                if six.PY3:
+                    with self.assertRaisesRegex(ValueError,
+                                                'inconsistent metadata'):
+                        t.to_hdf5(h5, 'tests')
+                else:
+                    with self.assertRaises(ValueError):
+                        t.to_hdf5(h5, 'tests')
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_malformed_taxonomy(self):

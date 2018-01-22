@@ -189,7 +189,7 @@ from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
 import pandas as pd
 
 import six
-from future.utils import string_types
+from future.utils import string_types as _future_string_types
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
 from biom.util import (get_biom_format_version_string,
@@ -200,6 +200,15 @@ from biom.err import errcheck
 from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
+
+
+if six.PY3:
+    string_types = list(_future_string_types)
+    string_types.append(str)
+    string_types.append(unicode)
+    string_types = tuple(string_types)
+else:
+    string_types = _future_string_types
 
 
 __author__ = "Daniel McDonald"
