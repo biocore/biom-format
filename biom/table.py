@@ -249,7 +249,7 @@ def _identify_bad_value(dtype, fields):
     for idx, v in enumerate(fields):
         try:
             dtype(v)
-        except:
+        except:  # noqa
             badval = v
             badidx = idx
             break
@@ -346,7 +346,7 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
                     new_md.append({header: parts})
                     lengths.append(len(parts))
                 md = new_md
-            except:
+            except:  # noqa
                 raise TypeError("Category '%s' is not formatted properly. The "
                                 "most common issue is when 'taxonomy' is "
                                 "represented as a flat string instead of a "
@@ -879,7 +879,7 @@ class Table(object):
 
         try:
             row, col = args
-        except:
+        except:  # noqa
             raise IndexError("Must specify (row, col).")
 
         if isinstance(row, slice) and isinstance(col, slice):
@@ -4367,7 +4367,7 @@ html
         # the matrix is.
         try:
             num_rows, num_cols = self.shape
-        except:
+        except:  # noqa
             num_rows = num_cols = 0
         has_data = True if num_rows > 0 and num_cols > 0 else False
 
