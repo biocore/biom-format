@@ -177,7 +177,7 @@ import numpy as np
 import scipy.stats
 from copy import deepcopy
 from datetime import datetime
-import dateutil.parser
+from dateutil import parser
 from json import dumps
 from functools import reduce
 from operator import itemgetter, add
@@ -4275,7 +4275,7 @@ html
                           shape=json_table['shape'],
                           dtype=dtype,
                           type=type_,
-                          create_date=dateutil.parser.parse(json_table['date']),
+                          create_date=parser.parse(json_table['date']),
                           generated_by=json_table['generated_by'],
                           input_is_dense=input_is_dense)
         return table_obj
