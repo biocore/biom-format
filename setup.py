@@ -87,7 +87,7 @@ if USE_CYTHON:
 
 install_requires = ["click", "numpy >= 1.3.0", "future >= 0.16.0",
                     "scipy >= 0.13.0", 'pandas >= 0.19.2',
-                    "six >= 1.10.0", 'dateutil']
+                    "six >= 1.10.0", 'python-dateutil']
 
 # HACK: for backward-compatibility with QIIME 1.9.x, pyqi must be installed.
 # pyqi is not used anymore in this project.
