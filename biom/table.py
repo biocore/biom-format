@@ -2700,7 +2700,7 @@ class Table(object):
         with_replacement : boolean, optional
             If `False` (default), subsample without replacement. If `True`,
             resample with replacement via the multinomial distribution.
-            If `True` and `by_id=True`, a ValueError is raised.
+            Should not be `True` if `by_id` is `True`.
 
         Returns
         -------
@@ -2710,7 +2710,8 @@ class Table(object):
         Raises
         ------
         ValueError
-            If `n` is less than zero.
+            - If `n` is less than zero.
+            - If `by_id` and `with_replacement` are both True.
 
         Notes
         -----
