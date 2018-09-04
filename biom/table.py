@@ -207,7 +207,7 @@ __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
                "Joshua Shorenstein", "Jose Antonio Navas Molina",
-               "Jorge Cañardo Alastuey"]
+               "Jorge Cañardo Alastuey", "Steven Brown"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -2700,7 +2700,7 @@ class Table(object):
         with_replacement : boolean, optional
             If `False` (default), subsample without replacement. If `True`,
             resample with replacement via the multinomial distribution.
-            Ignored when `by_id` is `True`.
+            If `True` and `by_id=True`, a ValueError is raised.
 
         Returns
         -------
@@ -2754,6 +2754,9 @@ class Table(object):
         """
         if n < 0:
             raise ValueError("n cannot be negative.")
+
+        if with_replacement and by_id:
+            raise ValueError("by_id and with_replacement cannot both be True")
 
         table = self.copy()
 

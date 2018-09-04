@@ -48,7 +48,10 @@ def _subsample(arr, n, with_replacement):
         length = end - start
         counts_sum = data[start:end].sum()
         
-        if not with_replacement:
+        if with_replacement:
+            pvals = data[start:end] / counts_sum
+            data[start:end] = np.random.multinomial(n, pvals)
+        else:
             if counts_sum < n:
                 data[start:end] = 0
                 continue
@@ -56,12 +59,9 @@ def _subsample(arr, n, with_replacement):
             r = np.arange(length, dtype=np.int32)
             unpacked = np.repeat(r, data_i[start:end])
             permuted = np.random.permutation(unpacked)[:n]
-           
+
             result = np.zeros(length, dtype=np.float64)
             for idx in range(permuted.shape[0]):
                 result[permuted[idx]] += 1
 
             data[start:end] = result
-        else:
-            pvals = data[start:end] / counts_sum
-            data[start:end] = np.random.multinomial(n, pvals)
