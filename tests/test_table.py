@@ -2719,7 +2719,7 @@ class SparseTableTests(TestCase):
         for i in range(1000):
             obs = dt.subsample(35)
             actual.add(tuple(obs.data('S1')))
-        self.assertTrue(len(actual) == 10)
+        self.assertEqual(len(actual), 10)
 
     def test_subsample_with_replacement_unique_results(self):
         """
@@ -2737,7 +2737,7 @@ class SparseTableTests(TestCase):
         for i in range(1000):
             obs = dt.subsample(35, with_replacement=True)
             actual.add(tuple(obs.data('S1')))
-        self.assertTrue(len(actual) > 10)
+        self.assertGreaterThan(len(actual), 10)
 
     def test_subsample_with_replacement_n(self):
         dt = Table(np.array([[0,1,2], [2,0,1], [1, 2, 0]]),
