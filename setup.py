@@ -85,7 +85,10 @@ if USE_CYTHON:
     from Cython.Build import cythonize
     extensions = cythonize(extensions)
 
-install_requires = ["click", "numpy >= 1.3.0", "future >= 0.16.0",
+# A justification for the numpy pinning can be found in scikit-bio 0.5.4
+# In brief, numpy 1.14.0 introduced whitespace changes that impact repr
+# on doctest
+install_requires = ["click", "numpy >= 1.9.2, < 1.14.0", "future >= 0.16.0",
                     "scipy >= 0.13.0", 'pandas >= 0.19.2',
                     "six >= 1.10.0"]
 
