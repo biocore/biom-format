@@ -2697,7 +2697,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(obs, exp)
 
     def test_subsample_byid_with_replacement(self):
-        dt = Table(np.array([0,1,2], [2,0,1], [1, 2, 0]),
+        dt = Table(np.array([[0,1,2], [2,0,1], [1, 2, 0]]),
                    ['O1', 'O2', 'O3'],
                    ['S1', 'S2', 'S3'])
         with self.assertRaises(ValueError):
