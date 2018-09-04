@@ -2683,7 +2683,7 @@ class Table(object):
 
         return max_val
 
-    def subsample(self, n, axis='sample', by_id=False):
+    def subsample(self, n, axis='sample', by_id=False, with_replacement=False):
         """Randomly subsample without replacement.
 
         Parameters
@@ -2697,6 +2697,10 @@ class Table(object):
             matrix (e.g., rarefaction). If `True`, the subsampling is based on
             the IDs (e.g., fetch a random subset of samples). Default is
             `False`.
+        with_replacement : boolean, optional
+            If `False` (default), subsample without replacement. If `True`,
+            resample with replacement via the multinomial distribution.
+            Ignored when `by_id` is `True`.
 
         Returns
         -------
@@ -2760,7 +2764,7 @@ class Table(object):
             table.filter(lambda v, i, md: i in subset, axis=axis)
         else:
             data = table._get_sparse_data()
-            _subsample(data, n)
+            _subsample(data, n, with_replacement)
             table._data = data
 
             table.filter(lambda v, i, md: v.sum() > 0, axis=axis)
