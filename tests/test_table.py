@@ -2712,7 +2712,7 @@ class SparseTableTests(TestCase):
         replacement, however, there should be more than 10 different
         possible subsamplings.
         """
-        a = np.array([2, 1, 2, 1, 8, 6, 3, 3, 5, 5]).T
+        a = np.array([[2, 1, 2, 1, 8, 6, 3, 3, 5, 5],]).T
         dt = Table(data=a, sample_ids=['S1',],
                    observation_ids=['OTU{:02d}'.format(i) for i in range(10)])
         actual = set()
@@ -2730,7 +2730,7 @@ class SparseTableTests(TestCase):
         replacement, however, there should be more than 10 different
         possible subsamplings.
         """
-        a = np.array([2, 1, 2, 1, 8, 6, 3, 3, 5, 5]).T
+        a = np.array([[2, 1, 2, 1, 8, 6, 3, 3, 5, 5],]).T
         dt = Table(data=a, sample_ids=['S1',],
                    observation_ids=['OTU{:02d}'.format(i) for i in range(10)])
         actual = set()
