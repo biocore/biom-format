@@ -189,7 +189,7 @@ from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
 import pandas as pd
 
 import six
-from future.utils import string_types
+from future.utils import string_types as _future_string_types
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
 from biom.util import (get_biom_format_version_string,
@@ -200,6 +200,15 @@ from biom.err import errcheck
 from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
+
+
+if not six.PY3:
+    string_types = list(_future_string_types)
+    string_types.append(str)
+    string_types.append(unicode)  # noqa
+    string_types = tuple(string_types)
+else:
+    string_types = _future_string_types
 
 
 __author__ = "Daniel McDonald"
@@ -240,7 +249,7 @@ def _identify_bad_value(dtype, fields):
     for idx, v in enumerate(fields):
         try:
             dtype(v)
-        except:
+        except:  # noqa
             badval = v
             badidx = idx
             break
@@ -265,20 +274,42 @@ def vlen_list_of_str_parser(value):
 
 def general_formatter(grp, header, md, compression):
     """Creates a dataset for a general atomic type category"""
-    test_val = md[0][header]
     shape = (len(md),)
     name = 'metadata/%s' % header
-    if isinstance(test_val, string_types):
+    dtypes = [type(m[header]) for m in md]
+
+    if set(dtypes).issubset(set(string_types)):
         grp.create_dataset(name, shape=shape,
                            dtype=H5PY_VLEN_STR,
                            data=[m[header].encode('utf8') for m in md],
                            compression=compression)
-    elif isinstance(test_val, (list, tuple)):
+    elif set(dtypes).issubset({list, tuple}):
         vlen_list_of_str_formatter(grp, header, md, compression)
     else:
+        formatted = []
+        dtypes_used = []
+        for dt, m in zip(dtypes, md):
+            val = m[header]
+            if val is None:
+                val = '\0'
+                dt = str
+
+            if dt in string_types:
+                val = val.encode('utf8')
+
+            formatted.append(val)
+            dtypes_used.append(dt)
+
+        if set(dtypes_used).issubset(set(string_types)):
+            dtype_to_use = H5PY_VLEN_STR
+        else:
+            dtype_to_use = None
+
+        # try our best...
         grp.create_dataset(
             name, shape=(len(md),),
-            data=[m[header] for m in md],
+            dtype=dtype_to_use,
+            data=formatted,
             compression=compression)
 
 
@@ -315,7 +346,7 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
                     new_md.append({header: parts})
                     lengths.append(len(parts))
                 md = new_md
-            except:
+            except:  # noqa
                 raise TypeError("Category '%s' is not formatted properly. The "
                                 "most common issue is when 'taxonomy' is "
                                 "represented as a flat string instead of a "
@@ -848,7 +879,7 @@ class Table(object):
 
         try:
             row, col = args
-        except:
+        except:  # noqa
             raise IndexError("Must specify (row, col).")
 
         if isinstance(row, slice) and isinstance(col, slice):
@@ -3664,7 +3695,7 @@ dataset of int32
         ValueError
             If `ids` are not a subset of the samples or observations ids
             present in the hdf5 biom table
-
+            If h5grp is not a HDF5 file or group
 
         References
         ----------
@@ -3698,6 +3729,11 @@ html
         if not HAVE_H5PY:
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
+
+        import h5py
+        if not isinstance(h5grp, (h5py.Group, h5py.File)):
+            raise ValueError("h5grp does not appear to be an HDF5 file or "
+                             "group")
 
         if axis not in ['sample', 'observation']:
             raise UnknownAxisError(axis)
@@ -4114,16 +4150,70 @@ html
         if format_fs is None:
             format_fs = {}
 
-        def axis_dump(grp, ids, md, group_md, order, compression=None):
-            """Store for an axis"""
+        h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
+        h5grp.attrs['type'] = self.type if self.type else ""
+        h5grp.attrs['format-url'] = "http://biom-format.org"
+        h5grp.attrs['format-version'] = self.format_version
+        h5grp.attrs['generated-by'] = generated_by
+        h5grp.attrs['creation-date'] = datetime.now().isoformat()
+        h5grp.attrs['shape'] = self.shape
+        h5grp.attrs['nnz'] = self.nnz
+
+        compression = None
+        if compress is True:
+            compression = 'gzip'
+
+        formatter = defaultdict(lambda: general_formatter)
+        formatter['taxonomy'] = vlen_list_of_str_formatter
+        formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
+        formatter['collapsed_ids'] = vlen_list_of_str_formatter
+        formatter.update(format_fs)
+
+        for axis, order in zip(['observation', 'sample'], ['csr', 'csc']):
+            grp = h5grp.create_group(axis)
+
             self._data = self._data.asformat(order)
 
+            ids = self.ids(axis=axis)
             len_ids = len(ids)
             len_indptr = len(self._data.indptr)
             len_data = self.nnz
 
-            grp.create_group('matrix')
+            md = self.metadata(axis=axis)
 
+            # Create the group for the metadata
+            grp.create_group('metadata')
+            if md is not None:
+                exp = set(md[0])
+                for other_id, other_md in zip(ids[1:], md[1:]):
+                    if set(other_md) != exp:
+                        raise ValueError("%s has inconsistent metadata "
+                                         "categories with %s:\n"
+                                         "%s: %s\n"
+                                         "%s: %s" % (other_id, ids[0],
+                                                     other_id, list(other_md),
+                                                     ids[0], list(exp)))
+
+                for category in md[0]:
+                    # Create the dataset for the current category,
+                    # putting values in id order
+                    formatter[category](grp, category, md, compression)
+
+            group_md = self.group_metadata(axis)
+
+            # Create the group for the group metadata
+            grp.create_group('group-metadata')
+
+            if group_md:
+                for key, value in group_md.items():
+                    datatype, val = value
+                    grp_dataset = grp.create_dataset(
+                        'group-metadata/%s' % key,
+                        shape=(1,), dtype=H5PY_VLEN_STR,
+                        data=val, compression=compression)
+                    grp_dataset.attrs['data_type'] = datatype
+
+            grp.create_group('matrix')
             grp.create_dataset('matrix/data', shape=(len_data,),
                                dtype=np.float64,
                                data=self._data.data,
@@ -4148,51 +4238,6 @@ html
                 # Empty H5PY_VLEN_STR datasets are not supported.
                 grp.create_dataset('ids', shape=(0, ), data=[],
                                    compression=compression)
-
-            # Create the group for the metadata
-            grp.create_group('metadata')
-
-            if md is not None:
-                formatter = defaultdict(lambda: general_formatter)
-                formatter['taxonomy'] = vlen_list_of_str_formatter
-                formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
-                formatter['collapsed_ids'] = vlen_list_of_str_formatter
-                formatter.update(format_fs)
-                # Loop through all the categories
-                for category in md[0]:
-                    # Create the dataset for the current category,
-                    # putting values in id order
-                    formatter[category](grp, category, md, compression)
-
-            # Create the group for the group metadata
-            grp.create_group('group-metadata')
-
-            if group_md:
-                for key, value in group_md.items():
-                    datatype, val = value
-                    grp_dataset = grp.create_dataset(
-                        'group-metadata/%s' % key,
-                        shape=(1,), dtype=H5PY_VLEN_STR,
-                        data=val, compression=compression)
-                    grp_dataset.attrs['data_type'] = datatype
-
-        h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
-        h5grp.attrs['type'] = self.type if self.type else ""
-        h5grp.attrs['format-url'] = "http://biom-format.org"
-        h5grp.attrs['format-version'] = self.format_version
-        h5grp.attrs['generated-by'] = generated_by
-        h5grp.attrs['creation-date'] = datetime.now().isoformat()
-        h5grp.attrs['shape'] = self.shape
-        h5grp.attrs['nnz'] = self.nnz
-        compression = None
-        if compress is True:
-            compression = 'gzip'
-        axis_dump(h5grp.create_group('observation'),
-                  self.ids(axis='observation'),
-                  self.metadata(axis='observation'),
-                  self.group_metadata(axis='observation'), 'csr', compression)
-        axis_dump(h5grp.create_group('sample'), self.ids(),
-                  self.metadata(), self.group_metadata(), 'csc', compression)
 
     @classmethod
     def from_json(self, json_table, data_pump=None,
@@ -4327,7 +4372,7 @@ html
         # the matrix is.
         try:
             num_rows, num_cols = self.shape
-        except:
+        except:  # noqa
             num_rows = num_cols = 0
         has_data = True if num_rows > 0 and num_cols > 0 else False
 

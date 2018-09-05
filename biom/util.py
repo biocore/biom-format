@@ -154,7 +154,7 @@ def flatten(items):
     for i in items:
         try:
             result.extend(i)
-        except:
+        except:  # noqa
             result.append(i)
     return result
 
