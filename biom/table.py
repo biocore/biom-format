@@ -3695,6 +3695,7 @@ dataset of int32
         ValueError
             If `ids` are not a subset of the samples or observations ids
             present in the hdf5 biom table
+            If h5grp is not a HDF5 file or group
 
         References
         ----------
@@ -3728,6 +3729,10 @@ html
         if not HAVE_H5PY:
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
+
+        if not isinstance(h5grp, (h5py.Group, h5py.File)):
+            raise ValueError("h5grp does not appear to be an HDF5 file or "
+                             "group")
 
         if axis not in ['sample', 'observation']:
             raise UnknownAxisError(axis)
