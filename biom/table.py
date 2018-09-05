@@ -846,7 +846,8 @@ class Table(object):
             raise IndexError("Cannot retrieve an element from an empty/null "
                              "table.")
 
-        if ((isinstance(args, tuple) or isinstance(args, list)) and len(args) == 2):
+        if ((isinstance(args, tuple) or isinstance(args, list)) and
+            len(args) == 2):
             row, col = args
         else:
             raise IndexError("Must specify (row, col).")
