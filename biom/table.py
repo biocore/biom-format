@@ -3696,7 +3696,6 @@ dataset of int32
             If `ids` are not a subset of the samples or observations ids
             present in the hdf5 biom table
 
-
         References
         ----------
         .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\

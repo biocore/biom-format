@@ -391,7 +391,9 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
 
     try:
         return Table.from_hdf5(fp, ids=ids, axis=axis)
-    except:
+    except ValueError:
+        pass
+    except RuntimeError:
         pass
     if hasattr(fp, 'read'):
         old_pos = fp.tell()
