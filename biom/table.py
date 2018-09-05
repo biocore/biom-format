@@ -3730,6 +3730,7 @@ html
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
 
+        import h5py
         if not isinstance(h5grp, (h5py.Group, h5py.File)):
             raise ValueError("h5grp does not appear to be an HDF5 file or "
                              "group")
