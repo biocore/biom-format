@@ -240,7 +240,7 @@ def _identify_bad_value(dtype, fields):
     for idx, v in enumerate(fields):
         try:
             dtype(v)
-        except:
+        except ValueError:
             badval = v
             badidx = idx
             break
@@ -315,7 +315,7 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
                     new_md.append({header: parts})
                     lengths.append(len(parts))
                 md = new_md
-            except:
+            except BaseException:
                 raise TypeError("Category '%s' is not formatted properly. The "
                                 "most common issue is when 'taxonomy' is "
                                 "represented as a flat string instead of a "
@@ -846,9 +846,10 @@ class Table(object):
             raise IndexError("Cannot retrieve an element from an empty/null "
                              "table.")
 
-        try:
+        if ((isinstance(args, tuple) or isinstance(args, list)) and
+                len(args) == 2):
             row, col = args
-        except:
+        else:
             raise IndexError("Must specify (row, col).")
 
         if isinstance(row, slice) and isinstance(col, slice):
@@ -4325,9 +4326,9 @@ html
 
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
-        try:
+        if len(self.shape) == 2:
             num_rows, num_cols = self.shape
-        except:
+        else:
             num_rows = num_cols = 0
         has_data = True if num_rows > 0 and num_cols > 0 else False
 
