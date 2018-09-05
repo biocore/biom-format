@@ -205,7 +205,7 @@ from ._subsample import _subsample
 if not six.PY3:
     string_types = list(_future_string_types)
     string_types.append(str)
-    string_types.append(unicode)
+    string_types.append(unicode)  # noqa
     string_types = tuple(string_types)
 else:
     string_types = _future_string_types
