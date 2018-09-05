@@ -847,7 +847,7 @@ class Table(object):
                              "table.")
 
         if ((isinstance(args, tuple) or isinstance(args, list)) and
-            len(args) == 2):
+                len(args) == 2):
             row, col = args
         else:
             raise IndexError("Must specify (row, col).")
