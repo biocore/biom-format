@@ -152,9 +152,9 @@ def flatten(items):
     """
     result = []
     for i in items:
-        try:
+        if isinstance(i, list) or isinstance(i, set) or isinstance(i, tuple):
             result.extend(i)
-        except:
+        else:
             result.append(i)
     return result
 

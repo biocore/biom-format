@@ -401,7 +401,7 @@ class TableValidator(object):
                 datetime.strptime(val, fmt)
                 valid_time = True
                 break
-            except:
+            except BaseException:
                 pass
 
         if valid_time:
@@ -435,9 +435,9 @@ class TableValidator(object):
         n_cols -= 1  # adjust for 0-based index
 
         for idx, coord in enumerate(table_json['data']):
-            try:
+            if len(coord) == 3:
                 x, y, val = coord
-            except:
+            else:
                 return "Bad matrix entry idx %d: %s" % (idx, repr(coord))
 
             if not self._is_int(x) or not self._is_int(y):
