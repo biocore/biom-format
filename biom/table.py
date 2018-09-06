@@ -216,7 +216,7 @@ __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
                "Joshua Shorenstein", "Jose Antonio Navas Molina",
-               "Jorge Cañardo Alastuey"]
+               "Jorge Cañardo Alastuey", "Steven Brown"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -2714,7 +2714,7 @@ class Table(object):
 
         return max_val
 
-    def subsample(self, n, axis='sample', by_id=False):
+    def subsample(self, n, axis='sample', by_id=False, with_replacement=False):
         """Randomly subsample without replacement.
 
         Parameters
@@ -2728,6 +2728,10 @@ class Table(object):
             matrix (e.g., rarefaction). If `True`, the subsampling is based on
             the IDs (e.g., fetch a random subset of samples). Default is
             `False`.
+        with_replacement : boolean, optional
+            If `False` (default), subsample without replacement. If `True`,
+            resample with replacement via the multinomial distribution.
+            Should not be `True` if `by_id` is `True`.
 
         Returns
         -------
@@ -2737,7 +2741,8 @@ class Table(object):
         Raises
         ------
         ValueError
-            If `n` is less than zero.
+            - If `n` is less than zero.
+            - If `by_id` and `with_replacement` are both True.
 
         Notes
         -----
@@ -2782,6 +2787,9 @@ class Table(object):
         if n < 0:
             raise ValueError("n cannot be negative.")
 
+        if with_replacement and by_id:
+            raise ValueError("by_id and with_replacement cannot both be True")
+
         table = self.copy()
 
         if by_id:
@@ -2791,7 +2799,7 @@ class Table(object):
             table.filter(lambda v, i, md: i in subset, axis=axis)
         else:
             data = table._get_sparse_data()
-            _subsample(data, n)
+            _subsample(data, n, with_replacement)
             table._data = data
 
             table.filter(lambda v, i, md: v.sum() > 0, axis=axis)

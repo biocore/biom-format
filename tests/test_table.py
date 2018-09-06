@@ -46,7 +46,7 @@ __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
                "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka",
                "Joshua Shorenstein", "Jose Antonio Navas Molina",
-               "Jorge Cañardo Alastuey"]
+               "Jorge Cañardo Alastuey", "Steven Brown"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -2763,6 +2763,58 @@ class SparseTableTests(TestCase):
         exp = table.copy()
         obs = table.subsample(5)
         self.assertEqual(obs, exp)
+
+    def test_subsample_byid_with_replacement(self):
+        dt = Table(np.array([[0,1,2], [2,0,1], [1, 2, 0]]),
+                   ['O1', 'O2', 'O3'],
+                   ['S1', 'S2', 'S3'])
+        with self.assertRaises(ValueError):
+            dt.subsample(20, by_id=True, with_replacement=True)
+
+    def test_subsample_without_replacement_unique_results(self):
+        """
+        As in scikit-bio. Given a vector of observations, the total number of
+        unique subsamplings when n == sum(vector) - 1 should be equal to the
+        number of unique categories of observations when the vector is
+        subsampled without replacement. If the vector is subsamples *with*
+        replacement, however, there should be more than 10 different
+        possible subsamplings.
+        """
+        a = np.array([[2, 1, 2, 1, 8, 6, 3, 3, 5, 5],]).T
+        dt = Table(data=a, sample_ids=['S1',],
+                   observation_ids=['OTU{:02d}'.format(i) for i in range(10)])
+        actual = set()
+        for i in range(1000):
+            obs = dt.subsample(35)
+            actual.add(tuple(obs.data('S1')))
+        self.assertEqual(len(actual), 10)
+
+    def test_subsample_with_replacement_unique_results(self):
+        """
+        As in scikit-bio. Given a vector of observations, the total number of
+        unique subsamplings when n == sum(vector) - 1 should be equal to the
+        number of unique categories of observations when the vector is
+        subsampled without replacement. If the vector is subsamples *with*
+        replacement, however, there should be more than 10 different
+        possible subsamplings.
+        """
+        a = np.array([[2, 1, 2, 1, 8, 6, 3, 3, 5, 5],]).T
+        dt = Table(data=a, sample_ids=['S1',],
+                   observation_ids=['OTU{:02d}'.format(i) for i in range(10)])
+        actual = set()
+        for i in range(1000):
+            obs = dt.subsample(35, with_replacement=True)
+            actual.add(tuple(obs.data('S1')))
+        self.assertGreater(len(actual), 10)
+
+    def test_subsample_with_replacement_n(self):
+        dt = Table(np.array([[0,1,2], [2,0,1], [1, 2, 0]]),
+                   ['O1', 'O2', 'O3'],
+                   ['S1', 'S2', 'S3'])
+        new_dt = dt.subsample(20, with_replacement=True)
+        new_counts = np.unique(new_dt.sum('sample'))
+        self.assertEqual(new_counts.shape[0], 1)
+        self.assertEqual(new_counts[0], 20)
 
     def test_pa(self):
         exp = Table(np.array([[1, 1], [1, 0]]), ['5', '6'], ['a', 'b'])
