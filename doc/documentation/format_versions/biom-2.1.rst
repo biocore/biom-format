@@ -4,7 +4,7 @@
 The biom file format: Version 2.1
 ===========================================
     
-The ``biom`` format is based on `HDF5 <http://www.hdfgroup.org>`_ to provide the overall structure for the format. HDF5 is a widely supported format with native parsers available within many programming languages. 
+The ``biom`` format is based on `HDF5 <http://www.hdfgroup.org>`_ to provide the overall structure for the format. HDF5 is a widely supported binary format with native parsers available within many programming languages. 
 
 Required top-level attributes::
 
@@ -60,7 +60,7 @@ Under the ``observation/group-metadata`` and ``sample/group-metadata`` groups, t
 Example biom files
 ==================
 
-Below is an example of a rich biom file.
+Below is an example of a rich biom file before binary compression into HDF5. Example binary files are located in the `github repository <https://github.com/biocore/biom-format/tree/master/examples>`_.
 
 BIOM 2.1 OTU table in the HDF5 data description language (DDL)
 --------------------------------------------------------------
