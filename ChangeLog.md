@@ -10,6 +10,7 @@ New Features:
 
 * Added additional sanity checks when calling `Table.to_hdf5`, see [PR #769](https://github.com/biocore/biom-format/pull/769).
 * `Table.subsample()` can optionally perform subsampling with replacement. See [issue #774](https://github.com/biocore/biom-format/issues/774).
+* Parsing methods for BIOM-Format 1.0.0 tables now preserve dict ordering. See [issue #781](https://github.com/biocore/biom-format/issues/781).
 
 Bug fixes:
 
