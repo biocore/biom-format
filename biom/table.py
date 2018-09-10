@@ -3926,13 +3926,18 @@ html
 
         return t
 
-    def to_dataframe(self):
-        """Convert matrix data to a Pandas SparseDataFrame
+    def to_dataframe(self, dense=False):
+        """Convert matrix data to a Pandas SparseDataFrame or DataFrame
+
+        Parameters
+        ----------
+        dense : bool, optional
+            If True, return pd.DataFrame instead of pd.SparseDataFrame.
 
         Returns
         -------
-        pd.SparseDataFrame
-            A SparseDataFrame indexed on the observation IDs, with the column
+        pd.DataFrame or pd.SparseDataFrame
+            A DataFrame indexed on the observation IDs, with the column
             names as the sample IDs.
 
         Notes
@@ -3948,12 +3953,17 @@ html
         O1  0.0  1.0  2.0
         O2  3.0  4.0  5.0
         """
-        # avoid dense conversion
-        # http://stackoverflow.com/a/17819427
-        mat = [pd.SparseSeries(v.toarray().ravel()) for v in self.matrix_data]
-        df = pd.SparseDataFrame(mat, index=self.ids(axis='observation'),
-                                columns=self.ids())
-        return df
+        index = self.ids(axis='observation')
+        columns = self.ids()
+
+        if dense:
+            mat = self.matrix_data.toarray()
+            constructor = pd.DataFrame
+        else:
+            mat = self.matrix_data
+            constructor = pd.SparseDataFrame
+
+        return constructor(mat, index=index, columns=columns)
 
     def metadata_to_dataframe(self, axis):
         """Convert axis metadata to a Pandas DataFrame

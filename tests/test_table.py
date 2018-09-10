@@ -1398,6 +1398,13 @@ class TableTests(TestCase):
         obs = example_table.to_dataframe()
         pdt.assert_frame_equal(obs, exp)
 
+    def test_to_dataframe(self):
+        exp = pd.DataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
+                           index=['O1', 'O2'],
+                           columns=['S1', 'S2', 'S3'])
+        obs = example_table.to_dataframe(dense=True)
+        pdt.assert_frame_equal(obs, exp)
+
     def test_metadata_to_dataframe(self):
         exp_samp = pd.DataFrame(['A', 'B', 'A'], index=['S1', 'S2', 'S3'],
                                 columns=['environment'])
