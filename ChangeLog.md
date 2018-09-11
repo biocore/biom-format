@@ -8,6 +8,7 @@ Changes since 2.1.6 go here.
 
 New Features:
 
+* `Table.align_to` for aligning one table to another. This is useful in multi-omic analyses where multiple preparations have been performed on the sample physical samples. This is essentially a helper method around `Table.sort_order`. See [issue #747](https://github.com/biocore/biom-format/issues/747).
 * Added additional sanity checks when calling `Table.to_hdf5`, see [PR #769](https://github.com/biocore/biom-format/pull/769).
 * `Table.subsample()` can optionally perform subsampling with replacement. See [issue #774](https://github.com/biocore/biom-format/issues/774).
 * Parsing methods for BIOM-Format 1.0.0 tables now preserve dict ordering. See [issue #781](https://github.com/biocore/biom-format/issues/781).

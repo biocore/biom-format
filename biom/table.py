@@ -3198,6 +3198,84 @@ class Table(object):
 
         return table
 
+    def align_to(self, other, axis='detect'):
+        """Align self to other over a requested axis
+
+        Parameters
+        ----------
+        other : biom.Table
+            The table to align too
+        axis : str, optional, {sample, observation, both, detect}
+            If 'sample' or 'observation', align to that axis. If 'both', align
+            both axes. If 'detect', align what can be aligned.
+
+        Raises
+        ------
+        DisjointIDError
+            If the requested axis can't be aligned.
+        UnknownAxisError
+            If an unrecognized axis is specified.
+
+        Examples
+        --------
+        Align one table to another, for instance a table of 16S data to a table
+        of metagenomic data. In this example, we're aligning the samples of the
+        two tables.
+
+        >>> from biom import Table
+        >>> import numpy as np
+        >>> amplicon = Table(np.array([[0, 1, 2], [3, 4, 5]]),
+        ...                  ['Ecoli', 'Staphylococcus'],
+        ...                  ['S1', 'S2', 'S3'])
+        >>> metag = Table(np.array([[6, 7, 8], [9, 10, 11]]),
+        ...               ['geneA', 'geneB'],
+        ...               ['S3', 'S2', 'S1'])
+        >>> amplicon = amplicon.align_to(metag)
+        >>> print(amplicon)  # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID	S3	S2	S1
+        Ecoli	2.0	1.0	0.0
+        Staphylococcus	5.0	4.0	3.0
+        """
+        self_o = set(self.ids(axis='observation'))
+        self_s = set(self.ids())
+        other_o = set(other.ids(axis='observation'))
+        other_s = set(other.ids())
+
+        alignable_o = self_o == other_o
+        alignable_s = self_s == other_s
+
+        if axis is 'both' and not (alignable_o and alignable_s):
+            raise DisjointIDError("Cannot align both axes")
+        elif axis is 'sample' and not alignable_s:
+            raise DisjointIDError("Cannot align samples")
+        elif axis is 'observation' and not alignable_o:
+            raise DisjointIDError("Cannot align observations")
+        elif axis is 'detect' and not (alignable_o or alignable_s):
+            raise DisjointIDError("Neither axis appears alignable")
+
+        if axis is 'both':
+            order = ['observation', 'sample']
+        elif axis is 'detect':
+            order = []
+            if alignable_s:
+                order.append('sample')
+            if alignable_o:
+                order.append('observation')
+        elif axis is 'sample':
+            order = ['sample']
+        elif axis is 'observation':
+            order = ['observation']
+        else:
+            raise UnknownAxisError("Unrecognized axis: %s" % axis)
+
+        table = self
+        for aln_axis in order:
+            table = table.sort_order(other.ids(axis=aln_axis),
+                                     axis=aln_axis)
+
+        return table
+
     def concat(self, others, axis='sample'):
         """Concatenate tables if axis is disjoint
 
