@@ -17,7 +17,8 @@ from biom.exception import BiomParseException, UnknownAxisError
 from biom.table import Table
 from biom.util import biom_open, __version__
 import json
-import collections
+from collections import defaultdict, OrderedDict
+
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
@@ -277,7 +278,7 @@ def parse_uc(fh):
         identifier in the resulting ``Table``.
 
     """
-    data = collections.defaultdict(int)
+    data = defaultdict(int)
     sample_idxs = {}
     sample_ids = []
     observation_idxs = {}
@@ -404,18 +405,21 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
             c = fp.read(1)
         if c == '{':
             fp.seek(old_pos)
-            t = Table.from_json(json.load(fp), input_is_dense=input_is_dense)
+            t = Table.from_json(json.load(fp, object_pairs_hook=OrderedDict),
+                                input_is_dense=input_is_dense)
         else:
             fp.seek(old_pos)
             t = Table.from_tsv(fp, None, None, lambda x: x)
     elif isinstance(fp, list):
         try:
-            t = Table.from_json(json.loads(''.join(fp)),
+            t = Table.from_json(json.loads(''.join(fp),
+                                           object_pairs_hook=OrderedDict),
                                 input_is_dense=input_is_dense)
         except ValueError:
             t = Table.from_tsv(fp, None, None, lambda x: x)
     else:
-        t = Table.from_json(json.loads(fp), input_is_dense=input_is_dense)
+        t = Table.from_json(json.loads(fp, object_pairs_hook=OrderedDict),
+                            input_is_dense=input_is_dense)
 
     def subset_ids(data, id_, md):
         return id_ in ids

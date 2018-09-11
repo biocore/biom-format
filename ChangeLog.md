@@ -11,6 +11,7 @@ New Features:
 * Added additional sanity checks when calling `Table.to_hdf5`, see [PR #769](https://github.com/biocore/biom-format/pull/769).
 * `Table.subsample()` can optionally perform subsampling with replacement. See [issue #774](https://github.com/biocore/biom-format/issues/774).
 * `Table.to_dataframe()` now supports a `dense` argument to return `pd.DataFrame`. A performance improvement was added as well for the construction of `pd.SparseDataFrame` reducing the time by roughly 10x. See [issue #762](https://github.com/biocore/biom-format/issues/762).
+* Parsing methods for BIOM-Format 1.0.0 tables now preserve dict ordering. See [issue #781](https://github.com/biocore/biom-format/issues/781).
 
 Bug fixes:
 
