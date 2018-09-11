@@ -3198,7 +3198,7 @@ class Table(object):
 
         return table
 
-    def align_to(self, other, axis='detect', inplace=True):
+    def align_to(self, other, axis='detect'):
         """Align self to other over a requested axis
 
         Parameters
@@ -3270,11 +3270,9 @@ class Table(object):
             raise UnknownAxisError("Unrecognized axis: %s" % axis)
 
         table = self
-        if not inplace:
-            table = table.copy()
-
         for aln_axis in order:
-            table = table.sort_order(other.ids(axis=aln_axis), axis=aln_axis)
+            table = table.sort_order(other.ids(axis=aln_axis),
+                                     axis=aln_axis)
 
         return table
 
