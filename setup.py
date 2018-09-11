@@ -89,7 +89,7 @@ if USE_CYTHON:
 # In brief, numpy 1.14.0 introduced whitespace changes that impact repr
 # on doctest
 install_requires = ["click", "numpy >= 1.9.2, < 1.14.0", "future >= 0.16.0",
-                    "scipy >= 0.13.0", 'pandas >= 0.19.2',
+                    "scipy >= 0.13.0", 'pandas >= 0.20.0',
                     "six >= 1.10.0"]
 
 # HACK: for backward-compatibility with QIIME 1.9.x, pyqi must be installed.
