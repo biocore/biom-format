@@ -179,7 +179,7 @@ from copy import deepcopy
 from datetime import datetime
 from json import dumps
 from functools import reduce
-from operator import itemgetter, add
+from operator import itemgetter
 from future.builtins import zip
 from future.utils import viewitems
 from collections import defaultdict, Hashable, Iterable
