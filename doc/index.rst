@@ -15,7 +15,7 @@ The BIOM project consists of the following components:
 * command line interface (CLI) for working with BIOM files, including `converting between file formats <./documentation/biom_conversion.html>`_, `adding metadata to BIOM files <./documentation/adding_metadata.html>`_, and `summarizing BIOM files <./documentation/summarizing_biom_tables.html>`_ (run ``biom`` to see the full list of commands);
 * application programming interface (API) for working with BIOM files in multiple programming languages (including Python and R).
 
-The ``biom-format`` package provides a command line interface and Python API for working with BIOM files. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python ``biom-format`` package. For more details about the R API, please see the `CRAN biom package <http://cran.r-project.org/web/packages/biom/index.html>`_.
+The ``biom-format`` package provides a command line interface and Python API for working with BIOM files. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python ``biom-format`` package. For more details about the R API, please see the `bioconductor biomformat package <https://bioconductor.org/packages/release/bioc/html/biomformat.html>`_.
 
 Projects using the BIOM format
 ==============================
@@ -66,32 +66,11 @@ To work with BIOM 2.0+ files::
 
 To see a list of all ``biom`` commands, run::
 
-    biom
+    biom 
 
 To enable Bash tab completion of ``biom`` commands, add the following line to ``$HOME/.bashrc`` (if on Linux) or ``$HOME/.bash_profile`` (if on Mac OS X)::
 
     eval "$(_BIOM_COMPLETE=source biom)"
-
-Installing the ``biom`` R package
-=================================
-
-There is also a BIOM format package for R called ``biom``. This package includes basic tools for reading biom-format files, accessing and subsetting data tables from a biom object, as well as limited support for writing a biom-object back to a biom-format file. The design of this API is intended to match the python API and other tools included with the biom-format project, but with a decidedly "R flavor" that should be familiar to R users. This includes S4 classes and methods, as well as extensions of common core functions/methods.
-
-To install the latest stable release of the ``biom`` package enter the following command from within an R session::
-
-	install.packages("biom")
-
-To install the latest development version of the ``biom`` package, enter the following lines in an R session::
-
-	install.packages("devtools") # if not already installed
-	library("devtools")
-	install_github("biom", "joey711")
-
-Please post any support or feature requests and bugs to `the biom issue tracker <https://github.com/joey711/biom/issues>`_.
-
-See `the biom project on GitHub <https://github.com/joey711/biom/>`_ for further details, or if you would like to contribute.
-
-Note that the licenses between the ``biom`` R package (GPL-2) and the ``biom-format`` Python package (Modified BSD) are different.
 
 Citing the BIOM project
 =======================
