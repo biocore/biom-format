@@ -3231,8 +3231,7 @@ class Table(object):
         ...               ['geneA', 'geneB'],
         ...               ['S3', 'S2', 'S1'])
         >>> amplicon = amplicon.align_to(metag)
-        >>> print(amplicon)
-        >>> print(d)  # doctest: +NORMALIZE_WHITESPACE
+        >>> print(amplicon)  # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	S3	S2	S1
         Ecoli	2.0	1.0	0.0
