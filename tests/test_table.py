@@ -1392,7 +1392,7 @@ class TableTests(TestCase):
              'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')})
 
     def test_to_dataframe(self):
-        exp = pd.SparseDataFrame(np.array([[np.nan, 1.0, 2.0], [3.0, 4.0, 5.0]]),
+        exp = pd.SparseDataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
                                  index=['O1', 'O2'],
                                  columns=['S1', 'S2', 'S3'])
         obs = example_table.to_dataframe()

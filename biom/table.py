@@ -3960,7 +3960,8 @@ html
             mat = self.matrix_data.toarray()
             constructor = pd.DataFrame
         else:
-            mat = self.matrix_data
+            mat = [pd.SparseSeries(r.toarray().squeeze())
+                   for r in self.matrix_data.tocsr()]
             constructor = pd.SparseDataFrame
 
         return constructor(mat, index=index, columns=columns)
