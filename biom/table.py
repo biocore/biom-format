@@ -2573,7 +2573,7 @@ class Table(object):
         else:
             if collapse_f is None:
                 def collapse_f(t, axis):
-                    return t.reduce(add, axis)
+                    return t.sum(axis)
 
             for part, table in self.partition(f, axis=axis):
                 axis_ids, axis_md = axis_ids_md(table)
