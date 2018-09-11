@@ -317,7 +317,7 @@ def parse_uc(fh):
         if line_type == 'H' or line_type == 'S':
             # get the sample id
             try:
-                underscore_index = query_id.index('_')
+                underscore_index = query_id.rindex('_')
             except ValueError:
                 raise ValueError(
                  "A query sequence was encountered that does not have an "
