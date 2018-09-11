@@ -862,8 +862,13 @@ class TableTests(TestCase):
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_to_hdf5_empty_table_bug_619(self):
         """Successfully writes an empty OTU table in HDF5 format"""
-        # Create an empty OTU table
         t = example_table.filter({}, axis='observation', inplace=False)
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            t.to_hdf5(h5, 'tests')
+            h5.close()
+
+        t = example_table.filter({}, inplace=False)
         with NamedTemporaryFile() as tmpfile:
             h5 = h5py.File(tmpfile.name, 'w')
             t.to_hdf5(h5, 'tests')
