@@ -4191,7 +4191,7 @@ html
 
             # Create the group for the metadata
             grp.create_group('metadata')
-            if md is not None:
+            if md:
                 exp = set(md[0])
                 for other_id, other_md in zip(ids[1:], md[1:]):
                     if set(other_md) != exp:
