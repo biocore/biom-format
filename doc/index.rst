@@ -66,7 +66,7 @@ To work with BIOM 2.0+ files::
 
 To see a list of all ``biom`` commands, run::
 
-    biom
+    biom 
 
 To enable Bash tab completion of ``biom`` commands, add the following line to ``$HOME/.bashrc`` (if on Linux) or ``$HOME/.bash_profile`` (if on Mac OS X)::
 
