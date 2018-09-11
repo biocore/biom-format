@@ -286,61 +286,68 @@ class SupportTests(TestCase):
         a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
         b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['y', 'z'])
         exp = Table(np.array([[2, 3], [0, 1]]), ['a', 'b'], ['y', 'z'])
-        obs = b.align_to(a, axis='observation', inplace=False)
+        obs = b.align_to(a, axis='observation')
         self.assertEqual(obs, exp)
 
     def test_align_to_overlap_observation_no_overlap(self):
         a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
         b = Table(np.array([[0, 1], [2, 3]]), ['x', 'y'], ['y', 'z'])
         with self.assertRaises(DisjointIDError):
-            obs = b.align_to(a, axis='observation', inplace=False)
+            obs = b.align_to(a, axis='observation')
 
     def test_align_to_overlap_sample_no_overlap(self):
         a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
         b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['y', 'z'])
         with self.assertRaises(DisjointIDError):
-            obs = b.align_to(a, axis='sample', inplace=False)
+            obs = b.align_to(a, axis='sample')
 
     def test_align_to_overlap_both_no_overlap(self):
         a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
         b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['y', 'z'])
         with self.assertRaises(DisjointIDError):
             # should fail if one axis doesn't overlap
-            obs = b.align_to(a, axis='both', inplace=False)
+            obs = b.align_to(a, axis='both')
 
     def test_align_to_overlap_autodetect_observation(self):
         a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
         b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['y', 'z'])
         exp = Table(np.array([[2, 3], [0, 1]]), ['a', 'b'], ['y', 'z'])
-        obs = b.align_to(a, inplace=False)
+        obs = b.align_to(a)
         self.assertEqual(obs, exp)
 
     def test_align_to_overlap_sample(self):
         a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
         b = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['d', 'c'])
         exp = Table(np.array([[1, 0], [3, 2]]), ['a', 'b'], ['c', 'd'])
-        obs = b.align_to(a, axis='sample', inplace=False)
+        obs = b.align_to(a, axis='sample')
         self.assertEqual(obs, exp)
 
     def test_align_to_overlap_autodetect_sample(self):
         a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
         b = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['d', 'c'])
         exp = Table(np.array([[1, 0], [3, 2]]), ['a', 'b'], ['c', 'd'])
-        obs = b.align_to(a, inplace=False)
+        obs = b.align_to(a)
         self.assertEqual(obs, exp)
 
     def test_align_to_overlap_both(self):
         a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
         b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['d', 'c'])
         exp = Table(np.array([[3, 2], [1, 0]]), ['a', 'b'], ['c', 'd'])
-        obs = b.align_to(a, axis='both', inplace=False)
+        obs = b.align_to(a, axis='both')
         self.assertEqual(obs, exp)
 
     def test_align_to_overlap_autodetect_both(self):
         a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
         b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['d', 'c'])
         exp = Table(np.array([[3, 2], [1, 0]]), ['a', 'b'], ['c', 'd'])
-        obs = b.align_to(a, inplace=False)
+        obs = b.align_to(a)
+        self.assertEqual(obs, exp)
+
+    def test_align_to_overlap_autodetect_vary_values(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[10, 11], [12, 13]]), ['b', 'a'], ['d', 'c'])
+        exp = Table(np.array([[13, 12], [11, 10]]), ['a', 'b'], ['c', 'd'])
+        obs = b.align_to(a)
         self.assertEqual(obs, exp)
 
     def test_table_sparse_nparray(self):
