@@ -126,20 +126,12 @@ class SupportTests(TestCase):
         t._data[0, :] = 0
         obs_base = t.copy()
 
-        obs = obs_base.remove_empty()
+        obs = obs_base.remove_empty(inplace=False)
         exp = example_table.filter({'S2', 'S3'}, inplace=False)
         exp = exp.filter({'O2', }, axis='observation', inplace=False)
         self.assertEqual(obs, exp)
 
-        obs = obs_base.remove_empty('sample')
-        exp = example_table.filter({'S2', 'S3'}, inplace=False)
-        self.assertEqual(obs, exp)
-
-        obs = obs_base.remove_empty('observation')
-        exp = exp.filter({'O2', }, axis='observation', inplace=False)
-        self.assertEqual(obs, exp)
-
-    def test_remove_empty_both(self):
+    def test_remove_empty_identity(self):
         obs = example_table.copy()
         obs.remove_empty()
         exp = example_table.copy()
@@ -274,6 +266,81 @@ class SupportTests(TestCase):
 
         with self.assertRaises(DisjointIDError):
             example_table.concat([example_table], axis='observation')
+
+    def test_align_to_no_overlap(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[0, 1], [2, 3]]), ['w', 'x'], ['y', 'z'])
+
+        with self.assertRaises(DisjointIDError):
+            a.align_to(b)
+
+    def test_align_to_overlap_observation(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['y', 'z'])
+        exp = Table(np.array([[2, 3], [0, 1]]), ['a', 'b'], ['y', 'z'])
+        obs = b.align_to(a, axis='observation')
+        self.assertEqual(obs, exp)
+
+    def test_align_to_overlap_observation_no_overlap(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[0, 1], [2, 3]]), ['x', 'y'], ['y', 'z'])
+        with self.assertRaises(DisjointIDError):
+            obs = b.align_to(a, axis='observation')
+
+    def test_align_to_overlap_sample_no_overlap(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['y', 'z'])
+        with self.assertRaises(DisjointIDError):
+            obs = b.align_to(a, axis='sample')
+
+    def test_align_to_overlap_both_no_overlap(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['y', 'z'])
+        with self.assertRaises(DisjointIDError):
+            # should fail if one axis doesn't overlap
+            obs = b.align_to(a, axis='both')
+
+    def test_align_to_overlap_autodetect_observation(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['y', 'z'])
+        exp = Table(np.array([[2, 3], [0, 1]]), ['a', 'b'], ['y', 'z'])
+        obs = b.align_to(a)
+        self.assertEqual(obs, exp)
+
+    def test_align_to_overlap_sample(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['d', 'c'])
+        exp = Table(np.array([[1, 0], [3, 2]]), ['a', 'b'], ['c', 'd'])
+        obs = b.align_to(a, axis='sample')
+        self.assertEqual(obs, exp)
+
+    def test_align_to_overlap_autodetect_sample(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['d', 'c'])
+        exp = Table(np.array([[1, 0], [3, 2]]), ['a', 'b'], ['c', 'd'])
+        obs = b.align_to(a)
+        self.assertEqual(obs, exp)
+
+    def test_align_to_overlap_both(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['d', 'c'])
+        exp = Table(np.array([[3, 2], [1, 0]]), ['a', 'b'], ['c', 'd'])
+        obs = b.align_to(a, axis='both')
+        self.assertEqual(obs, exp)
+
+    def test_align_to_overlap_autodetect_both(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[0, 1], [2, 3]]), ['b', 'a'], ['d', 'c'])
+        exp = Table(np.array([[3, 2], [1, 0]]), ['a', 'b'], ['c', 'd'])
+        obs = b.align_to(a)
+        self.assertEqual(obs, exp)
+
+    def test_align_to_overlap_autodetect_vary_values(self):
+        a = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'])
+        b = Table(np.array([[10, 11], [12, 13]]), ['b', 'a'], ['d', 'c'])
+        exp = Table(np.array([[13, 12], [11, 10]]), ['a', 'b'], ['c', 'd'])
+        obs = b.align_to(a)
+        self.assertEqual(obs, exp)
 
     def test_table_sparse_nparray(self):
         """beat the table sparsely to death"""
@@ -862,6 +929,21 @@ class TableTests(TestCase):
         """Successfully writes an empty OTU table in HDF5 format"""
         # Create an empty OTU table
         t = Table([], [], [])
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            t.to_hdf5(h5, 'tests')
+            h5.close()
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_to_hdf5_empty_table_bug_619(self):
+        """Successfully writes an empty OTU table in HDF5 format"""
+        t = example_table.filter({}, axis='observation', inplace=False)
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            t.to_hdf5(h5, 'tests')
+            h5.close()
+
+        t = example_table.filter({}, inplace=False)
         with NamedTemporaryFile() as tmpfile:
             h5 = h5py.File(tmpfile.name, 'w')
             t.to_hdf5(h5, 'tests')

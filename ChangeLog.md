@@ -9,12 +9,15 @@ Changes since 2.1.6 go here.
 New Features:
 
 * Massive performance boost to `Table.collapse` with the default collapse function. The difference was 10s of milliseconds vs. minutes stemming from prior use of `operator.add`. See [issue #761](https://github.com/biocore/biom-format/issues/761). 
+* `Table.align_to` for aligning one table to another. This is useful in multi-omic analyses where multiple preparations have been performed on the sample physical samples. This is essentially a helper method around `Table.sort_order`. See [issue #747](https://github.com/biocore/biom-format/issues/747).
 * Added additional sanity checks when calling `Table.to_hdf5`, see [PR #769](https://github.com/biocore/biom-format/pull/769).
 * `Table.subsample()` can optionally perform subsampling with replacement. See [issue #774](https://github.com/biocore/biom-format/issues/774).
+* Parsing methods for BIOM-Format 1.0.0 tables now preserve dict ordering. See [issue #781](https://github.com/biocore/biom-format/issues/781).
 
 Bug fixes:
 
 * `Table.subsample(by_id=True, axis='observation')` did not subsample over the 'observations'. Because of the nature of the bug, an empty table was returned, so the scope of the issue is such that it should not have produced misleading results but instead triggered empty table errors, with the exception of the pathological case of the ID namespaces between features and samples not being disjoint. See [PR #759](https://github.com/biocore/biom-format/pull/759) for more information.
+* Tables of shape `(0, n)` or `(n, 0)` were raising exceptions when being written out. See [issue #619](https://github.com/biocore/biom-format/issues/619).
 
 biom 2.1.6
 ----------
