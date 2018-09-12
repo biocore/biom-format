@@ -6,6 +6,8 @@ biom 2.1.6-dev
 
 Changes since 2.1.6 go here.
 
+Important: Python 3.4 support has been dropped. We now only support Python 2.7, 3.5 and 3.6.
+
 New Features:
 
 * Added additional sanity checks when calling `Table.to_hdf5`, see [PR #769](https://github.com/biocore/biom-format/pull/769).
