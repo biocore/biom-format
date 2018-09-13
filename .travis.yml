@@ -3,8 +3,6 @@ language: python
 env:
   - PYTHON_VERSION=2.7 USE_H5PY=True NOSE_ARGS="--with-doctest --with-coverage"
   - PYTHON_VERSION=2.7 USE_CYTHON=True NOSE_ARGS="--with-doctest --with-coverage"
-  - PYTHON_VERSION=3.4 USE_H5PY=True
-  - PYTHON_VERSION=3.4 USE_CYTHON=True
   - PYTHON_VERSION=3.5 USE_H5PY=True
   - PYTHON_VERSION=3.5 USE_CYTHON=True
   - PYTHON_VERSION=3.6 USE_H5PY=True
