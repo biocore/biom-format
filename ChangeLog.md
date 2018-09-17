@@ -18,6 +18,7 @@ Bug fixes:
 
 * `Table.subsample(by_id=True, axis='observation')` did not subsample over the 'observations'. Because of the nature of the bug, an empty table was returned, so the scope of the issue is such that it should not have produced misleading results but instead triggered empty table errors, with the exception of the pathological case of the ID namespaces between features and samples not being disjoint. See [PR #759](https://github.com/biocore/biom-format/pull/759) for more information.
 * Tables of shape `(0, n)` or `(n, 0)` were raising exceptions when being written out. See [issue #619](https://github.com/biocore/biom-format/issues/619).
+* Tables loaded with a `list` of empty `dict`s will have their metadata attributes set to None. See [issue #594](https://github.com/biocore/biom-format/issues/594).
 
 biom 2.1.6
 ----------
