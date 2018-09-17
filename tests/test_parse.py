@@ -295,6 +295,18 @@ class ParseTests(TestCase):
         t_json = parse_biom_table(t_json_stringio)
         self.assertEqual(t, t_json)
 
+    def test_empty_metadata_inconsistent_handling(self):
+        oids = list('bacd')
+        sids = list('YXZ')
+        mat = np.array([[2, 1, 0], [0, 5, 0],
+                        [0, 3, 0], [1, 2, 0]])
+
+        A = Table(mat, oids, sids,
+                  observation_metadata=[{}, {}, {}, {}],
+                  sample_metadata=[{}, {}, {}])
+        B = Table(mat, oids, sids)
+
+        self.assertEqual(A, B)
 
 legacy_otu_table1 = """# some comment goes here
 #OTU ID	Fing	Key	NA	Consensus Lineage
