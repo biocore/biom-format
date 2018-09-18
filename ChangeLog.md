@@ -6,7 +6,10 @@ biom 2.1.6-dev
 
 Changes since 2.1.6 go here.
 
-Important: Python 3.4 support has been dropped. We now only support Python 2.7, 3.5 and 3.6.
+Important: 
+
+* Python 3.4 support has been dropped. We now only support Python 2.7, 3.5 and 3.6.
+* Pandas >= 0.20.0 is now the minimum required version. 
 
 New Features:
 
