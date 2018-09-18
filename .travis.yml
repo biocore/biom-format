@@ -3,8 +3,6 @@ language: python
 env:
   - PYTHON_VERSION=2.7 USE_H5PY=True NOSE_ARGS="--with-doctest --with-coverage"
   - PYTHON_VERSION=2.7 USE_CYTHON=True NOSE_ARGS="--with-doctest --with-coverage"
-  - PYTHON_VERSION=3.4 USE_H5PY=True
-  - PYTHON_VERSION=3.4 USE_CYTHON=True
   - PYTHON_VERSION=3.5 USE_H5PY=True
   - PYTHON_VERSION=3.5 USE_CYTHON=True
   - PYTHON_VERSION=3.6 USE_H5PY=True
@@ -15,7 +13,7 @@ before_install:
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda3/bin:$PATH
 install:
-  - conda create --yes -n env_name python=$PYTHON_VERSION pip click "numpy < 1.14.0" scipy nose pep8 flake8 coverage future six pandas
+  - conda create --yes -n env_name python=$PYTHON_VERSION pip click "numpy < 1.14.0" scipy nose pep8 flake8 coverage future six "pandas>=0.20.0"
   - if [ ${USE_CYTHON} ]; then conda install --yes -n env_name cython; fi
   - if [ ${USE_H5PY} ]; then conda install --yes -n env_name h5py>=2.2.0; fi
   - if [ ${PYTHON_VERSION} = "2.7" ]; then conda install --yes -n env_name Sphinx=1.2.2; fi

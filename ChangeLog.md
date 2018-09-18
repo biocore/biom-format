@@ -6,12 +6,18 @@ biom 2.1.6-dev
 
 Changes since 2.1.6 go here.
 
+Important: 
+
+* Python 3.4 support has been dropped. We now only support Python 2.7, 3.5 and 3.6.
+* Pandas >= 0.20.0 is now the minimum required version. 
+
 New Features:
 
 * Massive performance boost to `Table.collapse` with the default collapse function. The difference was 10s of milliseconds vs. minutes stemming from prior use of `operator.add`. See [issue #761](https://github.com/biocore/biom-format/issues/761). 
 * `Table.align_to` for aligning one table to another. This is useful in multi-omic analyses where multiple preparations have been performed on the sample physical samples. This is essentially a helper method around `Table.sort_order`. See [issue #747](https://github.com/biocore/biom-format/issues/747).
 * Added additional sanity checks when calling `Table.to_hdf5`, see [PR #769](https://github.com/biocore/biom-format/pull/769).
 * `Table.subsample()` can optionally perform subsampling with replacement. See [issue #774](https://github.com/biocore/biom-format/issues/774).
+* `Table.to_dataframe()` now supports a `dense` argument to return `pd.DataFrame`. See [issue #762](https://github.com/biocore/biom-format/issues/762).
 * Parsing methods for BIOM-Format 1.0.0 tables now preserve dict ordering. See [issue #781](https://github.com/biocore/biom-format/issues/781).
 
 Bug fixes:
