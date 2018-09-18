@@ -483,12 +483,22 @@ class Table(object):
         self._observation_ids = np.asarray(observation_ids, dtype=object)
 
         if sample_metadata is not None:
-            self._sample_metadata = tuple(sample_metadata)
+            # not m will evaluate True if the object tested is None or
+            # an empty dict, etc.
+            if {not m for m in sample_metadata} == {True, }:
+                self._sample_metadata = None
+            else:
+                self._sample_metadata = tuple(sample_metadata)
         else:
             self._sample_metadata = None
 
         if observation_metadata is not None:
-            self._observation_metadata = tuple(observation_metadata)
+            # not m will evaluate True if the object tested is None or
+            # an empty dict, etc.
+            if {not m for m in observation_metadata} == {True, }:
+                self._observation_metadata = None
+            else:
+                self._observation_metadata = tuple(observation_metadata)
         else:
             self._observation_metadata = None
 
