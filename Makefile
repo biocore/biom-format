@@ -15,4 +15,3 @@ endif
 test:
 	$(TEST_COMMAND)
 	flake8 biom setup.py
-	check-manifest
