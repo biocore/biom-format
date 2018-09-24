@@ -42,7 +42,7 @@ __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
                "Greg Caporaso", "Jose Clemente", "Adam Robbins-Pianka",
                "Joshua Shorenstein", "Jose Antonio Navas Molina",
-               "Jorge Cañardo Alastuey", "Steven Brown"]
+               "Jorge Canardo Alastuey", "Steven Brown"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
