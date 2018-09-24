@@ -1,4 +1,4 @@
-'pytest-cov'# ----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 # Copyright (c) 2013--, biom-format development team.
 #
 # Distributed under the terms of the Modified BSD License.
