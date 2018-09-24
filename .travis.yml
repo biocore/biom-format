@@ -20,7 +20,7 @@ install:
   - pip install coveralls
   - pip install -e . --no-deps
 script:
-  - make test
+  - make test 
   - biom show-install-info
   - if [ ${PYTHON_VERSION} = "3.6" ]; then make -C doc html; fi
   # we can only validate the tables if we have H5PY
