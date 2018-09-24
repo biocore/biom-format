@@ -14,8 +14,6 @@ import os
 
 import biom
 from biom.cli.table_normalizer import _normalize_table
-from biom.parse import parse_biom_table
-from biom.util import HAVE_H5PY
 from biom.exception import UnknownAxisError
 
 

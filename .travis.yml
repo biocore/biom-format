@@ -1,10 +1,10 @@
 # Modified from https://github.com/biocore/scikit-bio/
 language: python
 env:
-  - PYTHON_VERSION=2.7 USE_H5PY=True USE_CYTHON=True
-  - PYTHON_VERSION=3.5 USE_H5PY=True USE_CYTHON=True
-  - PYTHON_VERSION=3.6 USE_H5PY=True USE_CYTHON=True
-  - PYTHON_VERSION=3.7 USE_H5PY=True USE_CYTHON=True
+  - PYTHON_VERSION=2.7 USE_H5PY=True USE_CYTHON=True WITH_DOCTEST=False
+  - PYTHON_VERSION=3.5 USE_H5PY=True USE_CYTHON=True WITH_DOCTEST=True
+  - PYTHON_VERSION=3.6 USE_H5PY=True USE_CYTHON=True WITH_DOCTEST=True
+  - PYTHON_VERSION=3.7 USE_H5PY=True USE_CYTHON=True WITH_DOCTEST=True
 before_install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -27,10 +27,8 @@ script:
   - if [ ${USE_H5PY} ]; then for table in examples/*hdf5.biom; do echo ${table}; biom validate-table -i ${table}; done; fi
   # validate JSON formatted tables
   - for table in examples/*table.biom; do echo ${table}; biom validate-table -i ${table}; done;
-  - pushd biom/assets
-  - if [ ${USE_H5PY} ]; then python exercise_api.py ../../examples/rich_sparse_otu_table_hdf5.biom sample; fi
-  - if [ ${USE_H5PY} ]; then python exercise_api.py ../../examples/rich_sparse_otu_table_hdf5.biom observation; fi
-  - if [ ${USE_H5PY} ]; then sh exercise_cli.sh; fi
-  - popd
+  - if [ ${USE_H5PY} ]; then python biom/assets/exercise_api.py examples/rich_sparse_otu_table_hdf5.biom sample; fi
+  - if [ ${USE_H5PY} ]; then python biom/assets/exercise_api.py examples/rich_sparse_otu_table_hdf5.biom observation; fi
+  - if [ ${USE_H5PY} ]; then sh biom/assets/exercise_cli.sh; fi
 after_success:
   - coveralls

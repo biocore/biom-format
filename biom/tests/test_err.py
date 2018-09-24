@@ -16,7 +16,7 @@ from biom.exception import TableException
 from biom.err import (_test_empty, _test_obssize, _test_sampsize, _test_obsdup,
                       _test_sampdup, _test_obsmdsize, _test_sampmdsize,
                       errstate, geterr, seterr, geterrcall, seterrcall,
-                      errcheck, errstate, __errprof)
+                      errcheck, __errprof)
 
 
 runtime_ep = __errprof
@@ -136,8 +136,11 @@ class ErrorProfileTests(TestCase):
             self.ep.getcall('emptyfoo')
 
     def test_register_unregister(self):
-        cb = lambda x: 123
-        test = lambda x: x == 5
+        def cb(x):
+            return 123
+
+        def test(x):
+            return x == 5
 
         self.ep.register('foo', 'bar', 'ignore', test, callback=cb)
         self.assertTrue('foo' in self.ep)
@@ -213,6 +216,7 @@ class SupportTests(TestCase):
             result = errcheck(table)
         self.assertEqual(result, "the callback called")
         self.assertNotEqual(geterr()['empty'], 'call')
+
 
 if __name__ == '__main__':
     main()

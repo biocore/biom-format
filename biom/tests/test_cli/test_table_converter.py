@@ -14,13 +14,11 @@ import tempfile
 import numpy as np
 
 from biom.cli.table_converter import _convert
-from biom.cli.util import write_biom_table
-from biom.parse import MetadataMap, load_table
+from biom.parse import MetadataMap
 from biom.table import Table
 from biom import load_table
 from biom.parse import biom_open, parse_biom_table
 from unittest import TestCase, main
-from io import StringIO
 
 
 class TableConverterTests(TestCase):
@@ -107,16 +105,16 @@ class TableConverterTests(TestCase):
     def test_biom_to_classic1(self):
         """Correctly converts biom to classic."""
         self.cmd(table=self.biom_table1,
-                       output_filepath=self.output_filepath,
-                       to_tsv=True, header_key='taxonomy')
+                 output_filepath=self.output_filepath,
+                 to_tsv=True, header_key='taxonomy')
 
         self.assertEqual(load_table(self.output_filepath), self.classic_biom1)
 
     def test_biom_to_classic2(self):
         """Correctly converts biom to classic with metadata renaming."""
         self.cmd(table=self.biom_table1,
-                       output_filepath=self.output_filepath, to_tsv=True,
-                       header_key='taxonomy', output_metadata_id='foo')
+                 output_filepath=self.output_filepath, to_tsv=True,
+                 header_key='taxonomy', output_metadata_id='foo')
         obs = load_table(self.output_filepath)
         self.assertTrue('foo' in obs.metadata(axis='observation')[0])
 

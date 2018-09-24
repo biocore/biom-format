@@ -1,11 +1,11 @@
 #!/bin/bash
 set -xe
 
-table=../../examples/min_sparse_otu_table_hdf5.biom
-obsmd=../../examples/obs_md.txt
+table=examples/min_sparse_otu_table_hdf5.biom
+obsmd=examples/obs_md.txt
 if [[ ! -f ${table} ]];
 then
-    echo "This script expects to operate in the biom/assets directory"
+    echo "This script expects to operate in the base repository directory"
     exit 1
 fi
 
