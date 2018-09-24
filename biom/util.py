@@ -170,11 +170,11 @@ def _natsort_key(item):
     """
     item = str(item)
     try:
-        chunks = re.split('(\d+(?:\.\d+)?)', item)
+        chunks = re.split(r'(\d+(?:\.\d+)?)', item)
     except TypeError:
         # if item is a tuple or list (i.e., indexable, but not a string)
         # work with the first element
-        chunks = re.split('(\d+(?:\.\d+)?)', item[0])
+        chunks = re.split(r'(\d+(?:\.\d+)?)', item[0])
     for ii in range(len(chunks)):
         if chunks[ii] and chunks[ii][0] in '0123456789':
             if '.' in chunks[ii]:
