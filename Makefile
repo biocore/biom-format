@@ -1,4 +1,4 @@
-# ----------------------------------------------------------------------------
+'pytest-cov'# ----------------------------------------------------------------------------
 # Copyright (c) 2013--, biom-format development team.
 #
 # Distributed under the terms of the Modified BSD License.
@@ -7,9 +7,9 @@
 # ----------------------------------------------------------------------------
 
 ifeq ($(WITH_DOCTEST), TRUE)
-	TEST_COMMAND = python setup.py test -a "--cov=biom --doctest-modules --doctest-glob='*.pyx'"
+	TEST_COMMAND = python setup.py test -a --doctest-modules --doctest-glob='*.pyx'
 else
-	TEST_COMMAND = python setup.py test -a "--cov=biom"
+	TEST_COMMAND = python setup.py test 
 endif
 
 test:
