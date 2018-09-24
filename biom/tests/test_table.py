@@ -3219,7 +3219,7 @@ class SparseTableTests(TestCase):
         partition_f = lambda id_, md: id_ in set(['b', 'd', 'f'])
 
         def collapse_f(t, axis):
-            return np.array([np.median(v) for v in t.iter_data(dense=True)])
+            return np.asarray([np.median(v) for v in t.iter_data(dense=True)])
 
         obs = table.collapse(partition_f, collapse_f, axis='observation',
                              norm=False)

@@ -241,6 +241,7 @@ class ParseTests(TestCase):
         t_tsv_lines = t_tsv_str.splitlines()
         t_tsv = parse_biom_table(t_tsv_lines)
         self.assertEqual(t, t_tsv)
+
         # Test TSV as a file-like object
         t_tsv_stringio = StringIO(t_tsv_str)
         t_tsv = parse_biom_table(t_tsv_stringio)
@@ -251,6 +252,7 @@ class ParseTests(TestCase):
         t_json_lines = t_json_str.splitlines()
         t_json = parse_biom_table(t_json_lines)
         self.assertEqual(t, t_json)
+
         # Test JSON as a file-like object
         t_json_str = t.to_json('asd')
         t_json_stringio = StringIO(t_json_str)

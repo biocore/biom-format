@@ -1,4 +1,4 @@
-# ----------------------------------------------------------------------------
+biom/__init__.py# ----------------------------------------------------------------------------
 # Copyright (c) 2011-2015, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
@@ -11,6 +11,9 @@ import biom
 import numpy as np
 import tempfile
 import h5py
+
+if len(sys.argv) < 3:
+    raise SystemExit
 
 if '://' in sys.argv[1]:
     from urllib import request

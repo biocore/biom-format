@@ -45,7 +45,7 @@ class TableValidatorTests(TestCase):
         self.to_remove = []
 
         cur_path = os.path.split(os.path.abspath(__file__))[0]
-        examples_path = os.path.join(cur_path.rsplit('/', 2)[0], 'examples')
+        examples_path = os.path.join(cur_path.rsplit('/', 3)[0], 'examples')
         self.hdf5_file_valid = os.path.join(examples_path,
                                             'min_sparse_otu_table_hdf5.biom')
         self.hdf5_file_valid_md = os.path.join(examples_path,

@@ -253,7 +253,7 @@ class UtilTests(TestCase):
         tmp_f.write('foo\n')
         tmp_f.flush()
 
-        obs = safe_md5(open(tmp_f.name, 'U'))
+        obs = safe_md5(open(tmp_f.name, 'r'))
         self.assertEqual(obs, exp)
 
         obs = safe_md5(['foo\n'])
