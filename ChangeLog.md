@@ -8,7 +8,8 @@ Changes since 2.1.6 go here.
 
 Important: 
 
-* Python 3.4 support has been dropped. We now only support Python 2.7, 3.5 and 3.6.
+* Python 3.4 support has been dropped. We now only support Python 2.7, 3.5, 3.6 and 3.7.
+* We will be dropping Python 2.7 support on the next release.
 * Pandas >= 0.20.0 is now the minimum required version. 
 
 New Features:

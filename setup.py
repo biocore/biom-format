@@ -128,6 +128,9 @@ install_requires = ["click", "numpy >= 1.9.2", "future >= 0.16.0",
 # pyqi is not used anymore in this project.
 if sys.version_info[0] < 3:
     install_requires.append("pyqi")
+    import warnings
+    warnings.warn("Python 2.7 support will be removed on the next release",
+                  DeprecationWarning)
 
 setup(name='biom-format',
       version=__version__,
