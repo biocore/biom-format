@@ -11,7 +11,7 @@ before_install:
   - ./miniconda.sh -b
   - export PATH=/home/travis/miniconda3/bin:$PATH
 install:
-  - conda create --yes -n env_name python=$PYTHON_VERSION pip click numpy scipy pep8 flake8 coverage future six "pandas>=0.20.0" nose Sphinx=1.2.2
+  - conda create --yes -n env_name python=$PYTHON_VERSION pip click numpy scipy pep8 flake8 coverage future six "pandas>=0.20.0" nose Sphinx
   - if [ ${USE_CYTHON} ]; then conda install --yes -n env_name cython; rm biom/*.c; fi
   - if [ ${USE_H5PY} ]; then conda install --yes -n env_name h5py>=2.2.0; fi
   - source activate env_name
