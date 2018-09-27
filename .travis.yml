@@ -1,11 +1,10 @@
 # Modified from https://github.com/biocore/scikit-bio/
 language: python
 env:
-  - PYTHON_VERSION=2.7 WITH_DOCTEST=False
-  - PYTHON_VERSION=3.5 WITH_DOCTEST=True
-  - PYTHON_VERSION=3.6 WITH_DOCTEST=True
-  - PYTHON_VERSION=3.7 WITH_DOCTEST=True
-  - USE_CYTHON=True
+  - PYTHON_VERSION=2.7 WITH_DOCTEST=False USE_CYTHON=True
+  - PYTHON_VERSION=3.5 WITH_DOCTEST=True USE_CYTHON=True
+  - PYTHON_VERSION=3.6 WITH_DOCTEST=True USE_CYTHON=True
+  - PYTHON_VERSION=3.7 WITH_DOCTEST=True USE_CYTHON=True
 before_install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
