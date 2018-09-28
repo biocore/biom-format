@@ -11,6 +11,7 @@ Important:
 * Python 3.4 support has been dropped. We now only support Python 2.7, 3.5, 3.6 and 3.7.
 * We will be dropping Python 2.7 support on the next release.
 * Pandas >= 0.20.0 is now the minimum required version. 
+* pytest is now used instead of nose.
 
 New Features:
 
