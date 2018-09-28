@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.6',
+        VERSION:     '2.1.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -62,8 +62,8 @@
 <dd><p>Store CSC and CSR in place</p>
 <p>The resulting structure of this group is below. A few basic
 definitions, N is the number of observations and M is the number of
-samples. Data are stored in both compressed sparse row <a class="reference internal" href="#r10" id="id1">[R10]</a> (CSR, for
-observation oriented operations) and compressed sparse column <a class="reference internal" href="#r11" id="id2">[R11]</a>
+samples. Data are stored in both compressed sparse row <a class="reference internal" href="#r12" id="id1">[R12]</a> (CSR, for
+observation oriented operations) and compressed sparse column <a class="reference internal" href="#r13" id="id2">[R13]</a>
 (CSC, for sample oriented operations).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -103,22 +103,22 @@ dataset.  Anything returned by this function is ignored.</p>
 <p class="rubric">Notes</p>
 <p>This method does not return anything and operates in place on h5grp.</p>
 <p class="rubric">References</p>
-<table class="docutils citation" frame="void" id="r10" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[R10]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id3">2</a>)</em> <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="r11" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[R11]</td><td><em>(<a class="fn-backref" href="#id2">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html</a></td></tr>
-</tbody>
-</table>
 <table class="docutils citation" frame="void" id="r12" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[R12]</a></td><td><a class="reference external" href="http://biom-format.org/documentation/format_versions/biom-2.1.html">http://biom-format.org/documentation/format_versions/biom-2.1.html</a></td></tr>
+<tr><td class="label">[R12]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id3">2</a>)</em> <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="r13" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R13]</td><td><em>(<a class="fn-backref" href="#id2">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="r14" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id5">[R14]</a></td><td><a class="reference external" href="http://biom-format.org/documentation/format_versions/biom-2.1.html">http://biom-format.org/documentation/format_versions/biom-2.1.html</a></td></tr>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
@@ -150,8 +150,8 @@ dataset.  Anything returned by this function is ignored.</p>
 
 
     <div class="footer">
-        &copy; Copyright 2011-2017 The BIOM Format Development Team.
-      Last updated on Apr 28, 2017.
+        &copy; Copyright 2011-2018 The BIOM Format Development Team.
+      Last updated on Sep 28, 2018.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

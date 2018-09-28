@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    './',
-        VERSION:     '2.1.6',
+        VERSION:     '2.1.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -61,7 +61,7 @@
 <li>command line interface (CLI) for working with BIOM files, including <a class="reference external" href="./documentation/biom_conversion.html">converting between file formats</a>, <a class="reference external" href="./documentation/adding_metadata.html">adding metadata to BIOM files</a>, and <a class="reference external" href="./documentation/summarizing_biom_tables.html">summarizing BIOM files</a> (run <tt class="docutils literal"><span class="pre">biom</span></tt> to see the full list of commands);</li>
 <li>application programming interface (API) for working with BIOM files in multiple programming languages (including Python and R).</li>
 </ul>
-<p>The <tt class="docutils literal"><span class="pre">biom-format</span></tt> package provides a command line interface and Python API for working with BIOM files. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python <tt class="docutils literal"><span class="pre">biom-format</span></tt> package. For more details about the R API, please see the <a class="reference external" href="http://cran.r-project.org/web/packages/biom/index.html">CRAN biom package</a>.</p>
+<p>The <tt class="docutils literal"><span class="pre">biom-format</span></tt> package provides a command line interface and Python API for working with BIOM files. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python <tt class="docutils literal"><span class="pre">biom-format</span></tt> package. For more details about the R API, please see the <a class="reference external" href="https://bioconductor.org/packages/release/bioc/html/biomformat.html">bioconductor biomformat package</a>.</p>
 </div>
 <div class="section" id="projects-using-the-biom-format">
 <h1>Projects using the BIOM format<a class="headerlink" href="#projects-using-the-biom-format" title="Permalink to this headline">¶</a></h1>
@@ -134,7 +134,7 @@
 </div>
 <div class="section" id="biom-version">
 <h1>BIOM version<a class="headerlink" href="#biom-version" title="Permalink to this headline">¶</a></h1>
-<p>The latest official version of the biom-format project is 2.1.6 and of the BIOM file format is 2.0. Details on the <a class="reference external" href="./documentation/biom_format.html">file format can be found here</a>.</p>
+<p>The latest official version of the biom-format project is 2.1.7 and of the BIOM file format is 2.0. Details on the <a class="reference external" href="./documentation/biom_format.html">file format can be found here</a>.</p>
 </div>
 <div class="section" id="installing-the-biom-format-python-package">
 <h1>Installing the <tt class="docutils literal"><span class="pre">biom-format</span></tt> Python package<a class="headerlink" href="#installing-the-biom-format-python-package" title="Permalink to this headline">¶</a></h1>
@@ -155,23 +155,6 @@ pip install biom-format
 <div class="highlight-python"><div class="highlight"><pre><span></span>eval &quot;$(_BIOM_COMPLETE=source biom)&quot;
 </pre></div>
 </div>
-</div>
-<div class="section" id="installing-the-biom-r-package">
-<h1>Installing the <tt class="docutils literal"><span class="pre">biom</span></tt> R package<a class="headerlink" href="#installing-the-biom-r-package" title="Permalink to this headline">¶</a></h1>
-<p>There is also a BIOM format package for R called <tt class="docutils literal"><span class="pre">biom</span></tt>. This package includes basic tools for reading biom-format files, accessing and subsetting data tables from a biom object, as well as limited support for writing a biom-object back to a biom-format file. The design of this API is intended to match the python API and other tools included with the biom-format project, but with a decidedly &#8220;R flavor&#8221; that should be familiar to R users. This includes S4 classes and methods, as well as extensions of common core functions/methods.</p>
-<p>To install the latest stable release of the <tt class="docutils literal"><span class="pre">biom</span></tt> package enter the following command from within an R session:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">install</span><span class="o">.</span><span class="n">packages</span><span class="p">(</span><span class="s2">&quot;biom&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>To install the latest development version of the <tt class="docutils literal"><span class="pre">biom</span></tt> package, enter the following lines in an R session:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">install</span><span class="o">.</span><span class="n">packages</span><span class="p">(</span><span class="s2">&quot;devtools&quot;</span><span class="p">)</span> <span class="c1"># if not already installed</span>
-<span class="n">library</span><span class="p">(</span><span class="s2">&quot;devtools&quot;</span><span class="p">)</span>
-<span class="n">install_github</span><span class="p">(</span><span class="s2">&quot;biom&quot;</span><span class="p">,</span> <span class="s2">&quot;joey711&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>Please post any support or feature requests and bugs to <a class="reference external" href="https://github.com/joey711/biom/issues">the biom issue tracker</a>.</p>
-<p>See <a class="reference external" href="https://github.com/joey711/biom/">the biom project on GitHub</a> for further details, or if you would like to contribute.</p>
-<p>Note that the licenses between the <tt class="docutils literal"><span class="pre">biom</span></tt> R package (GPL-2) and the <tt class="docutils literal"><span class="pre">biom-format</span></tt> Python package (Modified BSD) are different.</p>
 </div>
 <div class="section" id="citing-the-biom-project">
 <h1>Citing the BIOM project<a class="headerlink" href="#citing-the-biom-project" title="Permalink to this headline">¶</a></h1>
@@ -201,8 +184,8 @@ pip install biom-format
 
 
     <div class="footer">
-        &copy; Copyright 2011-2017 The BIOM Format Development Team.
-      Last updated on Apr 28, 2017.
+        &copy; Copyright 2011-2018 The BIOM Format Development Team.
+      Last updated on Sep 28, 2018.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

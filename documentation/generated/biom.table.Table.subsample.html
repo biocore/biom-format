@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.6',
+        VERSION:     '2.1.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table.subsample<a class="headerlink" href="#biom-table-table-subsample" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="biom.table.Table.subsample">
-<tt class="descclassname">Table.</tt><tt class="descname">subsample</tt><big>(</big><em>n</em>, <em>axis='sample'</em>, <em>by_id=False</em><big>)</big><a class="headerlink" href="#biom.table.Table.subsample" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Table.</tt><tt class="descname">subsample</tt><big>(</big><em>n</em>, <em>axis='sample'</em>, <em>by_id=False</em>, <em>with_replacement=False</em><big>)</big><a class="headerlink" href="#biom.table.Table.subsample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomly subsample without replacement.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -79,6 +79,12 @@ matrix (e.g., rarefaction). If <cite>True</cite>, the subsampling is based on
 the IDs (e.g., fetch a random subset of samples). Default is
 <cite>False</cite>.</p>
 </div></blockquote>
+<p><strong>with_replacement</strong> : boolean, optional</p>
+<blockquote>
+<div><p>If <cite>False</cite> (default), subsample without replacement. If <cite>True</cite>,
+resample with replacement via the multinomial distribution.
+Should not be <cite>True</cite> if <cite>by_id</cite> is <cite>True</cite>.</p>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">biom.Table</p>
@@ -89,7 +95,10 @@ the IDs (e.g., fetch a random subset of samples). Default is
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong></p>
 <blockquote class="last">
-<div><p>If <cite>n</cite> is less than zero.</p>
+<div><ul class="simple">
+<li>If <cite>n</cite> is less than zero.</li>
+<li>If <cite>by_id</cite> and <cite>with_replacement</cite> are both True.</li>
+</ul>
 </div></blockquote>
 </td>
 </tr>
@@ -109,15 +118,15 @@ information about scikit-bio.</p>
 </pre></div>
 </div>
 <p>Subsample 1 item over the sample axis by value (e.g., rarefaction):</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">)</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
 <span class="go">[ 1.  1.  1.]</span>
 </pre></div>
 </div>
 <p>Subsample 2 items over the sample axis, note that &#8216;S1&#8217; is filtered out:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ss</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ss</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ss</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
 <span class="go">[ 2.  2.]</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">ss</span><span class="o">.</span><span class="n">ids</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">ss</span><span class="o">.</span><span class="n">ids</span><span class="p">())</span>
 <span class="go">[&#39;S2&#39; &#39;S3&#39;]</span>
 </pre></div>
 </div>
@@ -126,7 +135,7 @@ randomly select 2 samples and do this 100 times, and then print out the
 set of IDs observed.</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">by_id</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span><span class="o">.</span><span class="n">ids</span><span class="p">())</span>
 <span class="gp">... </span>           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span>
 <span class="go">[(&#39;S1&#39;, &#39;S2&#39;), (&#39;S1&#39;, &#39;S3&#39;), (&#39;S2&#39;, &#39;S3&#39;)]</span>
 </pre></div>
 </div>
@@ -150,8 +159,8 @@ set of IDs observed.</p>
 
 
     <div class="footer">
-        &copy; Copyright 2011-2017 The BIOM Format Development Team.
-      Last updated on Apr 28, 2017.
+        &copy; Copyright 2011-2018 The BIOM Format Development Team.
+      Last updated on Sep 28, 2018.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

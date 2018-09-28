@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.6',
+        VERSION:     '2.1.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -56,7 +56,7 @@
         
   <div class="section" id="the-biom-file-format-version-2-0">
 <span id="biom-2-0"></span><h1>The biom file format: Version 2.0<a class="headerlink" href="#the-biom-file-format-version-2-0" title="Permalink to this headline">¶</a></h1>
-<p>The <tt class="docutils literal"><span class="pre">biom</span></tt> format is based on <a class="reference external" href="http://www.hdfgroup.org">HDF5</a> to provide the overall structure for the format. HDF5 is a widely supported format with native parsers available within many programming languages.</p>
+<p>The <tt class="docutils literal"><span class="pre">biom</span></tt> format is based on <a class="reference external" href="http://www.hdfgroup.org">HDF5</a> to provide the overall structure for the format. HDF5 is a widely supported binary format with native parsers available within many programming languages.</p>
 <p>Required top-level attributes:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span>id                  : &lt;string or null&gt; a field that can be used to id a table (or null)
 format              : &lt;string&gt; The name and version of the current biom format
@@ -110,7 +110,7 @@ sample/metadata            : &lt;variable length string or null&gt; If specified
 </div>
 <div class="section" id="example-biom-files">
 <h2>Example biom files<a class="headerlink" href="#example-biom-files" title="Permalink to this headline">¶</a></h2>
-<p>Below are examples of minimal and rich biom files.</p>
+<p>Below is an example of a rich biom file before binary compression into HDF5. Example binary files are located in the <a class="reference external" href="https://github.com/biocore/biom-format/tree/master/examples">github repository</a>.</p>
 <div class="section" id="biom-2-0-otu-table-in-the-hdf5-data-description-langauge-ddl">
 <h3>BIOM 2.0 OTU table in the HDF5 data description langauge (DDL)<a class="headerlink" href="#biom-2-0-otu-table-in-the-hdf5-data-description-langauge-ddl" title="Permalink to this headline">¶</a></h3>
 <div class="highlight-python"><div class="highlight"><pre><span></span>HDF5 &quot;rich_sparse_otu_table_hdf5.biom&quot; {
@@ -319,8 +319,8 @@ GROUP &quot;/&quot; {
 
 
     <div class="footer">
-        &copy; Copyright 2011-2017 The BIOM Format Development Team.
-      Last updated on Apr 28, 2017.
+        &copy; Copyright 2011-2018 The BIOM Format Development Team.
+      Last updated on Sep 28, 2018.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

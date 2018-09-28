@@ -43,6 +43,7 @@ biom.table.Table
          Table._union_id_order
          Table.add_group_metadata
          Table.add_metadata
+         Table.align_to
          Table.collapse
          Table.concat
          Table.copy

@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.6',
+        VERSION:     '2.1.7',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -107,7 +107,8 @@ exists a very large overhead for this metadata manipulation.</p>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong></p>
 <blockquote class="last">
 <div><p>If <cite>ids</cite> are not a subset of the samples or observations ids
-present in the hdf5 biom table</p>
+present in the hdf5 biom table
+If h5grp is not a HDF5 file or group</p>
 </div></blockquote>
 </td>
 </tr>
@@ -119,7 +120,7 @@ present in the hdf5 biom table</p>
 </div>
 <p class="rubric">Notes</p>
 <p>The expected HDF5 group structure is below. An example of an HDF5 file
-in DDL can be found here <a class="reference internal" href="#r9" id="id1">[R9]</a>.</p>
+in DDL can be found here <a class="reference internal" href="#r11" id="id1">[R11]</a>.</p>
 <ul class="simple">
 <li>./id                                                  : str, an arbitrary ID</li>
 <li>./type                                                : str, the table type (e.g, OTU table)</li>
@@ -165,22 +166,22 @@ specific way. Currently, the available special metadata fields are:</p>
 <li>collapsed_ids: (N, ?) dataset of str or vlen str</li>
 </ul>
 <p class="rubric">References</p>
-<table class="docutils citation" frame="void" id="r7" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id2">[R7]</a></td><td><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="r8" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id3">[R8]</a></td><td><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html</a></td></tr>
-</tbody>
-</table>
 <table class="docutils citation" frame="void" id="r9" rules="none">
 <colgroup><col class="label" /><col /></colgroup>
 <tbody valign="top">
-<tr><td class="label">[R9]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> <a class="reference external" href="http://biom-format.org/documentation/format_versions/biom-2.0.html">http://biom-format.org/documentation/format_versions/biom-2.0.html</a></td></tr>
+<tr><td class="label"><a class="fn-backref" href="#id2">[R9]</a></td><td><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="r10" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id3">[R10]</a></td><td><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html</a></td></tr>
+</tbody>
+</table>
+<table class="docutils citation" frame="void" id="r11" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label">[R11]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> <a class="reference external" href="http://biom-format.org/documentation/format_versions/biom-2.0.html">http://biom-format.org/documentation/format_versions/biom-2.0.html</a></td></tr>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
@@ -216,8 +217,8 @@ specific way. Currently, the available special metadata fields are:</p>
 
 
     <div class="footer">
-        &copy; Copyright 2011-2017 The BIOM Format Development Team.
-      Last updated on Apr 28, 2017.
+        &copy; Copyright 2011-2018 The BIOM Format Development Team.
+      Last updated on Sep 28, 2018.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
