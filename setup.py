@@ -11,8 +11,10 @@
 
 import os
 import sys
+
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
+from setuptools.command.test import test as TestCommand
 
 try:
     import numpy as np
@@ -38,6 +40,39 @@ __license__ = "BSD"
 __version__ = "2.1.6-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
+
+
+# derived from https://docs.pytest.org/en/3.8.0/goodpractices.html
+class PyTest(TestCommand):
+    user_options = [("pytest-args=", "a", "Arguments to pass to pytest")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = ""
+
+    def run_tests(self):
+        try:
+            import numpy
+            try:
+                # NumPy 1.14 changed repr output breaking our doctests,
+                # request the legacy 1.13 style
+                numpy.set_printoptions(legacy="1.13")
+            except TypeError:
+                # Old Numpy, output should be fine as it is :)
+                # TypeError: set_printoptions() got an unexpected
+                # keyword argument 'legacy'
+                pass
+        except ImportError:
+            numpy = None
+
+        import shlex
+
+        # import here, cause outside the eggs aren't loaded
+        import pytest
+
+        errno = pytest.main(shlex.split(self.pytest_args))
+        sys.exit(errno)
+
 
 long_description = """BIOM: Biological Observation Matrix
 http://www.biom-format.org
@@ -85,10 +120,7 @@ if USE_CYTHON:
     from Cython.Build import cythonize
     extensions = cythonize(extensions)
 
-# A justification for the numpy pinning can be found in scikit-bio 0.5.4
-# In brief, numpy 1.14.0 introduced whitespace changes that impact repr
-# on doctest
-install_requires = ["click", "numpy >= 1.9.2, < 1.14.0", "future >= 0.16.0",
+install_requires = ["click", "numpy >= 1.9.2", "future >= 0.16.0",
                     "scipy >= 0.13.0", 'pandas >= 0.20.0',
                     "six >= 1.10.0"]
 
@@ -96,6 +128,9 @@ install_requires = ["click", "numpy >= 1.9.2, < 1.14.0", "future >= 0.16.0",
 # pyqi is not used anymore in this project.
 if sys.version_info[0] < 3:
     install_requires.append("pyqi")
+    import warnings
+    warnings.warn("Python 2.7 support will be removed on the next release",
+                  DeprecationWarning)
 
 setup(name='biom-format',
       version=__version__,
@@ -107,16 +142,19 @@ setup(name='biom-format',
       maintainer=__maintainer__,
       maintainer_email=__email__,
       url='http://www.biom-format.org',
-      test_suite='nose.collector',
       packages=find_packages(),
+      tests_require=['pytest',
+                     'pytest-cov',
+                     'flake8',
+                     'nose'],
       include_package_data=True,
       ext_modules=extensions,
       include_dirs=[np.get_include()],
       install_requires=install_requires,
-      extras_require={'test': ["nose >= 0.10.1", "flake8"],
-                      'hdf5': ["h5py >= 2.2.0"]
+      extras_require={'hdf5': ["h5py >= 2.2.0"]
                       },
       classifiers=classifiers,
+      cmdclass={"pytest": PyTest},
       entry_points='''
           [console_scripts]
           biom=biom.cli:cli

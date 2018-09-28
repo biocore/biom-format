@@ -8,7 +8,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-import gzip
 from os import remove
 from os.path import abspath, dirname, exists
 from tempfile import NamedTemporaryFile
@@ -199,7 +198,7 @@ class UtilTests(TestCase):
         self.assertEqual(parse_biom_config_files([]), {})
 
     def test_compute_counts_per_sample_stats_empty(self):
-        t = Table({}, [] ,[])
+        t = Table({}, [], [])
         res = compute_counts_per_sample_stats(t)
         self.assertEqual(res, (0, 0, 0, 0, {}))
 
@@ -253,7 +252,7 @@ class UtilTests(TestCase):
         tmp_f.write('foo\n')
         tmp_f.flush()
 
-        obs = safe_md5(open(tmp_f.name, 'U'))
+        obs = safe_md5(open(tmp_f.name, 'r'))
         self.assertEqual(obs, exp)
 
         obs = safe_md5(['foo\n'])
@@ -274,14 +273,14 @@ class UtilTests(TestCase):
 
     def test_biom_open_empty(self):
         with self.assertRaises(ValueError) as e:
-            with biom_open(get_data_path('no-contents.biom'), 'r') as f:
+            with biom_open(get_data_path('no-contents.biom'), 'r'):
                 pass
         self.assertTrue("is empty and can't be parsed" in str(e.exception))
 
     @npt.dec.skipif(HAVE_H5PY, msg='Can only be tested without H5PY')
     def test_biom_open_hdf5_no_h5py(self):
         with self.assertRaises(RuntimeError):
-            with biom_open(get_data_path('test.biom')) as f:
+            with biom_open(get_data_path('test.biom')):
                 pass
 
     def test_biom_open_json(self):

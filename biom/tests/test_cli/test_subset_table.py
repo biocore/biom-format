@@ -24,7 +24,7 @@ class TestSubsetTable(unittest.TestCase):
     def test_subset_samples(self):
         """Correctly subsets samples in a table."""
         obs = _subset_table(json_table_str=self.biom_str1, axis='sample',
-                       ids=['f4', 'f2'], hdf5_biom=None)
+                            ids=['f4', 'f2'], hdf5_biom=None)
         obs = parse_biom_table(list(obs[0]))
         self.assertEqual(len(obs.ids()), 2)
         self.assertEqual(len(obs.ids(axis='observation')), 14)
@@ -34,7 +34,7 @@ class TestSubsetTable(unittest.TestCase):
     def test_subset_observations(self):
         """Correctly subsets observations in a table."""
         obs = _subset_table(json_table_str=self.biom_str1, axis='observation',
-                       ids=['None2', '879972'], hdf5_biom=None)
+                            ids=['None2', '879972'], hdf5_biom=None)
         obs = parse_biom_table(list(obs[0]))
         self.assertEqual(len(obs.ids()), 9)
         self.assertEqual(len(obs.ids(axis='observation')), 2)
@@ -44,15 +44,16 @@ class TestSubsetTable(unittest.TestCase):
     def test_invalid_input(self):
         """Correctly raises politically correct error upon invalid input."""
         with self.assertRaises(ValueError):
-            _subset_table(hdf5_biom=None, json_table_str=self.biom_str1, axis='foo',
-                     ids=['f2', 'f4'])
+            _subset_table(hdf5_biom=None, json_table_str=self.biom_str1,
+                          axis='foo', ids=['f2', 'f4'])
 
         with self.assertRaises(ValueError):
-            _subset_table(hdf5_biom=None, json_table_str=None, axis='sample', ids=['f2', 'f4'])
+            _subset_table(hdf5_biom=None, json_table_str=None, axis='sample',
+                          ids=['f2', 'f4'])
 
         with self.assertRaises(ValueError):
             _subset_table(json_table_str=self.biom_str1, hdf5_biom='foo',
-                     axis='sample', ids=['f2', 'f4'])
+                          axis='sample', ids=['f2', 'f4'])
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_subset_samples_hdf5(self):
@@ -61,8 +62,8 @@ class TestSubsetTable(unittest.TestCase):
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
         obs = _subset_table(hdf5_biom='test_data/test.biom', axis='sample',
-                           ids=[u'Sample1', u'Sample2', u'Sample3'],
-                           json_table_str=None)
+                            ids=[u'Sample1', u'Sample2', u'Sample3'],
+                            json_table_str=None)
         os.chdir(cwd)
         obs = obs[0]
         self.assertEqual(len(obs.ids()), 3)
@@ -77,9 +78,10 @@ class TestSubsetTable(unittest.TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        obs = _subset_table(hdf5_biom='test_data/test.biom', axis='observation',
-                           ids=[u'GG_OTU_1', u'GG_OTU_3', u'GG_OTU_5'],
-                           json_table_str=None)
+        obs = _subset_table(hdf5_biom='test_data/test.biom',
+                            axis='observation',
+                            ids=[u'GG_OTU_1', u'GG_OTU_3', u'GG_OTU_5'],
+                            json_table_str=None)
         os.chdir(cwd)
         obs = obs[0]
         self.assertEqual(len(obs.ids()), 4)

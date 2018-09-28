@@ -84,7 +84,7 @@ def generate_subsamples(table, n, axis='sample', by_id=False):
     >>> observed_ids = []
     >>> for _, table in zip(range(100), gen):
     ...     observed_ids.append(tuple(table.ids()))
-    >>> print sorted(set(observed_ids))
+    >>> print(sorted(set(observed_ids)))
     [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
 
     """
@@ -170,11 +170,11 @@ def _natsort_key(item):
     """
     item = str(item)
     try:
-        chunks = re.split('(\d+(?:\.\d+)?)', item)
+        chunks = re.split(r'(\d+(?:\.\d+)?)', item)
     except TypeError:
         # if item is a tuple or list (i.e., indexable, but not a string)
         # work with the first element
-        chunks = re.split('(\d+(?:\.\d+)?)', item[0])
+        chunks = re.split(r'(\d+(?:\.\d+)?)', item[0])
     for ii in range(len(chunks)):
         if chunks[ii] and chunks[ii][0] in '0123456789':
             if '.' in chunks[ii]:
@@ -394,7 +394,7 @@ def is_gzip(fp):
 
 
 @contextmanager
-def biom_open(fp, permission='U'):
+def biom_open(fp, permission='r'):
     """Wrapper to allow opening of gzipped or non-compressed files
 
     Read or write the contents of a file

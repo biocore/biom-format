@@ -8,16 +8,16 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-import tempfile
 from unittest import TestCase, main
 
 import numpy as np
 
 import biom
 from biom.cli.uc_processor import _from_uc
+from biom.tests.long_lines import uc_minimal, uc
+
 
 class TestUcProcessor(TestCase):
-
     def setUp(self):
         """Set up data for use in unit tests."""
         self.cmd = _from_uc
@@ -63,29 +63,6 @@ class TestUcProcessor(TestCase):
                               sample_ids=['f2', 'f3'])
         self.assertEqual(obs, expected)
 
-uc_minimal = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
-# version=1.2.22
-# Tab-separated fields:
-# 1=Type, 2=ClusterNr, 3=SeqLength or ClusterSize, 4=PctId, 5=Strand, 6=QueryStart, 7=SeedStart, 8=Alignment, 9=QueryLabel, 10=TargetLabel
-# Record types (field 1): L=LibSeed, S=NewSeed, H=Hit, R=Reject, D=LibCluster, C=NewCluster, N=NoHit
-# For C and D types, PctId is average id with seed.
-# QueryStart and SeedStart are zero-based relative to start of sequence.
-# If minus strand, SeedStart is relative to reverse-complemented seed.
-S	0	133	*	*	*	*	*	f2_1539	*
-"""
-
-uc = """# uclust --input /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T/UclustExactMatchFilterrW47Ju.fasta --id 0.97 --tmpdir /var/folders/xq/0kh93ng53bs6zzk091w_bbsr0000gn/T --w 8 --stepwords 8 --usersort --maxaccepts 1 --stable_sort --maxrejects 8 --uc dn-otus/uclust_picked_otus/seqs_clusters.uc
-# version=1.2.22
-# Tab-separated fields:
-# 1=Type, 2=ClusterNr, 3=SeqLength or ClusterSize, 4=PctId, 5=Strand, 6=QueryStart, 7=SeedStart, 8=Alignment, 9=QueryLabel, 10=TargetLabel
-# Record types (field 1): L=LibSeed, S=NewSeed, H=Hit, R=Reject, D=LibCluster, C=NewCluster, N=NoHit
-# For C and D types, PctId is average id with seed.
-# QueryStart and SeedStart are zero-based relative to start of sequence.
-# If minus strand, SeedStart is relative to reverse-complemented seed.
-S	0	133	*	*	*	*	*	f2_1539	*
-S	0	133	*	*	*	*	*	f3_1540	*
-H	0	141	100.0	+	0	0	133M8D	f3_42	f2_1539
-"""
 
 rep_set = """>otu1 f2_1539
 ACGT
