@@ -2822,7 +2822,7 @@ class Table(object):
         Parameters
         ----------
         inplace : bool, optional
-            Defaults to ``False``
+            Defaults to ``True``
 
         Returns
         -------
