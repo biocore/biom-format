@@ -10,21 +10,23 @@ New Features:
 
 Bug fixes:
 
+* `Table.to_dataframe(dense=False)` does now correctly produce sparse data frames (and not accidentally dense ones as before)
+
 biom 2.1.7
 ----------
 
 New features and bug fixes, released on 28 September 2018.
 
-Important: 
+Important:
 
 * Python 3.4 support has been dropped. We now only support Python 2.7, 3.5, 3.6 and 3.7.
 * We will be dropping Python 2.7 support on the next release.
-* Pandas >= 0.20.0 is now the minimum required version. 
+* Pandas >= 0.20.0 is now the minimum required version.
 * pytest is now used instead of nose.
 
 New Features:
 
-* Massive performance boost to `Table.collapse` with the default collapse function. The difference was 10s of milliseconds vs. minutes stemming from prior use of `operator.add`. See [issue #761](https://github.com/biocore/biom-format/issues/761). 
+* Massive performance boost to `Table.collapse` with the default collapse function. The difference was 10s of milliseconds vs. minutes stemming from prior use of `operator.add`. See [issue #761](https://github.com/biocore/biom-format/issues/761).
 * `Table.align_to` for aligning one table to another. This is useful in multi-omic analyses where multiple preparations have been performed on the sample physical samples. This is essentially a helper method around `Table.sort_order`. See [issue #747](https://github.com/biocore/biom-format/issues/747).
 * Added additional sanity checks when calling `Table.to_hdf5`, see [PR #769](https://github.com/biocore/biom-format/pull/769).
 * `Table.subsample()` can optionally perform subsampling with replacement. See [issue #774](https://github.com/biocore/biom-format/issues/774).
@@ -47,7 +49,7 @@ New Features:
 * `Table.from_hdf5` now supports a rapid subset in the event that metadata is
    not needed. In benchmarking against the Earth Microbiome Project BIOM table,
    the reduction in runtime was multiple orders of magnitude while additionally
-   preserving substantial memory. 
+   preserving substantial memory.
 * `Table.rankdata` has been added to convert values to ranked abundances on
   either axis. See [issue #645](https://github.com/biocore/biom-format/issues/639).
 * Format of numbers in ``biom summarize-table`` output is now more readable and localized. See [issue #679](https://github.com/biocore/biom-format/issues/679).
@@ -105,8 +107,8 @@ Bug fixes:
 * `biom --version` now prints the software version (previously the individual
   commands did this, but not the base command).
 * `Table.vlen_list_of_str_formatter` was considering a `str` to be valid for
-  formatting resulting in an obscure error when a `str`, as opposed to a 
-  `list` of `str`, was used for taxonomy. See 
+  formatting resulting in an obscure error when a `str`, as opposed to a
+  `list` of `str`, was used for taxonomy. See
   [issue #709](https://github.com/biocore/biom-format/issues/709).
 
 biom 2.1.4
