@@ -1476,7 +1476,7 @@ class TableTests(TestCase):
         exp = pd.SparseDataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
                                  index=['O1', 'O2'],
                                  columns=['S1', 'S2', 'S3'],
-                                 default_fill_value = 0.0)
+                                 default_fill_value=0.0)
         obs = example_table.to_dataframe()
         pdt.assert_frame_equal(obs, exp)
 
