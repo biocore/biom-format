@@ -1482,7 +1482,7 @@ class TableTests(TestCase):
 
     def test_to_dataframe_is_sparse(self):
         df = example_table.to_dataframe()
-        density = (example_table.matrix_data.getnnz() /
+        density = (float(example_table.matrix_data.getnnz()) /
                    np.prod(example_table.shape))
         assert np.allclose(df.density, density)
 
