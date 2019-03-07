@@ -1475,9 +1475,16 @@ class TableTests(TestCase):
     def test_to_dataframe(self):
         exp = pd.SparseDataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
                                  index=['O1', 'O2'],
-                                 columns=['S1', 'S2', 'S3'])
+                                 columns=['S1', 'S2', 'S3'],
+                                 default_fill_value=0.0)
         obs = example_table.to_dataframe()
         pdt.assert_frame_equal(obs, exp)
+
+    def test_to_dataframe_is_sparse(self):
+        df = example_table.to_dataframe()
+        density = (float(example_table.matrix_data.getnnz()) /
+                   np.prod(example_table.shape))
+        assert np.allclose(df.density, density)
 
     def test_to_dataframe_dense(self):
         exp = pd.DataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),

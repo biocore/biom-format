@@ -178,7 +178,7 @@ import scipy.stats
 from copy import deepcopy
 from datetime import datetime
 from json import dumps
-from functools import reduce
+from functools import reduce, partial
 from operator import itemgetter
 from future.builtins import zip
 from future.utils import viewitems
@@ -4045,9 +4045,10 @@ html
             mat = self.matrix_data.toarray()
             constructor = pd.DataFrame
         else:
-            mat = [pd.SparseSeries(r.toarray().squeeze())
-                   for r in self.matrix_data.tocsr()]
-            constructor = pd.SparseDataFrame
+            mat = self.matrix_data
+            constructor = partial(pd.SparseDataFrame,
+                                  default_fill_value=0,
+                                  copy=True)
 
         return constructor(mat, index=index, columns=columns)
 
