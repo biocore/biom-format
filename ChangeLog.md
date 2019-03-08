@@ -10,7 +10,7 @@ New Features:
 
 Bug fixes:
 
-* `Table.to_dataframe(dense=False)` does now correctly produce sparse data frames (and not accidentally dense ones as before)
+* `Table.to_dataframe(dense=False)` does now correctly produce sparse data frames (and not accidentally dense ones as before). See [issue #808](https://github.com/biocore/biom-format/issues/808).
 
 biom 2.1.7
 ----------
