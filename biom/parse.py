@@ -347,7 +347,7 @@ def parse_biom_table(file_obj, ids=None, axis='sample', input_is_dense=False):
     Parameters
     ----------
     file_obj : file-like object, or list
-        file-like object storing the BIOM table (tab-delimited or JSON), or 
+        file-like object storing the BIOM table (tab-delimited or JSON), or
         a list of lines of the BIOM table in tab-delimited or JSON format
     ids : iterable
         The sample/observation ids of the samples/observations that we need
@@ -406,7 +406,8 @@ def parse_biom_table(file_obj, ids=None, axis='sample', input_is_dense=False):
             c = file_obj.read(1)
         if c == '{':
             file_obj.seek(old_pos)
-            t = Table.from_json(json.load(file_obj, object_pairs_hook=OrderedDict),
+            t = Table.from_json(json.load(file_obj,
+                                          object_pairs_hook=OrderedDict),
                                 input_is_dense=input_is_dense)
         else:
             file_obj.seek(old_pos)
@@ -419,7 +420,8 @@ def parse_biom_table(file_obj, ids=None, axis='sample', input_is_dense=False):
         except ValueError:
             t = Table.from_tsv(file_obj, None, None, lambda x: x)
     else:
-        t = Table.from_json(json.loads(file_obj, object_pairs_hook=OrderedDict),
+        t = Table.from_json(json.loads(file_obj,
+                                       object_pairs_hook=OrderedDict),
                             input_is_dense=input_is_dense)
 
     def subset_ids(data, id_, md):
@@ -662,4 +664,3 @@ def load_table(f):
         except (IndexError, TypeError):
             raise TypeError("%s does not appear to be a BIOM file!" % f)
     return table
-
