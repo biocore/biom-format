@@ -3252,26 +3252,26 @@ class Table(object):
         alignable_o = self_o == other_o
         alignable_s = self_s == other_s
 
-        if axis is 'both' and not (alignable_o and alignable_s):
+        if axis == 'both' and not (alignable_o and alignable_s):
             raise DisjointIDError("Cannot align both axes")
-        elif axis is 'sample' and not alignable_s:
+        elif axis == 'sample' and not alignable_s:
             raise DisjointIDError("Cannot align samples")
-        elif axis is 'observation' and not alignable_o:
+        elif axis == 'observation' and not alignable_o:
             raise DisjointIDError("Cannot align observations")
-        elif axis is 'detect' and not (alignable_o or alignable_s):
+        elif axis == 'detect' and not (alignable_o or alignable_s):
             raise DisjointIDError("Neither axis appears alignable")
 
-        if axis is 'both':
+        if axis == 'both':
             order = ['observation', 'sample']
-        elif axis is 'detect':
+        elif axis == 'detect':
             order = []
             if alignable_s:
                 order.append('sample')
             if alignable_o:
                 order.append('observation')
-        elif axis is 'sample':
+        elif axis == 'sample':
             order = ['sample']
-        elif axis is 'observation':
+        elif axis == 'observation':
             order = ['observation']
         else:
             raise UnknownAxisError("Unrecognized axis: %s" % axis)
@@ -3506,18 +3506,18 @@ class Table(object):
 
         """
         # determine the sample order in the resulting table
-        if sample is 'union':
+        if sample == 'union':
             new_samp_order = self._union_id_order(self.ids(), other.ids())
-        elif sample is 'intersection':
+        elif sample == 'intersection':
             new_samp_order = self._intersect_id_order(self.ids(), other.ids())
         else:
             raise TableException("Unknown sample merge type: %s" % sample)
 
         # determine the observation order in the resulting table
-        if observation is 'union':
+        if observation == 'union':
             new_obs_order = self._union_id_order(
                 self.ids(axis='observation'), other.ids(axis='observation'))
-        elif observation is 'intersection':
+        elif observation == 'intersection':
             new_obs_order = self._intersect_id_order(
                 self.ids(axis='observation'), other.ids(axis='observation'))
         else:

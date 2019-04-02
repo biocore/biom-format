@@ -341,13 +341,14 @@ def parse_uc(fh):
     return Table(data, observation_ids=observation_ids, sample_ids=sample_ids)
 
 
-def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
-    r"""Parses the biom table stored in the filepath `fp`
+def parse_biom_table(file_obj, ids=None, axis='sample', input_is_dense=False):
+    r"""Parses the biom table stored in `file_obj`
 
     Parameters
     ----------
-    fp : file like
-        File alike object storing the BIOM table
+    file_obj : file-like object, or list
+        file-like object storing the BIOM table (tab-delimited or JSON), or
+        a list of lines of the BIOM table in tab-delimited or JSON format
     ids : iterable
         The sample/observation ids of the samples/observations that we need
         to retrieve from the biom table
@@ -360,7 +361,7 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
     Returns
     -------
     Table
-        The BIOM table stored at fp
+        The BIOM table stored at file_obj
 
     Raises
     ------
@@ -391,34 +392,36 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
         UnknownAxisError(axis)
 
     try:
-        return Table.from_hdf5(fp, ids=ids, axis=axis)
+        return Table.from_hdf5(file_obj, ids=ids, axis=axis)
     except ValueError:
         pass
     except RuntimeError:
         pass
-    if hasattr(fp, 'read'):
-        old_pos = fp.tell()
+    if hasattr(file_obj, 'read'):
+        old_pos = file_obj.tell()
         # Read in characters until first non-whitespace
         # If it is a {, then this is (most likely) JSON
-        c = fp.read(1)
+        c = file_obj.read(1)
         while c.isspace():
-            c = fp.read(1)
+            c = file_obj.read(1)
         if c == '{':
-            fp.seek(old_pos)
-            t = Table.from_json(json.load(fp, object_pairs_hook=OrderedDict),
+            file_obj.seek(old_pos)
+            t = Table.from_json(json.load(file_obj,
+                                          object_pairs_hook=OrderedDict),
                                 input_is_dense=input_is_dense)
         else:
-            fp.seek(old_pos)
-            t = Table.from_tsv(fp, None, None, lambda x: x)
-    elif isinstance(fp, list):
+            file_obj.seek(old_pos)
+            t = Table.from_tsv(file_obj, None, None, lambda x: x)
+    elif isinstance(file_obj, list):
         try:
-            t = Table.from_json(json.loads(''.join(fp),
+            t = Table.from_json(json.loads(''.join(file_obj),
                                            object_pairs_hook=OrderedDict),
                                 input_is_dense=input_is_dense)
         except ValueError:
-            t = Table.from_tsv(fp, None, None, lambda x: x)
+            t = Table.from_tsv(file_obj, None, None, lambda x: x)
     else:
-        t = Table.from_json(json.loads(fp, object_pairs_hook=OrderedDict),
+        t = Table.from_json(json.loads(file_obj,
+                                       object_pairs_hook=OrderedDict),
                             input_is_dense=input_is_dense)
 
     def subset_ids(data, id_, md):
