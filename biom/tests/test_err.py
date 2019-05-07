@@ -11,6 +11,9 @@
 from unittest import TestCase, main
 from copy import deepcopy
 
+import six
+import numpy as np
+
 from biom import example_table, Table
 from biom.exception import TableException
 from biom.err import (_test_empty, _test_obssize, _test_sampsize, _test_obsdup,
@@ -86,6 +89,17 @@ class ErrorProfileTests(TestCase):
         self.ep.test(self.ex_table, 'empty')
         self.assertTrue(isinstance(self.ep.test(self.ex_table, 'obssize'),
                                    TableException))
+
+    def test_test_evaluation_order(self):
+        # issue 813
+        tab = Table(np.array([[1, 2], [3, 4]]), ['A', 'B'], ['C', 'D'])
+        tab._observation_ids = np.array(['A', 'A'], dtype='object')
+        tab._sample_ids = np.array(['B', 'B'], dtype='object')
+
+        self.assertEqual(self.ep.test(tab, 'obsdup', 'sampdup').args[0],
+                         'Duplicate observation IDs')
+        self.assertEqual(self.ep.test(tab, 'sampdup', 'obsdup').args[0],
+                         'Duplicate observation IDs')
 
     def test_state(self):
         self.ep.state = {'all': 'ignore'}
