@@ -75,10 +75,10 @@ OBSMDSIZE = "Size of observation metadata differs from matrix size!"
 SAMPMDSIZE = "Size of sample metadata differs from matrix size!"
 
 
-def _test_empty(t):
+# _zz_ so the sort order places this test last
+def _zz_test_empty(t):
     """Check if t is empty"""
     return t.is_empty()
-
 
 def _test_obssize(t):
     """Check if the number of observations match data size"""
@@ -319,7 +319,7 @@ class ErrorProfile(object):
 
 
 __errprof = ErrorProfile()
-__errprof.register('empty', EMPTY, 'ignore', _test_empty,
+__errprof.register('empty', EMPTY, 'ignore', _zz_test_empty,
                    exception=TableException)
 __errprof.register('obssize', OBSSIZE, 'raise', _test_obssize,
                    exception=TableException)

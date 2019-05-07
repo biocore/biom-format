@@ -16,10 +16,10 @@ import numpy as np
 
 from biom import example_table, Table
 from biom.exception import TableException
-from biom.err import (_test_empty, _test_obssize, _test_sampsize, _test_obsdup,
-                      _test_sampdup, _test_obsmdsize, _test_sampmdsize,
-                      errstate, geterr, seterr, geterrcall, seterrcall,
-                      errcheck, __errprof)
+from biom.err import (_zz_test_empty, _test_obssize, _test_sampsize,
+                      _test_obsdup, _test_sampdup, _test_obsmdsize,
+                      _test_sampmdsize, errstate, geterr, seterr, geterrcall,
+                      seterrcall, errcheck, __errprof)
 
 
 runtime_ep = __errprof
@@ -33,8 +33,8 @@ class ErrModeTests(TestCase):
         self.ex_table = example_table.copy()
 
     def test_test_empty(self):
-        self.assertTrue(_test_empty(Table([], [], [])))
-        self.assertFalse(_test_empty(self.ex_table))
+        self.assertTrue(_zz_test_empty(Table([], [], [])))
+        self.assertFalse(_zz_test_empty(self.ex_table))
 
     def test_test_obssize(self):
         self.assertFalse(_test_obssize(self.ex_table))
