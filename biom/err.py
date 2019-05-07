@@ -250,8 +250,9 @@ class ErrorProfile(object):
         if not args:
             args = self._test.keys()
 
-        for errtype in args:
+        for errtype in sorted(args):
             test = self._test.get(errtype, lambda: None)
+
             if test(item):
                 return self._handle_error(errtype, item)
 
