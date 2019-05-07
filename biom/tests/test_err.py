@@ -11,7 +11,6 @@
 from unittest import TestCase, main
 from copy import deepcopy
 
-import six
 import numpy as np
 
 from biom import example_table, Table
