@@ -49,7 +49,7 @@ Now that we have a table, let's explore it at a high level first.
 
 >>> table
 10 x 4 <class 'biom.table.Table'> with 39 nonzero entries (97% dense)
->>> print table # doctest: +NORMALIZE_WHITESPACE
+>>> print(table) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S1  S2  S3
 O0  0.0 1.0 2.0 3.0
@@ -62,11 +62,11 @@ O6  24.0    25.0    26.0    27.0
 O7  28.0    29.0    30.0    31.0
 O8  32.0    33.0    34.0    35.0
 O9  36.0    37.0    38.0    39.0
->>> print table.ids() # doctest: +NORMALIZE_WHITESPACE
+>>> print(table.ids()) # doctest: +NORMALIZE_WHITESPACE
 ['S0' 'S1' 'S2' 'S3']
->>> print table.ids(axis='observation') # doctest: +NORMALIZE_WHITESPACE
+>>> print(table.ids(axis='observation')) # doctest: +NORMALIZE_WHITESPACE
 ['O0' 'O1' 'O2' 'O3' 'O4' 'O5' 'O6' 'O7' 'O8' 'O9']
->>> print table.nnz  # number of nonzero entries
+>>> print(table.nnz)  # number of nonzero entries
 39
 
 While it's fun to just poke at the table, let's dig deeper. First, we're going
@@ -80,7 +80,7 @@ or ``False``, where ``True`` indicates that the vector should be retained.
 >>> normed = table.norm(axis='sample', inplace=False)
 >>> filter_f = lambda values, id_, md: md['environment'] == 'A'
 >>> env_a = normed.filter(filter_f, axis='sample', inplace=False)
->>> print env_a # doctest: +NORMALIZE_WHITESPACE
+>>> print(env_a) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S2
 O0  0.0 0.01
@@ -106,7 +106,7 @@ here.
 >>> part_f = lambda id_, md: md['environment']
 >>> env_tables = table.partition(part_f, axis='sample')
 >>> for partition, env_table in env_tables:
-...     print partition, env_table.sum('sample')
+...     print(partition, env_table.sum('sample'))
 A [ 180.  200.]
 B [ 190.  210.]
 
@@ -122,7 +122,7 @@ is equal to zero, we'll keep the value, otherwise we'll set the value to zero.
 
 >>> transform_f = lambda v,i,m: np.where(v % 3 == 0, v, 0)
 >>> mult_of_three = tform = table.transform(transform_f, inplace=False)
->>> print mult_of_three # doctest: +NORMALIZE_WHITESPACE
+>>> print(mult_of_three) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S1  S2  S3
 O0  0.0 0.0 0.0 3.0
@@ -145,22 +145,22 @@ we'll need to specify 'observation' as the axis.
 >>> phylum_idx = 1
 >>> collapse_f = lambda id_, md: '; '.join(md['taxonomy'][:phylum_idx + 1])
 >>> collapsed = mult_of_three.collapse(collapse_f, axis='observation')
->>> print collapsed # doctest: +NORMALIZE_WHITESPACE
+>>> print(collapsed) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S1  S2  S3
 Bacteria; Firmicutes  7.2 6.6 7.2 8.4
-Bacteria; Bacteroidetes   12.0    10.5    0.0 13.5
 Bacteria; Proteobacteria  4.0 3.0 6.0 5.0
+Bacteria; Bacteroidetes   12.0    10.5    0.0 13.5
 
 Finally, let's convert the table to presence/absence data.
 
 >>> pa = collapsed.pa()
->>> print pa # doctest: +NORMALIZE_WHITESPACE
+>>> print(pa) # doctest: +NORMALIZE_WHITESPACE
 # Constructed from biom file
 #OTU ID S0  S1  S2  S3
 Bacteria; Firmicutes  1.0 1.0 1.0 1.0
-Bacteria; Bacteroidetes   1.0 1.0 0.0 1.0
 Bacteria; Proteobacteria  1.0 1.0 1.0 1.0
+Bacteria; Bacteroidetes   1.0 1.0 0.0 1.0
 
 """
 
@@ -179,8 +179,8 @@ from copy import deepcopy
 from datetime import datetime
 from dateutil import parser
 from json import dumps
-from functools import reduce
-from operator import itemgetter, add
+from functools import reduce, partial
+from operator import itemgetter
 from future.builtins import zip
 from future.utils import viewitems
 from collections import defaultdict, Hashable, Iterable
@@ -190,7 +190,7 @@ from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
 import pandas as pd
 
 import six
-from future.utils import string_types
+from future.utils import string_types as _future_string_types
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
 from biom.util import (get_biom_format_version_string,
@@ -203,12 +203,21 @@ from ._transform import _transform
 from ._subsample import _subsample
 
 
+if not six.PY3:
+    string_types = list(_future_string_types)
+    string_types.append(str)
+    string_types.append(unicode)  # noqa
+    string_types = tuple(string_types)
+else:
+    string_types = _future_string_types
+
+
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Adam Robbins-Pianka",
                "Joshua Shorenstein", "Jose Antonio Navas Molina",
-               "Jorge Cañardo Alastuey"]
+               "Jorge Cañardo Alastuey", "Steven Brown"]
 __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
@@ -241,7 +250,7 @@ def _identify_bad_value(dtype, fields):
     for idx, v in enumerate(fields):
         try:
             dtype(v)
-        except:
+        except:  # noqa
             badval = v
             badidx = idx
             break
@@ -266,20 +275,42 @@ def vlen_list_of_str_parser(value):
 
 def general_formatter(grp, header, md, compression):
     """Creates a dataset for a general atomic type category"""
-    test_val = md[0][header]
     shape = (len(md),)
     name = 'metadata/%s' % header
-    if isinstance(test_val, string_types):
+    dtypes = [type(m[header]) for m in md]
+
+    if set(dtypes).issubset(set(string_types)):
         grp.create_dataset(name, shape=shape,
                            dtype=H5PY_VLEN_STR,
                            data=[m[header].encode('utf8') for m in md],
                            compression=compression)
-    elif isinstance(test_val, (list, tuple)):
+    elif set(dtypes).issubset({list, tuple}):
         vlen_list_of_str_formatter(grp, header, md, compression)
     else:
+        formatted = []
+        dtypes_used = []
+        for dt, m in zip(dtypes, md):
+            val = m[header]
+            if val is None:
+                val = '\0'
+                dt = str
+
+            if dt in string_types:
+                val = val.encode('utf8')
+
+            formatted.append(val)
+            dtypes_used.append(dt)
+
+        if set(dtypes_used).issubset(set(string_types)):
+            dtype_to_use = H5PY_VLEN_STR
+        else:
+            dtype_to_use = None
+
+        # try our best...
         grp.create_dataset(
             name, shape=(len(md),),
-            data=[m[header] for m in md],
+            dtype=dtype_to_use,
+            data=formatted,
             compression=compression)
 
 
@@ -316,7 +347,7 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
                     new_md.append({header: parts})
                     lengths.append(len(parts))
                 md = new_md
-            except:
+            except:  # noqa
                 raise TypeError("Category '%s' is not formatted properly. The "
                                 "most common issue is when 'taxonomy' is "
                                 "represented as a flat string instead of a "
@@ -453,12 +484,22 @@ class Table(object):
         self._observation_ids = np.asarray(observation_ids, dtype=object)
 
         if sample_metadata is not None:
-            self._sample_metadata = tuple(sample_metadata)
+            # not m will evaluate True if the object tested is None or
+            # an empty dict, etc.
+            if {not m for m in sample_metadata} == {True, }:
+                self._sample_metadata = None
+            else:
+                self._sample_metadata = tuple(sample_metadata)
         else:
             self._sample_metadata = None
 
         if observation_metadata is not None:
-            self._observation_metadata = tuple(observation_metadata)
+            # not m will evaluate True if the object tested is None or
+            # an empty dict, etc.
+            if {not m for m in observation_metadata} == {True, }:
+                self._observation_metadata = None
+            else:
+                self._observation_metadata = tuple(observation_metadata)
         else:
             self._observation_metadata = None
 
@@ -524,7 +565,7 @@ class Table(object):
         Always returns a 1-D row vector for consistency with numpy iteration
         over arrays.
         """
-        dense_vec = np.asarray(vec.todense())
+        dense_vec = vec.toarray()
 
         if vec.shape == (1, 1):
             # Handle the special case where we only have a single element, but
@@ -672,9 +713,9 @@ class Table(object):
         Examples
         --------
         >>> from biom import example_table
-        >>> print example_table.length(axis='sample')
+        >>> print(example_table.length(axis='sample'))
         3
-        >>> print example_table.length(axis='observation')
+        >>> print(example_table.length(axis='observation'))
         2
         """
         if axis not in ('sample', 'observation'):
@@ -739,8 +780,8 @@ class Table(object):
         >>> tab.del_metadata(keys=['env'])
         >>> for id, md in zip(tab.ids(), tab.metadata()):
         ...     print(id, list(md.items()))
-        ('S1', [('barcode', 'ATGC')])
-        ('S2', [('barcode', 'GGTT')])
+        S1 [('barcode', 'ATGC')]
+        S2 [('barcode', 'GGTT')]
         """
         if axis == 'whole':
             axes = ['sample', 'observation']
@@ -849,7 +890,7 @@ class Table(object):
 
         try:
             row, col = args
-        except:
+        except:  # noqa
             raise IndexError("Must specify (row, col).")
 
         if isinstance(row, slice) and isinstance(col, slice):
@@ -1080,7 +1121,7 @@ class Table(object):
         >>> obs_ids = ['O%d' % i for i in range(1, 6)]
         >>> samp_ids = ['S%d' % i for i in range(1, 21)]
         >>> table = Table(data, obs_ids, samp_ids)
-        >>> print table.head()  # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table.head())  # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3  S4  S5
         O1  0.0 1.0 2.0 3.0 4.0
@@ -1180,12 +1221,12 @@ class Table(object):
 
         Get the ids along the observation axis:
 
-        >>> print table.ids(axis='observation')
+        >>> print(table.ids(axis='observation'))
         ['O1' 'O2']
 
         Get the ids along the sample axis:
 
-        >>> print table.ids()
+        >>> print(table.ids())
         ['S1' 'S2' 'S3']
         """
         if axis == 'sample':
@@ -1239,14 +1280,14 @@ class Table(object):
 
         Get the ids along the sample axis in the table:
 
-        >>> print table.ids(axis='sample')
+        >>> print(table.ids(axis='sample'))
         ['S1' 'S2' 'S3']
 
         Update the sample ids and get the ids along the sample axis in the
         updated table:
 
         >>> updated_table = table.update_ids(id_map, axis='sample')
-        >>> print updated_table.ids(axis='sample')
+        >>> print(updated_table.ids(axis='sample'))
         ['s1.1' 's2.2' 's3.3']
         """
         updated_ids = zeros(self.ids(axis=axis).size, dtype=object)
@@ -1432,7 +1473,7 @@ class Table(object):
 
         Retrieve the number of counts for observation `O1` in sample `Z3`.
 
-        >>> print table.get_value_by_ids('O2', 'Z3')
+        >>> print(table.get_value_by_ids('O2', 'Z3'))
         42.0
 
         See Also
@@ -1563,6 +1604,7 @@ class Table(object):
         for obs_id, obs_values in zip(self.ids(axis='observation'),
                                       self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
+
             obs_id = to_utf8(obs_id)
             if header_key and obs_metadata is not None:
                 md = obs_metadata[self._obs_index[obs_id]]
@@ -1787,7 +1829,7 @@ class Table(object):
 
         >>> sample_gen = bt.iter_data(axis='sample')
         >>> max_sample_count = max([sample.sum() for sample in sample_gen])
-        >>> print max_sample_count
+        >>> print(max_sample_count)
         57.0
         """
         if axis == "sample":
@@ -1895,7 +1937,7 @@ class Table(object):
 
         >>> iter_ = example_table.iter_pairwise()
         >>> for (val_i, id_i, md_i), (val_j, id_j, md_j) in iter_:
-        ...     print id_i, id_j
+        ...     print(id_i, id_j)
         S1 S2
         S1 S3
         S2 S3
@@ -1904,7 +1946,7 @@ class Table(object):
 
         >>> iter_ = example_table.iter_pairwise(tri=False, diag=True)
         >>> for (val_i, id_i, md_i), (val_j, id_j, md_j) in iter_:
-        ...     print id_i, id_j
+        ...     print(id_i, id_j)
         S1 S1
         S1 S2
         S1 S3
@@ -1970,7 +2012,7 @@ class Table(object):
 
         >>> data = np.asarray([[1, 0, 4], [1, 3, 0]])
         >>> table = Table(data, ['O2', 'O1'], ['S2', 'S1', 'S3'])
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S2  S1  S3
         O2  1.0 0.0 4.0
@@ -1979,7 +2021,7 @@ class Table(object):
         Sort the table using a list of samples:
 
         >>> sorted_table = table.sort_order(['S2', 'S3', 'S1'])
-        >>> print sorted_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(sorted_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	S2	S3	S1
         O2	1.0	4.0	0.0
@@ -1989,7 +2031,7 @@ class Table(object):
         Additionally you could sort the table's observations:
 
         >>> sorted_table = table.sort_order(['O1', 'O2'], axis="observation")
-        >>> print sorted_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(sorted_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	S2	S1	S3
         O1	1.0	3.0	0.0
@@ -2043,7 +2085,7 @@ class Table(object):
 
         >>> data = np.asarray([[1, 0, 4], [1, 3, 0]])
         >>> table = Table(data, ['O2', 'O1'], ['S2', 'S1', 'S3'])
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S2  S1  S3
         O2  1.0 0.0 4.0
@@ -2053,7 +2095,7 @@ class Table(object):
         sorting:
 
         >>> new_table = table.sort()
-        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(new_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O2  0.0 1.0 4.0
@@ -2063,7 +2105,7 @@ class Table(object):
         sorting:
 
         >>> new_table = table.sort(axis='observation')
-        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(new_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S2  S1  S3
         O1  1.0 3.0 0.0
@@ -2073,7 +2115,7 @@ class Table(object):
 
         >>> sort_f = lambda x: list(sorted(x, reverse=True))
         >>> new_table = table.sort(sort_f=sort_f)
-        >>> print new_table  # doctest: +NORMALIZE_WHITESPACE
+        >>> print(new_table)  # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S3  S2  S1
         O2  4.0 1.0 0.0
@@ -2136,18 +2178,18 @@ class Table(object):
         untouched:
 
         >>> new_table = table.filter(filter_fn, inplace=False)
-        >>> print table.ids()
+        >>> print(table.ids())
         ['S1' 'S2' 'S3']
-        >>> print new_table.ids()
+        >>> print(new_table.ids())
         ['S1' 'S2']
 
         Using the same filtering function, discard all samples with sample_type
         'a'. This will keep only sample S3, which has sample_type 'b':
 
         >>> new_table = table.filter(filter_fn, inplace=False, invert=True)
-        >>> print table.ids()
+        >>> print(table.ids())
         ['S1' 'S2' 'S3']
-        >>> print new_table.ids()
+        >>> print(new_table.ids())
         ['S3']
 
         Filter the table in-place using the same function (drop all samples
@@ -2155,7 +2197,7 @@ class Table(object):
 
         >>> table.filter(filter_fn)
         2 x 2 <class 'biom.table.Table'> with 2 nonzero entries (50% dense)
-        >>> print table.ids()
+        >>> print(table.ids())
         ['S1' 'S2']
 
         Filter out all observations in the table that do not have
@@ -2164,7 +2206,7 @@ class Table(object):
         >>> filter_fn = lambda val, id_, md: md['full_genome_available']
         >>> table.filter(filter_fn, axis='observation')
         1 x 2 <class 'biom.table.Table'> with 0 nonzero entries (0% dense)
-        >>> print table.ids(axis='observation')
+        >>> print(table.ids(axis='observation'))
         ['O1']
 
         """
@@ -2236,12 +2278,12 @@ class Table(object):
         Partition the table and view results
 
         >>> bins, tables = table.partition(f)
-        >>> print bins[1] # doctest: +NORMALIZE_WHITESPACE
+        >>> print(bins[1]) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  0.0 0.0
         O2  1.0 3.0
-        >>> print tables[1] # doctest: +NORMALIZE_WHITESPACE
+        >>> print(tables[1]) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S3
         O1  1.0
@@ -2400,7 +2442,7 @@ class Table(object):
         ...    [{'barcode': 'aatt'},
         ...     {'barcode': 'ttgg'},
         ...     {'barcode': 'aatt'}])
-        >>> print dt_rich # doctest: +NORMALIZE_WHITESPACE
+        >>> print(dt_rich) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID a   b   c
         1   5.0 6.0 7.0
@@ -2413,7 +2455,7 @@ class Table(object):
         >>> obs_phy = dt_rich.collapse(
         ...    bin_f, norm=False, min_group_size=1,
         ...    axis='observation').sort(axis='observation')
-        >>> print obs_phy # doctest: +NORMALIZE_WHITESPACE
+        >>> print(obs_phy) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID a   b   c
         p__b    5.0 6.0 7.0
@@ -2543,7 +2585,7 @@ class Table(object):
         else:
             if collapse_f is None:
                 def collapse_f(t, axis):
-                    return t.reduce(add, axis)
+                    return t.sum(axis)
 
             for part, table in self.partition(f, axis=axis):
                 axis_ids, axis_md = axis_ids_md(table)
@@ -2561,10 +2603,6 @@ class Table(object):
                 if include_collapsed_metadata:
                     # retain metadata but store by original id
                     collapsed_md.append({'collapsed_ids': axis_ids.tolist()})
-                    # tmp_md = {}
-                    # for id_, md in izip(axis_ids, axis_md):
-                    #     tmp_md[id_] = md
-                    # collapsed_md.append(tmp_md)
 
             data = self._conv_to_self_type(collapsed_data, transpose=transpose)
 
@@ -2624,7 +2662,7 @@ class Table(object):
         Examples
         --------
         >>> from biom import example_table
-        >>> print example_table.min(axis='sample')
+        >>> print(example_table.min(axis='sample'))
         [ 3.  1.  2.]
 
         """
@@ -2664,7 +2702,7 @@ class Table(object):
         Examples
         --------
         >>> from biom import example_table
-        >>> print example_table.max(axis='observation')
+        >>> print(example_table.max(axis='observation'))
         [ 2.  5.]
 
         """
@@ -2684,7 +2722,7 @@ class Table(object):
 
         return max_val
 
-    def subsample(self, n, axis='sample', by_id=False):
+    def subsample(self, n, axis='sample', by_id=False, with_replacement=False):
         """Randomly subsample without replacement.
 
         Parameters
@@ -2698,6 +2736,10 @@ class Table(object):
             matrix (e.g., rarefaction). If `True`, the subsampling is based on
             the IDs (e.g., fetch a random subset of samples). Default is
             `False`.
+        with_replacement : boolean, optional
+            If `False` (default), subsample without replacement. If `True`,
+            resample with replacement via the multinomial distribution.
+            Should not be `True` if `by_id` is `True`.
 
         Returns
         -------
@@ -2707,7 +2749,8 @@ class Table(object):
         Raises
         ------
         ValueError
-            If `n` is less than zero.
+            - If `n` is less than zero.
+            - If `by_id` and `with_replacement` are both True.
 
         Notes
         -----
@@ -2728,15 +2771,15 @@ class Table(object):
 
         Subsample 1 item over the sample axis by value (e.g., rarefaction):
 
-        >>> print table.subsample(1).sum(axis='sample')
+        >>> print(table.subsample(1).sum(axis='sample'))
         [ 1.  1.  1.]
 
         Subsample 2 items over the sample axis, note that 'S1' is filtered out:
 
         >>> ss = table.subsample(2)
-        >>> print ss.sum(axis='sample')
+        >>> print(ss.sum(axis='sample'))
         [ 2.  2.]
-        >>> print ss.ids()
+        >>> print(ss.ids())
         ['S2' 'S3']
 
         Subsample by IDs over the sample axis. For this example, we're going to
@@ -2745,12 +2788,15 @@ class Table(object):
 
         >>> ids = set([tuple(table.subsample(2, by_id=True).ids())
         ...            for i in range(100)])
-        >>> print sorted(ids)
+        >>> print(sorted(ids))
         [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
 
         """
         if n < 0:
             raise ValueError("n cannot be negative.")
+
+        if with_replacement and by_id:
+            raise ValueError("by_id and with_replacement cannot both be True")
 
         table = self.copy()
 
@@ -2761,7 +2807,7 @@ class Table(object):
             table.filter(lambda v, i, md: i in subset, axis=axis)
         else:
             data = table._get_sparse_data()
-            _subsample(data, n)
+            _subsample(data, n, with_replacement)
             table._data = data
 
             table.filter(lambda v, i, md: v.sum() > 0, axis=axis)
@@ -2777,7 +2823,7 @@ class Table(object):
         Parameters
         ----------
         inplace : bool, optional
-            Defaults to ``False``
+            Defaults to ``True``
 
         Returns
         -------
@@ -2798,9 +2844,9 @@ class Table(object):
         Convert to presence/absence data
 
         >>> _ = table.pa()
-        >>> print table.data('O1', 'observation')
+        >>> print(table.data('O1', 'observation'))
         [ 0.  0.  1.]
-        >>> print table.data('O2', 'observation')
+        >>> print(table.data('O2', 'observation'))
         [ 1.  1.  1.]
         """
         def transform_f(data, id_, metadata):
@@ -2848,7 +2894,7 @@ class Table(object):
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
         >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
         ...               [{'foo': 'bar'}, {'x': 'y'}], None)
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O1  0.0 0.0 1.0
@@ -2861,7 +2907,7 @@ class Table(object):
         Transform to a new table on samples
 
         >>> table2 = table.transform(f, 'sample', False)
-        >>> print table2 # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table2) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O1  0.0 0.0 0.5
@@ -2869,7 +2915,7 @@ class Table(object):
 
         `table` hasn't changed
 
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O1  0.0 0.0 1.0
@@ -2881,7 +2927,7 @@ class Table(object):
 
         `table` is different now
 
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O1  0.0 0.0 0.5
@@ -2889,7 +2935,7 @@ class Table(object):
 
         but the table returned (`table3`) is the same as `table`
 
-        >>> print table3 # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table3) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2  S3
         O1  0.0 0.0 0.5
@@ -2951,7 +2997,7 @@ class Table(object):
         Convert observation counts to their ranked abundance, from smallest
         to largest.
 
-        >>> print t.rankdata()  # doctest: +NORMALIZE_WHITESPACE
+        >>> print(t.rankdata())  # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	s1	s2	s3
         o1	2.0	1.0	4.0
@@ -2995,12 +3041,12 @@ class Table(object):
         original table untouched:
 
         >>> new_table = table.norm(inplace=False)
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  2.0 0.0
         O2  6.0 1.0
-        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(new_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  0.25    0.0
@@ -3010,12 +3056,12 @@ class Table(object):
         again leaving the original table untouched:
 
         >>> new_table = table.norm(axis='observation', inplace=False)
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  2.0 0.0
         O2  6.0 1.0
-        >>> print new_table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(new_table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  1.0 0.0
@@ -3025,7 +3071,7 @@ class Table(object):
 
         >>> table.norm(axis='observation')
         2 x 2 <class 'biom.table.Table'> with 3 nonzero entries (75% dense)
-        >>> print table # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID S1  S2
         O1  1.0 0.0
@@ -3157,6 +3203,84 @@ class Table(object):
 
         for ax in axes:
             table.filter(lambda v, i, md: (v > 0).sum(), axis=ax)
+
+        return table
+
+    def align_to(self, other, axis='detect'):
+        """Align self to other over a requested axis
+
+        Parameters
+        ----------
+        other : biom.Table
+            The table to align too
+        axis : str, optional, {sample, observation, both, detect}
+            If 'sample' or 'observation', align to that axis. If 'both', align
+            both axes. If 'detect', align what can be aligned.
+
+        Raises
+        ------
+        DisjointIDError
+            If the requested axis can't be aligned.
+        UnknownAxisError
+            If an unrecognized axis is specified.
+
+        Examples
+        --------
+        Align one table to another, for instance a table of 16S data to a table
+        of metagenomic data. In this example, we're aligning the samples of the
+        two tables.
+
+        >>> from biom import Table
+        >>> import numpy as np
+        >>> amplicon = Table(np.array([[0, 1, 2], [3, 4, 5]]),
+        ...                  ['Ecoli', 'Staphylococcus'],
+        ...                  ['S1', 'S2', 'S3'])
+        >>> metag = Table(np.array([[6, 7, 8], [9, 10, 11]]),
+        ...               ['geneA', 'geneB'],
+        ...               ['S3', 'S2', 'S1'])
+        >>> amplicon = amplicon.align_to(metag)
+        >>> print(amplicon)  # doctest: +NORMALIZE_WHITESPACE
+        # Constructed from biom file
+        #OTU ID	S3	S2	S1
+        Ecoli	2.0	1.0	0.0
+        Staphylococcus	5.0	4.0	3.0
+        """
+        self_o = set(self.ids(axis='observation'))
+        self_s = set(self.ids())
+        other_o = set(other.ids(axis='observation'))
+        other_s = set(other.ids())
+
+        alignable_o = self_o == other_o
+        alignable_s = self_s == other_s
+
+        if axis == 'both' and not (alignable_o and alignable_s):
+            raise DisjointIDError("Cannot align both axes")
+        elif axis == 'sample' and not alignable_s:
+            raise DisjointIDError("Cannot align samples")
+        elif axis == 'observation' and not alignable_o:
+            raise DisjointIDError("Cannot align observations")
+        elif axis == 'detect' and not (alignable_o or alignable_s):
+            raise DisjointIDError("Neither axis appears alignable")
+
+        if axis == 'both':
+            order = ['observation', 'sample']
+        elif axis == 'detect':
+            order = []
+            if alignable_s:
+                order.append('sample')
+            if alignable_o:
+                order.append('observation')
+        elif axis == 'sample':
+            order = ['sample']
+        elif axis == 'observation':
+            order = ['observation']
+        else:
+            raise UnknownAxisError("Unrecognized axis: %s" % axis)
+
+        table = self
+        for aln_axis in order:
+            table = table.sort_order(other.ids(axis=aln_axis),
+                                     axis=aln_axis)
 
         return table
 
@@ -3374,7 +3498,7 @@ class Table(object):
         the resulting table (see `S3`).
 
         >>> merged_table = t_a.merge(t_b)
-        >>> print merged_table  # doctest: +NORMALIZE_WHITESPACE
+        >>> print(merged_table)  # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	S1	S2
         O1	6.0	5.0
@@ -3383,18 +3507,18 @@ class Table(object):
 
         """
         # determine the sample order in the resulting table
-        if sample is 'union':
+        if sample == 'union':
             new_samp_order = self._union_id_order(self.ids(), other.ids())
-        elif sample is 'intersection':
+        elif sample == 'intersection':
             new_samp_order = self._intersect_id_order(self.ids(), other.ids())
         else:
             raise TableException("Unknown sample merge type: %s" % sample)
 
         # determine the observation order in the resulting table
-        if observation is 'union':
+        if observation == 'union':
             new_obs_order = self._union_id_order(
                 self.ids(axis='observation'), other.ids(axis='observation'))
-        elif observation is 'intersection':
+        elif observation == 'intersection':
             new_obs_order = self._intersect_id_order(
                 self.ids(axis='observation'), other.ids(axis='observation'))
         else:
@@ -3665,7 +3789,7 @@ dataset of int32
         ValueError
             If `ids` are not a subset of the samples or observations ids
             present in the hdf5 biom table
-
+            If h5grp is not a HDF5 file or group
 
         References
         ----------
@@ -3699,6 +3823,11 @@ html
         if not HAVE_H5PY:
             raise RuntimeError("h5py is not in the environment, HDF5 support "
                                "is not available")
+
+        import h5py
+        if not isinstance(h5grp, (h5py.Group, h5py.File)):
+            raise ValueError("h5grp does not appear to be an HDF5 file or "
+                             "group")
 
         if axis not in ['sample', 'observation']:
             raise UnknownAxisError(axis)
@@ -3883,13 +4012,18 @@ html
 
         return t
 
-    def to_dataframe(self):
-        """Convert matrix data to a Pandas SparseDataFrame
+    def to_dataframe(self, dense=False):
+        """Convert matrix data to a Pandas SparseDataFrame or DataFrame
+
+        Parameters
+        ----------
+        dense : bool, optional
+            If True, return pd.DataFrame instead of pd.SparseDataFrame.
 
         Returns
         -------
-        pd.SparseDataFrame
-            A SparseDataFrame indexed on the observation IDs, with the column
+        pd.DataFrame or pd.SparseDataFrame
+            A DataFrame indexed on the observation IDs, with the column
             names as the sample IDs.
 
         Notes
@@ -3905,12 +4039,19 @@ html
         O1  0.0  1.0  2.0
         O2  3.0  4.0  5.0
         """
-        # avoid dense conversion
-        # http://stackoverflow.com/a/17819427
-        mat = [pd.SparseSeries(v.toarray().ravel()) for v in self.matrix_data]
-        df = pd.SparseDataFrame(mat, index=self.ids(axis='observation'),
-                                columns=self.ids())
-        return df
+        index = self.ids(axis='observation')
+        columns = self.ids()
+
+        if dense:
+            mat = self.matrix_data.toarray()
+            constructor = pd.DataFrame
+        else:
+            mat = self.matrix_data
+            constructor = partial(pd.SparseDataFrame,
+                                  default_fill_value=0,
+                                  copy=True)
+
+        return constructor(mat, index=index, columns=columns)
 
     def metadata_to_dataframe(self, axis):
         """Convert axis metadata to a Pandas DataFrame
@@ -4115,16 +4256,70 @@ html
         if format_fs is None:
             format_fs = {}
 
-        def axis_dump(grp, ids, md, group_md, order, compression=None):
-            """Store for an axis"""
+        h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
+        h5grp.attrs['type'] = self.type if self.type else ""
+        h5grp.attrs['format-url'] = "http://biom-format.org"
+        h5grp.attrs['format-version'] = self.format_version
+        h5grp.attrs['generated-by'] = generated_by
+        h5grp.attrs['creation-date'] = datetime.now().isoformat()
+        h5grp.attrs['shape'] = self.shape
+        h5grp.attrs['nnz'] = self.nnz
+
+        compression = None
+        if compress is True:
+            compression = 'gzip'
+
+        formatter = defaultdict(lambda: general_formatter)
+        formatter['taxonomy'] = vlen_list_of_str_formatter
+        formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
+        formatter['collapsed_ids'] = vlen_list_of_str_formatter
+        formatter.update(format_fs)
+
+        for axis, order in zip(['observation', 'sample'], ['csr', 'csc']):
+            grp = h5grp.create_group(axis)
+
             self._data = self._data.asformat(order)
 
+            ids = self.ids(axis=axis)
             len_ids = len(ids)
             len_indptr = len(self._data.indptr)
             len_data = self.nnz
 
-            grp.create_group('matrix')
+            md = self.metadata(axis=axis)
 
+            # Create the group for the metadata
+            grp.create_group('metadata')
+            if md:
+                exp = set(md[0])
+                for other_id, other_md in zip(ids[1:], md[1:]):
+                    if set(other_md) != exp:
+                        raise ValueError("%s has inconsistent metadata "
+                                         "categories with %s:\n"
+                                         "%s: %s\n"
+                                         "%s: %s" % (other_id, ids[0],
+                                                     other_id, list(other_md),
+                                                     ids[0], list(exp)))
+
+                for category in md[0]:
+                    # Create the dataset for the current category,
+                    # putting values in id order
+                    formatter[category](grp, category, md, compression)
+
+            group_md = self.group_metadata(axis)
+
+            # Create the group for the group metadata
+            grp.create_group('group-metadata')
+
+            if group_md:
+                for key, value in group_md.items():
+                    datatype, val = value
+                    grp_dataset = grp.create_dataset(
+                        'group-metadata/%s' % key,
+                        shape=(1,), dtype=H5PY_VLEN_STR,
+                        data=val, compression=compression)
+                    grp_dataset.attrs['data_type'] = datatype
+
+            grp.create_group('matrix')
             grp.create_dataset('matrix/data', shape=(len_data,),
                                dtype=np.float64,
                                data=self._data.data,
@@ -4149,51 +4344,6 @@ html
                 # Empty H5PY_VLEN_STR datasets are not supported.
                 grp.create_dataset('ids', shape=(0, ), data=[],
                                    compression=compression)
-
-            # Create the group for the metadata
-            grp.create_group('metadata')
-
-            if md is not None:
-                formatter = defaultdict(lambda: general_formatter)
-                formatter['taxonomy'] = vlen_list_of_str_formatter
-                formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
-                formatter['collapsed_ids'] = vlen_list_of_str_formatter
-                formatter.update(format_fs)
-                # Loop through all the categories
-                for category in md[0]:
-                    # Create the dataset for the current category,
-                    # putting values in id order
-                    formatter[category](grp, category, md, compression)
-
-            # Create the group for the group metadata
-            grp.create_group('group-metadata')
-
-            if group_md:
-                for key, value in group_md.items():
-                    datatype, val = value
-                    grp_dataset = grp.create_dataset(
-                        'group-metadata/%s' % key,
-                        shape=(1,), dtype=H5PY_VLEN_STR,
-                        data=val, compression=compression)
-                    grp_dataset.attrs['data_type'] = datatype
-
-        h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
-        h5grp.attrs['type'] = self.type if self.type else ""
-        h5grp.attrs['format-url'] = "http://biom-format.org"
-        h5grp.attrs['format-version'] = self.format_version
-        h5grp.attrs['generated-by'] = generated_by
-        h5grp.attrs['creation-date'] = datetime.now().isoformat()
-        h5grp.attrs['shape'] = self.shape
-        h5grp.attrs['nnz'] = self.nnz
-        compression = None
-        if compress is True:
-            compression = 'gzip'
-        axis_dump(h5grp.create_group('observation'),
-                  self.ids(axis='observation'),
-                  self.metadata(axis='observation'),
-                  self.group_metadata(axis='observation'), 'csr', compression)
-        axis_dump(h5grp.create_group('sample'), self.ids(),
-                  self.metadata(), self.group_metadata(), 'csc', compression)
 
     @classmethod
     def from_json(self, json_table, data_pump=None,
@@ -4324,7 +4474,7 @@ html
         # the matrix is.
         try:
             num_rows, num_cols = self.shape
-        except:
+        except:  # noqa
             num_rows = num_cols = 0
         has_data = True if num_rows > 0 and num_cols > 0 else False
 
@@ -4469,7 +4619,7 @@ html
         Parse tab separated data into a table:
 
         >>> from biom.table import Table
-        >>> from StringIO import StringIO
+        >>> from io import StringIO
         >>> tsv = 'a\\tb\\tc\\n1\\t2\\t3\\n4\\t5\\t6'
         >>> tsv_fh = StringIO(tsv)
         >>> func = lambda x : x
@@ -4681,7 +4831,7 @@ html
         >>> data = np.asarray([[0, 0, 1], [1, 3, 42]])
         >>> table = Table(data, ['O1', 'O2'], ['S1', 'S2', 'S3'],
         ...               [{'foo': 'bar'}, {'x': 'y'}], None)
-        >>> print table.to_tsv() # doctest: +NORMALIZE_WHITESPACE
+        >>> print(table.to_tsv()) # doctest: +NORMALIZE_WHITESPACE
         # Constructed from biom file
         #OTU ID	S1	S2	S3
         O1	0.0	0.0	1.0

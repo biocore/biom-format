@@ -12,7 +12,7 @@ import numpy as np
 cimport numpy as cnp
 
 
-def _subsample(arr, n):
+def _subsample(arr, n, with_replacement):
     """Subsample non-zero values of a sparse array
 
     Parameters
@@ -47,17 +47,21 @@ def _subsample(arr, n):
         start, end = indptr[i], indptr[i+1]
         length = end - start
         counts_sum = data[start:end].sum()
-       
-        if counts_sum < n:
-            data[start:end] = 0
-            continue
-
-        r = np.arange(length, dtype=np.int32)
-        unpacked = np.repeat(r, data_i[start:end])
-        permuted = np.random.permutation(unpacked)[:n]
         
-        result = np.zeros(length, dtype=np.float64)
-        for idx in range(permuted.shape[0]):
-            result[permuted[idx]] += 1
+        if with_replacement:
+            pvals = data[start:end] / counts_sum
+            data[start:end] = np.random.multinomial(n, pvals)
+        else:
+            if counts_sum < n:
+                data[start:end] = 0
+                continue
 
-        data[start:end] = result
+            r = np.arange(length, dtype=np.int32)
+            unpacked = np.repeat(r, data_i[start:end])
+            permuted = np.random.permutation(unpacked)[:n]
+
+            result = np.zeros(length, dtype=np.float64)
+            for idx in range(permuted.shape[0]):
+                result[permuted[idx]] += 1
+
+            data[start:end] = result

@@ -12,6 +12,9 @@ import numpy as np
 import tempfile
 import h5py
 
+if len(sys.argv) < 3:
+    raise SystemExit
+
 if '://' in sys.argv[1]:
     from urllib import request
     fp, _ = request.urlretrieve(sys.argv[1])

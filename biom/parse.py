@@ -17,7 +17,8 @@ from biom.exception import BiomParseException, UnknownAxisError
 from biom.table import Table
 from biom.util import biom_open, __version__
 import json
-import collections
+from collections import defaultdict, OrderedDict
+
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
@@ -277,7 +278,7 @@ def parse_uc(fh):
         identifier in the resulting ``Table``.
 
     """
-    data = collections.defaultdict(int)
+    data = defaultdict(int)
     sample_idxs = {}
     sample_ids = []
     observation_idxs = {}
@@ -316,7 +317,7 @@ def parse_uc(fh):
         if line_type == 'H' or line_type == 'S':
             # get the sample id
             try:
-                underscore_index = query_id.index('_')
+                underscore_index = query_id.rindex('_')
             except ValueError:
                 raise ValueError(
                  "A query sequence was encountered that does not have an "
@@ -340,13 +341,14 @@ def parse_uc(fh):
     return Table(data, observation_ids=observation_ids, sample_ids=sample_ids)
 
 
-def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
-    r"""Parses the biom table stored in the filepath `fp`
+def parse_biom_table(file_obj, ids=None, axis='sample', input_is_dense=False):
+    r"""Parses the biom table stored in `file_obj`
 
     Parameters
     ----------
-    fp : file like
-        File alike object storing the BIOM table
+    file_obj : file-like object, or list
+        file-like object storing the BIOM table (tab-delimited or JSON), or
+        a list of lines of the BIOM table in tab-delimited or JSON format
     ids : iterable
         The sample/observation ids of the samples/observations that we need
         to retrieve from the biom table
@@ -359,7 +361,7 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
     Returns
     -------
     Table
-        The BIOM table stored at fp
+        The BIOM table stored at file_obj
 
     Raises
     ------
@@ -390,30 +392,37 @@ def parse_biom_table(fp, ids=None, axis='sample', input_is_dense=False):
         UnknownAxisError(axis)
 
     try:
-        return Table.from_hdf5(fp, ids=ids, axis=axis)
-    except:
+        return Table.from_hdf5(file_obj, ids=ids, axis=axis)
+    except ValueError:
         pass
-    if hasattr(fp, 'read'):
-        old_pos = fp.tell()
+    except RuntimeError:
+        pass
+    if hasattr(file_obj, 'read'):
+        old_pos = file_obj.tell()
         # Read in characters until first non-whitespace
         # If it is a {, then this is (most likely) JSON
-        c = fp.read(1)
+        c = file_obj.read(1)
         while c.isspace():
-            c = fp.read(1)
+            c = file_obj.read(1)
         if c == '{':
-            fp.seek(old_pos)
-            t = Table.from_json(json.load(fp), input_is_dense=input_is_dense)
+            file_obj.seek(old_pos)
+            t = Table.from_json(json.load(file_obj,
+                                          object_pairs_hook=OrderedDict),
+                                input_is_dense=input_is_dense)
         else:
-            fp.seek(old_pos)
-            t = Table.from_tsv(fp, None, None, lambda x: x)
-    elif isinstance(fp, list):
+            file_obj.seek(old_pos)
+            t = Table.from_tsv(file_obj, None, None, lambda x: x)
+    elif isinstance(file_obj, list):
         try:
-            t = Table.from_json(json.loads(''.join(fp)),
+            t = Table.from_json(json.loads(''.join(file_obj),
+                                           object_pairs_hook=OrderedDict),
                                 input_is_dense=input_is_dense)
         except ValueError:
-            t = Table.from_tsv(fp, None, None, lambda x: x)
+            t = Table.from_tsv(file_obj, None, None, lambda x: x)
     else:
-        t = Table.from_json(json.loads(fp), input_is_dense=input_is_dense)
+        t = Table.from_json(json.loads(file_obj,
+                                       object_pairs_hook=OrderedDict),
+                            input_is_dense=input_is_dense)
 
     def subset_ids(data, id_, md):
         return id_ in ids
