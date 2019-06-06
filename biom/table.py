@@ -187,6 +187,7 @@ from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
                           vstack, hstack)
 import pandas as pd
+import tqdm
 
 import six
 from future.utils import string_types as _future_string_types
@@ -1547,7 +1548,7 @@ class Table(object):
 
     def delimited_self(self, delim=u'\t', header_key=None, header_value=None,
                        metadata_formatter=str,
-                       observation_column_name=u'#OTU ID'):
+                       observation_column_name=u'#OTU ID', direct_io=None):
         """Return self as a string in a delimited form
 
         Default str output for the Table is just row/col ids and table data
@@ -1599,20 +1600,30 @@ class Table(object):
         else:
             output = ['# Constructed from biom file',
                       '%s%s%s' % (observation_column_name, delim, samp_ids)]
+
+        if direct_io is not None:
+            direct_io.writelines([i+"\n" for i in output])
+
         obs_metadata = self.metadata(axis='observation')
-        for obs_id, obs_values in zip(self.ids(axis='observation'),
+        for obs_id, obs_values in zip(tqdm.tqdm(self.ids(axis='observation'), total=len(self.ids(axis='observation'))),
                                       self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
-
             obs_id = to_utf8(obs_id)
             if header_key and obs_metadata is not None:
                 md = obs_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
-                output.append(
-                    u'%s%s%s\t%s' %
-                    (obs_id, delim, str_obs_vals, md_out))
+                if direct_io is None:
+                    output.append(
+                            u'%s%s%s\t%s' %
+                            (obs_id, delim, str_obs_vals, md_out))
+                else:
+                    direct_io.write(u'%s%s%s\t%s\n' %
+                            (obs_id, delim, str_obs_vals, md_out))
             else:
-                output.append(u'%s%s%s' % (obs_id, delim, str_obs_vals))
+                if direct_io is None:
+                    output.append(u'%s%s%s' % (obs_id, delim, str_obs_vals))
+                else:
+                    direct_io.write((u'%s%s%s\n' % (obs_id, delim, str_obs_vals)))
 
         return '\n'.join(output)
 
@@ -4798,7 +4809,7 @@ html
         return samp_ids, obs_ids, data, metadata, md_name
 
     def to_tsv(self, header_key=None, header_value=None,
-               metadata_formatter=str, observation_column_name='#OTU ID'):
+               metadata_formatter=str, observation_column_name='#OTU ID', direct_io=None):
         """Return self as a string in tab delimited form
 
         Default ``str`` output for the ``Table`` is just row/col ids and table
@@ -4816,6 +4827,10 @@ html
         observation_column_name : str, optional
             Defaults to "#OTU ID". The name of the first column in the output
             table, corresponding to the observation IDs.
+        direct_io : file or file-like object, optional
+            Defaults to ``None``. Must implementing a ``write`` function. If
+            `direct_io` is not ``None``, the final output is written directly
+            to `direct_io` during processing.
 
         Returns
         -------
@@ -4839,10 +4854,12 @@ html
         #OTU ID	S1	S2	S3
         O1	0.0	0.0	1.0
         O2	1.0	3.0	42.0
+        >>> with open("result.tsv", "w") as f:
+                table.to_tsv(direct_io=f)
         """
         return self.delimited_self(u'\t', header_key, header_value,
                                    metadata_formatter,
-                                   observation_column_name)
+                                   observation_column_name, direct_io=direct_io)
 
 
 def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
