@@ -4488,6 +4488,8 @@ html
             test_element = self[0, 0]
 
         # Determine the type of elements the matrix is storing.
+        if isinstance(test_element, np.ndarray):
+            test_element = test_element.flat[0]
         if isinstance(test_element, int):
             matrix_element_type = u"int"
         elif isinstance(test_element, float):
