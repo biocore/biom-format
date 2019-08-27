@@ -80,6 +80,7 @@ def _zz_test_empty(t):
     """Check if t is empty"""
     return t.is_empty()
 
+
 def _test_obssize(t):
     """Check if the number of observations match data size"""
     return t.shape[0] != len(t.ids(axis='observation'))
