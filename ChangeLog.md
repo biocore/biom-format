@@ -8,6 +8,8 @@ New changes since 2.1.7 go here.
 
 New Features:
 
+* The detailed report is no longer part of the table validator. See [issue #378](https://github.com/biocore/biom-format/issues/378).
+
 Bug fixes:
 
 * `Table.to_dataframe(dense=False)` does now correctly produce sparse data frames (and not accidentally dense ones as before). See [issue #808](https://github.com/biocore/biom-format/issues/808).
