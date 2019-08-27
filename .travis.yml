@@ -14,8 +14,7 @@ install:
   - conda create --yes -n env_name python=$PYTHON_VERSION pip click numpy scipy pep8 flake8 coverage future six "pandas>=0.20.0" nose h5py>=2.2.0 cython
   - rm biom/*.c
   - source activate env_name
-  - if [ ${PYTHON_VERSION} = "2.7" ]; then pip install pyqi; fi
-  - if [ ${PYTHON_VERSION} = "2.7" ]; then conda install --yes Sphinx=1.2.2; fi
+  - if [ ${PYTHON_VERSION} = "2.7" ]; then pip install pyqi Sphinx==1.2.2; fi
   - pip install coveralls
   - pip install -e . --no-deps
 script:
