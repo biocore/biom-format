@@ -12,6 +12,8 @@ from __future__ import division
 
 import numpy as np
 from future.utils import string_types
+import io
+import h5py
 
 from biom.exception import BiomParseException, UnknownAxisError
 from biom.table import Table
@@ -658,9 +660,15 @@ def load_table(f):
     >>> table = load_table('path/to/table.biom') # doctest: +SKIP
 
     """
-    with biom_open(f) as fp:
+    if isinstance(f, (io.IOBase, h5py.File)):
         try:
-            table = parse_biom_table(fp)
+            table = parse_biom_table(f)
         except (IndexError, TypeError):
             raise TypeError("%s does not appear to be a BIOM file!" % f)
+    else:
+        with biom_open(f) as fp:
+            try:
+                table = parse_biom_table(fp)
+            except (IndexError, TypeError):
+                raise TypeError("%s does not appear to be a BIOM file!" % f)
     return table
