@@ -4707,7 +4707,7 @@ html
                 # Covers the case where the first line is the header
                 # and there is no indication of it (no comment character)
                 if not header:
-                    header = line.strip(" ").split(delim)[1:]
+                    header = line.rstrip().split(delim)[1:]
                     data_start = list_index + 1
                 else:
                     data_start = list_index
