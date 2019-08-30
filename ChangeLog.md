@@ -6,7 +6,15 @@ biom 2.1.7-dev
 
 New changes since 2.1.7 go here.
 
+Important:
+
+* Python 2.7 support has been dropped.
+* A change to the defaults for `Table.nonzero_counts` was performed such that the default now is to count the number of nonzero features. See [issue #685](https://github.com/biocore/biom-format/issues/685)
+
 New Features:
+
+* The detailed report is no longer part of the table validator. See [issue #378](https://github.com/biocore/biom-format/issues/378).
+* `load_table` now accepts open file handles. See [issue #481](https://github.com/biocore/biom-format/issues/481).
 
 Bug fixes:
 
