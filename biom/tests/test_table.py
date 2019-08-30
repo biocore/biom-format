@@ -2235,9 +2235,9 @@ class SparseTableTests(TestCase):
         exp_obs = np.array([14, 15, 0])
         exp_whole = np.array([29])
 
-        obs_samp = st.nonzero_counts('sample')
-        obs_obs = st.nonzero_counts('observation')
-        obs_whole = st.nonzero_counts('whole')
+        obs_samp = st.nonzero_counts('sample', binary=False)
+        obs_obs = st.nonzero_counts('observation', binary=False)
+        obs_whole = st.nonzero_counts('whole', binary=False)
 
         npt.assert_equal(obs_samp, exp_samp)
         npt.assert_equal(obs_obs, exp_obs)

@@ -16,7 +16,8 @@ from unittest import TestCase, main
 import numpy as np
 import numpy.testing as npt
 
-from biom.parse import generatedby, MetadataMap, parse_biom_table, parse_uc
+from biom.parse import (generatedby, MetadataMap, parse_biom_table, parse_uc,
+                        load_table)
 from biom.table import Table
 from biom.util import HAVE_H5PY, __version__
 from biom.tests.long_lines import (uc_empty, uc_invalid_id, uc_minimal,
@@ -236,6 +237,32 @@ class ParseTests(TestCase):
             os.chdir(__file__.rsplit('/', 1)[0])
         Table.from_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_load_table_filepath(self):
+        cwd = os.getcwd()
+        if '/' in __file__[1:]:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        load_table('test_data/test.biom')
+        os.chdir(cwd)
+
+    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    def test_load_table_inmemory(self):
+        cwd = os.getcwd()
+        if '/' in __file__[1:]:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        load_table(h5py.File('test_data/test.biom'))
+        os.chdir(cwd)
+
+    def test_load_table_inmemory_json(self):
+        cwd = os.getcwd()
+        if '/' in __file__[1:]:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        load_table(open('test_data/test.json'))
+        os.chdir(cwd)
+
+    def test_load_table_inmemory_stringio(self):
+        load_table(StringIO('\n'.join(self.classic_otu_table1_no_tax)))
 
     def test_parse_biom_table(self):
         """tests for parse_biom_table when we do not have h5py"""

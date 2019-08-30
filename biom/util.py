@@ -390,7 +390,8 @@ def is_gzip(fp):
     project, but we obtained permission from the authors of this function to
     port it to the BIOM Format project (and keep it under BIOM's BSD license).
     """
-    return open(fp, 'rb').read(2) == b'\x1f\x8b'
+    with open(fp, 'rb') as f:
+        return f.read(2) == b'\x1f\x8b'
 
 
 @contextmanager

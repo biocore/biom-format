@@ -29,9 +29,7 @@ from biom.util import HAVE_H5PY, biom_open, is_hdf5_file
                    ' specification')
 @click.option('-f', '--format-version', default=None,
               help='The specific format version to validate against')
-@click.option('--detailed-report', is_flag=True, default=False,
-              help='Include more details in the output report')
-def validate_table(input_fp, format_version, detailed_report):
+def validate_table(input_fp, format_version):
     """Validate a BIOM-formatted file.
 
     Test a file for adherence to the Biological Observation Matrix (BIOM)
@@ -46,7 +44,7 @@ def validate_table(input_fp, format_version, detailed_report):
     $ biom validate-table -i table.biom
 
     """
-    valid, report = _validate_table(input_fp, format_version, detailed_report)
+    valid, report = _validate_table(input_fp, format_version)
     click.echo("\n".join(report))
     if valid:
         # apparently silence is too quiet to be golden.
@@ -57,9 +55,8 @@ def validate_table(input_fp, format_version, detailed_report):
         sys.exit(1)
 
 
-def _validate_table(input_fp, format_version=None, detailed_report=False):
-    result = TableValidator()(table=input_fp, format_version=format_version,
-                              detailed_report=detailed_report)
+def _validate_table(input_fp, format_version=None):
+    result = TableValidator()(table=input_fp, format_version=format_version)
     return result['valid_table'], result['report_lines']
 
 
@@ -108,22 +105,14 @@ class TableValidator(object):
                 raise IOError("h5py is not installed, can only validate JSON "
                               "tables")
 
-    def __call__(self, table, format_version=None, detailed_report=False):
-        return self.run(table=table, format_version=format_version,
-                        detailed_report=detailed_report)
+    def __call__(self, table, format_version=None):
+        return self.run(table=table, format_version=format_version)
 
     def _validate_hdf5(self, **kwargs):
         table = kwargs['table']
 
-        # Need to make this an attribute so that we have this info during
-        # validation.
-        detailed_report = kwargs['detailed_report']
-
         report_lines = []
         valid_table = True
-
-        if detailed_report:
-            report_lines.append("Validating BIOM table...")
 
         required_attrs = [
             ('format-url', self._valid_format_url),
@@ -154,9 +143,6 @@ class TableValidator(object):
                 report_lines.append("Missing attribute: '%s'" % required_attr)
                 continue
 
-            if detailed_report:
-                report_lines.append("Validating '%s'..." % required_attr)
-
             status_msg = attr_validator(table)
 
             if len(status_msg) > 0:
@@ -166,20 +152,12 @@ class TableValidator(object):
         for group in required_groups:
             if group not in table:
                 valid_table = False
-                if detailed_report:
-                    report_lines.append("Missing group: %s" % group)
 
         for dataset in required_datasets:
             if dataset not in table:
                 valid_table = False
-                if detailed_report:
-                    report_lines.append("Missing dataset: %s" % dataset)
 
         if 'shape' in table.attrs:
-            if detailed_report:
-                report_lines.append("Validating 'shape' versus number of "
-                                    "samples and observations...")
-
             n_obs, n_samp = table.attrs['shape']
             obs_ids = table.get('observation/ids', None)
             samp_ids = table.get('sample/ids', None)
@@ -270,13 +248,9 @@ class TableValidator(object):
         # Need to make this an attribute so that we have this info during
         # validation.
         self._format_version = kwargs['format_version']
-        detailed_report = kwargs['detailed_report']
 
         report_lines = []
         valid_table = True
-
-        if detailed_report:
-            report_lines.append("Validating BIOM table...")
 
         required_keys = [
             ('format', self._valid_format),
@@ -299,9 +273,6 @@ class TableValidator(object):
                 report_lines.append("Missing field: '%s'" % key)
                 continue
 
-            if detailed_report:
-                report_lines.append("Validating '%s'..." % key)
-
             status_msg = method(table_json)
 
             if len(status_msg) > 0:
@@ -309,10 +280,6 @@ class TableValidator(object):
                 report_lines.append(status_msg)
 
         if 'shape' in table_json:
-            if detailed_report:
-                report_lines.append("Validating 'shape' versus number of rows "
-                                    "and columns...")
-
             if ('rows' in table_json and
                     len(table_json['rows']) != table_json['shape'][0]):
                 valid_table = False

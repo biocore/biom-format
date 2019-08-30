@@ -2822,7 +2822,7 @@ class Table(object):
         Parameters
         ----------
         inplace : bool, optional
-            Defaults to ``False``
+            Defaults to ``True``
 
         Returns
         -------
@@ -3103,7 +3103,7 @@ class Table(object):
             for col_idx in indices[start:end]:
                 yield (obs_id, samp_ids[col_idx])
 
-    def nonzero_counts(self, axis, binary=False):
+    def nonzero_counts(self, axis, binary=True):
         """Get nonzero summaries about an axis
 
         Parameters
@@ -3111,7 +3111,7 @@ class Table(object):
         axis : {'sample', 'observation', 'whole'}
             The axis on which to count nonzero entries
         binary : bool, optional
-            Defaults to ``False``. If ``True``, return number of nonzero
+            Defaults to ``True``. If ``True``, return number of nonzero
             entries. If ``False``, sum the values of the entries.
 
         Returns
