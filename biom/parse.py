@@ -637,7 +637,8 @@ def load_table(f):
 
     Parameters
     ----------
-    f : str
+    f : str or file-like object
+        The entity to parse
 
     Returns
     -------
