@@ -36,14 +36,14 @@ def export_metadata(input_fp, sample_metadata_fp, observation_metadata_fp):
     table = load_table(input_fp)
 
     if sample_metadata_fp:
-        _export_metadata(table, 'sample', sample_metadata_fp)
+        _export_metadata(table, 'sample', input_fp, sample_metadata_fp)
     if observation_metadata_fp:
-        _export_metadata(table, 'observation', observation_metadata_fp)
+        _export_metadata(table, 'observation', input_fp, observation_metadata_fp)
 
 
-def _export_metadata(table, axis, output_fp):
+def _export_metadata(table, axis, input_fp, output_fp):
     try:
         metadata = table.metadata_to_dataframe(axis)
         metadata.to_csv(output_fp, sep='\t')
     except KeyError:
-        click.echo(f'File {output_fp} does not contain {axis} metadata')
+        click.echo('File {} does not contain {} metadata'.format(input_fp, axis))
