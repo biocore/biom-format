@@ -36,7 +36,7 @@ def export_metadata(input_fp, sample_metadata_fp, observation_metadata_fp):
     table = load_table(input_fp)
 
     if sample_metadata_fp:
-        _export_metadata(table, 'sample', input_fp,sample_metadata_fp)
+        _export_metadata(table, 'sample', input_fp, sample_metadata_fp)
     if observation_metadata_fp:
         _export_metadata(table, 'observation', input_fp,
                          observation_metadata_fp)
