@@ -22,7 +22,7 @@ from biom.cli import cli
 @click.option('--observation-metadata-fp', required=False,
               type=click.Path(exists=False, dir_okay=False),
               help='The observation metadata output file.')
-def add_metadata(input_fp, sample_metadata_fp, observation_metadata_fp):
+def export_metadata(input_fp, sample_metadata_fp, observation_metadata_fp):
     """Export metadata as TSV.
 
     Example usage:
@@ -34,10 +34,15 @@ def add_metadata(input_fp, sample_metadata_fp, observation_metadata_fp):
       --observation-metadata-fp observation.tsv
     """
     table = load_table(input_fp)
-    sample_metadata = table.metadata_to_dataframe('sample')
-    observation_metadata = table.metadata_to_dataframe('observation')
 
     if sample_metadata_fp:
-        sample_metadata.to_csv(sample_metadata_fp, sep='\t')
+        _export_metadata(table, 'sample', sample_metadata_fp)
     if observation_metadata_fp:
-        observation_metadata.to_csv(observation_metadata_fp, sep='\t')
+        _export_metadata(table, 'observation', observation_metadata_fp)
+
+def _export_metadata(table, axis, output_fp):
+    try:
+        metadata = table.metadata_to_dataframe(axis)
+        metadata.to_csv(output_fp, sep='\t')
+    except KeyError:
+        click.echo(f'File {output_fp} does not contain {axis} metadata')
