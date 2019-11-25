@@ -40,6 +40,7 @@ def export_metadata(input_fp, sample_metadata_fp, observation_metadata_fp):
     if observation_metadata_fp:
         _export_metadata(table, 'observation', observation_metadata_fp)
 
+
 def _export_metadata(table, axis, output_fp):
     try:
         metadata = table.metadata_to_dataframe(axis)
