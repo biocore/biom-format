@@ -30,6 +30,7 @@ def cli(ctx):
 
 import_module('biom.cli.table_summarizer')
 import_module('biom.cli.metadata_adder')
+import_module('biom.cli.metadata_exporter')
 import_module('biom.cli.table_converter')
 import_module('biom.cli.installation_informer')
 import_module('biom.cli.table_subsetter')
