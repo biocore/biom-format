@@ -4689,6 +4689,14 @@ html
 
         .. shownumpydoc
         """
+        def isfloat(value):
+            # see https://stackoverflow.com/a/20929881
+            try:
+                float(value)
+                return True
+            except ValueError:
+                return False
+
         if not isinstance(lines, list):
             try:
                 hasattr(lines, 'seek')
@@ -4714,30 +4722,21 @@ html
                 break
             list_index += 1
             header = line.strip().split(delim)[1:]
-        # If the first line is the header, then we need to get the next
+
+        # If the first line is the header, then we need to get the data lines
         # line for the "last column" check
         if isinstance(lines, list):
-            line = lines[data_start]
+            value_checks = lines[data_start:]
         else:
             lines.seek(0)
-            for index in range(0, data_start + 1):
-                line = lines.readline()
+            for index in range(0, data_start):
+                lines.readline()
+            value_checks = [line for line in lines]
 
         # attempt to determine if the last column is non-numeric, ie, metadata
-        first_values = line.strip().split(delim)
-        last_value = first_values[-1]
-        last_column_is_numeric = True
-
-        if '.' in last_value:
-            try:
-                float(last_value)
-            except ValueError:
-                last_column_is_numeric = False
-        else:
-            try:
-                int(last_value)
-            except ValueError:
-                last_column_is_numeric = False
+        last_values = [line.rsplit(delim, 1)[-1].strip()
+                       for line in value_checks]
+        last_column_is_numeric = all([isfloat(i) for i in last_values])
 
         # determine sample ids
         if last_column_is_numeric:
@@ -4762,13 +4761,13 @@ html
             lines = lines[data_start:]
 
         for lineno, line in enumerate(lines, data_start):
-            line = line.strip()
-            if not line:
+            if not line.strip():
                 continue
             if line.startswith('#'):
                 continue
 
-            fields = line.strip().split(delim)
+            fields = line.split(delim)
+            fields[-1] = fields[-1].strip()
             obs_ids.append(fields[0])
 
             if last_column_is_numeric:
