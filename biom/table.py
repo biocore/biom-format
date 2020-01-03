@@ -4722,17 +4722,20 @@ html
                 break
             list_index += 1
             header = line.strip().split(delim)[1:]
-        # If the first line is the header, then we need to get the next
+
+        # If the first line is the header, then we need to get the data lines
         # line for the "last column" check
         if isinstance(lines, list):
-            line = lines[data_start]
+            value_checks = lines[data_start:]
         else:
             lines.seek(0)
-            for index in range(0, data_start + 1):
-                line = lines.readline()
+            for index in range(0, data_start):
+                lines.readline()
+            value_checks = [line for line in lines]
 
         # attempt to determine if the last column is non-numeric, ie, metadata
-        last_values = [line.rsplit('\t', 1)[-1].strip() for line in lines]
+        last_values = [line.rsplit(delim, 1)[-1].strip()
+                       for line in value_checks]
         last_column_is_numeric = all([isfloat(i) for i in last_values])
 
         # determine sample ids
