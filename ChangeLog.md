@@ -20,6 +20,7 @@ Bug fixes:
 
 * `Table.to_dataframe(dense=False)` does now correctly produce sparse data frames (and not accidentally dense ones as before). See [issue #808](https://github.com/biocore/biom-format/issues/808).
 * Order of error evaluations was unstable in Python versions without implicit `OrderedDict`. See [issue #813](https://github.com/biocore/biom-format/issues/813). Thanks @gwarmstrong for identifying this bug.
+* `Table._extract_data_from_tsv` would fail if taxonomy was provided, and if the first row had the empty string for taxonomy. See [issue #827](https://github.com/biocore/biom-format/issues/827).
 
 biom 2.1.7
 ----------
