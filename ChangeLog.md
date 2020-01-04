@@ -10,6 +10,7 @@ Important:
 
 * Python 2.7 support has been dropped.
 * A change to the defaults for `Table.nonzero_counts` was performed such that the default now is to count the number of nonzero features. See [issue #685](https://github.com/biocore/biom-format/issues/685)
+* We now require a SciPy >= 1.3.1. See [issue #816](https://github.com/biocore/biom-format/issues/816)
 
 New Features:
 
