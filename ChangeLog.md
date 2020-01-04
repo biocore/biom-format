@@ -9,6 +9,7 @@ New changes since 2.1.7 go here.
 Important:
 
 * Python 2.7 support has been dropped.
+* Python 3.8 support has been added into Travis CI. 
 * A change to the defaults for `Table.nonzero_counts` was performed such that the default now is to count the number of nonzero features. See [issue #685](https://github.com/biocore/biom-format/issues/685)
 
 New Features:
