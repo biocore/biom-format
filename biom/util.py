@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 
 import os
-import sys
 import inspect
 from contextlib import contextmanager
 import io
@@ -27,12 +26,8 @@ try:
     import h5py
     HAVE_H5PY = True
 
-    if sys.version_info.major == 2:
-        H5PY_VLEN_STR = h5py.special_dtype(vlen=unicode)  # noqa
-        H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=unicode)  # noqa
-    else:
-        H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
-        H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=str)
+    H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
+    H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=str)
 
 except ImportError:
     HAVE_H5PY = False
@@ -50,7 +45,7 @@ __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 __format_version__ = (2, 1)
-__version__ = "2.1.7-dev"
+__version__ = "2.1.8"
 
 
 def generate_subsamples(table, n, axis='sample', by_id=False):

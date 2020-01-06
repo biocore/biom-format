@@ -37,7 +37,7 @@ __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente",
                "Jai Ram Rideout", "Jorge Cañardo Alastuey", "Michael Hall"]
 __license__ = "BSD"
-__version__ = "2.1.7-dev"
+__version__ = "2.1.8"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 
@@ -92,10 +92,9 @@ classes = """
     Topic :: Software Development :: Libraries :: Application Frameworks
     Topic :: Software Development :: Libraries :: Python Modules
     Programming Language :: Python
-    Programming Language :: Python :: 2.7
-    Programming Language :: Python :: 3.4
-    Programming Language :: Python :: 3.5
     Programming Language :: Python :: 3.6
+    Programming Language :: Python :: 3.7
+    Programming Language :: Python :: 3.8
     Programming Language :: Python :: Implementation :: CPython
     Operating System :: OS Independent
     Operating System :: POSIX :: Linux
@@ -124,13 +123,9 @@ install_requires = ["click", "numpy >= 1.9.2", "future >= 0.16.0",
                     "scipy >= 1.3.1", 'pandas >= 0.20.0',
                     "six >= 1.10.0"]
 
-# HACK: for backward-compatibility with QIIME 1.9.x, pyqi must be installed.
-# pyqi is not used anymore in this project.
 if sys.version_info[0] < 3:
-    install_requires.append("pyqi")
-    import warnings
-    warnings.warn("Python 2.7 support will be removed on the next release",
-                  DeprecationWarning)
+    raise SystemExit("Python 2.7 is no longer supported")
+
 
 setup(name='biom-format',
       version=__version__,

@@ -1,10 +1,10 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.7-dev
---------------
+biom 2.1.8
+----------
 
-New changes since 2.1.7 go here.
+New features and bug fixes, released on 6 January 2020.
 
 Important:
 
