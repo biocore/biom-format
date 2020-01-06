@@ -1,4 +1,4 @@
-# Modified from https://github.com/biocore/scikit-bio/
+# Modified from https://github.com/biocore/scikit-bio
 language: python
 env:
   - PYTHON_VERSION=3.6 WITH_DOCTEST=True USE_CYTHON=True

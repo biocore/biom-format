@@ -9,7 +9,6 @@
 # ----------------------------------------------------------------------------
 
 import os
-import sys
 import inspect
 from contextlib import contextmanager
 import io
