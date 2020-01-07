@@ -21,6 +21,13 @@ try:
 except ImportError:
     raise ImportError("numpy must be installed prior to installing biom")
 
+
+try:
+    from Cython.Build import cythonize
+except ImportError:
+    raise ImportError("cython must be installed prior to installing biom")
+
+
 # Hack to prevent stupid "TypeError: 'NoneType' object is not callable" error
 # in multiprocessing/util.py _exit_function when running `python
 # setup.py test` (see
@@ -103,8 +110,7 @@ classes = """
 classifiers = [s.strip() for s in classes.split('\n') if s]
 
 # Dealing with Cython
-USE_CYTHON = os.environ.get('USE_CYTHON', False)
-ext = '.pyx' if USE_CYTHON else '.c'
+ext = '.pyx'
 extensions = [Extension("biom._filter",
                         ["biom/_filter" + ext],
                         include_dirs=[np.get_include()]),
@@ -114,14 +120,11 @@ extensions = [Extension("biom._filter",
               Extension("biom._subsample",
                         ["biom/_subsample" + ext],
                         include_dirs=[np.get_include()])]
-
-if USE_CYTHON:
-    from Cython.Build import cythonize
-    extensions = cythonize(extensions)
+extensions = cythonize(extensions)
 
 install_requires = ["click", "numpy >= 1.9.2", "future >= 0.16.0",
                     "scipy >= 1.3.1", 'pandas >= 0.20.0',
-                    "six >= 1.10.0"]
+                    "six >= 1.10.0", "cython >= 0.29"]
 
 if sys.version_info[0] < 3:
     raise SystemExit("Python 2.7 is no longer supported")
