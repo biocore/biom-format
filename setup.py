@@ -9,7 +9,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-import os
 import sys
 
 from setuptools import setup, find_packages
