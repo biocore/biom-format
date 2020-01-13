@@ -11,10 +11,12 @@ biom.table.Table
       .. autosummary::
          :toctree:
       
+         Table.__dir__
          Table.__eq__
          Table.__format__
          Table.__getitem__
          Table.__init__
+         Table.__init_subclass__
          Table.__iter__
          Table.__ne__
          Table.__new__

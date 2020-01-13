@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.7',
+        VERSION:     '2.1.8',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -168,7 +168,7 @@ one-to-many structure</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
 </pre></div>
 </div>
@@ -182,7 +182,7 @@ one-to-many structure</p>
 <span class="gp">... </span>   <span class="p">[{</span><span class="s1">&#39;barcode&#39;</span><span class="p">:</span> <span class="s1">&#39;aatt&#39;</span><span class="p">},</span>
 <span class="gp">... </span>    <span class="p">{</span><span class="s1">&#39;barcode&#39;</span><span class="p">:</span> <span class="s1">&#39;ttgg&#39;</span><span class="p">},</span>
 <span class="gp">... </span>    <span class="p">{</span><span class="s1">&#39;barcode&#39;</span><span class="p">:</span> <span class="s1">&#39;aatt&#39;</span><span class="p">}])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">dt_rich</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">dt_rich</span><span class="p">)</span> 
 <span class="go"># Constructed from biom file</span>
 <span class="go">#OTU ID a   b   c</span>
 <span class="go">1   5.0 6.0 7.0</span>
@@ -193,9 +193,9 @@ one-to-many structure</p>
 <p>Create Function to determine what partition a vector belongs to</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">bin_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">id_</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span><span class="p">[</span><span class="s1">&#39;taxonomy&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">obs_phy</span> <span class="o">=</span> <span class="n">dt_rich</span><span class="o">.</span><span class="n">collapse</span><span class="p">(</span>
-<span class="gp">... </span>   <span class="n">bin_f</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">min_group_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+<span class="gp">... </span>   <span class="n">bin_f</span><span class="p">,</span> <span class="n">norm</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">min_group_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
 <span class="gp">... </span>   <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;observation&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;observation&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">obs_phy</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">obs_phy</span><span class="p">)</span> 
 <span class="go"># Constructed from biom file</span>
 <span class="go">#OTU ID a   b   c</span>
 <span class="go">p__b    5.0 6.0 7.0</span>
@@ -223,7 +223,7 @@ one-to-many structure</p>
 
     <div class="footer">
         &copy; Copyright 2011-2018 The BIOM Format Development Team.
-      Last updated on Sep 28, 2018.
+      Last updated on Jan 13, 2020.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

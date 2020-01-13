@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.7',
+        VERSION:     '2.1.8',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -91,7 +91,7 @@ table will be the union of sample IDs across all tables in others.</p>
 the observation IDs in this example are not disjoint (although they
 can be):</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">Table</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">a</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]]),</span> <span class="p">[</span><span class="s1">&#39;O1&#39;</span><span class="p">,</span> <span class="s1">&#39;O2&#39;</span><span class="p">],</span>
 <span class="gp">... </span>                    <span class="p">[</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="s1">&#39;S3&#39;</span><span class="p">],</span>
 <span class="gp">... </span>                    <span class="p">[{</span><span class="s1">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">}])</span>
@@ -102,7 +102,7 @@ can be):</p>
 <span class="gp">... </span>                    <span class="p">[</span><span class="s1">&#39;S7&#39;</span><span class="p">,</span> <span class="s1">&#39;S8&#39;</span><span class="p">,</span> <span class="s1">&#39;S9&#39;</span><span class="p">],</span>
 <span class="gp">... </span>                    <span class="p">[{</span><span class="s1">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="s1">&#39;foo&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;taxonomy&#39;</span><span class="p">:</span> <span class="s1">&#39;biz&#39;</span><span class="p">}])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">d</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">b</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>  
 <span class="go"># Constructed from biom file</span>
 <span class="go">#OTU ID S1      S2      S3      S4      S5      S6      S7      S8      S9</span>
 <span class="go">O1      0.0     1.0     2.0     0.0     0.0     0.0     12.0    13.0    14.0</span>
@@ -133,7 +133,7 @@ can be):</p>
 
     <div class="footer">
         &copy; Copyright 2011-2018 The BIOM Format Development Team.
-      Last updated on Sep 28, 2018.
+      Last updated on Jan 13, 2020.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

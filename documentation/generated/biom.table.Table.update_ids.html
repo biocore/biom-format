@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.7',
+        VERSION:     '2.1.8',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -116,14 +116,14 @@ are updated in a new table is returned.</p>
 </pre></div>
 </div>
 <p>Get the ids along the sample axis in the table:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">ids</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">ids</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
 <span class="go">[&#39;S1&#39; &#39;S2&#39; &#39;S3&#39;]</span>
 </pre></div>
 </div>
 <p>Update the sample ids and get the ids along the sample axis in the
 updated table:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">updated_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">update_ids</span><span class="p">(</span><span class="n">id_map</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">updated_table</span><span class="o">.</span><span class="n">ids</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">updated_table</span><span class="o">.</span><span class="n">ids</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
 <span class="go">[&#39;s1.1&#39; &#39;s2.2&#39; &#39;s3.3&#39;]</span>
 </pre></div>
 </div>
@@ -148,7 +148,7 @@ updated table:</p>
 
     <div class="footer">
         &copy; Copyright 2011-2018 The BIOM Format Development Team.
-      Last updated on Sep 28, 2018.
+      Last updated on Jan 13, 2020.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.7',
+        VERSION:     '2.1.8',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table.sort<a class="headerlink" href="#biom-table-table-sort" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="biom.table.Table.sort">
-<tt class="descclassname">Table.</tt><tt class="descname">sort</tt><big>(</big><em>sort_f=&lt;function natsort at 0x1a170921b8&gt;</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.sort" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Table.</tt><tt class="descname">sort</tt><big>(</big><em>sort_f=&lt;function natsort at 0x1a1c0c0560&gt;</em>, <em>axis='sample'</em><big>)</big><a class="headerlink" href="#biom.table.Table.sort" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a table sorted along axis</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -85,14 +85,14 @@ values and sorts it</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
 </pre></div>
 </div>
 <p>Create a 2x3 BIOM table:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;O2&#39;</span><span class="p">,</span> <span class="s1">&#39;O1&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="s1">&#39;S3&#39;</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="p">)</span> 
 <span class="go"># Constructed from biom file</span>
 <span class="go">#OTU ID S2  S1  S3</span>
 <span class="go">O2  1.0 0.0 4.0</span>
@@ -102,7 +102,7 @@ values and sorts it</p>
 <p>Sort the order of samples in the table using the default natural
 sorting:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">new_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">sort</span><span class="p">()</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">new_table</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">new_table</span><span class="p">)</span> 
 <span class="go"># Constructed from biom file</span>
 <span class="go">#OTU ID S1  S2  S3</span>
 <span class="go">O2  0.0 1.0 4.0</span>
@@ -112,7 +112,7 @@ sorting:</p>
 <p>Sort the order of observations in the table using the default natural
 sorting:</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">new_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;observation&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">new_table</span><span class="p">)</span> 
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">new_table</span><span class="p">)</span> 
 <span class="go"># Constructed from biom file</span>
 <span class="go">#OTU ID S2  S1  S3</span>
 <span class="go">O1  1.0 3.0 0.0</span>
@@ -120,9 +120,9 @@ sorting:</p>
 </pre></div>
 </div>
 <p>Sort the samples in reverse order using a custom sort function:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sort_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="bp">True</span><span class="p">))</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">sort_f</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">list</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">reverse</span><span class="o">=</span><span class="kc">True</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">new_table</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">sort_f</span><span class="o">=</span><span class="n">sort_f</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">new_table</span><span class="p">)</span>  
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">new_table</span><span class="p">)</span>  
 <span class="go"># Constructed from biom file</span>
 <span class="go">#OTU ID S3  S2  S1</span>
 <span class="go">O2  4.0 1.0 0.0</span>
@@ -150,7 +150,7 @@ sorting:</p>
 
     <div class="footer">
         &copy; Copyright 2011-2018 The BIOM Format Development Team.
-      Last updated on Sep 28, 2018.
+      Last updated on Jan 13, 2020.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

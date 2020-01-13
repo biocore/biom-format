@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.7',
+        VERSION:     '2.1.8',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -99,7 +99,7 @@ string that can be passed to <cite>scipy.stats.rankdata</cite>.</p>
 <p class="last"><tt class="xref py py-obj docutils literal"><span class="pre">scipy.stats.rankdata</span></tt></p>
 </div>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">Table</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span> <span class="mi">99</span><span class="p">,</span>  <span class="mi">12</span><span class="p">,</span>   <span class="mi">8</span><span class="p">],</span> <span class="p">[</span>  <span class="mi">0</span><span class="p">,</span>  <span class="mi">42</span><span class="p">,</span>   <span class="mi">7</span><span class="p">],</span>
 <span class="gp">... </span>                 <span class="p">[</span><span class="mi">112</span><span class="p">,</span>  <span class="mi">42</span><span class="p">,</span>   <span class="mi">6</span><span class="p">],</span> <span class="p">[</span>  <span class="mi">5</span><span class="p">,</span>  <span class="mi">75</span><span class="p">,</span>   <span class="mi">5</span><span class="p">]])</span>
@@ -109,7 +109,7 @@ string that can be passed to <cite>scipy.stats.rankdata</cite>.</p>
 </div>
 <p>Convert observation counts to their ranked abundance, from smallest
 to largest.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">print</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">rankdata</span><span class="p">())</span>  
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">rankdata</span><span class="p">())</span>  
 <span class="go"># Constructed from biom file</span>
 <span class="go">#OTU ID s1      s2      s3</span>
 <span class="go">o1      2.0     1.0     4.0</span>
@@ -139,7 +139,7 @@ to largest.</p>
 
     <div class="footer">
         &copy; Copyright 2011-2018 The BIOM Format Development Team.
-      Last updated on Sep 28, 2018.
+      Last updated on Jan 13, 2020.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

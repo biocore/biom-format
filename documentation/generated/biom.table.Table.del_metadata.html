@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.7',
+        VERSION:     '2.1.8',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -86,7 +86,7 @@ both the sample and observation axes.</p>
 </table>
 <p class="rubric">Examples</p>
 <div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">Table</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tab</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]]),</span>
 <span class="gp">... </span>            <span class="p">[</span><span class="s1">&#39;O1&#39;</span><span class="p">,</span> <span class="s1">&#39;O2&#39;</span><span class="p">],</span>
 <span class="gp">... </span>            <span class="p">[</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="s1">&#39;S2&#39;</span><span class="p">],</span>
@@ -94,7 +94,7 @@ both the sample and observation axes.</p>
 <span class="gp">... </span>                             <span class="p">{</span><span class="s1">&#39;barcode&#39;</span><span class="p">:</span> <span class="s1">&#39;GGTT&#39;</span><span class="p">,</span> <span class="s1">&#39;env&#39;</span><span class="p">:</span> <span class="s1">&#39;B&#39;</span><span class="p">}])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">tab</span><span class="o">.</span><span class="n">del_metadata</span><span class="p">(</span><span class="n">keys</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;env&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="nb">id</span><span class="p">,</span> <span class="n">md</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tab</span><span class="o">.</span><span class="n">ids</span><span class="p">(),</span> <span class="n">tab</span><span class="o">.</span><span class="n">metadata</span><span class="p">()):</span>
-<span class="gp">... </span>    <span class="k">print</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+<span class="gp">... </span>    <span class="nb">print</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">md</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
 <span class="go">S1 [(&#39;barcode&#39;, &#39;ATGC&#39;)]</span>
 <span class="go">S2 [(&#39;barcode&#39;, &#39;GGTT&#39;)]</span>
 </pre></div>
@@ -120,7 +120,7 @@ both the sample and observation axes.</p>
 
     <div class="footer">
         &copy; Copyright 2011-2018 The BIOM Format Development Team.
-      Last updated on Sep 28, 2018.
+      Last updated on Jan 13, 2020.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
