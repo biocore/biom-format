@@ -1605,6 +1605,8 @@ class Table(object):
 
         obs_metadata = self.metadata(axis='observation')
         iterable = self.ids(axis='observation')
+        end_line = '' if direct_io is None else '\n'
+
         for obs_id, obs_values in zip(iterable,
                                       self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
@@ -1612,19 +1614,18 @@ class Table(object):
             if header_key and obs_metadata is not None:
                 md = obs_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
+                output_row = u'%s%s%s\t%s%s' % (obs_id, delim, str_obs_vals, md_outm, end_line)
+
                 if direct_io is None:
-                    output.append(
-                        u'%s%s%s\t%s' %
-                        (obs_id, delim, str_obs_vals, md_out))
+                    output.append(output_row)
                 else:
-                    direct_io.write(u'%s%s%s\t%s\n' %
-                                    (obs_id, delim, str_obs_vals, md_out))
+                    direct_io.write(output_row)
             else:
+                output_row = u'%s%s%s%s' % (obs_id, delim, str_obs_vals, end_line)
                 if direct_io is None:
-                    output.append(u'%s%s%s' % (obs_id, delim, str_obs_vals))
+                    output.append(output_row)
                 else:
-                    direct_io.write((u'%s%s%s\n' %
-                                     (obs_id, delim, str_obs_vals)))
+                    direct_io.write((output_row))
 
         return '\n'.join(output)
 
@@ -4830,7 +4831,7 @@ html
             Defaults to "#OTU ID". The name of the first column in the output
             table, corresponding to the observation IDs.
         direct_io : file or file-like object, optional
-            Defaults to ``None``. Must implementing a ``write`` function. If
+            Defaults to ``None``. Must implement a ``write`` function. If
             `direct_io` is not ``None``, the final output is written directly
             to `direct_io` during processing.
 
