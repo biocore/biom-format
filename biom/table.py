@@ -1615,7 +1615,7 @@ class Table(object):
                 md = obs_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
                 output_row = u'%s%s%s\t%s%s' % \
-                            (obs_id, delim, str_obs_vals, md_out, end_line)
+                        (obs_id, delim, str_obs_vals, md_out, end_line)
 
                 if direct_io is None:
                     output.append(output_row)
