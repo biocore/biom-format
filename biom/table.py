@@ -1614,14 +1614,16 @@ class Table(object):
             if header_key and obs_metadata is not None:
                 md = obs_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
-                output_row = u'%s%s%s\t%s%s' % (obs_id, delim, str_obs_vals, md_out, end_line)
+                output_row = u'%s%s%s\t%s%s' % \
+                            (obs_id, delim, str_obs_vals, md_out, end_line)
 
                 if direct_io is None:
                     output.append(output_row)
                 else:
                     direct_io.write(output_row)
             else:
-                output_row = u'%s%s%s%s' % (obs_id, delim, str_obs_vals, end_line)
+                output_row = u'%s%s%s%s' % \
+                            (obs_id, delim, str_obs_vals, end_line)
                 if direct_io is None:
                     output.append(output_row)
                 else:
