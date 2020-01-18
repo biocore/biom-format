@@ -1547,7 +1547,7 @@ class Table(object):
 
     def delimited_self(self, delim=u'\t', header_key=None, header_value=None,
                        metadata_formatter=str,
-                       observation_column_name=u'#OTU ID', direct_io=None, verbose=False):
+                       observation_column_name=u'#OTU ID', direct_io=None):
         """Return self as a string in a delimited form
 
         Default str output for the Table is just row/col ids and table data
@@ -1618,12 +1618,13 @@ class Table(object):
                             (obs_id, delim, str_obs_vals, md_out))
                 else:
                     direct_io.write(u'%s%s%s\t%s\n' %
-                            (obs_id, delim, str_obs_vals, md_out))
+                                    (obs_id, delim, str_obs_vals, md_out))
             else:
                 if direct_io is None:
                     output.append(u'%s%s%s' % (obs_id, delim, str_obs_vals))
                 else:
-                    direct_io.write((u'%s%s%s\n' % (obs_id, delim, str_obs_vals)))
+                    direct_io.write((u'%s%s%s\n' % 
+                                    (obs_id, delim, str_obs_vals)))
 
         return '\n'.join(output)
 
@@ -4808,7 +4809,9 @@ html
         return samp_ids, obs_ids, data, metadata, md_name
 
     def to_tsv(self, header_key=None, header_value=None,
-               metadata_formatter=str, observation_column_name='#OTU ID', direct_io=None, verbose=False):
+               metadata_formatter=str,
+               observation_column_name='#OTU ID',
+               direct_io=None):
         """Return self as a string in tab delimited form
 
         Default ``str`` output for the ``Table`` is just row/col ids and table
@@ -4858,9 +4861,8 @@ html
         """
         return self.delimited_self(u'\t', header_key, header_value,
                                    metadata_formatter,
-                                   observation_column_name, 
-                                   direct_io=direct_io, 
-                                   verbose=verbose)
+                                   observation_column_name,
+                                   direct_io=direct_io)
 
 
 def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
