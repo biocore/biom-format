@@ -2235,9 +2235,9 @@ class SparseTableTests(TestCase):
         exp_obs = np.array([14, 15, 0])
         exp_whole = np.array([29])
 
-        obs_samp = st.nonzero_counts('sample')
-        obs_obs = st.nonzero_counts('observation')
-        obs_whole = st.nonzero_counts('whole')
+        obs_samp = st.nonzero_counts('sample', binary=False)
+        obs_obs = st.nonzero_counts('observation', binary=False)
+        obs_whole = st.nonzero_counts('whole', binary=False)
 
         npt.assert_equal(obs_samp, exp_samp)
         npt.assert_equal(obs_obs, exp_obs)
@@ -3778,6 +3778,47 @@ class SparseTableTests(TestCase):
         obs = Table._extract_data_from_tsv(input, dtype=int)
         npt.assert_equal(obs, exp)
 
+    def test_extract_data_from_tsv_bad_metadata(self):
+        input = legacy_otu_table_bad_metadata.splitlines()
+        samp_ids = ['Fing', 'Key', 'NA']
+        obs_ids = ['0', '1', '7', '3', '4']
+        metadata = [
+            '',
+            'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Lactobacillal'
+            'es; Lactobacillales; Streptococcaceae; Streptococcus',
+            'Bacteria; Actinobacteria; Actinobacteridae; Gordoniaceae; Coryneb'
+            'acteriaceae',
+            'Bacteria; Firmicutes; Alicyclobacillaceae; Bacilli; Staphylococca'
+            'ceae',
+            'Bacteria; Cyanobacteria; Chloroplasts; vectors']
+        md_name = 'Consensus Lineage'
+        data = [[0, 0, 19111], [0, 1, 44536], [0, 2, 42],
+                [1, 0, 1216], [1, 1, 3500], [1, 2, 6],
+                [2, 0, 1803], [2, 1, 1184], [2, 2, 2],
+                [3, 0, 1722], [3, 1, 4903], [3, 2, 17],
+                [4, 0, 589], [4, 1, 2074], [4, 2, 34]]
+
+        exp = (samp_ids, obs_ids, data, metadata, md_name)
+        obs = Table._extract_data_from_tsv(input, dtype=int)
+        npt.assert_equal(obs, exp)
+
+        # and assert the exact identified bug in #827 is resolved
+        input = extract_tsv_bug.splitlines()
+        samp_ids = ['s1', 's2']
+        obs_ids = ['1', '2', '3']
+        metadata = [
+            '',
+            'k__test;p__test',
+            'k__test;p__test']
+        md_name = 'taxonomy'
+        data = [[0, 0, 123], [0, 1, 32],
+                [1, 0, 315], [1, 1, 3],
+                [2, 1, 22]]
+
+        exp = (samp_ids, obs_ids, data, metadata, md_name)
+        obs = Table._extract_data_from_tsv(input, dtype=int)
+        npt.assert_equal(obs, exp)
+
     def test_identify_bad_value(self):
         pos = [str(i) for i in range(10)]
         exp = (None, None)
@@ -4123,6 +4164,21 @@ ae; Corynebacteriaceae
 aphylococcaceae
 4\t589\t2074\t34\tBacteria; Cyanobacteria; Chloroplasts; vectors
 """
+legacy_otu_table_bad_metadata = u"""# some comment goes here
+#OTU id\tFing\tKey\tNA\tConsensus Lineage
+0\t19111\t44536\t42 \t
+1\t1216\t3500\t6\tBacteria; Firmicutes; Alicyclobacillaceae; Bacilli; La\
+ctobacillales; Lactobacillales; Streptococcaceae; Streptococcus
+7\t1803\t1184\t2\tBacteria; Actinobacteria; Actinobacteridae; Gordoniace\
+ae; Corynebacteriaceae
+3\t1722\t4903\t17\tBacteria; Firmicutes; Alicyclobacillaceae; Bacilli; St\
+aphylococcaceae
+4\t589\t2074\t34\tBacteria; Cyanobacteria; Chloroplasts; vectors
+"""
+extract_tsv_bug = """#OTU ID	s1	s2	taxonomy
+1	123	32\t
+2	315	3	k__test;p__test
+3	0	22	k__test;p__test"""
 otu_table1 = u"""# Some comment
 #OTU ID\tFing\tKey\tNA\tConsensus Lineage
 0\t19111\t44536\t42\tBacteria; Actinobacteria; Actinobacteridae; \

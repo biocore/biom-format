@@ -121,9 +121,8 @@ class TableValidatorTests(TestCase):
         f.close()
         self.to_remove.append('valid_test3')
 
-        obs = self.cmd(table='valid_test3', detailed_report=True)
+        obs = self.cmd(table='valid_test3')
         self.assertTrue(obs['valid_table'])
-        self.assertTrue(len(obs['report_lines']) > 0)
 
     def test_invalid(self):
         """Correctly invalidates a table that is... invalid."""

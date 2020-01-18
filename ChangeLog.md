@@ -1,16 +1,29 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.7-dev
---------------
+biom 2.1.8
+----------
 
-New changes since 2.1.7 go here.
+New features and bug fixes, released on 6 January 2020.
+
+Important:
+
+* Python 2.7 and 3.5 support has been dropped.
+* Python 3.8 support has been added into Travis CI. 
+* A change to the defaults for `Table.nonzero_counts` was performed such that the default now is to count the number of nonzero features. See [issue #685](https://github.com/biocore/biom-format/issues/685)
+* We now require a SciPy >= 1.3.1. See [issue #816](https://github.com/biocore/biom-format/issues/816)
 
 New Features:
+
+* The detailed report is no longer part of the table validator. See [issue #378](https://github.com/biocore/biom-format/issues/378).
+* `load_table` now accepts open file handles. See [issue #481](https://github.com/biocore/biom-format/issues/481).
+* `biom export-metadata` has been added to export metadata as TSV. See [issue #820](https://github.com/biocore/biom-format/issues/820).
 
 Bug fixes:
 
 * `Table.to_dataframe(dense=False)` does now correctly produce sparse data frames (and not accidentally dense ones as before). See [issue #808](https://github.com/biocore/biom-format/issues/808).
+* Order of error evaluations was unstable in Python versions without implicit `OrderedDict`. See [issue #813](https://github.com/biocore/biom-format/issues/813). Thanks @gwarmstrong for identifying this bug.
+* `Table._extract_data_from_tsv` would fail if taxonomy was provided, and if the first row had the empty string for taxonomy. See [issue #827](https://github.com/biocore/biom-format/issues/827). Thanks @KasperSkytte for identifying this bug.
 
 biom 2.1.7
 ----------
