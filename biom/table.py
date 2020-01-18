@@ -1614,8 +1614,8 @@ class Table(object):
                 md_out = metadata_formatter(md.get(header_key, None))
                 if direct_io is None:
                     output.append(
-                            u'%s%s%s\t%s' %
-                            (obs_id, delim, str_obs_vals, md_out))
+                        u'%s%s%s\t%s' %
+                        (obs_id, delim, str_obs_vals, md_out))
                 else:
                     direct_io.write(u'%s%s%s\t%s\n' %
                                     (obs_id, delim, str_obs_vals, md_out))
@@ -1623,8 +1623,8 @@ class Table(object):
                 if direct_io is None:
                     output.append(u'%s%s%s' % (obs_id, delim, str_obs_vals))
                 else:
-                    direct_io.write((u'%s%s%s\n' % 
-                                    (obs_id, delim, str_obs_vals)))
+                    direct_io.write((u'%s%s%s\n' %
+                                     (obs_id, delim, str_obs_vals)))
 
         return '\n'.join(output)
 
@@ -3984,7 +3984,7 @@ html
                                      for i in keep])
             # Create the new indptr
             indptr_subset = np.array([end - start
-                                     for start, end in indptr_indices])
+                                      for start, end in indptr_indices])
             indptr = np.empty(len(keep) + 1, dtype=np.int32)
             indptr[0] = 0
             indptr[1:] = indptr_subset.cumsum()
@@ -4641,7 +4641,7 @@ html
         >>> test_table = Table.from_tsv(tsv_fh, None, None, func)
         """
         (sample_ids, obs_ids, data, t_md,
-            t_md_name) = Table._extract_data_from_tsv(lines, **kwargs)
+         t_md_name) = Table._extract_data_from_tsv(lines, **kwargs)
 
         # if we have it, keep it
         if t_md is None:
