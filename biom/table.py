@@ -187,7 +187,6 @@ from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
                           vstack, hstack)
 import pandas as pd
-import tqdm
 
 import six
 from future.utils import string_types as _future_string_types
@@ -1605,10 +1604,7 @@ class Table(object):
             direct_io.writelines([i+"\n" for i in output])
 
         obs_metadata = self.metadata(axis='observation')
-        if verbose:
-            iterable = tqdm.tqdm(self.ids(axis='observation'), total=len(self.ids(axis='observation')))
-        else:
-            iterable = self.ids(axis='observation')
+        iterable = self.ids(axis='observation')
         for obs_id, obs_values in zip(iterable,
                                       self._iter_obs()):
             str_obs_vals = delim.join(map(str, self._to_dense(obs_values)))
