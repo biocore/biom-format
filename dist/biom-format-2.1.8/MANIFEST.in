@@ -1,0 +1,19 @@
+include README.md
+include COPYING.txt
+include ChangeLog.md
+
+graft biom
+graft support_files
+graft examples
+graft doc
+graft licenses
+graft tests/test_data
+
+prune docs/_build
+
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *.c
+global-exclude .git
+global-exclude *.so
+global-exclude .*.swp
