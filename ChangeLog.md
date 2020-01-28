@@ -18,7 +18,7 @@ New Features:
 * The detailed report is no longer part of the table validator. See [issue #378](https://github.com/biocore/biom-format/issues/378).
 * `load_table` now accepts open file handles. See [issue #481](https://github.com/biocore/biom-format/issues/481).
 * `biom export-metadata` has been added to export metadata as TSV. See [issue #820](https://github.com/biocore/biom-format/issues/820).
-* `Table.to_tsv` has been added to export data to TSV.
+* `Table.to_tsv` has been modified to allow for `direct_io`. See [issue #836](https://github.com/biocore/biom-format/pull/836).
 
 Bug fixes:
 
