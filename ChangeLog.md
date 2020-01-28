@@ -4,7 +4,7 @@ BIOM-Format ChangeLog
 biom 2.1.8
 ----------
 
-New features and bug fixes, released on 6 January 2020.
+New features and bug fixes, released on 28 January 2020.
 
 Important:
 
