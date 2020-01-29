@@ -43,7 +43,7 @@ __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente",
                "Jai Ram Rideout", "Jorge Cañardo Alastuey", "Michael Hall"]
 __license__ = "BSD"
-__version__ = "2.1.8"
+__version__ = "2.1.8-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 
@@ -75,7 +75,6 @@ class PyTest(TestCommand):
 
         # import here, cause outside the eggs aren't loaded
         import pytest
-
         errno = pytest.main(shlex.split(self.pytest_args))
         sys.exit(errno)
 
