@@ -1473,10 +1473,12 @@ class TableTests(TestCase):
              'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')})
 
     def test_to_dataframe(self):
-        exp = pd.SparseDataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
-                                 index=['O1', 'O2'],
-                                 columns=['S1', 'S2', 'S3'],
-                                 default_fill_value=0.0)
+        # re: SparseDtype -- see section on "Sparse data structures" at
+        # https://pandas.pydata.org/pandas-docs/stable/user_guide/sparse.html
+        exp = pd.DataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
+                           index=['O1', 'O2'],
+                           columns=['S1', 'S2', 'S3'],
+                           dtype=pd.SparseDtype("float", 0.0))
         obs = example_table.to_dataframe()
         pdt.assert_frame_equal(obs, exp)
 
@@ -1484,7 +1486,7 @@ class TableTests(TestCase):
         df = example_table.to_dataframe()
         density = (float(example_table.matrix_data.getnnz()) /
                    np.prod(example_table.shape))
-        assert np.allclose(df.density, density)
+        assert np.allclose(df.sparse.density, density)
 
     def test_to_dataframe_dense(self):
         exp = pd.DataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),

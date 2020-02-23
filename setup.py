@@ -121,7 +121,7 @@ extensions = [Extension("biom._filter",
 extensions = cythonize(extensions)
 
 install_requires = ["click", "numpy >= 1.9.2", "future >= 0.16.0",
-                    "scipy >= 1.3.1", 'pandas >= 0.20.0',
+                    "scipy >= 1.3.1", 'pandas >= 0.25.0',
                     "six >= 1.10.0", "cython >= 0.29", "h5py",
                     "cython"]
 

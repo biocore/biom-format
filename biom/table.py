@@ -178,7 +178,7 @@ import scipy.stats
 from copy import deepcopy
 from datetime import datetime
 from json import dumps
-from functools import reduce, partial
+from functools import reduce
 from operator import itemgetter
 from future.builtins import zip
 from future.utils import viewitems
@@ -4027,16 +4027,19 @@ html
         return t
 
     def to_dataframe(self, dense=False):
-        """Convert matrix data to a Pandas SparseDataFrame or DataFrame
+        """Convert matrix data to a Pandas DataFrame
 
         Parameters
         ----------
         dense : bool, optional
-            If True, return pd.DataFrame instead of pd.SparseDataFrame.
+            If True, return a DataFrame that doesn't use sparse arrays
+            internally.
+            The default behavior (if dense is False) is to return a DataFrame
+            that uses sparse arrays.
 
         Returns
         -------
-        pd.DataFrame or pd.SparseDataFrame
+        pd.DataFrame
             A DataFrame indexed on the observation IDs, with the column
             names as the sample IDs.
 
@@ -4061,9 +4064,7 @@ html
             constructor = pd.DataFrame
         else:
             mat = self.matrix_data
-            constructor = partial(pd.SparseDataFrame,
-                                  default_fill_value=0,
-                                  copy=True)
+            constructor = pd.DataFrame.sparse.from_spmatrix
 
         return constructor(mat, index=index, columns=columns)
 
