@@ -11,6 +11,7 @@ from json import loads
 from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 from io import StringIO
+from multiprocessing import Process
 
 import six
 import numpy.testing as npt
@@ -1494,6 +1495,34 @@ class TableTests(TestCase):
                            columns=['S1', 'S2', 'S3'])
         obs = example_table.to_dataframe(dense=True)
         pdt.assert_frame_equal(obs, exp)
+
+    def test_to_dataframe_is_sparse_and_efficient(self):
+        # Make a 1 million x 1 million table, where the only entries are on the
+        # diagonal. Stored dense, this would have 1 trillion entries, so it'd
+        # explode most computers (or at least take a lot of memory to use);
+        # stored dense, this should only require enough memory to keep track of
+        # the 1 million entries along the diagonal.
+        def _make_big_table_and_try_conversion():
+            mil = 1000000
+            big_csr_diag_1s = csr_matrix((mil, mil), dtype="float")
+            big_csr_diag_1s.setdiag(1)
+            feature_ids = ["F{}".format(i) for i in range(mil)]
+            sample_ids = ["S{}".format(i) for i in range(mil)]
+            tbl = Table(big_csr_diag_1s, feature_ids, sample_ids)
+            tbl.to_dataframe()
+            raise ValueError
+        # Process code based on example in
+        # https://medium.com/@chaoren/how-to-timeout-in-python-726002bf2291
+        p = Process(target=_make_big_table_and_try_conversion)
+        p.start()
+        # Block until 30 seconds have passed.
+        p.join(timeout=30)
+        p.terminate()
+        # An exit code of None indicates that the process didn't finish yet.
+        if p.exitcode is None:
+            raise TimeoutError(
+                "Converting a large csr_matrix to a DataFrame was too slow."
+            )
 
     def test_metadata_to_dataframe(self):
         exp_samp = pd.DataFrame(['A', 'B', 'A'], index=['S1', 'S2', 'S3'],
