@@ -1497,12 +1497,22 @@ class TableTests(TestCase):
         pdt.assert_frame_equal(obs, exp)
 
     def test_to_dataframe_is_sparse_and_efficient(self):
-        # Make a 1 million x 1 million table, where the only entries are on the
-        # diagonal. Stored dense, this would have 1 trillion entries, so it'd
-        # explode most computers (or at least take a lot of memory to use);
-        # stored sparse, this should only require enough memory to keep track
-        # of the 1 million entries along the diagonal.
+        """Tests that to_dataframe() is efficient for large/sparse tables."""
+
         def _make_big_table_and_try_conversion():
+            """Creates a very sparse/large table and calls to_dataframe on it.
+
+               If things go well, this shouldn't take more than a few seconds
+               -- but if a dense representation of the table is being used
+               internally somewhere, this will likely cause memory problems
+               that will trigger a timeout of this test.
+            """
+            # We're going to make a 1 million x 1 million table, where the only
+            # entries are on the diagonal. Stored dense, this would have
+            # 1 trillion entries, so it'd explode most computers (or at least
+            # take a lot of memory to use); stored sparse, this should only
+            # require enough memory to keep track of the 1 million entries
+            # along the diagonal.
             mil = 1000000
             big_csr_diag_1s = csr_matrix((mil, mil), dtype="float")
             big_csr_diag_1s.setdiag(1)
@@ -1510,9 +1520,9 @@ class TableTests(TestCase):
             sample_ids = ["S{}".format(i) for i in range(mil)]
             tbl = Table(big_csr_diag_1s, feature_ids, sample_ids)
             tbl.to_dataframe()
-            raise ValueError
-        # Process code based on example in
-        # https://medium.com/@chaoren/how-to-timeout-in-python-726002bf2291
+
+        # Process code based on example at
+        # https://medium.com/@chaoren/how-to-timeout-in-python-726002bf2291.
         p = Process(target=_make_big_table_and_try_conversion)
         p.start()
         # Block until 30 seconds have passed.
