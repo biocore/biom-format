@@ -1500,8 +1500,8 @@ class TableTests(TestCase):
         # Make a 1 million x 1 million table, where the only entries are on the
         # diagonal. Stored dense, this would have 1 trillion entries, so it'd
         # explode most computers (or at least take a lot of memory to use);
-        # stored dense, this should only require enough memory to keep track of
-        # the 1 million entries along the diagonal.
+        # stored sparse, this should only require enough memory to keep track
+        # of the 1 million entries along the diagonal.
         def _make_big_table_and_try_conversion():
             mil = 1000000
             big_csr_diag_1s = csr_matrix((mil, mil), dtype="float")
