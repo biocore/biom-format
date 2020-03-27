@@ -14,18 +14,8 @@ import sys
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
 from setuptools.command.test import test as TestCommand
-
-try:
-    import numpy as np
-except ImportError:
-    raise ImportError("numpy must be installed prior to installing biom")
-
-
-try:
-    from Cython.Build import cythonize
-except ImportError:
-    raise ImportError("cython must be installed prior to installing biom")
-
+import numpy as np
+from Cython.Build import cythonize
 
 # Hack to prevent stupid "TypeError: 'NoneType' object is not callable" error
 # in multiprocessing/util.py _exit_function when running `python
