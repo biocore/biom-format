@@ -8,6 +8,8 @@ New changes since 2.1.8 go here.
 
 Important:
 
+* Cython and numpy are no more required to be present before building, see [PR #840](https://github.com/biocore/biom-format/pull/840)
+
 New Features:
 
 Bug fixes:
