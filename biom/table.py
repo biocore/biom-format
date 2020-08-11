@@ -4067,13 +4067,17 @@ html
 
         return constructor(mat, index=index, columns=columns)
 
-    def to_anndata(self, dense=False):
+    def to_anndata(self, dense=False, dtype="float32", transpose=True):
         """Convert Table to AnnData format
 
         Parameters
         ----------
         dense : bool, optional
             If True, set adata.X as np.ndarray instead of sparse matrix.
+        dtype: str, optional
+            dtype used for storage in anndata object.
+        tranpose: bool, optional
+            If True, transpose the anndata so that observations are columns
 
         Returns
         -------
@@ -4107,7 +4111,7 @@ html
         var = self.metadata_to_dataframe("sample")
         obs = self.metadata_to_dataframe("observation")
 
-        adata = anndata.AnnData(mat, obs=obs, var=var)
+        adata = anndata.AnnData(mat, obs=obs, var=var, dtype=dtype)
         # Convention for scRNA-seq analysis in Python
         adata = adata.transpose()
 
