@@ -19,6 +19,7 @@ from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 import scipy.sparse
 import pandas.util.testing as pdt
 import pandas as pd
+import pytest
 
 from biom import example_table, load_table
 from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
@@ -36,6 +37,12 @@ np.random.seed(1234)
 
 if HAVE_H5PY:
     import h5py
+
+try:
+    import anndata
+    HAVE_ANNDATA = True
+except:
+    HAVE_ANNDATA = False
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
@@ -1493,16 +1500,19 @@ class TableTests(TestCase):
         obs = example_table.to_dataframe(dense=True)
         pdt.assert_frame_equal(obs, exp)
 
+    @pytest.mark.skipif(not HAVE_ANNDATA, reason="anndata not installed")
     def test_to_anndata_dense(self):
         exp = example_table.to_dataframe(dense=True)
         adata = example_table.to_anndata(dense=True, dtype='float64')
         pdt.assert_frame_equal(adata.transpose().to_df(), exp)
 
+    @pytest.mark.skipif(not HAVE_ANNDATA, reason="anndata not installed")
     def test_to_anndata_sparse(self):
         adata = example_table.to_anndata(dense=False)
         mat = example_table.matrix_data.toarray()
         np.testing.assert_array_equal(adata.transpose().X.toarray(), mat)
 
+    @pytest.mark.skipif(not HAVE_ANNDATA, reason="anndata not installed")
     def test_to_anndata_metadata(self):
         adata = example_table.to_anndata()
 
