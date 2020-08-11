@@ -1493,6 +1493,27 @@ class TableTests(TestCase):
         obs = example_table.to_dataframe(dense=True)
         pdt.assert_frame_equal(obs, exp)
 
+    def test_to_anndata_dense(self):
+        exp = pd.DataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
+                           index=['O1', 'O2'],
+                           columns=['S1', 'S2', 'S3'])
+        adata = example_table.to_anndata(dense=True)
+        pdt.assert_frame_equal(adata.transpose().to_df(), exp)
+
+    def test_to_anndata_sparse(self):
+        adata = example_table.to_anndata(dense=False)
+        mat = example_table.matrix_data.toarray()
+        np.testing.assert_array_equal(adata.transpose().X.toarray(), mat)
+
+    def test_to_anndata_metadata(self):
+        adata = example_table.to_anndata()
+
+        obs_samp = example_table.metadata_to_dataframe(axis='sample')
+        obs_obs = example_table.metadata_to_dataframe(axis='observation')
+
+        pdt.assert_frame_equal(adata.obs, obs_samp)
+        pdt.assert_frame_equal(adata.var, obs_obs)
+
     def test_metadata_to_dataframe(self):
         exp_samp = pd.DataFrame(['A', 'B', 'A'], index=['S1', 'S2', 'S3'],
                                 columns=['environment'])
