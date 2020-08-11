@@ -4073,7 +4073,7 @@ html
         Parameters
         ----------
         dense : bool, optional
-            If True, set adata.X as scipy.sparse matrix instead of np.ndarray.
+            If True, set adata.X as np.ndarray instead of sparse matrix.
 
         Returns
         -------
