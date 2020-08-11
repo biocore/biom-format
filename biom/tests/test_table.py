@@ -1494,11 +1494,9 @@ class TableTests(TestCase):
         pdt.assert_frame_equal(obs, exp)
 
     def test_to_anndata_dense(self):
-        exp = pd.DataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
-                           index=['O1', 'O2'],
-                           columns=['S1', 'S2', 'S3'])
-        adata = example_table.to_anndata(dense=True)
-        pdt.assert_frame_equal(adata.transpose().to_df(), exp.astype(np.float32))
+        exp = example_table.to_dataframe(dense=True)
+        adata = example_table.to_anndata(dense=True, dtype='float64')
+        pdt.assert_frame_equal(adata.transpose().to_df(), exp)
 
     def test_to_anndata_sparse(self):
         adata = example_table.to_anndata(dense=False)
