@@ -235,7 +235,7 @@ class ParseTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__[1:]:
             os.chdir(__file__.rsplit('/', 1)[0])
-        Table.from_hdf5(h5py.File('test_data/test.biom'))
+        Table.from_hdf5(h5py.File('test_data/test.biom', 'r'))
         os.chdir(cwd)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
@@ -251,7 +251,7 @@ class ParseTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__[1:]:
             os.chdir(__file__.rsplit('/', 1)[0])
-        load_table(h5py.File('test_data/test.biom'))
+        load_table(h5py.File('test_data/test.biom', 'r'))
         os.chdir(cwd)
 
     def test_load_table_inmemory_json(self):
@@ -300,7 +300,7 @@ class ParseTests(TestCase):
         if '/' in __file__[1:]:
             os.chdir(__file__.rsplit('/', 1)[0])
 
-        t = parse_biom_table(h5py.File('test_data/test.biom'))
+        t = parse_biom_table(h5py.File('test_data/test.biom', 'r'))
 
         # These things are not round-trippable using the general-purpose
         # parse_biom_table function

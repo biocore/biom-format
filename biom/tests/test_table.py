@@ -592,7 +592,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/empty.biom'))
+        t = Table.from_hdf5(h5py.File('test_data/empty.biom', 'r'))
         os.chdir(cwd)
 
         self.assertTrue(t._sample_metadata is None)
@@ -607,7 +607,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'),
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'),
                             parse_fs=parse_fs)
         os.chdir(cwd)
 
@@ -616,7 +616,7 @@ class TableTests(TestCase):
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5_issue_731(self):
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'))
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'))
         self.assertTrue(isinstance(t.table_id, str))
         self.assertTrue(isinstance(t.type, str))
 
@@ -626,7 +626,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'))
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'))
         os.chdir(cwd)
 
         npt.assert_equal(t.ids(), (u'Sample1', u'Sample2', u'Sample3',
@@ -712,7 +712,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'), ids=samples,
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'), ids=samples,
                             subset_with_metadata=False)
         os.chdir(cwd)
 
@@ -740,7 +740,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'), ids=samples)
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'), ids=samples)
         os.chdir(cwd)
 
         npt.assert_equal(t.ids(), [u'Sample2', u'Sample4', u'Sample6'])
@@ -804,7 +804,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'),
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'),
                             ids=observations, axis='observation',
                             subset_with_metadata=False)
         os.chdir(cwd)
@@ -832,7 +832,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'),
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'),
                             ids=observations, axis='observation')
         os.chdir(cwd)
 
@@ -895,12 +895,12 @@ class TableTests(TestCase):
 
         # Raises an error if not all the given samples are in the OTU table
         with self.assertRaises(ValueError):
-            Table.from_hdf5(h5py.File('test_data/test.biom'),
+            Table.from_hdf5(h5py.File('test_data/test.biom', 'r'),
                             ids=['Sample2', 'DoesNotExist', 'Sample6'])
 
         # Raises an error if not all the given observation are in the OTU table
         with self.assertRaises(ValueError):
-            Table.from_hdf5(h5py.File('test_data/test.biom'),
+            Table.from_hdf5(h5py.File('test_data/test.biom', 'r'),
                             ids=['GG_OTU_1', 'DoesNotExist'],
                             axis='observation')
         os.chdir(cwd)
@@ -911,7 +911,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/empty.biom'))
+        t = Table.from_hdf5(h5py.File('test_data/empty.biom', 'r'))
         os.chdir(cwd)
 
         npt.assert_equal(t.ids(), [])
