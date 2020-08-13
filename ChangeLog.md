@@ -12,6 +12,8 @@ Important:
 
 New Features:
 
+* Performance boost to `Table.remove_empty`. For large tables this cuts the running time from 20 seconds to ~1.1 seconds, see [PR #847](https://github.com/biocore/biom-format/pull/847)
+
 Bug fixes:
 
 biom 2.1.8
