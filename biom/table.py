@@ -3457,6 +3457,72 @@ class Table(object):
 
         return concat
 
+    def _fast_merge(self, others):
+        """For simple merge operations it is faster to aggregate using pandas
+
+        Parameters
+        ----------
+        others : Table, or Iterable of Table
+            If a Table, then merge with that table. If an iterable, then merge
+            all of the tables
+        """
+        from operator import or_
+        from functools import reduce
+
+        if not isinstance(others, (list, tuple, set)):
+            others = [others, ]
+        tables = [self] + others
+
+        # gather all identifiers across tables
+        all_features = reduce(or_, [set(t.ids(axis='observation'))
+                                    for t in tables])
+        all_samples = reduce(or_, [set(t.ids()) for t in tables])
+
+        # generate unique integer ids for the identifiers, and let's order
+        # it to be polite
+        feature_map = {i: idx for idx, i in enumerate(sorted(all_features))}
+        sample_map = {i: idx for idx, i in enumerate(sorted(all_samples))}
+
+        # produce a new stable order
+        get1 = lambda x: x[1]  # noqa
+        feature_order = [k for k, v in sorted(feature_map.items(), key=get1)]
+        sample_order = [k for k, v in sorted(sample_map.items(), key=get1)]
+
+        mi = []
+        values = []
+        for table in tables:
+            # these data are effectively [((row_index, col_index), value), ]
+            data_as_dok = table.matrix_data.todok()
+
+            # construct a map of the feature integer index to what it is in
+            # the full table
+            feat_ids = table.ids(axis='observation')
+            samp_ids = table.ids()
+            table_features = {idx: feature_map[i]
+                              for idx, i in enumerate(feat_ids)}
+            table_samples = {idx: sample_map[i]
+                             for idx, i in enumerate(samp_ids)}
+
+            for (f, s), v in data_as_dok.items():
+                # collect the indices and values, adjusting the indices as we
+                # go
+                mi.append((table_features[f], table_samples[s]))
+                values.append(v)
+
+        # construct a multiindex of the indices where the outer index is the
+        # feature and the inner index is the sample
+        mi = pd.MultiIndex.from_tuples(mi)
+        grouped = pd.Series(values, index=mi)
+
+        # aggregate the values where the outer and inner values in the
+        # multiindex are the same
+        collapsed_rcv = grouped.groupby(level=[0, 1]).sum()
+
+        # convert into a representation understood by the Table constructor
+        list_list = [[r, c, v] for (r, c), v in collapsed_rcv.items()]
+
+        return self.__class__(list_list, feature_order, sample_order)
+
     def merge(self, other, sample='union', observation='union',
               sample_metadata_f=prefer_self,
               observation_metadata_f=prefer_self):
@@ -3520,6 +3586,12 @@ class Table(object):
         O3	10.0	10.0
 
         """
+        s_md = self.metadata()
+        o_md = self.metadata(axis='observation')
+        if s_md is None and o_md is None:
+            if sample == 'union' and observation == 'union':
+                return self._fast_merge([other, ])
+
         # determine the sample order in the resulting table
         if sample == 'union':
             new_samp_order = self._union_id_order(self.ids(), other.ids())
