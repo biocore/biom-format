@@ -2262,6 +2262,30 @@ class SparseTableTests(TestCase):
         npt.assert_equal(obs_obs, exp_obs)
         npt.assert_equal(obs_whole, exp_whole)
 
+    def test_fast_merge(self):
+        data = {(0, 0): 10, (0, 1): 12, (1, 0): 14, (1, 1): 16}
+        exp = Table(data, ['1', '2'], ['a', 'b'])
+        obs = self.st1._fast_merge(self.st1)
+        self.assertEqual(obs, exp)
+
+    def test_fast_merge_multiple(self):
+        data = {(0, 0): 20, (0, 1): 24, (1, 0): 28, (1, 1): 32}
+        exp = Table(data, ['1', '2'], ['a', 'b'])
+        obs = self.st1._fast_merge([self.st1, self.st1, self.st1])
+        self.assertEqual(obs, exp)
+
+    def test_fast_merge_nonoverlapping(self):
+        t2 = self.st1.copy()
+        t2.update_ids({'a': 'd'}, inplace=True, strict=False)
+        t2.update_ids({'2': '3'}, axis='observation', inplace=True,
+                      strict=False)
+        exp = Table(np.array([[5, 12, 5],
+                              [7, 8, 0],
+                              [0, 8, 7]]), ['1', '2', '3'],
+                    ['a', 'b', 'd'])
+        obs = t2._fast_merge(self.st1)
+        self.assertEqual(obs, exp)
+
     def test_merge(self):
         """Merge two tables"""
         u = 'union'
