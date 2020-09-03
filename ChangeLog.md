@@ -12,6 +12,8 @@ Important:
 
 New Features:
 
+* A much faster way to merge tables (without metadata) has been added. For large tables, this was a few minutes rather than a few hours. This method is implicitly invoked when calling `Table.merge` if unioning both axes, and the tables lack metadata. `Table.concat` is still much faster, but assumes one axis is disjoint. See [PR #848](https://github.com/biocore/biom-format/pull/848).
+
 Bug fixes:
 
 biom 2.1.8

@@ -2265,7 +2265,7 @@ class SparseTableTests(TestCase):
     def test_fast_merge(self):
         data = {(0, 0): 10, (0, 1): 12, (1, 0): 14, (1, 1): 16}
         exp = Table(data, ['1', '2'], ['a', 'b'])
-        obs = self.st1._fast_merge(self.st1)
+        obs = self.st1._fast_merge([self.st1])
         self.assertEqual(obs, exp)
 
     def test_fast_merge_multiple(self):
@@ -2283,7 +2283,7 @@ class SparseTableTests(TestCase):
                               [7, 8, 0],
                               [0, 8, 7]]), ['1', '2', '3'],
                     ['a', 'b', 'd'])
-        obs = t2._fast_merge(self.st1)
+        obs = t2._fast_merge([self.st1])
         self.assertEqual(obs, exp)
 
     def test_merge(self):

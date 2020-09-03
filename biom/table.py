@@ -179,7 +179,7 @@ from copy import deepcopy
 from datetime import datetime
 from json import dumps
 from functools import reduce, partial
-from operator import itemgetter
+from operator import itemgetter, or_
 from future.builtins import zip
 from future.utils import viewitems
 from collections import defaultdict, Hashable, Iterable
@@ -3466,11 +3466,6 @@ class Table(object):
             If a Table, then merge with that table. If an iterable, then merge
             all of the tables
         """
-        from operator import or_
-        from functools import reduce
-
-        if not isinstance(others, (list, tuple, set)):
-            others = [others, ]
         tables = [self] + others
 
         # gather all identifiers across tables
@@ -3539,8 +3534,9 @@ class Table(object):
 
         Parameters
         ----------
-        other : biom.Table
-            The other table to merge with this one
+        other : biom.Table or Iterable of Table
+            The other table to merge with this one. If an iterable, the tables
+            are expected to not have metadata.
         sample : {'union', 'intersection'}, optional
         observation : {'union', 'intersection'}, optional
         sample_metadata_f : function, optional
@@ -3590,7 +3586,10 @@ class Table(object):
         o_md = self.metadata(axis='observation')
         if s_md is None and o_md is None:
             if sample == 'union' and observation == 'union':
-                return self._fast_merge([other, ])
+                if isinstance(other, (list, set, tuple)):
+                    return self._fast_merge(other)
+                else:
+                    return self._fast_merge([other, ])
 
         # determine the sample order in the resulting table
         if sample == 'union':
