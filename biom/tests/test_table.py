@@ -1478,13 +1478,19 @@ class TableTests(TestCase):
                                  columns=['S1', 'S2', 'S3'],
                                  default_fill_value=0.0)
         obs = example_table.to_dataframe()
-        pdt.assert_frame_equal(obs, exp)
+
+        # assert frame equal between sparse and dense frames wasn't working
+        # as expected
+        npt.assert_equal(obs.values, exp.values)
+        self.assertTrue(all(obs.index == exp.index))
+        self.assertTrue(all(obs.columns == exp.columns))
 
     def test_to_dataframe_is_sparse(self):
         df = example_table.to_dataframe()
         density = (float(example_table.matrix_data.getnnz()) /
                    np.prod(example_table.shape))
-        assert np.allclose(df.density, density)
+        df_density = (df > 0).sum().sum() / np.prod(df.shape)
+        assert np.allclose(df_density, density)
 
     def test_to_dataframe_dense(self):
         exp = pd.DataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),

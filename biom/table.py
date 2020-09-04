@@ -4135,10 +4135,8 @@ html
             mat = self.matrix_data.toarray()
             constructor = pd.DataFrame
         else:
-            mat = self.matrix_data
-            constructor = partial(pd.SparseDataFrame,
-                                  default_fill_value=0,
-                                  copy=True)
+            mat = self.matrix_data.copy()
+            constructor = partial(pd.DataFrame.sparse.from_spmatrix)
 
         return constructor(mat, index=index, columns=columns)
 
