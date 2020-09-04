@@ -3216,7 +3216,7 @@ class Table(object):
             axes = [axis]
 
         for ax in axes:
-            table.filter(lambda v, i, md: (v > 0).sum(), axis=ax)
+            table.filter(table.ids(axis=ax)[table.sum(axis=ax) > 0], axis=ax)
 
         return table
 
