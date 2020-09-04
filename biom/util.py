@@ -202,9 +202,9 @@ def prefer_self(x, y):
     return x if x is not None else y
 
 
-def index_list(l):
+def index_list(item):
     """Takes a list and returns {l[idx]:idx}"""
-    return dict([(id_, idx) for idx, id_ in enumerate(l)])
+    return dict([(id_, idx) for idx, id_ in enumerate(item)])
 
 
 def load_biom_config():
