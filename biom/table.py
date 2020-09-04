@@ -3586,7 +3586,7 @@ class Table(object):
         o_md = self.metadata(axis='observation')
         no_md = (s_md is None) and (o_md is None)
         ignore_md = (sample_metadata_f is None) and \
-                (observation_metadata_f is None)
+            (observation_metadata_f is None)
 
         if no_md or ignore_md:
             if sample == 'union' and observation == 'union':
