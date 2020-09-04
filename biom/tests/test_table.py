@@ -40,8 +40,9 @@ if HAVE_H5PY:
 
 try:
     import anndata
+    anndata.__version__
     HAVE_ANNDATA = True
-except:
+except ImportError:
     HAVE_ANNDATA = False
 
 __author__ = "Daniel McDonald"

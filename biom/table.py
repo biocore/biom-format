@@ -4082,7 +4082,8 @@ html
         Returns
         -------
         anndata.AnnData
-            AnnData with matrix data and associated observation and sample metadata.
+            AnnData with matrix data and associated observation and
+            sample metadata.
 
         Notes
         -----
