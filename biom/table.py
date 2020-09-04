@@ -3553,6 +3553,8 @@ class Table(object):
 
         Notes
         -----
+        - If ``sample_metadata_f`` and ``observation_metadata_f`` are None,
+            then a fast merge is applied.
         - There is an implicit type conversion to ``float``.
         - The return type is always that of ``self``
 
