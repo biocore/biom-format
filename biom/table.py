@@ -3584,7 +3584,11 @@ class Table(object):
         """
         s_md = self.metadata()
         o_md = self.metadata(axis='observation')
-        if s_md is None and o_md is None:
+        no_md = (s_md is None) and (o_md is None)
+        ignore_md = (sample_metadata_f == None) and \
+                (observation_metadata_f == None)
+
+        if no_md or ignore_md:
             if sample == 'union' and observation == 'union':
                 if isinstance(other, (list, set, tuple)):
                     return self._fast_merge(other)
