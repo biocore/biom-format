@@ -1,9 +1,9 @@
 # Modified from https://github.com/biocore/scikit-bio
 language: python
 env:
-  - PYTHON_VERSION=3.6 WITH_DOCTEST=True 
-  - PYTHON_VERSION=3.7 WITH_DOCTEST=True 
-  - PYTHON_VERSION=3.8 WITH_DOCTEST=True 
+  - PYTHON_VERSION=3.6 WITH_DOCTEST=True
+  - PYTHON_VERSION=3.7 WITH_DOCTEST=True
+  - PYTHON_VERSION=3.8 WITH_DOCTEST=True
 before_install:
   - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
   - chmod +x miniconda.sh
@@ -14,9 +14,10 @@ install:
   - source activate env_name
   - if [ ${PYTHON_VERSION} = "3.7" ]; then pip install sphinx==1.2.2 "docutils<0.14"; fi
   - pip install coveralls
+  - pip install anndata
   - pip install -e . --no-deps
 script:
-  - make test 
+  - make test
   - biom show-install-info
   - if [ ${PYTHON_VERSION} = "3.7" ]; then make -C doc html; fi
   # we can only validate the tables if we have H5PY
