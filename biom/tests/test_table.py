@@ -19,6 +19,7 @@ from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 import scipy.sparse
 import pandas.util.testing as pdt
 import pandas as pd
+import pytest
 
 from biom import example_table, load_table
 from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
@@ -36,6 +37,13 @@ np.random.seed(1234)
 
 if HAVE_H5PY:
     import h5py
+
+try:
+    import anndata
+    anndata.__version__
+    HAVE_ANNDATA = True
+except ImportError:
+    HAVE_ANNDATA = False
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
@@ -1473,18 +1481,25 @@ class TableTests(TestCase):
              'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')})
 
     def test_to_dataframe(self):
-        exp = pd.SparseDataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
-                                 index=['O1', 'O2'],
-                                 columns=['S1', 'S2', 'S3'],
-                                 default_fill_value=0.0)
+        mat = csr_matrix(np.array([[0.0, 1.0, 2.0],
+                                   [3.0, 4.0, 5.0]]))
+        exp = pd.DataFrame.sparse.from_spmatrix(mat,
+                                                index=['O1', 'O2'],
+                                                columns=['S1', 'S2', 'S3'])
         obs = example_table.to_dataframe()
-        pdt.assert_frame_equal(obs, exp)
+
+        # assert frame equal between sparse and dense frames wasn't working
+        # as expected
+        npt.assert_equal(obs.values, exp.values)
+        self.assertTrue(all(obs.index == exp.index))
+        self.assertTrue(all(obs.columns == exp.columns))
 
     def test_to_dataframe_is_sparse(self):
         df = example_table.to_dataframe()
         density = (float(example_table.matrix_data.getnnz()) /
                    np.prod(example_table.shape))
-        assert np.allclose(df.density, density)
+        df_density = (df > 0).sum().sum() / np.prod(df.shape)
+        assert np.allclose(df_density, density)
 
     def test_to_dataframe_dense(self):
         exp = pd.DataFrame(np.array([[0.0, 1.0, 2.0], [3.0, 4.0, 5.0]]),
@@ -1492,6 +1507,28 @@ class TableTests(TestCase):
                            columns=['S1', 'S2', 'S3'])
         obs = example_table.to_dataframe(dense=True)
         pdt.assert_frame_equal(obs, exp)
+
+    @pytest.mark.skipif(not HAVE_ANNDATA, reason="anndata not installed")
+    def test_to_anndata_dense(self):
+        exp = example_table.to_dataframe(dense=True)
+        adata = example_table.to_anndata(dense=True, dtype='float64')
+        pdt.assert_frame_equal(adata.transpose().to_df(), exp)
+
+    @pytest.mark.skipif(not HAVE_ANNDATA, reason="anndata not installed")
+    def test_to_anndata_sparse(self):
+        adata = example_table.to_anndata(dense=False)
+        mat = example_table.matrix_data.toarray()
+        np.testing.assert_array_equal(adata.transpose().X.toarray(), mat)
+
+    @pytest.mark.skipif(not HAVE_ANNDATA, reason="anndata not installed")
+    def test_to_anndata_metadata(self):
+        adata = example_table.to_anndata()
+
+        obs_samp = example_table.metadata_to_dataframe(axis='sample')
+        obs_obs = example_table.metadata_to_dataframe(axis='observation')
+
+        pdt.assert_frame_equal(adata.obs, obs_samp)
+        pdt.assert_frame_equal(adata.var, obs_obs)
 
     def test_metadata_to_dataframe(self):
         exp_samp = pd.DataFrame(['A', 'B', 'A'], index=['S1', 'S2', 'S3'],
@@ -2261,6 +2298,30 @@ class SparseTableTests(TestCase):
         npt.assert_equal(obs_samp, exp_samp)
         npt.assert_equal(obs_obs, exp_obs)
         npt.assert_equal(obs_whole, exp_whole)
+
+    def test_fast_merge(self):
+        data = {(0, 0): 10, (0, 1): 12, (1, 0): 14, (1, 1): 16}
+        exp = Table(data, ['1', '2'], ['a', 'b'])
+        obs = self.st1._fast_merge([self.st1])
+        self.assertEqual(obs, exp)
+
+    def test_fast_merge_multiple(self):
+        data = {(0, 0): 20, (0, 1): 24, (1, 0): 28, (1, 1): 32}
+        exp = Table(data, ['1', '2'], ['a', 'b'])
+        obs = self.st1._fast_merge([self.st1, self.st1, self.st1])
+        self.assertEqual(obs, exp)
+
+    def test_fast_merge_nonoverlapping(self):
+        t2 = self.st1.copy()
+        t2.update_ids({'a': 'd'}, inplace=True, strict=False)
+        t2.update_ids({'2': '3'}, axis='observation', inplace=True,
+                      strict=False)
+        exp = Table(np.array([[5, 12, 5],
+                              [7, 8, 0],
+                              [0, 8, 7]]), ['1', '2', '3'],
+                    ['a', 'b', 'd'])
+        obs = t2._fast_merge([self.st1])
+        self.assertEqual(obs, exp)
 
     def test_merge(self):
         """Merge two tables"""
