@@ -3216,7 +3216,7 @@ class Table(object):
             axes = [axis]
 
         for ax in axes:
-            table.filter(lambda v, i, md: (v > 0).sum(), axis=ax)
+            table.filter(table.ids(axis=ax)[table.sum(axis=ax) > 0], axis=ax)
 
         return table
 
@@ -4141,6 +4141,57 @@ html
             constructor = partial(pd.DataFrame.sparse.from_spmatrix)
 
         return constructor(mat, index=index, columns=columns)
+
+    def to_anndata(self, dense=False, dtype="float32", transpose=True):
+        """Convert Table to AnnData format
+
+        Parameters
+        ----------
+        dense : bool, optional
+            If True, set adata.X as np.ndarray instead of sparse matrix.
+        dtype: str, optional
+            dtype used for storage in anndata object.
+        tranpose: bool, optional
+            If True, transpose the anndata so that observations are columns
+
+        Returns
+        -------
+        anndata.AnnData
+            AnnData with matrix data and associated observation and
+            sample metadata.
+
+        Notes
+        -----
+        Nested metadata are not included.
+
+        Examples
+        --------
+        >>> from biom import example_table
+        >>> adata = example_table.to_anndata()
+        >>> adata
+        AnnData object with n_obs × n_vars = 3 × 2
+            obs: 'environment'
+            var: 'taxonomy_0', 'taxonomy_1'
+        """
+        try:
+            import anndata
+        except ImportError:
+            raise ImportError(
+                "Please install anndata package -- `pip install anndata`"
+            )
+        mat = self.matrix_data
+
+        if dense:
+            mat = mat.toarray()
+
+        var = self.metadata_to_dataframe("sample")
+        obs = self.metadata_to_dataframe("observation")
+
+        adata = anndata.AnnData(mat, obs=obs, var=var, dtype=dtype)
+        # Convention for scRNA-seq analysis in Python
+        adata = adata.transpose()
+
+        return adata
 
     def metadata_to_dataframe(self, axis):
         """Convert axis metadata to a Pandas DataFrame

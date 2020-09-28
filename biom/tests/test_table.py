@@ -19,6 +19,7 @@ from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 import scipy.sparse
 import pandas.util.testing as pdt
 import pandas as pd
+import pytest
 
 from biom import example_table, load_table
 from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
@@ -36,6 +37,13 @@ np.random.seed(1234)
 
 if HAVE_H5PY:
     import h5py
+
+try:
+    import anndata
+    anndata.__version__
+    HAVE_ANNDATA = True
+except ImportError:
+    HAVE_ANNDATA = False
 
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
@@ -1499,6 +1507,28 @@ class TableTests(TestCase):
                            columns=['S1', 'S2', 'S3'])
         obs = example_table.to_dataframe(dense=True)
         pdt.assert_frame_equal(obs, exp)
+
+    @pytest.mark.skipif(not HAVE_ANNDATA, reason="anndata not installed")
+    def test_to_anndata_dense(self):
+        exp = example_table.to_dataframe(dense=True)
+        adata = example_table.to_anndata(dense=True, dtype='float64')
+        pdt.assert_frame_equal(adata.transpose().to_df(), exp)
+
+    @pytest.mark.skipif(not HAVE_ANNDATA, reason="anndata not installed")
+    def test_to_anndata_sparse(self):
+        adata = example_table.to_anndata(dense=False)
+        mat = example_table.matrix_data.toarray()
+        np.testing.assert_array_equal(adata.transpose().X.toarray(), mat)
+
+    @pytest.mark.skipif(not HAVE_ANNDATA, reason="anndata not installed")
+    def test_to_anndata_metadata(self):
+        adata = example_table.to_anndata()
+
+        obs_samp = example_table.metadata_to_dataframe(axis='sample')
+        obs_obs = example_table.metadata_to_dataframe(axis='observation')
+
+        pdt.assert_frame_equal(adata.obs, obs_samp)
+        pdt.assert_frame_equal(adata.var, obs_obs)
 
     def test_metadata_to_dataframe(self):
         exp_samp = pd.DataFrame(['A', 'B', 'A'], index=['S1', 'S2', 'S3'],
