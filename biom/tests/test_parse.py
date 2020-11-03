@@ -229,6 +229,22 @@ class ParseTests(TestCase):
         self.assertEqual(tab.metadata(), None)
         self.assertEqual(tab.metadata(axis='observation'), None)
 
+    def test_parse_adjacency_table_header(self):
+        lines = ['#OTU ID\tSampleID\tvalue\n',
+                 'O1\tS1\t10\n',
+                 'O4\tS2\t1\n',
+                 'O3\tS3\t2\n',
+                 'O4\tS1\t5\n',
+                 'O2\tS2\t3\n']
+        exp = Table(np.array([[10, 0, 0],
+                              [0, 3, 0],
+                              [0, 0, 2],
+                              [5, 1, 0]]),
+                    ['O1', 'O2', 'O3', 'O4'],
+                    ['S1', 'S2', 'S3'])
+        obs = Table.from_adjacency(''.join(lines))
+        self.assertEqual(obs, exp)
+
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_parse_biom_table_hdf5(self):
         """Make sure we can parse a HDF5 table through the same loader"""
