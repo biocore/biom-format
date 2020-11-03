@@ -75,7 +75,7 @@ example_table = Table([[0, 1, 2], [3, 4, 5]], ['O1', 'O2'],
 
 def concat(tables, *args, **kwargs):
     """Wrapper for biom.Table.concat which requires a table instance"""
-    return tables[0].concat(tables[1:])
+    return tables[0].concat(tables[1:], *args, **kwargs)
 
 
 __all__ = ['Table', 'example_table', 'parse_table', 'load_table',
