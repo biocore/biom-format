@@ -4816,7 +4816,7 @@ html
         obs_order = sorted(set(observations))
         samp_order = sorted(set(samples))
         obs_index = {o: i for i, o in enumerate(obs_order)}
-        samp_index = {o: i for i, o in enumerate(samp_order)}
+        samp_index = {s: i for i, s in enumerate(samp_order)}
 
         # fill the matrix
         row = np.array([obs_index[obs] for obs in observations], dtype=int)
