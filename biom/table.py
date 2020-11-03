@@ -3303,7 +3303,7 @@ class Table(object):
 
         Parameters
         ----------
-        others : iterable of biom.Table
+        others : iterable of biom.Table, or a single biom.Table instance
             Tables to concatenate
         axis : {'sample', 'observation'}, optional
             The axis to concatenate on. i.e., if axis is 'sample', then tables
@@ -3347,6 +3347,9 @@ class Table(object):
         O5	0.0	0.0	0.0	0.0	0.0	0.0	15.0	16.0	17.0
 
         """
+        if isinstance(others, self.__class__):
+            others = [others, ]
+
         # we grow along the opposite axis
         invaxis = self._invert_axis(axis)
         if axis == 'sample':

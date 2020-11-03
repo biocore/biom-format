@@ -156,6 +156,32 @@ class SupportTests(TestCase):
         obs = table1.concat([table2, ], axis='sample')
         self.assertEqual(obs, exp)
 
+    def test_concat_single_table(self):
+        table2 = example_table.copy()
+        table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
+
+        exp = Table(np.array([[0, 1, 2, 0, 1, 2],
+                              [3, 4, 5, 3, 4, 5]]),
+                    ['O1', 'O2'],
+                    ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
+                    example_table.metadata(axis='observation'),
+                    list(example_table.metadata()) * 2)
+        obs = example_table.concat(table2, axis='sample')
+        self.assertEqual(obs, exp)
+
+    def test_concat_single_table_nonlist(self):
+        table2 = example_table.copy()
+        table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
+
+        exp = Table(np.array([[0, 1, 2, 0, 1, 2],
+                              [3, 4, 5, 3, 4, 5]]),
+                    ['O1', 'O2'],
+                    ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
+                    example_table.metadata(axis='observation'),
+                    list(example_table.metadata()) * 2)
+        obs = example_table.concat(table2, axis='sample')
+        self.assertEqual(obs, exp)
+
     def test_concat_empty(self):
         exp = example_table.copy()
         obs = example_table.concat([])
