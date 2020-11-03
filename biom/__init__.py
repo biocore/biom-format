@@ -74,7 +74,23 @@ example_table = Table([[0, 1, 2], [3, 4, 5]], ['O1', 'O2'],
 
 
 def concat(tables, *args, **kwargs):
-    """Wrapper for biom.Table.concat which requires a table instance"""
+    """Wrapper for biom.Table.concat which requires a table instance
+
+    Parameters
+    ----------
+    tables : iterable of biom.Table, or a single biom.Table instance
+        Tables to concatenate
+
+    Raises
+    ------
+    DisjointIDError
+        If IDs over the axis are not disjoint.
+
+    Returns
+    -------
+    biom.Table
+        A table object reflecting the concatenation of the tables.
+    """
     return tables[0].concat(tables[1:], *args, **kwargs)
 
 

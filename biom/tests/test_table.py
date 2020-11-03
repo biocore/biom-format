@@ -21,7 +21,7 @@ import pandas.util.testing as pdt
 import pandas as pd
 import pytest
 
-from biom import example_table, load_table
+from biom import example_table, load_table, concat
 from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
                             DisjointIDError)
 from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
@@ -172,6 +172,19 @@ class SupportTests(TestCase):
     def test_concat_empty(self):
         exp = example_table.copy()
         obs = example_table.concat([])
+        self.assertEqual(obs, exp)
+
+    def test_concat_wrapper(self):
+        table2 = example_table.copy()
+        table2.update_ids({'S1': 'S4', 'S2': 'S5', 'S3': 'S6'})
+
+        exp = Table(np.array([[0, 1, 2, 0, 1, 2],
+                              [3, 4, 5, 3, 4, 5]]),
+                    ['O1', 'O2'],
+                    ['S1', 'S2', 'S3', 'S4', 'S5', 'S6'],
+                    example_table.metadata(axis='observation'),
+                    list(example_table.metadata()) * 2)
+        obs = concat([example_table, table2], axis='sample')
         self.assertEqual(obs, exp)
 
     def test_concat_samples(self):
