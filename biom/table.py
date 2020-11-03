@@ -4757,7 +4757,7 @@ html
         header is not required, but if present, it must be of the form:
 
         #OTU ID<tab>SampleID<tab>value
-        
+
         Raises
         ------
         ValueError
