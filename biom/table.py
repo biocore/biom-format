@@ -4792,7 +4792,9 @@ html
             raise ValueError("Does not appear to be an adjacency format")
         elif lh == ['#OTU ID', 'SampleID', 'value']:
             include_line_zero = False
-        elif not is_num(lh[0]) and not is_num(lh[1]) and is_num(lh[2]):
+        elif is_num(lh[2]):
+            # allow anything for columns 1 and 2, but test that column 3 is
+            # numeric
             include_line_zero = True
         else:
             raise ValueError("Does not appear to be an adjacency format")

@@ -229,6 +229,20 @@ class ParseTests(TestCase):
         self.assertEqual(tab.metadata(), None)
         self.assertEqual(tab.metadata(axis='observation'), None)
 
+    def test_parse_adjacency_weird_input(self):
+        with self.assertRaisesRegex(ValueError, "Not sure"):
+            Table.from_adjacency({'foo', 'bar'})
+
+    def test_parse_adjacency_bad_input(self):
+        with self.assertRaisesRegex(ValueError, "Does not appear"):
+            Table.from_adjacency(['a\tb\tc\n', 'd\te\tf\n'])
+
+        with self.assertRaisesRegex(ValueError, "Does not appear"):
+            Table.from_adjacency(['a\tb\n', 'd\te\n'])
+
+        with self.assertRaises(AssertionError):
+            Table.from_adjacency(['a\tb\t1\n', 'd\te\n'])
+
     def test_parse_adjacency_table_header(self):
         lines = ['#OTU ID\tSampleID\tvalue\n',
                  'O1\tS1\t10\n',
