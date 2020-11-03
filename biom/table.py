@@ -4766,7 +4766,6 @@ html
         >>> from io import StringIO
         >>> data = 'a\\tb\\t1\\na\\tc\\t2\\nd\\tc\\t3'
         >>> data_fh = StringIO(data)
-        >>> func = lambda x : x
         >>> test_table = Table.from_adjacency(data_fh)
         """
         if not isinstance(lines, (list, tuple)):
