@@ -4819,9 +4819,10 @@ html
         samp_index = {o: i for i, o in enumerate(samp_order)}
 
         # fill the matrix
-        mat = np.zeros((len(obs_order), len(samp_order)), dtype=float)
-        for obs, samp, val in zip(observations, samples, values):
-            mat[obs_index[obs], samp_index[samp]] = val
+        row = np.array([obs_index[obs] for obs in observations], dtype=int)
+        col = np.array([samp_index[samp] for samp in samples], dtype=int)
+        data = np.asarray(values)
+        mat = coo_matrix((data, (row, col)))
 
         return Table(mat, obs_order, samp_order)
 
