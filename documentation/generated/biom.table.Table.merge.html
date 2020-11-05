@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.8',
+        VERSION:     '2.1.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table.merge<a class="headerlink" href="#biom-table-table-merge" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="biom.table.Table.merge">
-<tt class="descclassname">Table.</tt><tt class="descname">merge</tt><big>(</big><em>other</em>, <em>sample='union'</em>, <em>observation='union'</em>, <em>sample_metadata_f=&lt;function prefer_self at 0x1a1c0c05f0&gt;</em>, <em>observation_metadata_f=&lt;function prefer_self at 0x1a1c0c05f0&gt;</em><big>)</big><a class="headerlink" href="#biom.table.Table.merge" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Table.</tt><tt class="descname">merge</tt><big>(</big><em>other</em>, <em>sample='union'</em>, <em>observation='union'</em>, <em>sample_metadata_f=&lt;function prefer_self at 0x1a1939ecb0&gt;</em>, <em>observation_metadata_f=&lt;function prefer_self at 0x1a1939ecb0&gt;</em><big>)</big><a class="headerlink" href="#biom.table.Table.merge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merge two tables together</p>
 <p>The axes, samples and observations, can be controlled independently.
 Both can work on either &#8220;union&#8221; or &#8220;intersection&#8221;.</p>
@@ -71,9 +71,10 @@ a single metadata dict</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>other</strong> : biom.Table</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>other</strong> : biom.Table or Iterable of Table</p>
 <blockquote>
-<div><p>The other table to merge with this one</p>
+<div><p>The other table to merge with this one. If an iterable, the tables
+are expected to not have metadata.</p>
 </div></blockquote>
 <p><strong>sample</strong> : {&#8216;union&#8217;, &#8216;intersection&#8217;}, optional</p>
 <p><strong>observation</strong> : {&#8216;union&#8217;, &#8216;intersection&#8217;}, optional</p>
@@ -99,6 +100,11 @@ observation metdata during merge.</p>
 </table>
 <p class="rubric">Notes</p>
 <ul class="simple">
+<li><dl class="first docutils">
+<dt>If <tt class="docutils literal"><span class="pre">sample_metadata_f</span></tt> and <tt class="docutils literal"><span class="pre">observation_metadata_f</span></tt> are None,</dt>
+<dd>then a fast merge is applied.</dd>
+</dl>
+</li>
 <li>There is an implicit type conversion to <tt class="docutils literal"><span class="pre">float</span></tt>.</li>
 <li>The return type is always that of <tt class="docutils literal"><span class="pre">self</span></tt></li>
 </ul>
@@ -146,8 +152,8 @@ the resulting table (see <cite>S3</cite>).</p>
 
 
     <div class="footer">
-        &copy; Copyright 2011-2018 The BIOM Format Development Team.
-      Last updated on Jan 13, 2020.
+        &copy; Copyright 2011-2020 The BIOM Format Development Team.
+      Last updated on Nov 05, 2020.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

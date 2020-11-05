@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.8',
+        VERSION:     '2.1.9',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table.to_tsv<a class="headerlink" href="#biom-table-table-to-tsv" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
 <dt id="biom.table.Table.to_tsv">
-<tt class="descclassname">Table.</tt><tt class="descname">to_tsv</tt><big>(</big><em>header_key=None</em>, <em>header_value=None</em>, <em>metadata_formatter=&lt;class 'str'&gt;</em>, <em>observation_column_name='#OTU ID'</em><big>)</big><a class="headerlink" href="#biom.table.Table.to_tsv" title="Permalink to this definition">¶</a></dt>
+<tt class="descclassname">Table.</tt><tt class="descname">to_tsv</tt><big>(</big><em>header_key=None</em>, <em>header_value=None</em>, <em>metadata_formatter=&lt;class 'str'&gt;</em>, <em>observation_column_name='#OTU ID'</em>, <em>direct_io=None</em><big>)</big><a class="headerlink" href="#biom.table.Table.to_tsv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return self as a string in tab delimited form</p>
 <p>Default <tt class="docutils literal"><span class="pre">str</span></tt> output for the <tt class="docutils literal"><span class="pre">Table</span></tt> is just row/col ids and table
 data without any metadata</p>
@@ -83,6 +83,12 @@ returns a formatted version that should be written to file</p>
 <blockquote>
 <div><p>Defaults to &#8220;#OTU ID&#8221;. The name of the first column in the output
 table, corresponding to the observation IDs.</p>
+</div></blockquote>
+<p><strong>direct_io</strong> : file or file-like object, optional</p>
+<blockquote>
+<div><p>Defaults to <tt class="docutils literal"><span class="pre">None</span></tt>. Must implement a <tt class="docutils literal"><span class="pre">write</span></tt> function. If
+<cite>direct_io</cite> is not <tt class="docutils literal"><span class="pre">None</span></tt>, the final output is written directly
+to <cite>direct_io</cite> during processing.</p>
 </div></blockquote>
 </td>
 </tr>
@@ -109,6 +115,8 @@ metadata:</p>
 <span class="go">#OTU ID S1      S2      S3</span>
 <span class="go">O1      0.0     0.0     1.0</span>
 <span class="go">O2      1.0     3.0     42.0</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s2">&quot;result.tsv&quot;</span><span class="p">,</span> <span class="s2">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+<span class="go">        table.to_tsv(direct_io=f)</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -131,8 +139,8 @@ metadata:</p>
 
 
     <div class="footer">
-        &copy; Copyright 2011-2018 The BIOM Format Development Team.
-      Last updated on Jan 13, 2020.
+        &copy; Copyright 2011-2020 The BIOM Format Development Team.
+      Last updated on Nov 05, 2020.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">

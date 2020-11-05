@@ -75,7 +75,7 @@ To enable Bash tab completion of ``biom`` commands, add the following line to ``
 Citing the BIOM project
 =======================
 
-You can cite the BIOM format as follows (`link <http://www.gigasciencejournal.com/content/1/1/7>`_):
+You can cite the BIOM format as follows (`link <https://academic.oup.com/gigascience/article/1/1/2047-217X-1-7/2656152>`_):
 
 | The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome.
 | Daniel McDonald, Jose C. Clemente, Justin Kuczynski, Jai Ram Rideout, Jesse Stombaugh, Doug Wendel, Andreas Wilke, Susan Huse, John Hufnagle, Folker Meyer, Rob Knight, and J. Gregory Caporaso.

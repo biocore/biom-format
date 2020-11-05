@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>biom.table.Table.is_empty &mdash; biom-format.org</title>
+    <title>biom.table.Table.to_anndata &mdash; biom-format.org</title>
     
     <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -26,8 +26,8 @@
     <script type="text/javascript" src="../../_static/copybutton.js"></script>
     <link rel="top" title="biom-format.org" href="../../index.html" />
     <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
-    <link rel="next" title="biom.table.Table.iter" href="biom.table.Table.iter.html" />
-    <link rel="prev" title="biom.table.Table.index" href="biom.table.Table.index.html" /> 
+    <link rel="next" title="biom.table.Table.to_dataframe" href="biom.table.Table.to_dataframe.html" />
+    <link rel="prev" title="biom.table.Table.sum" href="biom.table.Table.sum.html" /> 
   </head>
   <body>
   
@@ -38,40 +38,66 @@
 
       <div class="header"><h1 class="heading"><a href="../../index.html">
           <span>biom-format.org</span></a></h1>
-        <h2 class="heading"><span>biom.table.Table.is_empty</span></h2>
+        <h2 class="heading"><span>biom.table.Table.to_anndata</span></h2>
       </div>
       <div class="topnav">
       
         <p>
-        «&#160;&#160;<a href="biom.table.Table.index.html">biom.table.Table.index</a>
+        «&#160;&#160;<a href="biom.table.Table.sum.html">biom.table.Table.sum</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../../index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="biom.table.Table.iter.html">biom.table.Table.iter</a>&#160;&#160;»
+        <a href="biom.table.Table.to_dataframe.html">biom.table.Table.to_dataframe</a>&#160;&#160;»
         </p>
 
       </div>
       <div class="content">
         
         
-  <div class="section" id="biom-table-table-is-empty">
-<h1>biom.table.Table.is_empty<a class="headerlink" href="#biom-table-table-is-empty" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="biom-table-table-to-anndata">
+<h1>biom.table.Table.to_anndata<a class="headerlink" href="#biom-table-table-to-anndata" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
-<dt id="biom.table.Table.is_empty">
-<tt class="descclassname">Table.</tt><tt class="descname">is_empty</tt><big>(</big><big>)</big><a class="headerlink" href="#biom.table.Table.is_empty" title="Permalink to this definition">¶</a></dt>
-<dd><p>Check whether the table is empty</p>
+<dt id="biom.table.Table.to_anndata">
+<tt class="descclassname">Table.</tt><tt class="descname">to_anndata</tt><big>(</big><em>dense=False</em>, <em>dtype='float32'</em>, <em>transpose=True</em><big>)</big><a class="headerlink" href="#biom.table.Table.to_anndata" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert Table to AnnData format</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">bool</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>dense</strong> : bool, optional</p>
+<blockquote>
+<div><p>If True, set adata.X as np.ndarray instead of sparse matrix.</p>
+</div></blockquote>
+<p><strong>dtype: str, optional</strong></p>
+<blockquote>
+<div><p>dtype used for storage in anndata object.</p>
+</div></blockquote>
+<p><strong>tranpose: bool, optional</strong></p>
+<blockquote>
+<div><p>If True, transpose the anndata so that observations are columns</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">anndata.AnnData</p>
 <blockquote class="last">
-<div><p><tt class="docutils literal"><span class="pre">True</span></tt> if the table is empty, <tt class="docutils literal"><span class="pre">False</span></tt> otherwise</p>
+<div><p>AnnData with matrix data and associated observation and
+sample metadata.</p>
 </div></blockquote>
 </td>
 </tr>
 </tbody>
 </table>
+<p class="rubric">Notes</p>
+<p>Nested metadata are not included.</p>
+<p class="rubric">Examples</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">example_table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adata</span> <span class="o">=</span> <span class="n">example_table</span><span class="o">.</span><span class="n">to_anndata</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">adata</span>
+<span class="go">AnnData object with n_obs × n_vars = 3 × 2</span>
+<span class="go">    obs: &#39;environment&#39;</span>
+<span class="go">    var: &#39;taxonomy_0&#39;, &#39;taxonomy_1&#39;</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </div>
@@ -81,11 +107,11 @@
       <div class="bottomnav">
       
         <p>
-        «&#160;&#160;<a href="biom.table.Table.index.html">biom.table.Table.index</a>
+        «&#160;&#160;<a href="biom.table.Table.sum.html">biom.table.Table.sum</a>
         &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../../index.html">Contents</a>
         &#160;&#160;::&#160;&#160;
-        <a href="biom.table.Table.iter.html">biom.table.Table.iter</a>&#160;&#160;»
+        <a href="biom.table.Table.to_dataframe.html">biom.table.Table.to_dataframe</a>&#160;&#160;»
         </p>
 
       </div>

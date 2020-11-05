@@ -6,7 +6,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>biom.table.Table.__init__ &mdash; biom-format.org</title>
+    <title>biom.table.Table._fast_merge &mdash; biom-format.org</title>
     
     <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
     <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
@@ -35,7 +35,7 @@
 
       <div class="header"><h1 class="heading"><a href="../../index.html">
           <span>biom-format.org</span></a></h1>
-        <h2 class="heading"><span>biom.table.Table.__init__</span></h2>
+        <h2 class="heading"><span>biom.table.Table._fast_merge</span></h2>
       </div>
       <div class="topnav">
       
@@ -47,12 +47,26 @@
       <div class="content">
         
         
-  <div class="section" id="biom-table-table-init">
-<h1>biom.table.Table.__init__<a class="headerlink" href="#biom-table-table-init" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="biom-table-table-fast-merge">
+<h1>biom.table.Table._fast_merge<a class="headerlink" href="#biom-table-table-fast-merge" title="Permalink to this headline">¶</a></h1>
 <dl class="method">
-<dt id="biom.table.Table.__init__">
-<tt class="descclassname">Table.</tt><tt class="descname">__init__</tt><big>(</big><em>data</em>, <em>observation_ids</em>, <em>sample_ids</em>, <em>observation_metadata=None</em>, <em>sample_metadata=None</em>, <em>table_id=None</em>, <em>type=None</em>, <em>create_date=None</em>, <em>generated_by=None</em>, <em>observation_group_metadata=None</em>, <em>sample_group_metadata=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.Table.__init__" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="biom.table.Table._fast_merge">
+<tt class="descclassname">Table.</tt><tt class="descname">_fast_merge</tt><big>(</big><em>others</em><big>)</big><a class="headerlink" href="#biom.table.Table._fast_merge" title="Permalink to this definition">¶</a></dt>
+<dd><p>For simple merge operations it is faster to aggregate using pandas</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>others</strong> : Table, or Iterable of Table</p>
+<blockquote class="last">
+<div><p>If a Table, then merge with that table. If an iterable, then merge
+all of the tables</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </div>
 

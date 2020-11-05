@@ -31,6 +31,7 @@ biom.table.Table
          Table._conv_to_self_type
          Table._data_equality
          Table._extract_data_from_tsv
+         Table._fast_merge
          Table._get_col
          Table._get_row
          Table._get_sparse_data
@@ -55,6 +56,7 @@ biom.table.Table
          Table.descriptive_equality
          Table.exists
          Table.filter
+         Table.from_adjacency
          Table.from_hdf5
          Table.from_json
          Table.from_tsv
@@ -86,6 +88,7 @@ biom.table.Table
          Table.sort_order
          Table.subsample
          Table.sum
+         Table.to_anndata
          Table.to_dataframe
          Table.to_hdf5
          Table.to_json
