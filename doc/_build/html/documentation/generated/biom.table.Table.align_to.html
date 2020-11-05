@@ -1,0 +1,149 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>biom.table.Table.align_to &mdash; biom-format.org</title>
+    
+    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '2.1.9',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <script type="text/javascript" src="../../_static/copybutton.js"></script>
+    <link rel="top" title="biom-format.org" href="../../index.html" />
+    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
+    <link rel="next" title="biom.table.Table.collapse" href="biom.table.Table.collapse.html" />
+    <link rel="prev" title="biom.table.Table.add_metadata" href="biom.table.Table.add_metadata.html" /> 
+  </head>
+  <body>
+  
+  <a href="https://github.com/biocore/biom-format"><img
+    style="position: absolute; top: 0; right: 0; border: 0;"
+    src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
+    alt="Fork me on GitHub"></a>
+
+      <div class="header"><h1 class="heading"><a href="../../index.html">
+          <span>biom-format.org</span></a></h1>
+        <h2 class="heading"><span>biom.table.Table.align_to</span></h2>
+      </div>
+      <div class="topnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom.table.Table.add_metadata.html">biom.table.Table.add_metadata</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="biom.table.Table.collapse.html">biom.table.Table.collapse</a>&#160;&#160;»
+        </p>
+
+      </div>
+      <div class="content">
+        
+        
+  <div class="section" id="biom-table-table-align-to">
+<h1>biom.table.Table.align_to<a class="headerlink" href="#biom-table-table-align-to" title="Permalink to this headline">¶</a></h1>
+<dl class="method">
+<dt id="biom.table.Table.align_to">
+<tt class="descclassname">Table.</tt><tt class="descname">align_to</tt><big>(</big><em>other</em>, <em>axis='detect'</em><big>)</big><a class="headerlink" href="#biom.table.Table.align_to" title="Permalink to this definition">¶</a></dt>
+<dd><p>Align self to other over a requested axis</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>other</strong> : biom.Table</p>
+<blockquote>
+<div><p>The table to align too</p>
+</div></blockquote>
+<p><strong>axis</strong> : str, optional, {sample, observation, both, detect}</p>
+<blockquote>
+<div><p>If &#8216;sample&#8217; or &#8216;observation&#8217;, align to that axis. If &#8216;both&#8217;, align
+both axes. If &#8216;detect&#8217;, align what can be aligned.</p>
+</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>DisjointIDError</strong></p>
+<blockquote>
+<div><p>If the requested axis can&#8217;t be aligned.</p>
+</div></blockquote>
+<p><strong>UnknownAxisError</strong></p>
+<blockquote class="last">
+<div><p>If an unrecognized axis is specified.</p>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>Align one table to another, for instance a table of 16S data to a table
+of metagenomic data. In this example, we&#8217;re aligning the samples of the
+two tables.</p>
+<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">Table</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">amplicon</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">]]),</span>
+<span class="gp">... </span>                 <span class="p">[</span><span class="s1">&#39;Ecoli&#39;</span><span class="p">,</span> <span class="s1">&#39;Staphylococcus&#39;</span><span class="p">],</span>
+<span class="gp">... </span>                 <span class="p">[</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="s1">&#39;S3&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">metag</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">,</span> <span class="mi">11</span><span class="p">]]),</span>
+<span class="gp">... </span>              <span class="p">[</span><span class="s1">&#39;geneA&#39;</span><span class="p">,</span> <span class="s1">&#39;geneB&#39;</span><span class="p">],</span>
+<span class="gp">... </span>              <span class="p">[</span><span class="s1">&#39;S3&#39;</span><span class="p">,</span> <span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="s1">&#39;S1&#39;</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">amplicon</span> <span class="o">=</span> <span class="n">amplicon</span><span class="o">.</span><span class="n">align_to</span><span class="p">(</span><span class="n">metag</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">amplicon</span><span class="p">)</span>  
+<span class="go"># Constructed from biom file</span>
+<span class="go">#OTU ID S3      S2      S1</span>
+<span class="go">Ecoli   2.0     1.0     0.0</span>
+<span class="go">Staphylococcus  5.0     4.0     3.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+
+
+      </div>
+      <div class="bottomnav">
+      
+        <p>
+        «&#160;&#160;<a href="biom.table.Table.add_metadata.html">biom.table.Table.add_metadata</a>
+        &#160;&#160;::&#160;&#160;
+        <a class="uplink" href="../../index.html">Contents</a>
+        &#160;&#160;::&#160;&#160;
+        <a href="biom.table.Table.collapse.html">biom.table.Table.collapse</a>&#160;&#160;»
+        </p>
+
+      </div>
+
+
+    <div class="footer">
+        &copy; Copyright 2011-2020 The BIOM Format Development Team.
+      Last updated on Nov 05, 2020.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-6636235-6']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+  </body>
+</html>
