@@ -13,10 +13,14 @@ Important:
 New Features:
 
 * Performance boost to `Table.remove_empty`. For large tables this cuts the running time from 20 seconds to ~1.1 seconds, see [PR #847](https://github.com/biocore/biom-format/pull/847)
-
 * A much faster way to merge tables (without metadata) has been added. For large tables, this was a few minutes rather than a few hours. This method is implicitly invoked when calling `Table.merge` if unioning both axes, and the tables lack metadata. `Table.concat` is still much faster, but assumes one axis is disjoint. See [PR #848](https://github.com/biocore/biom-format/pull/848).
 
+* Simplify interaction with the concatenation method, allowing for passing in an individual table and support for a general `biom.concat(tables)` wrapper. See [PR #851](https://github.com/biocore/biom-format/pull/851).
+* Added support for parsing adjacency table structures, see [issue #823](https://github.com/biocore/biom-format/issues/823). 
+
 Bug fixes:
+
+* Support for pandas >= 1.0, see the comment and commits [here](https://github.com/biocore/biom-format/issues/837#issuecomment-721241751)
 
 biom 2.1.8
 ----------

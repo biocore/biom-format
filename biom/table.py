@@ -187,7 +187,7 @@ from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
                           vstack, hstack)
 import pandas as pd
-
+import re
 import six
 from future.utils import string_types as _future_string_types
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
@@ -3303,7 +3303,7 @@ class Table(object):
 
         Parameters
         ----------
-        others : iterable of biom.Table
+        others : iterable of biom.Table, or a single biom.Table instance
             Tables to concatenate
         axis : {'sample', 'observation'}, optional
             The axis to concatenate on. i.e., if axis is 'sample', then tables
@@ -3347,6 +3347,9 @@ class Table(object):
         O5	0.0	0.0	0.0	0.0	0.0	0.0	15.0	16.0	17.0
 
         """
+        if isinstance(others, self.__class__):
+            others = [others, ]
+
         # we grow along the opposite axis
         invaxis = self._invert_axis(axis)
         if axis == 'sample':
@@ -4736,6 +4739,103 @@ html
                                       generated_by, date, type_,
                                       matrix_element_type, shape,
                                       u''.join(data), rows, columns])
+
+    @staticmethod
+    def from_adjacency(lines):
+        """Parse an adjacency format into BIOM
+
+        Parameters
+        ----------
+        lines : list, str, or file-like object
+            The tab delimited data to parse
+
+        Returns
+        -------
+        biom.Table
+            A BIOM ``Table`` object
+
+        Notes
+        -----
+        The input is expected to be of the form: observation, sample, value. A
+        header is not required, but if present, it must be of the form:
+
+        #OTU ID<tab>SampleID<tab>value
+
+        Raises
+        ------
+        ValueError
+            If the input is not an iterable or file-like object.
+        ValueError
+            If the data is incorrectly formatted.
+
+        Examples
+        --------
+        Parse tab separated adjacency data into a table:
+
+        >>> from biom.table import Table
+        >>> from io import StringIO
+        >>> data = 'a\\tb\\t1\\na\\tc\\t2\\nd\\tc\\t3'
+        >>> data_fh = StringIO(data)
+        >>> test_table = Table.from_adjacency(data_fh)
+        """
+        if not isinstance(lines, (list, tuple)):
+            if hasattr(lines, 'readlines'):
+                lines = lines.readlines()
+            elif hasattr(lines, 'splitlines'):
+                lines = lines.splitlines()
+            else:
+                raise ValueError("Not sure how to handle this input")
+
+        def is_num(item):
+            # from https://stackoverflow.com/a/23059703
+            numeric = re.compile(r'(?=.)([+-]?([0-9]*)(\.([0-9]+))?)([eE][+-]?\d+)?')  # noqa
+            match = numeric.match(item)
+            start, stop = match.span()
+            if (stop - start) == len(item):
+                return True
+            else:
+                return False
+
+        # sanity check and determine if we have a header or not
+        lh = lines[0].strip().split('\t')
+        if len(lh) != 3:
+            raise ValueError("Does not appear to be an adjacency format")
+        elif lh == ['#OTU ID', 'SampleID', 'value']:
+            include_line_zero = False
+        elif is_num(lh[2]):
+            # allow anything for columns 1 and 2, but test that column 3 is
+            # numeric
+            include_line_zero = True
+        else:
+            raise ValueError("Does not appear to be an adjacency format")
+
+        if not include_line_zero:
+            lines = lines[1:]
+
+        # extract the entities
+        observations = []
+        samples = []
+        values = []
+        for line in lines:
+            parts = line.split('\t')
+            assert len(parts) == 3
+            observations.append(parts[0])
+            samples.append(parts[1])
+            values.append(float(parts[2]))
+
+        # determine a stable order and index positioning for the identifiers
+        obs_order = sorted(set(observations))
+        samp_order = sorted(set(samples))
+        obs_index = {o: i for i, o in enumerate(obs_order)}
+        samp_index = {s: i for i, s in enumerate(samp_order)}
+
+        # fill the matrix
+        row = np.array([obs_index[obs] for obs in observations], dtype=int)
+        col = np.array([samp_index[samp] for samp in samples], dtype=int)
+        data = np.asarray(values)
+        mat = coo_matrix((data, (row, col)))
+
+        return Table(mat, obs_order, samp_order)
 
     @staticmethod
     def from_tsv(lines, obs_mapping, sample_mapping,
