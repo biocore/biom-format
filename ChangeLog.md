@@ -1,10 +1,10 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.8-dev
---------------
+biom 2.1.9
+----------
 
-New changes since 2.1.8 go here.
+New features and support for Pandas >= 1.0, released on 5 November 2020.
 
 Important:
 
