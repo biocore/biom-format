@@ -1,6 +1,15 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1.10
+-----------
+
+Bug fix, released on 16 November 2020.
+
+Bug fixes:
+
+* During deployment testing for QIIME 2 2020.11, it was observed that certain combinations of hdf5 or h5py dependencies can result in metadata strings parsing as ASCII rather than UTF-8. Parse of BIOM-Format 2.1.0 files now normalize metadata strings as UTF-8, see [PR #853](https://github.com/biocore/biom-format/pull/853).
+
 biom 2.1.9
 ----------
 
