@@ -41,7 +41,7 @@ either in TSV, HDF5, JSON, gzip'd JSON or gzip'd TSV and parse accordingly:
 
 """
 # ----------------------------------------------------------------------------
-# Copyright (c) 2011-2017, The BIOM Format Development Team.
+# Copyright (c) 2011-2020, The BIOM Format Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -53,7 +53,7 @@ from .parse import parse_biom_table as parse_table, load_table
 from .util import __format_version__, __version__
 
 __author__ = "Daniel McDonald"
-__copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
+__copyright__ = "Copyright 2011-2020, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Greg Caporaso",
                "Jose Clemente", "Justin Kuczynski", "Antonio Gonzalez",
                "Yoshiki Vazquez Baeza", "Jose Navas", "Adam Robbins-Pianka",
