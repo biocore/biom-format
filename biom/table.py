@@ -257,6 +257,8 @@ def _identify_bad_value(dtype, fields):
 
 
 def general_parser(x):
+    if isinstance(x, bytes):
+        x = x.decode('utf8')
     return x
 
 
