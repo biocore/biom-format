@@ -29,7 +29,7 @@ from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
                         list_dict_to_sparse, dict_to_sparse,
                         coo_arrays_to_sparse, list_list_to_sparse,
                         nparray_to_sparse, list_sparse_to_sparse,
-                        _identify_bad_value)
+                        _identify_bad_value, general_parser)
 from biom.parse import parse_biom_table
 from biom.err import errstate
 
@@ -614,6 +614,19 @@ class TableTests(TestCase):
         exp = 8
         obs = self.simple_derived.max('whole')
         npt.assert_equal(obs, exp)
+
+    def test_general_parser(self):
+        test_and_exp = [(b'foo', 'foo'),
+                        ('foo', 'foo'),
+                        (b'', ''),
+                        ('', ''),
+                        (b'10', '10'),
+                        ('10', '10'),
+                        (b'3.14', '3.14'),
+                        ('3.14', '3.14')]
+        for test, exp in test_and_exp:
+            obs = general_parser(test)
+            self.assertEqual(obs, exp)
 
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5_non_hdf5_file_or_group(self):
