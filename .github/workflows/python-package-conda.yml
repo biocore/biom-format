@@ -61,7 +61,6 @@ jobs:
       run: |
         conda install pytest
         conda list
-        source activate base
         make test
         biom show-install-info
         for table in examples/*hdf5.biom; do echo ${table}; biom validate-table -i ${table}; done
