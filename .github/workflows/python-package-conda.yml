@@ -1,0 +1,76 @@
+name: biom-format CI
+
+on: 
+  push:
+    branches: [ master ]
+  pull_request:
+    
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: flake8
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.6
+    - name: install dependencies
+      run: python -m pip install --upgrade pip
+    - name: lint
+      run: |
+        pip install -q flake8
+        flake8
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: set up docs      
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.7   
+    - name: Install dependencies
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        $CONDA/bin/conda env install --name base pip click numpy
+        pip install sphinx==1.2.2 "docutils<0.14"
+    - name: Build docs
+      run: |
+        make -C doc html
+        
+  build:
+    strategy:
+      matrix:
+        python-version: [3.6, 3.7, 3.8]
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v2
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        $CONDA/bin/conda env install --name base pip click numpy "scipy>=1.3.1" pep8 flake8 coverage future six "pandas>=0.20.0" nose h5py>=2.2.0 cython
+        pip install anndata
+        
+    - name: Lint with flake8
+      run: |
+        $CONDA/bin/conda install flake8
+        # stop the build if there are Python syntax errors or undefined names
+        $CONDA/bin/flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        $CONDA/bin/flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+        
+    - name: Tests
+      run: |
+        conda install pytest
+        make test
+        biom show-install-info
+        for table in examples/*hdf5.biom; do echo ${table}; biom validate-table -i ${table}; done
+        for table in examples/*table.biom; do echo ${table}; biom validate-table -i ${table}; done;
+        python biom/assets/exercise_api.py examples/rich_sparse_otu_table_hdf5.biom sample
+        python biom/assets/exercise_api.py examples/rich_sparse_otu_table_hdf5.biom observation
+        sh biom/assets/exercise_cli.sh
