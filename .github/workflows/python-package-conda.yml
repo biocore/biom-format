@@ -52,22 +52,26 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+    - uses: conda-incubator/setup-miniconda@v2
       with:
+        auto-update-conda: true
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
+      shell: bash -l {0}
       run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        $CONDA/bin/conda install --name base pip click numpy "scipy>=1.3.1" pep8 flake8 coverage future six "pandas>=0.20.0" nose h5py>=2.2.0 cython
-        # pip install anndata
+        conda create --yes -n env_name python=${{ matrix.python-version }}
+        conda activate env_name
+        conda install -y pip click numpy "scipy>=1.3.1" pep8 flake8 coverage future six "pandas>=0.20.0" nose h5py>=2.2.0 cython
+        pip install anndata
         
     - name: Tests
+      shell: bash -l {0}
       run: |
-        conda install pytest
-        which python
-        pytest 
+        conda activate env_name
+        conda install -y pytest
+        which python 
         pip install -e . --no-deps
+        make test
         biom show-install-info
         for table in examples/*hdf5.biom; do echo ${table}; biom validate-table -i ${table}; done
         for table in examples/*table.biom; do echo ${table}; biom validate-table -i ${table}; done;
