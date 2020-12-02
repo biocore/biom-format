@@ -59,6 +59,7 @@ jobs:
         
     - name: Tests
       run: |
+        $CONDA/bin/conda activate base
         conda install pytest
         make test
         biom show-install-info
