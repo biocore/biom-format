@@ -28,12 +28,11 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v2
       with:
         auto-update-conda: true
-        python-version: ${{ matrix.python-version }}   
+        python-version: 3.7   
     - name: Install dependencies
       shell: bash -l {0}
       run: |
-        # $CONDA is an environment variable pointing to the root of the miniconda directory
-        conda create --yes -n env_name python=${{ matrix.python-version }}
+        conda create --yes -n env_name python=3.7
         conda activate env_name
         conda install --name env_name pip click numpy "scipy>=1.3.1" pep8 flake8 coverage future six "pandas>=0.20.0" nose h5py>=2.2.0 cython
         pip install sphinx==1.2.2 "docutils<0.14"
