@@ -19,7 +19,8 @@ jobs:
     - name: lint
       run: |
         pip install -q flake8
-        flake8
+        flake8 biom setup.py
+        
   docs:
     runs-on: ubuntu-latest
     steps:
@@ -31,7 +32,7 @@ jobs:
     - name: Install dependencies
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
-        $CONDA/bin/conda env install --name base pip click numpy
+        $CONDA/bin/conda env upgrade --name base pip click numpy
         pip install sphinx==1.2.2 "docutils<0.14"
     - name: Build docs
       run: |
@@ -53,7 +54,7 @@ jobs:
     - name: Install dependencies
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
-        $CONDA/bin/conda env install --name base pip click numpy "scipy>=1.3.1" pep8 flake8 coverage future six "pandas>=0.20.0" nose h5py>=2.2.0 cython
+        $CONDA/bin/conda env upgrade --name base pip click numpy "scipy>=1.3.1" pep8 flake8 coverage future six "pandas>=0.20.0" nose h5py>=2.2.0 cython
         pip install anndata
         
     - name: Lint with flake8
