@@ -4562,21 +4562,23 @@ html
         type_ = json_table['type']
 
         if data_pump is None:
-            table_obj = Table(json_table['data'], obs_ids, sample_ids,
-                              obs_metadata, sample_metadata,
-                              shape=json_table['shape'],
-                              dtype=dtype,
-                              type=type_,
-                              generated_by=json_table['generated_by'],
-                              input_is_dense=input_is_dense)
+            data = json_table['data']
         else:
-            table_obj = Table(data_pump, obs_ids, sample_ids,
-                              obs_metadata, sample_metadata,
-                              shape=json_table['shape'],
-                              dtype=dtype,
-                              type=type_,
-                              generated_by=json_table['generated_by'],
-                              input_is_dense=input_is_dense)
+            data = data_pump
+        create_date = None
+        if hasattr(datetime, "fromisoformat"):
+            try:
+                create_date = datetime.fromisoformat(json_table['date'])
+            except (TypeError, ValueError):
+                pass
+        table_obj = Table(data, obs_ids, sample_ids,
+                          obs_metadata, sample_metadata,
+                          shape=json_table['shape'],
+                          dtype=dtype,
+                          type=type_,
+                          create_date=create_date,
+                          generated_by=json_table['generated_by'],
+                          input_is_dense=input_is_dense)
         return table_obj
 
     def to_json(self, generated_by, direct_io=None):
