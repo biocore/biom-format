@@ -1,9 +1,8 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.11
-
-Bug fix, release pending
+biom 2.1.11-dev
+-----------
 
 Bug fixes:
 
