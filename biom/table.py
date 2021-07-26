@@ -948,6 +948,65 @@ class Table(object):
         self._data = self._data.tocsc()
         return self._data.getcol(col_idx)
 
+    def align_metadata(self, metadata, axis='sample'):
+        """ Aligns metadata against biom table, only keeping common ids.
+
+        Parameters
+        ----------
+        metadata : pd.DataFrame
+            The metadata, either respect to the sample metadata
+            or observation metadata.
+        axis : {'sample', 'observation'}
+            The axis on which to operate.
+
+        Returns
+        -------
+        biom.Table
+            A filtered biom table.
+        pd.DataFrame
+            A filtered metadata table.
+        """
+        ids = set(self.ids(axis)) & set(metadata.index)
+        filter_f = lambda v, i, m: i in ids
+        t = self.table.filter(filter_f, axis=axis, inplace=False)
+        md = metadata.loc[self.ids()]
+        return t, md
+
+    def align_tree(self, tree, axis='sample'):
+        """ Aligns biom table against tree, only keeping common ids.
+
+        Parameters
+        ----------
+        tree : skbio.TreeNode
+            The tree object, either respect to the sample metadata
+            or observation metadata.
+        axis : {'sample', 'observation'}
+            The axis on which to operate.
+
+        Returns
+        -------
+        biom.Table
+            A filtered biom table.
+        skbio.TreeNode
+            A filtered skbio TreeNode object.
+        """
+        tips = [x.name for x in tree.tips()]
+        common_tips = set(tips) & set(table.ids(axis=axis))
+        _tree = tree.shear(names=list(common_tips))
+
+        def filter_uncommon(val, id_, md):
+            return id_ in common_tips
+
+        _table = table.filter(filter_uncommon, axis=axis, inplace=False)
+        _tree.prune()
+
+        def sort_f(x):
+            return [n.name for n in _tree.tips()]
+
+        _table = _table.sort(sort_f=sort_f, axis=axis)
+        return _table, _tree
+
+
     def reduce(self, f, axis):
         """Reduce over axis using function `f`
 
