@@ -1935,7 +1935,7 @@ class TableTests(TestCase):
                                 [2, 2, 4, 0],
                                 [5, 5, 3, 0],
                                 [0, 0, 0, 1]]),
-                      ['s1', 's2', 's3', 's4']
+                      ['s1', 's2', 's3', 's4'],
                       ['o1', 'o2', 'o3', 'o4'])
         metadata = pd.DataFrame([['a', 'control'],
                                  ['c', 'diseased'],
