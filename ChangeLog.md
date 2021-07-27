@@ -6,7 +6,10 @@ biom 2.1.11-dev
 
 Bug fixes:
 
-* `Table.from_json` now respects the creation date [issue #770](https://github.com/biocore/biom-format/issues/770) in Python 3.7 and higher
+	* `Table.from_json` now respects the creation date [issue #770](https://github.com/biocore/biom-format/issues/770) in Python 3.7 and higher
+
+New Features
+* Added support for aligning dataframes and trees against biom tables with `Table.align_to_dataframe` and `Table.align_tree`.  see [PR #859](https://github.com/biocore/biom-format/pull/859)
 
 biom 2.1.10
 -----------
@@ -33,7 +36,7 @@ New Features:
 * A much faster way to merge tables (without metadata) has been added. For large tables, this was a few minutes rather than a few hours. This method is implicitly invoked when calling `Table.merge` if unioning both axes, and the tables lack metadata. `Table.concat` is still much faster, but assumes one axis is disjoint. See [PR #848](https://github.com/biocore/biom-format/pull/848).
 
 * Simplify interaction with the concatenation method, allowing for passing in an individual table and support for a general `biom.concat(tables)` wrapper. See [PR #851](https://github.com/biocore/biom-format/pull/851).
-* Added support for parsing adjacency table structures, see [issue #823](https://github.com/biocore/biom-format/issues/823). 
+* Added support for parsing adjacency table structures, see [issue #823](https://github.com/biocore/biom-format/issues/823).
 
 Bug fixes:
 
@@ -47,7 +50,7 @@ New features and bug fixes, released on 28 January 2020.
 Important:
 
 * Python 2.7 and 3.5 support has been dropped.
-* Python 3.8 support has been added into Travis CI. 
+* Python 3.8 support has been added into Travis CI.
 * A change to the defaults for `Table.nonzero_counts` was performed such that the default now is to count the number of nonzero features. See [issue #685](https://github.com/biocore/biom-format/issues/685)
 * We now require a SciPy >= 1.3.1. See [issue #816](https://github.com/biocore/biom-format/issues/816)
 
@@ -403,42 +406,42 @@ Changes:
 * [pyqi](http://bipy.github.io/pyqi) 0.2.0 is now a required dependency. This changes the look-and-feel of the biom-format command-line interfaces and introduces a new executable, ```biom```, which can be used to see a list of all available biom-format command-line commands. The ```biom``` command is now used to run biom-format commands, instead of having a Python script (i.e., .py file) for each biom-format command. The old scripts (e.g., add_metadata.py, convert_biom.py, etc.) are still included but are deprecated. Users are pointed to the new ```biom``` command to run instead. Bash tab completion is now supported for all command and option names (see the biom-format documentation for instructions on how to enable this).
 * The following scripts have had their names and options changed:
     * ```add_metadata.py``` is now ```biom add-metadata```. Changed option names:
-        * ```--input_fp``` is now ```--input-fp```
-        * ```--output_fp``` is now ```--output-fp```
-        * ```--sample_mapping_fp``` is now ```--sample-metadata-fp```
-        * ```--observation_mapping_fp``` is now ```--observation-metadata-fp```
-        * ```--sc_separated``` is now ```--sc-separated```
-        * ```--int_fields``` is now ```--int-fields```
-        * ```--float_fields``` is now ```--float-fields```
-        * ```--sample_header``` is now ```--sample-header```
-        * ```--observation_header``` is now ```--observation-header```
-        * New option ```--sc-pipe-separated```
+	* ```--input_fp``` is now ```--input-fp```
+	* ```--output_fp``` is now ```--output-fp```
+	* ```--sample_mapping_fp``` is now ```--sample-metadata-fp```
+	* ```--observation_mapping_fp``` is now ```--observation-metadata-fp```
+	* ```--sc_separated``` is now ```--sc-separated```
+	* ```--int_fields``` is now ```--int-fields```
+	* ```--float_fields``` is now ```--float-fields```
+	* ```--sample_header``` is now ```--sample-header```
+	* ```--observation_header``` is now ```--observation-header```
+	* New option ```--sc-pipe-separated```
     * ```biom_validator.py``` is now ```biom validate-table```. Changed option names:
-        * ```-v```/```--verbose``` is now ```--detailed-report```
-        * ```--biom_fp``` is now ```--input-fp```
+	* ```-v```/```--verbose``` is now ```--detailed-report```
+	* ```--biom_fp``` is now ```--input-fp```
     * ```convert_biom.py``` is now ```biom convert```. Changed option names:
-        * ```--input_fp``` is now ```--input-fp```
-        * ```--output_fp``` is now ```--output-fp```
-        * ```--biom_type``` is now ```--matrix-type```
-        * ```--biom_to_classic_table``` is now ```--biom-to-classic-table```
-        * ```--sparse_biom_to_dense_biom``` is now ```--sparse-biom-to-dense-biom```
-        * ```--dense_biom_to_sparse_biom``` is now ```--dense-biom-to-sparse-biom```
-        * ```--sample_mapping_fp``` is now ```--sample-metadata-fp```
-        * ```--observation_mapping_fp``` is now ```--observation-metadata-fp```
-        * ```--header_key``` is now ```--header-key```
-        * ```--output_metadata_id``` is now ```--output-metadata-id```
-        * ```--process_obs_metadata``` is now ```--process-obs-metadata```
-        * ```--biom_table_type``` is now ```--table-type```
+	* ```--input_fp``` is now ```--input-fp```
+	* ```--output_fp``` is now ```--output-fp```
+	* ```--biom_type``` is now ```--matrix-type```
+	* ```--biom_to_classic_table``` is now ```--biom-to-classic-table```
+	* ```--sparse_biom_to_dense_biom``` is now ```--sparse-biom-to-dense-biom```
+	* ```--dense_biom_to_sparse_biom``` is now ```--dense-biom-to-sparse-biom```
+	* ```--sample_mapping_fp``` is now ```--sample-metadata-fp```
+	* ```--observation_mapping_fp``` is now ```--observation-metadata-fp```
+	* ```--header_key``` is now ```--header-key```
+	* ```--output_metadata_id``` is now ```--output-metadata-id```
+	* ```--process_obs_metadata``` is now ```--process-obs-metadata```
+	* ```--biom_table_type``` is now ```--table-type```
     * ```print_biom_python_config.py``` is now ```biom show-install-info```.
     * ```print_biom_table_summary.py``` is now ```biom summarize-table```. Changed option names:
-        * ```--input_fp``` is now ```--input-fp```
-        * ```--output_fp``` is now ```--output-fp```. This is now a required option (output is no longer printed to stdout).
-        * ```--num_observations``` is now ```--qualitative```
-        * ```--suppress_md5``` is now ```--suppress-md5```
+	* ```--input_fp``` is now ```--input-fp```
+	* ```--output_fp``` is now ```--output-fp```. This is now a required option (output is no longer printed to stdout).
+	* ```--num_observations``` is now ```--qualitative```
+	* ```--suppress_md5``` is now ```--suppress-md5```
     * ```subset_biom.py``` is now ```biom subset-table```. Changed option names:
-        * ```--biom_fp``` is now ```--input-fp```
-        * ```--output_fp``` is now ```--output-fp```
-        * ```--ids_fp``` is now ```--ids```
+	* ```--biom_fp``` is now ```--input-fp```
+	* ```--output_fp``` is now ```--output-fp```
+	* ```--ids_fp``` is now ```--ids```
 * ```biom.parse.parse_mapping``` has been replaced by ```biom.parse.MetadataMap```. ```biom.parse.MetadataMap.from_file``` can be directly substituted in place of ```biom.parse.parse_mapping```.
 
 Bug Fixes:
