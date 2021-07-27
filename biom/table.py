@@ -970,9 +970,7 @@ class Table(object):
         if len(ids) == 0:
             raise TableException("No common ids between table and dataframe.")
 
-        def filter_f(v, i, m): return i in ids
-
-        t = self.filter(filter_f, axis=axis, inplace=False)
+        t = self.filter(ids, axis=axis, inplace=False)
         t.remove_empty()
         md = metadata.loc[t.ids(axis=axis)]
         return t, md
