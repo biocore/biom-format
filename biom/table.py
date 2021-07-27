@@ -995,6 +995,8 @@ class Table(object):
         """
         tips = {x.name for x in tree.tips()}
         common_tips = tips & set(self.ids(axis=axis))
+        if len(common_tips) == 0:
+            raise TableException("No common ids between table and tree.")
         _tree = tree.shear(names=common_tips)
         _table = self.filter(common_tips, axis=axis, inplace=False)
         _table.remove_empty()
