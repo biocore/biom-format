@@ -1876,6 +1876,141 @@ class TableTests(TestCase):
         self.assertEqual(res_table.descriptive_equality(exp_table),
                          'Tables appear equal')
 
+    def test_align_to_dataframe_samples_remove_empty(self):
+        table = Table(np.array([[0, 0, 1, 0],
+                                [2, 2, 4, 0],
+                                [5, 5, 3, 0],
+                                [0, 0, 0, 1]]).T,
+                      ['o1', 'o2', 'o3', 'o4'],
+                      ['s1', 's2', 's3', 's4'])
+        metadata = pd.DataFrame([['a', 'control'],
+                                 ['c', 'diseased'],
+                                 ['b', 'control']],
+                                index=['s1', 's3', 's2'],
+                                columns=['Barcode', 'Treatment'])
+        exp_table = Table(np.array([[0, 0, 1],
+                                    [2, 2, 4],
+                                    [5, 5, 3]]).T,
+                          ['o1', 'o2', 'o3'],
+                          ['s1', 's2', 's3'])
+        exp_metadata = pd.DataFrame([['a', 'control'],
+                                     ['b', 'control'],
+                                     ['c', 'diseased']],
+                                    index=['s1', 's2', 's3'],
+                                    columns=['Barcode', 'Treatment'])
+        res_table, res_metadata = table.align_to_dataframe(metadata)
+        pdt.assert_frame_equal(exp_metadata, res_metadata)
+        self.assertEqual(res_table.descriptive_equality(exp_table),
+                         'Tables appear equal')
+
+    def test_align_to_dataframe_samples_empty(self):
+        table = Table(np.array([[0, 0, 1, 0],
+                                [2, 2, 4, 0],
+                                [5, 5, 3, 0],
+                                [0, 0, 0, 1]]).T,
+                      ['o1', 'o2', 'o3', 'o4'],
+                      ['s1', 's2', 's3', 's4'])
+        metadata = pd.DataFrame([['a', 'control'],
+                                 ['c', 'diseased'],
+                                 ['b', 'control']],
+                                index=['s1', 's3', 's2'],
+                                columns=['Barcode', 'Treatment'])
+        exp_table = Table(np.array([[0, 0, 1],
+                                    [2, 2, 4],
+                                    [5, 5, 3]]).T,
+                          ['o1', 'o2', 'o3'],
+                          ['s1', 's2', 's3'])
+        exp_metadata = pd.DataFrame([['a', 'control'],
+                                     ['b', 'control'],
+                                     ['c', 'diseased']],
+                                    index=['s1', 's2', 's3'],
+                                    columns=['Barcode', 'Treatment'])
+        res_table, res_metadata = table.align_to_dataframe(metadata)
+        pdt.assert_frame_equal(exp_metadata, res_metadata)
+        self.assertEqual(res_table.descriptive_equality(exp_table),
+                         'Tables appear equal')
+
+    def test_align_to_dataframe_samples_no_common_ids(self):
+        table = Table(np.array([[0, 0, 1, 0],
+                                [2, 2, 4, 0],
+                                [5, 5, 3, 0],
+                                [0, 0, 0, 1]]),
+                      ['s1', 's2', 's3', 's4']
+                      ['o1', 'o2', 'o3', 'o4'])
+        metadata = pd.DataFrame([['a', 'control'],
+                                 ['c', 'diseased'],
+                                 ['b', 'control']],
+                                index=['s1', 's3', 's2'],
+                                columns=['Barcode', 'Treatment'])
+        with self.assertRaises(TableException):
+            table.align_to_dataframe(metadata)
+
+    @pytest.mark.skipif(not HAVE_SKBIO, reason="skbio not installed")
+    def test_align_tree_intersect_tips(self):
+        # there are less tree tips than observations
+        table = Table(np.array([[0, 0, 1, 1],
+                                [2, 3, 4, 4],
+                                [5, 5, 3, 3],
+                                [0, 0, 0, 1]]).T,
+                      ['a', 'b', 'c', 'd'],
+                      ['s1', 's2', 's3', 's4'])
+        tree = skbio.TreeNode.read([u"((a,b)f,d)r;"])
+        exp_table = Table(np.array([[0, 0, 1],
+                                    [2, 3, 4],
+                                    [5, 5, 3],
+                                    [0, 0, 1]]).T,
+                          ['a', 'b', 'd'],
+                          ['s1', 's2', 's3', 's4'])
+        exp_tree = tree
+        res_table, res_tree = table.align_tree(tree)
+        self.assertEqual(res_table.descriptive_equality(exp_table),
+                         'Tables appear equal')
+        self.assertEqual(str(exp_tree), str(res_tree))
+
+    @pytest.mark.skipif(not HAVE_SKBIO, reason="skbio not installed")
+    def test_align_tree_intersect_obs(self):
+        # table has less observations than tree tips
+        table = Table(np.array([[0, 0, 1],
+                                [2, 3, 4],
+                                [5, 5, 3],
+                                [0, 0, 1]]).T,
+                      ['a', 'b', 'd'],
+                      ['s1', 's2', 's3', 's4'])
+        tree = skbio.TreeNode.read([u"(((a,b)f, c),d)r;"])
+        exp_table = Table(np.array([[1, 0, 0],
+                                     [4, 2, 3],
+                                     [3, 5, 5],
+                                    [1, 0, 0]]).T,
+                          ['d', 'a', 'b'],
+                          ['s1', 's2', 's3', 's4'])
+        exp_tree = skbio.TreeNode.read([u"(d,(a,b)f)r;"])
+        res_table, res_tree = table.align_tree(tree)
+        self.assertEqual(res_table.descriptive_equality(exp_table),
+                         'Tables appear equal')
+        self.assertEqual(str(exp_tree), str(res_tree))
+
+    @pytest.mark.skipif(not HAVE_SKBIO, reason="skbio not installed")
+    def test_align_tree_sample(self):
+        # table has less observations than tree tips
+        table = Table(np.array([[0, 0, 1],
+                                [2, 3, 4],
+                                [5, 5, 3],
+                                [0, 0, 1]]),
+                      ['s1', 's2', 's3', 's4'],
+                      ['a', 'b', 'd'])
+        tree = skbio.TreeNode.read([u"(((a,b)f, c),d)r;"])
+        exp_table = Table(np.array([[1, 0, 0],
+                                     [4, 2, 3],
+                                     [3, 5, 5],
+                                    [1, 0, 0]]),
+                          ['s1', 's2', 's3', 's4'],
+                          ['d', 'a', 'b'])
+        exp_tree = skbio.TreeNode.read([u"(d,(a,b)f)r;"])
+        res_table, res_tree = table.align_tree(tree, axis='sample')
+        self.assertEqual(res_table.descriptive_equality(exp_table),
+                         'Tables appear equal')
+        self.assertEqual(str(exp_tree), str(res_tree))
+
     def test_get_value_by_ids(self):
         """Return the value located in the matrix by the ids"""
         t1 = Table(np.array([[5, 6], [7, 8]]), [3, 4], [1, 2])

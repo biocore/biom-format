@@ -967,12 +967,15 @@ class Table(object):
             A filtered metadata table.
         """
         ids = set(self.ids(axis=axis)) & set(metadata.index)
+        if len(ids) == 0:
+            raise TableException("No common ids between table and dataframe.")
         filter_f = lambda v, i, m: i in ids
         t = self.filter(filter_f, axis=axis, inplace=False)
+        t.remove_empty()
         md = metadata.loc[t.ids(axis=axis)]
         return t, md
 
-    def align_tree(self, tree, axis='sample'):
+    def align_tree(self, tree, axis='observation'):
         """ Aligns biom table against tree, only keeping common ids.
 
         Parameters
@@ -990,20 +993,13 @@ class Table(object):
         skbio.TreeNode
             A filtered skbio TreeNode object.
         """
-        tips = [x.name for x in tree.tips()]
-        common_tips = set(tips) & set(table.ids(axis=axis))
-        _tree = tree.shear(names=list(common_tips))
-
-        def filter_uncommon(val, id_, md):
-            return id_ in common_tips
-
-        _table = table.filter(filter_uncommon, axis=axis, inplace=False)
+        tips = {x.name for x in tree.tips()}
+        common_tips = tips & set(self.ids(axis=axis))
+        _tree = tree.shear(names=common_tips)
+        _table = self.filter(common_tips, axis=axis, inplace=False)
         _tree.prune()
-
-        def sort_f(x):
-            return [n.name for n in _tree.tips()]
-
-        _table = _table.sort(sort_f=sort_f, axis=axis)
+        order = [n.name for n in _tree.tips()]
+        _table = _table.sort_order(order, axis=axis)
         return _table, _tree
 
 
