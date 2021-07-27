@@ -1853,22 +1853,22 @@ class TableTests(TestCase):
                                 [2, 2, 4, 4],
                                 [5, 5, 3, 3],
                                 [0, 0, 0, 1]]),
-                      ['s1', 's2', 's3', 's4'],
-                      ['o1', 'o2', 'o3', 'o4'])
-        metadata = pd.DataFrame([['a', 'control'],
-                                 ['c', 'diseased'],
-                                 ['b', 'control']],
-                                index=['s1', 's3', 's2'],
+                      ['o1', 'o2', 'o3', 'o4'],
+                      ['s1', 's2', 's3', 's4'])
+        metadata = pd.DataFrame([['a', 'Firmicutes'],
+                                 ['c', 'Proteobacteria'],
+                                 ['b', 'Firmicutes']],
+                                index=['o1', 'o3', 'o2'],
                                 columns=['Barcode', 'Treatment'])
         exp_table = Table(np.array([[0, 0, 1, 1],
                                     [2, 2, 4, 4],
                                     [5, 5, 3, 3]]),
-                          ['s1', 's2', 's3'],
-                          ['o1', 'o2', 'o3', 'o4'])
-        exp_metadata = pd.DataFrame([['a', 'control'],
-                                     ['b', 'control'],
-                                     ['c', 'diseased']],
-                                    index=['s1', 's2', 's3'],
+                          ['o1', 'o2', 'o3'],
+                          ['s1', 's2', 's3', 's4'])
+        exp_metadata = pd.DataFrame([['a', 'Firmicutes'],
+                                     ['b', 'Firmicutes'],
+                                     ['c', 'Proteobacteria']],
+                                    index=['o1', 'o2', 'o3'],
                                     columns=['Barcode', 'Treatment'])
         res_table, res_metadata = table.align_to_dataframe(
             metadata, axis='observation')
@@ -1987,7 +1987,7 @@ class TableTests(TestCase):
         res_table, res_tree = table.align_tree(tree)
         self.assertEqual(res_table.descriptive_equality(exp_table),
                          'Tables appear equal')
-        self.assertEqual(str(exp_tree), str(res_tree))
+        self.assertEqual(exp_tree.compare_rfd(res_tree), 0)
 
     @pytest.mark.skipif(not HAVE_SKBIO, reason="skbio not installed")
     def test_align_tree_sample(self):
@@ -1996,20 +1996,20 @@ class TableTests(TestCase):
                                 [2, 3, 4],
                                 [5, 5, 3],
                                 [0, 0, 1]]),
-                      ['s1', 's2', 's3', 's4'],
-                      ['a', 'b', 'd'])
-        tree = skbio.TreeNode.read([u"(((a,b)f, c),d)r;"])
+                      ['o1', 'o2', 'o3', 'o4'],
+                      ['s1', 's2', 's4'])
+        tree = skbio.TreeNode.read([u"(((s1,s2)F, s3),s4)R;"])
         exp_table = Table(np.array([[1, 0, 0],
                                     [4, 2, 3],
                                     [3, 5, 5],
                                     [1, 0, 0]]),
-                          ['s1', 's2', 's3', 's4'],
-                          ['d', 'a', 'b'])
-        exp_tree = skbio.TreeNode.read([u"(d,(a,b)f)r;"])
+                          ['o1', 'o2', 'o3', 'o4'],
+                          ['s4', 's1', 's2'])
+        exp_tree = skbio.TreeNode.read([u"(s4,(s1,s2)F)R;"])
         res_table, res_tree = table.align_tree(tree, axis='sample')
         self.assertEqual(res_table.descriptive_equality(exp_table),
                          'Tables appear equal')
-        self.assertEqual(str(exp_tree), str(res_tree))
+        self.assertEqual(exp_tree.compare_rfd(res_tree), 0)
 
     def test_get_value_by_ids(self):
         """Return the value located in the matrix by the ids"""

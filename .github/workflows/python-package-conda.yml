@@ -1,10 +1,10 @@
 name: biom-format CI
 
-on: 
+on:
   push:
     branches: [ master ]
   pull_request:
-    
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -20,7 +20,7 @@ jobs:
       run: |
         pip install -q flake8
         flake8 biom setup.py
-        
+
   docs:
     runs-on: ubuntu-latest
     steps:
@@ -28,21 +28,21 @@ jobs:
     - uses: conda-incubator/setup-miniconda@v2
       with:
         auto-update-conda: true
-        python-version: 3.7   
+        python-version: 3.7
     - name: Install dependencies
       shell: bash -l {0}
       run: |
         conda create --yes -n env_name python=3.7
         conda activate env_name
-        conda install --name env_name pip click numpy "scipy>=1.3.1" pep8 flake8 coverage future six "pandas>=0.20.0" nose h5py>=2.2.0 cython
+        conda install --name env_name pip click numpy "scipy>=1.3.1" pep8 flake8 coverage future six "pandas>=0.20.0" nose h5py>=2.2.0 cython scikit-bio
         pip install sphinx==1.2.2 "docutils<0.14"
         pip install -e . --no-deps
-    - name: Build docs      
+    - name: Build docs
       shell: bash -l {0}
       run: |
         conda activate env_name
         make -C doc html
-        
+
   build:
     strategy:
       matrix:
@@ -63,13 +63,13 @@ jobs:
         conda activate env_name
         conda install -y pip click numpy "scipy>=1.3.1" pep8 flake8 coverage future six "pandas>=0.20.0" nose h5py>=2.2.0 cython
         pip install anndata
-        
+
     - name: Tests
       shell: bash -l {0}
       run: |
         conda activate env_name
         conda install -y pytest
-        which python 
+        which python
         pip install -e . --no-deps
         make test
         biom show-install-info
