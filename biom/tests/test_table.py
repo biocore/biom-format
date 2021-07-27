@@ -45,6 +45,12 @@ try:
 except ImportError:
     HAVE_ANNDATA = False
 
+try:
+    import skbio
+    HAVE_SKBIO = False
+except ImportError:
+    HAVE_SKBIO = False
+
 __author__ = "Daniel McDonald"
 __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
 __credits__ = ["Daniel McDonald", "Jai Ram Rideout", "Justin Kuczynski",
@@ -1814,6 +1820,61 @@ class TableTests(TestCase):
         self.assertEqual(t._sample_metadata[1]['D'], ['A', 'B'])
         self.assertEqual(t._sample_metadata[2]['D'], ['A', 'C'])
         self.assertEqual(t._sample_metadata[3]['D'], ['A', 'D'])
+
+    def test_align_to_dataframe_samples(self):
+        table = Table(np.array([[0, 0, 1, 1],
+                                [2, 2, 4, 4],
+                                [5, 5, 3, 3],
+                                [0, 0, 0, 1]]).T,
+                      ['o1', 'o2', 'o3', 'o4'],
+                      ['s1', 's2', 's3', 's4'])
+        metadata = pd.DataFrame([['a', 'control'],
+                                 ['c', 'diseased'],
+                                 ['b', 'control']],
+                                index=['s1', 's3', 's2'],
+                                columns=['Barcode', 'Treatment'])
+        exp_table = Table(np.array([[0, 0, 1, 1],
+                                    [2, 2, 4, 4],
+                                    [5, 5, 3, 3]]).T,
+                          ['o1', 'o2', 'o3', 'o4'],
+                          ['s1', 's2', 's3'])
+        exp_metadata = pd.DataFrame([['a', 'control'],
+                                     ['b', 'control'],
+                                     ['c', 'diseased']],
+                                    index=['s1', 's2', 's3'],
+                                    columns=['Barcode', 'Treatment'])
+        res_table, res_metadata = table.align_to_dataframe(metadata)
+        pdt.assert_frame_equal(exp_metadata, res_metadata)
+        self.assertEqual(res_table.descriptive_equality(exp_table),
+                         'Tables appear equal')
+
+    def test_align_to_dataframe_observations(self):
+        table = Table(np.array([[0, 0, 1, 1],
+                                [2, 2, 4, 4],
+                                [5, 5, 3, 3],
+                                [0, 0, 0, 1]]),
+                      ['s1', 's2', 's3', 's4'],
+                      ['o1', 'o2', 'o3', 'o4'])
+        metadata = pd.DataFrame([['a', 'control'],
+                                 ['c', 'diseased'],
+                                 ['b', 'control']],
+                                index=['s1', 's3', 's2'],
+                                columns=['Barcode', 'Treatment'])
+        exp_table = Table(np.array([[0, 0, 1, 1],
+                                    [2, 2, 4, 4],
+                                    [5, 5, 3, 3]]),
+                          ['s1', 's2', 's3'],
+                          ['o1', 'o2', 'o3', 'o4'])
+        exp_metadata = pd.DataFrame([['a', 'control'],
+                                     ['b', 'control'],
+                                     ['c', 'diseased']],
+                                    index=['s1', 's2', 's3'],
+                                    columns=['Barcode', 'Treatment'])
+        res_table, res_metadata = table.align_to_dataframe(
+            metadata, axis='observation')
+        pdt.assert_frame_equal(exp_metadata, res_metadata)
+        self.assertEqual(res_table.descriptive_equality(exp_table),
+                         'Tables appear equal')
 
     def test_get_value_by_ids(self):
         """Return the value located in the matrix by the ids"""

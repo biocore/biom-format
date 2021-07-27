@@ -948,8 +948,8 @@ class Table(object):
         self._data = self._data.tocsc()
         return self._data.getcol(col_idx)
 
-    def align_metadata(self, metadata, axis='sample'):
-        """ Aligns metadata against biom table, only keeping common ids.
+    def align_to_dataframe(self, metadata, axis='sample'):
+        """ Aligns dataframe against biom table, only keeping common ids.
 
         Parameters
         ----------
@@ -966,10 +966,10 @@ class Table(object):
         pd.DataFrame
             A filtered metadata table.
         """
-        ids = set(self.ids(axis)) & set(metadata.index)
+        ids = set(self.ids(axis=axis)) & set(metadata.index)
         filter_f = lambda v, i, m: i in ids
-        t = self.table.filter(filter_f, axis=axis, inplace=False)
-        md = metadata.loc[self.ids()]
+        t = self.filter(filter_f, axis=axis, inplace=False)
+        md = metadata.loc[t.ids(axis=axis)]
         return t, md
 
     def align_tree(self, tree, axis='sample'):
