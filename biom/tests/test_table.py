@@ -47,7 +47,7 @@ except ImportError:
 
 try:
     import skbio
-    HAVE_SKBIO = False
+    HAVE_SKBIO = True
 except ImportError:
     HAVE_SKBIO = False
 
