@@ -1978,8 +1978,8 @@ class TableTests(TestCase):
                       ['s1', 's2', 's3', 's4'])
         tree = skbio.TreeNode.read([u"(((a,b)f, c),d)r;"])
         exp_table = Table(np.array([[1, 0, 0],
-                                     [4, 2, 3],
-                                     [3, 5, 5],
+                                    [4, 2, 3],
+                                    [3, 5, 5],
                                     [1, 0, 0]]).T,
                           ['d', 'a', 'b'],
                           ['s1', 's2', 's3', 's4'])
@@ -2000,8 +2000,8 @@ class TableTests(TestCase):
                       ['a', 'b', 'd'])
         tree = skbio.TreeNode.read([u"(((a,b)f, c),d)r;"])
         exp_table = Table(np.array([[1, 0, 0],
-                                     [4, 2, 3],
-                                     [3, 5, 5],
+                                    [4, 2, 3],
+                                    [3, 5, 5],
                                     [1, 0, 0]]),
                           ['s1', 's2', 's3', 's4'],
                           ['d', 'a', 'b'])
