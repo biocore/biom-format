@@ -1005,7 +1005,7 @@ class Table(object):
         return t, md
 
     def align_tree(self, tree, axis='observation'):
-        """ Aligns biom table against tree, only keeping common ids.
+        r""" Aligns biom table against tree, only keeping common ids.
 
         Parameters
         ----------
