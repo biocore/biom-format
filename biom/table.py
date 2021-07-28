@@ -948,6 +948,118 @@ class Table(object):
         self._data = self._data.tocsc()
         return self._data.getcol(col_idx)
 
+    def align_to_dataframe(self, metadata, axis='sample'):
+        """ Aligns dataframe against biom table, only keeping common ids.
+
+        Parameters
+        ----------
+        metadata : pd.DataFrame
+            The metadata, either respect to the sample metadata
+            or observation metadata.
+        axis : {'sample', 'observation'}
+            The axis on which to operate.
+
+        Returns
+        -------
+        biom.Table
+            A filtered biom table.
+        pd.DataFrame
+            A filtered metadata table.
+
+        Examples
+        --------
+        >>> from biom import Table
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> table = Table(np.array([[0, 0, 1, 1],
+        ...                         [2, 2, 4, 4],
+        ...                         [5, 5, 3, 3],
+        ...                         [0, 0, 0, 1]]),
+        ...               ['o1', 'o2', 'o3', 'o4'],
+        ...               ['s1', 's2', 's3', 's4'])
+        >>> metadata = pd.DataFrame([['a', 'control'],
+        ...                          ['c', 'diseased'],
+        ...                          ['b', 'control']],
+        ...                         index=['s1', 's3', 's2'],
+        ...                         columns=['Barcode', 'Treatment'])
+        >>> res_table, res_metadata = table.align_to_dataframe(metadata)
+        >>> print(res_table)
+        # Constructed from biom file
+        #OTU ID	s1	s2	s3
+        o1	0.0	0.0	1.0
+        o2	2.0	2.0	4.0
+        o3	5.0	5.0	3.0
+        >>> print(res_metadata)
+           Barcode Treatment
+        s1       a   control
+        s2       b   control
+        s3       c  diseased
+        """
+        ids = set(self.ids(axis=axis)) & set(metadata.index)
+        if len(ids) == 0:
+            raise TableException("No common ids between table and dataframe.")
+
+        t = self.filter(ids, axis=axis, inplace=False)
+        t.remove_empty()
+        md = metadata.loc[t.ids(axis=axis)]
+        return t, md
+
+    def align_tree(self, tree, axis='observation'):
+        r""" Aligns biom table against tree, only keeping common ids.
+
+        Parameters
+        ----------
+        tree : skbio.TreeNode
+            The tree object, either respect to the sample metadata
+            or observation metadata.
+        axis : {'sample', 'observation'}
+            The axis on which to operate.
+
+        Returns
+        -------
+        biom.Table
+            A filtered biom table.
+        skbio.TreeNode
+            A filtered skbio TreeNode object.
+
+        Examples
+        --------
+        >>> from biom import Table
+        >>> import numpy as np
+        >>> from skbio import TreeNode
+        >>> table = Table(np.array([[0, 0, 1, 1],
+        ...                         [2, 2, 4, 4],
+        ...                         [5, 5, 3, 3],
+        ...                         [0, 0, 0, 1]]),
+        ...               ['o1', 'o2', 'o3', 'o4'],
+        ...               ['s1', 's2', 's3', 's4'])
+        >>> tree = TreeNode.read([u"((o1,o2)f,o3)r;"])
+        >>> res_table, res_tree = table.align_tree(tree)
+        >>> print(res_table)
+        # Constructed from biom file
+        #OTU ID	s1	s2	s3	s4
+        o1	0.0	0.0	1.0	1.0
+        o2	2.0	2.0	4.0	4.0
+        o3	5.0	5.0	3.0	3.0
+        >>> print(res_tree.ascii_art())
+                            /-o1
+                  /f-------|
+        -r-------|          \-o2
+                 |
+                  \-o3
+        """
+        tips = {x.name for x in tree.tips()}
+        common_tips = tips & set(self.ids(axis=axis))
+        if len(common_tips) == 0:
+            raise TableException("No common ids between table and tree.")
+        _tree = tree.shear(names=common_tips)
+        _table = self.filter(common_tips, axis=axis, inplace=False)
+        _table.remove_empty()
+        _tree.prune()
+        order = [n.name for n in _tree.tips()]
+        _table = _table.sort_order(order, axis=axis)
+        return _table, _tree
+
     def reduce(self, f, axis):
         """Reduce over axis using function `f`
 

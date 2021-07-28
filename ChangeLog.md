@@ -17,6 +17,10 @@ Bug fixes:
 
 * During deployment testing for QIIME 2 2020.11, it was observed that certain combinations of hdf5 or h5py dependencies can result in metadata strings parsing as ASCII rather than UTF-8. Parse of BIOM-Format 2.1.0 files now normalize metadata strings as UTF-8, see [PR #853](https://github.com/biocore/biom-format/pull/853).
 
+New Features
+
+* Added support for aligning dataframes and trees against biom tables with `Table.align_to_dataframe` and `Table.align_tree`.  see [PR #859](https://github.com/biocore/biom-format/pull/859)
+
 biom 2.1.9
 ----------
 
