@@ -965,6 +965,35 @@ class Table(object):
             A filtered biom table.
         pd.DataFrame
             A filtered metadata table.
+
+        Examples
+        --------
+        >>> from biom import Table
+        >>> import numpy as np
+        >>> import pandas as pd
+        >>> table = Table(np.array([[0, 0, 1, 1],
+        ...                         [2, 2, 4, 4],
+        ...                         [5, 5, 3, 3],
+        ...                         [0, 0, 0, 1]]),
+        ...               ['o1', 'o2', 'o3', 'o4'],
+        ...               ['s1', 's2', 's3', 's4'])
+        >>> metadata = pd.DataFrame([['a', 'control'],
+        ...                          ['c', 'diseased'],
+        ...                          ['b', 'control']],
+        ...                         index=['s1', 's3', 's2'],
+        ...                         columns=['Barcode', 'Treatment'])
+        >>> res_table, res_metadata = table.align_to_dataframe(metadata)
+        >>> print(res_table)
+        # Constructed from biom file
+        #OTU ID	s1	s2	s3
+        o1	0.0	0.0	1.0
+        o2	2.0	2.0	4.0
+        o3	5.0	5.0	3.0
+        >>> print(res_metadata)
+           Barcode Treatment
+        s1       a   control
+        s2       b   control
+        s3       c  diseased
         """
         ids = set(self.ids(axis=axis)) & set(metadata.index)
         if len(ids) == 0:
@@ -992,6 +1021,32 @@ class Table(object):
             A filtered biom table.
         skbio.TreeNode
             A filtered skbio TreeNode object.
+
+        Examples
+        --------
+        >>> from biom import Table
+        >>> import numpy as np
+        >>> from skbio import TreeNode
+        >>> table = Table(np.array([[0, 0, 1, 1],
+        ...                         [2, 2, 4, 4],
+        ...                         [5, 5, 3, 3],
+        ...                         [0, 0, 0, 1]]),
+        ...               ['o1', 'o2', 'o3', 'o4'],
+        ...               ['s1', 's2', 's3', 's4'])
+        >>> tree = TreeNode.read([u"((o1,o2)f,o3)r;"])
+        >>> res_table, res_tree = table.align_tree(tree)
+        >>> print(res_table)
+        # Constructed from biom file
+        #OTU ID	s1	s2	s3	s4
+        o1	0.0	0.0	1.0	1.0
+        o2	2.0	2.0	4.0	4.0
+        o3	5.0	5.0	3.0	3.0
+        >>> print(res_tree.ascii_art())
+                            /-o1
+                  /f-------|
+        -r-------|          \-o2
+                 |
+                  \-o3
         """
         tips = {x.name for x in tree.tips()}
         common_tips = tips & set(self.ids(axis=axis))
