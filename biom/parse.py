@@ -10,7 +10,6 @@
 
 
 import numpy as np
-from future.utils import string_types
 import io
 import h5py
 
@@ -593,7 +592,7 @@ def biom_meta_to_string(metadata, replace_str=':'):
     # Note that since ';' and '|' are used as seperators we must replace them
     # if they exist
 
-    if isinstance(metadata, string_types):
+    if isinstance(metadata, str):
         return metadata.replace(';', replace_str)
     elif isinstance(metadata, list):
         transtab = bytes.maketrans(';|', ''.join([replace_str, replace_str]))

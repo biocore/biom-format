@@ -178,8 +178,6 @@ from datetime import datetime
 from json import dumps
 from functools import reduce, partial
 from operator import itemgetter, or_
-from future.builtins import zip
-from future.utils import viewitems
 from collections import defaultdict
 from collections.abc import Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
@@ -187,7 +185,6 @@ from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
                           vstack, hstack)
 import pandas as pd
 import re
-from future.utils import string_types as _future_string_types
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
 from biom.util import (get_biom_format_version_string,
@@ -198,9 +195,6 @@ from biom.err import errcheck
 from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
-
-
-string_types = _future_string_types
 
 
 __author__ = "Daniel McDonald"
@@ -272,7 +266,7 @@ def general_formatter(grp, header, md, compression):
     name = 'metadata/%s' % header
     dtypes = [type(m[header]) for m in md]
 
-    if set(dtypes).issubset(set(string_types)):
+    if set(dtypes).issubset({str}):
         grp.create_dataset(name, shape=shape,
                            dtype=H5PY_VLEN_STR,
                            data=[m[header].encode('utf8') for m in md],
@@ -288,13 +282,13 @@ def general_formatter(grp, header, md, compression):
                 val = '\0'
                 dt = str
 
-            if dt in string_types:
+            if dt == str:
                 val = val.encode('utf8')
 
             formatted.append(val)
             dtypes_used.append(dt)
 
-        if set(dtypes_used).issubset(set(string_types)):
+        if set(dtypes_used).issubset({str}):
             dtype_to_use = H5PY_VLEN_STR
         else:
             dtype_to_use = None
@@ -823,7 +817,7 @@ class Table:
         """
         metadata = self.metadata(axis=axis)
         if metadata is not None:
-            for id_, md_entry in viewitems(md):
+            for id_, md_entry in md.items():
                 if self.exists(id_, axis=axis):
                     idx = self.index(id_, axis=axis)
                     metadata[idx].update(md_entry)
@@ -2429,7 +2423,7 @@ class Table:
 
         md = self.metadata(axis=self._invert_axis(axis))
 
-        for part, (ids, values, metadata) in viewitems(partitions):
+        for part, (ids, values, metadata) in partitions.items():
             if axis == 'sample':
                 data = self._conv_to_self_type(values, transpose=True)
                 samp_ids = ids
@@ -2694,11 +2688,11 @@ class Table:
 
             if include_collapsed_metadata:
                 # reassociate pathway information
-                for k, i in sorted(viewitems(idx_lookup), key=itemgetter(1)):
+                for k, i in sorted(idx_lookup.items(), key=itemgetter(1)):
                     collapsed_md.append({one_to_many_md_key: new_md[k]})
 
             # get the new sample IDs
-            collapsed_ids = [k for k, i in sorted(viewitems(idx_lookup),
+            collapsed_ids = [k for k, i in sorted(idx_lookup.items(),
                                                   key=itemgetter(1))]
 
             # convert back to self type
@@ -4095,7 +4089,7 @@ html
 
             # fetch ID specific metadata
             md = [{} for i in range(len(ids))]
-            for category, dset in viewitems(grp['metadata']):
+            for category, dset in grp['metadata'].items():
                 parse_f = parser[category]
                 data = dset[:]
                 for md_dict, data_row in zip(md, data):
@@ -4698,7 +4692,7 @@ html
         str
             A JSON-formatted string representing the biom table
         """
-        if not isinstance(generated_by, string_types):
+        if not isinstance(generated_by, str):
             raise TableException("Must specify a generated_by string")
 
         # Fill in top-level metadata.
@@ -4740,7 +4734,7 @@ html
             matrix_element_type = "int"
         elif isinstance(test_element, float):
             matrix_element_type = "float"
-        elif isinstance(test_element, string_types):
+        elif isinstance(test_element, str):
             matrix_element_type = "str"
         else:
             raise TableException("Unsupported matrix data type.")
@@ -5456,7 +5450,7 @@ def dict_to_sparse(data, dtype=float, shape=None):
     rows = []
     cols = []
     vals = []
-    for (r, c), v in viewitems(data):
+    for (r, c), v in data.items():
         rows.append(r)
         cols.append(c)
         vals.append(v)

@@ -111,10 +111,15 @@ extensions = [Extension("biom._filter",
                         include_dirs=[np.get_include()])]
 extensions = cythonize(extensions)
 
-install_requires = ["click", "numpy >= 1.9.2", "future >= 0.16.0",
-                    "scipy >= 1.3.1", 'pandas >= 0.20.0',
-                    "six >= 1.10.0", "cython >= 0.29", "h5py",
-                    "cython"]
+install_requires = [
+    "click",
+    "numpy >= 1.9.2",
+    "scipy >= 1.3.1",
+    'pandas >= 0.20.0',
+    "cython >= 0.29",
+    "h5py",
+    "cython"
+]
 
 if sys.version_info[0] < 3:
     raise SystemExit("Python 2.7 is no longer supported")
