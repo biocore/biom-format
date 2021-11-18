@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011-2017, The BIOM Format Development Team.
 #
@@ -252,7 +251,7 @@ class UtilTests(TestCase):
         tmp_f.write('foo\n')
         tmp_f.flush()
 
-        obs = safe_md5(open(tmp_f.name, 'r'))
+        obs = safe_md5(open(tmp_f.name))
         self.assertEqual(obs, exp)
 
         obs = safe_md5(['foo\n'])
@@ -289,12 +288,12 @@ class UtilTests(TestCase):
 
     def test_load_table_gzip_unicode(self):
         t = load_table(get_data_path('bad_table.txt.gz'))
-        self.assertEqual(u's__Cortinarius grosmornënsis',
+        self.assertEqual('s__Cortinarius grosmornënsis',
                          t.metadata('otu1', 'observation')['taxonomy'])
 
     def test_load_table_unicode(self):
         t = load_table(get_data_path('bad_table.txt'))
-        self.assertEqual(u's__Cortinarius grosmornënsis',
+        self.assertEqual('s__Cortinarius grosmornënsis',
                          t.metadata('otu1', 'observation')['taxonomy'])
 
     def test_is_hdf5_file(self):

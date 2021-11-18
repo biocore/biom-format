@@ -37,13 +37,13 @@ class DisjointIDError(BiomException):
 
 class UnknownAxisError(TableException):
     def __init__(self, axis):
-        super(UnknownAxisError, self).__init__()
+        super().__init__()
         self.args = ("Unknown axis '%s'." % axis,)
 
 
 class UnknownIDError(TableException):
     def __init__(self, missing_id, axis):
-        super(UnknownIDError, self).__init__()
+        super().__init__()
         self.args = ("The %s ID '%s' could not be found in the BIOM table." %
                      (axis, missing_id),)
 

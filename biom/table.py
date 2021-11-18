@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 BIOM Table (:mod:`biom.table`)
 ==============================
@@ -172,7 +171,6 @@ Bacteria; Bacteroidetes   1.0 1.0 0.0 1.0
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from __future__ import division
 import numpy as np
 import scipy.stats
 from copy import deepcopy
@@ -182,13 +180,13 @@ from functools import reduce, partial
 from operator import itemgetter, or_
 from future.builtins import zip
 from future.utils import viewitems
-from collections import defaultdict, Hashable, Iterable
+from collections import defaultdict
+from collections.abc import Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
                           vstack, hstack)
 import pandas as pd
 import re
-import six
 from future.utils import string_types as _future_string_types
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
@@ -202,13 +200,7 @@ from ._transform import _transform
 from ._subsample import _subsample
 
 
-if not six.PY3:
-    string_types = list(_future_string_types)
-    string_types.append(str)
-    string_types.append(unicode)  # noqa
-    string_types = tuple(string_types)
-else:
-    string_types = _future_string_types
+string_types = _future_string_types
 
 
 __author__ = "Daniel McDonald"
@@ -224,7 +216,7 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 
 MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': str,
-                       u'int': int, u'float': float, u'unicode': str}
+                       'int': int, 'float': float, 'unicode': str}
 
 
 def _identify_bad_value(dtype, fields):
@@ -380,7 +372,7 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
         compression=compression)
 
 
-class Table(object):
+class Table:
 
     """The (canonically pronounced 'teh') Table.
 
@@ -839,10 +831,10 @@ class Table(object):
             ids = self.ids(axis=axis)
             if axis == 'sample':
                 self._sample_metadata = tuple(
-                    [md[id_] if id_ in md else None for id_ in ids])
+                    md[id_] if id_ in md else None for id_ in ids)
             elif axis == 'observation':
                 self._observation_metadata = tuple(
-                    [md[id_] if id_ in md else None for id_ in ids])
+                    md[id_] if id_ in md else None for id_ in ids)
             else:
                 raise UnknownAxisError(axis)
         self._cast_metadata()
@@ -1659,9 +1651,9 @@ class Table(object):
         """
         return id in self._index(axis=axis)
 
-    def delimited_self(self, delim=u'\t', header_key=None, header_value=None,
+    def delimited_self(self, delim='\t', header_key=None, header_value=None,
                        metadata_formatter=str,
-                       observation_column_name=u'#OTU ID', direct_io=None):
+                       observation_column_name='#OTU ID', direct_io=None):
         """Return self as a string in a delimited form
 
         Default str output for the Table is just row/col ids and table data
@@ -1707,12 +1699,13 @@ class Table(object):
                     "You need to specify both header_key and header_value")
 
         if header_value:
-            output = [u'# Constructed from biom file',
-                      u'%s%s%s\t%s' % (observation_column_name, delim,
-                                       samp_ids, header_value)]
+            output = [
+                '# Constructed from biom file',
+                f'{observation_column_name}{delim}{samp_ids}\t{header_value}'
+            ]
         else:
             output = ['# Constructed from biom file',
-                      '%s%s%s' % (observation_column_name, delim, samp_ids)]
+                      f'{observation_column_name}{delim}{samp_ids}']
 
         if direct_io is not None:
             direct_io.writelines([i+"\n" for i in output])
@@ -1728,7 +1721,7 @@ class Table(object):
             if header_key and obs_metadata is not None:
                 md = obs_metadata[self._obs_index[obs_id]]
                 md_out = metadata_formatter(md.get(header_key, None))
-                output_row = u'%s%s%s\t%s%s' % \
+                output_row = '%s%s%s\t%s%s' % \
                     (obs_id, delim, str_obs_vals, md_out, end_line)
 
                 if direct_io is None:
@@ -1736,12 +1729,12 @@ class Table(object):
                 else:
                     direct_io.write(output_row)
             else:
-                output_row = u'%s%s%s%s' % \
+                output_row = '%s%s%s%s' % \
                             (obs_id, delim, str_obs_vals, end_line)
                 if direct_io is None:
                     output.append(output_row)
                 else:
-                    direct_io.write((output_row))
+                    direct_io.write(output_row)
 
         return '\n'.join(output)
 
@@ -4080,17 +4073,11 @@ html
         shape = h5grp.attrs['shape']
         type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
-        if isinstance(id_, six.binary_type):
-            if six.PY3:
-                id_ = id_.decode('ascii')
-            else:
-                id_ = str(id_)
+        if isinstance(id_, bytes):
+            id_ = id_.decode('ascii')
 
-        if isinstance(type_, six.binary_type):
-            if six.PY3:
-                type_ = type_.decode('ascii')
-            else:
-                type_ = str(type_)
+        if isinstance(type_, bytes):
+            type_ = type_.decode('ascii')
 
         def axis_load(grp):
             """Loads all the data of the given group"""
@@ -4177,8 +4164,9 @@ html
             # load the subset of the data
             idx = samp_idx if axis == 'sample' else obs_idx
             keep = np.where(idx)[0]
-            indptr_indices = sorted([(h5_indptr[i], h5_indptr[i+1])
-                                     for i in keep])
+            indptr_indices = sorted(
+                (h5_indptr[i], h5_indptr[i+1]) for i in keep
+            )
             # Create the new indptr
             indptr_subset = np.array([end - start
                                       for start, end in indptr_indices])
@@ -4715,23 +4703,23 @@ html
 
         # Fill in top-level metadata.
         if direct_io:
-            direct_io.write(u'{')
-            direct_io.write(u'"id": "%s",' % str(self.table_id))
+            direct_io.write('{')
+            direct_io.write('"id": "%s",' % str(self.table_id))
             direct_io.write(
-                u'"format": "%s",' %
+                '"format": "%s",' %
                 get_biom_format_version_string((1, 0)))  # JSON table -> 1.0.0
             direct_io.write(
-                u'"format_url": "%s",' %
+                '"format_url": "%s",' %
                 get_biom_format_url_string())
-            direct_io.write(u'"generated_by": "%s",' % generated_by)
-            direct_io.write(u'"date": "%s",' % datetime.now().isoformat())
+            direct_io.write('"generated_by": "%s",' % generated_by)
+            direct_io.write('"date": "%s",' % datetime.now().isoformat())
         else:
-            id_ = u'"id": "%s",' % str(self.table_id)
-            format_ = u'"format": "%s",' % get_biom_format_version_string(
+            id_ = '"id": "%s",' % str(self.table_id)
+            format_ = '"format": "%s",' % get_biom_format_version_string(
                 (1, 0))  # JSON table -> 1.0.0
-            format_url = u'"format_url": "%s",' % get_biom_format_url_string()
-            generated_by = u'"generated_by": "%s",' % generated_by
-            date = u'"date": "%s",' % datetime.now().isoformat()
+            format_url = '"format_url": "%s",' % get_biom_format_url_string()
+            generated_by = '"generated_by": "%s",' % generated_by
+            date = '"date": "%s",' % datetime.now().isoformat()
 
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.
@@ -4749,30 +4737,30 @@ html
 
         # Determine the type of elements the matrix is storing.
         if isinstance(test_element, int):
-            matrix_element_type = u"int"
+            matrix_element_type = "int"
         elif isinstance(test_element, float):
-            matrix_element_type = u"float"
+            matrix_element_type = "float"
         elif isinstance(test_element, string_types):
-            matrix_element_type = u"str"
+            matrix_element_type = "str"
         else:
             raise TableException("Unsupported matrix data type.")
 
         # Fill in details about the matrix.
         if direct_io:
             direct_io.write(
-                u'"matrix_element_type": "%s",' %
+                '"matrix_element_type": "%s",' %
                 matrix_element_type)
-            direct_io.write(u'"shape": [%d, %d],' % (num_rows, num_cols))
+            direct_io.write('"shape": [%d, %d],' % (num_rows, num_cols))
         else:
-            matrix_element_type = u'"matrix_element_type": "%s",' % \
+            matrix_element_type = '"matrix_element_type": "%s",' % \
                 matrix_element_type
-            shape = u'"shape": [%d, %d],' % (num_rows, num_cols)
+            shape = '"shape": [%d, %d],' % (num_rows, num_cols)
 
         # Fill in the table type
         if self.type is None:
-            type_ = u'"type": null,'
+            type_ = '"type": null,'
         else:
-            type_ = u'"type": "%s",' % self.type
+            type_ = '"type": "%s",' % self.type
 
         if direct_io:
             direct_io.write(type_)
@@ -4780,24 +4768,26 @@ html
         # Fill in details about the rows in the table and fill in the matrix's
         # data. BIOM 2.0+ is now only sparse
         if direct_io:
-            direct_io.write(u'"matrix_type": "sparse",')
-            direct_io.write(u'"data": [')
+            direct_io.write('"matrix_type": "sparse",')
+            direct_io.write('"data": [')
         else:
-            matrix_type = u'"matrix_type": "sparse",'
-            data = [u'"data": [']
+            matrix_type = '"matrix_type": "sparse",'
+            data = ['"data": [']
 
         max_row_idx = len(self.ids(axis='observation')) - 1
         max_col_idx = len(self.ids()) - 1
-        rows = [u'"rows": [']
+        rows = ['"rows": [']
         have_written = False
         for obs_index, obs in enumerate(self.iter(axis='observation')):
             # i'm crying on the inside
             if obs_index != max_row_idx:
-                rows.append(u'{"id": %s, "metadata": %s},' % (dumps(obs[1]),
-                                                              dumps(obs[2])))
+                rows.append(
+                    f'{{"id": {dumps(obs[1])}, "metadata": {dumps(obs[2])}}},'
+                )
             else:
-                rows.append(u'{"id": %s, "metadata": %s}],' % (dumps(obs[1]),
-                                                               dumps(obs[2])))
+                rows.append(
+                    f'{{"id": {dumps(obs[1])}, "metadata": {dumps(obs[2])}}}],'
+                )
 
             # turns out its a pain to figure out when to place commas. the
             # simple work around, at the expense of a little memory
@@ -4806,55 +4796,66 @@ html
             built_row = []
             for col_index, val in enumerate(obs[0]):
                 if float(val) != 0.0:
-                    built_row.append(u"[%d,%d,%r]" % (obs_index, col_index,
-                                                      val))
+                    built_row.append(
+                        "[%d,%d,%r]" % (obs_index, col_index, val)
+                    )
             if built_row:
                 # if we have written a row already, its safe to add a comma
                 if have_written:
                     if direct_io:
-                        direct_io.write(u',')
+                        direct_io.write(',')
                     else:
-                        data.append(u',')
+                        data.append(',')
                 if direct_io:
-                    direct_io.write(u','.join(built_row))
+                    direct_io.write(','.join(built_row))
                 else:
-                    data.append(u','.join(built_row))
+                    data.append(','.join(built_row))
 
                 have_written = True
 
         # finalize the data block
         if direct_io:
-            direct_io.write(u"],")
+            direct_io.write("],")
         else:
-            data.append(u"],")
+            data.append("],")
 
         # Fill in details about the columns in the table.
-        columns = [u'"columns": [']
+        columns = ['"columns": [']
         for samp_index, samp in enumerate(self.iter()):
             if samp_index != max_col_idx:
-                columns.append(u'{"id": %s, "metadata": %s},' % (
+                columns.append('{{"id": {}, "metadata": {}}},'.format(
                     dumps(samp[1]), dumps(samp[2])))
             else:
-                columns.append(u'{"id": %s, "metadata": %s}]' % (
+                columns.append('{{"id": {}, "metadata": {}}}]'.format(
                     dumps(samp[1]), dumps(samp[2])))
 
-        if rows[0] == u'"rows": [' and len(rows) == 1:
+        if rows[0] == '"rows": [' and len(rows) == 1:
             # empty table case
-            rows = [u'"rows": [],']
-            columns = [u'"columns": []']
+            rows = ['"rows": [],']
+            columns = ['"columns": []']
 
-        rows = u''.join(rows)
-        columns = u''.join(columns)
+        rows = ''.join(rows)
+        columns = ''.join(columns)
 
         if direct_io:
             direct_io.write(rows)
             direct_io.write(columns)
-            direct_io.write(u'}')
+            direct_io.write('}')
         else:
-            return u"{%s}" % ''.join([id_, format_, format_url, matrix_type,
-                                      generated_by, date, type_,
-                                      matrix_element_type, shape,
-                                      u''.join(data), rows, columns])
+            return "{%s}" % ''.join([
+                id_,
+                format_,
+                format_url,
+                matrix_type,
+                generated_by,
+                date,
+                type_,
+                matrix_element_type,
+                shape,
+                ''.join(data),
+                rows,
+                columns,
+            ])
 
     @staticmethod
     def from_adjacency(lines):
@@ -5204,7 +5205,7 @@ html
         >>> with open("result.tsv", "w") as f:
                 table.to_tsv(direct_io=f)
         """
-        return self.delimited_self(u'\t', header_key, header_value,
+        return self.delimited_self('\t', header_key, header_value,
                                    metadata_formatter,
                                    observation_column_name,
                                    direct_io=direct_io)

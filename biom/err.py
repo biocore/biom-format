@@ -122,7 +122,7 @@ def _create_error_states(msg, callback, exception):
             'print': lambda x: stdout.write(msg + '\n')}
 
 
-class ErrorProfile(object):
+class ErrorProfile:
     """An error profile
 
     The error profile defines the types of errors that can be optionally

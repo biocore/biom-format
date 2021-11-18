@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011-2017, The BIOM Format Development Team.
 #
@@ -290,7 +289,7 @@ class TableValidatorTests(TestCase):
         obs = self.cmd._valid_matrix_element_type(table)
         self.assertTrue(len(obs) == 0)
 
-        table['matrix_element_type'] = u'int'
+        table['matrix_element_type'] = 'int'
         obs = self.cmd._valid_matrix_element_type(table)
         self.assertTrue(len(obs) == 0)
 
@@ -298,7 +297,7 @@ class TableValidatorTests(TestCase):
         obs = self.cmd._valid_matrix_element_type(table)
         self.assertTrue(len(obs) == 0)
 
-        table['matrix_element_type'] = u'float'
+        table['matrix_element_type'] = 'float'
         obs = self.cmd._valid_matrix_element_type(table)
         self.assertTrue(len(obs) == 0)
 
@@ -306,7 +305,7 @@ class TableValidatorTests(TestCase):
         obs = self.cmd._valid_matrix_element_type(table)
         self.assertTrue(len(obs) == 0)
 
-        table['matrix_element_type'] = u'str'
+        table['matrix_element_type'] = 'str'
         obs = self.cmd._valid_matrix_element_type(table)
         self.assertTrue(len(obs) == 0)
 
@@ -314,7 +313,7 @@ class TableValidatorTests(TestCase):
         obs = self.cmd._valid_matrix_element_type(table)
         self.assertTrue(len(obs) > 0)
 
-        table['matrix_element_type'] = u'asd'
+        table['matrix_element_type'] = 'asd'
         obs = self.cmd._valid_matrix_element_type(table)
         self.assertTrue(len(obs) > 0)
 

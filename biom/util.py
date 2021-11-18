@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # ----------------------------------------------------------------------------
 # Copyright (c) 2011-2020, The BIOM Format Development Team.
 #
@@ -98,8 +97,7 @@ def get_biom_format_version_string(version=None):
     if version is None:
         return "Biological Observation Matrix 1.0.0"
     else:
-        return "Biological Observation Matrix %s.%s.0" % (version[0],
-                                                          version[1])
+        return f"Biological Observation Matrix {version[0]}.{version[1]}.0"
 
 
 def get_biom_format_url_string():
@@ -204,7 +202,7 @@ def prefer_self(x, y):
 
 def index_list(item):
     """Takes a list and returns {l[idx]:idx}"""
-    return dict([(id_, idx) for idx, id_ in enumerate(item)])
+    return {id_: idx for idx, id_ in enumerate(item)}
 
 
 def load_biom_config():
@@ -278,7 +276,7 @@ def parse_biom_config_files(biom_config_files):
     for biom_config_file in biom_config_files:
         try:
             results.update(parse_biom_config_file(biom_config_file))
-        except IOError:
+        except OSError:
             pass
 
     return results
@@ -428,7 +426,7 @@ def biom_open(fp, permission='r'):
 
     """
     if permission not in ['r', 'w', 'U', 'rb', 'wb']:
-        raise IOError("Unknown mode: %s" % permission)
+        raise OSError("Unknown mode: %s" % permission)
 
     opener = functools.partial(io.open, encoding='utf-8')
     mode = permission

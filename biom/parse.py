@@ -8,7 +8,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from __future__ import division
 
 import numpy as np
 from future.utils import string_types
@@ -33,26 +32,27 @@ __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
 
 MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': str,
-                       u'int': int, u'float': float, u'unicode': str}
+                       'int': int, 'float': float, 'unicode': str}
 
 QUOTE = '"'
-JSON_OPEN = set(["[", "{"])
-JSON_CLOSE = set(["]", "}"])
-JSON_SKIP = set([" ", "\t", "\n", ","])
-JSON_START = set(
-    ["0",
-     "1",
-     "2",
-     "3",
-     "4",
-     "5",
-     "6",
-     "7",
-     "8",
-     "9",
-     "{",
-     "[",
-     '"'])
+JSON_OPEN = {"[", "{"}
+JSON_CLOSE = {"]", "}"}
+JSON_SKIP = {" ", "\t", "\n", ","}
+JSON_START = {
+    "0",
+    "1",
+    "2",
+    "3",
+    "4",
+    "5",
+    "6",
+    "7",
+    "8",
+    "9",
+    "{",
+    "[",
+    '"',
+}
 
 
 def direct_parse_key(biom_str, key):
@@ -160,7 +160,7 @@ def direct_slice_data(biom_str, to_keep, axis):
     elif axis == 'sample':
         new_data = _direct_slice_data_sparse_samp(data_fields, to_keep)
 
-    return '"data": %s, "shape": %s' % (new_data, new_shape)
+    return f'"data": {new_data}, "shape": {new_shape}'
 
 
 def strip_f(x):
@@ -170,13 +170,13 @@ def strip_f(x):
 def _remap_axis_sparse_obs(rcv, lookup):
     """Remap a sparse observation axis"""
     row, col, value = list(map(strip_f, rcv.split(',')))
-    return "%s,%s,%s" % (lookup[row], col, value)
+    return f"{lookup[row]},{col},{value}"
 
 
 def _remap_axis_sparse_samp(rcv, lookup):
     """Remap a sparse sample axis"""
     row, col, value = list(map(strip_f, rcv.split(',')))
-    return "%s,%s,%s" % (row, lookup[col], value)
+    return f"{row},{lookup[col]},{value}"
 
 
 def _direct_slice_data_sparse_obs(data, to_keep):
@@ -187,7 +187,7 @@ def _direct_slice_data_sparse_obs(data, to_keep):
     """
     # interogate all the datas
     new_data = []
-    remap_lookup = dict([(str(v), i) for i, v in enumerate(sorted(to_keep))])
+    remap_lookup = {str(v): i for i, v in enumerate(sorted(to_keep))}
     for rcv in data.split('],'):
         r, c, v = strip_f(rcv).split(',')
         if r in remap_lookup:
@@ -204,7 +204,7 @@ def _direct_slice_data_sparse_samp(data, to_keep):
     # could do sparse obs/samp in one forloop, but then theres the
     # expense of the additional if-statement in the loop
     new_data = []
-    remap_lookup = dict([(str(v), i) for i, v in enumerate(sorted(to_keep))])
+    remap_lookup = {str(v): i for i, v in enumerate(sorted(to_keep))}
     for rcv in data.split('],'):
         r, c, v = rcv.split(',')
         if c in remap_lookup:
@@ -236,7 +236,7 @@ def get_axis_indices(biom_str, to_keep, axis):
 
     axis_data = json.loads("{%s}" % axis_data)
 
-    all_ids = set([v['id'] for v in axis_data[axis_key]])
+    all_ids = {v['id'] for v in axis_data[axis_key]}
     if not to_keep.issubset(all_ids):
         raise KeyError("Not all of the to_keep ids are in biom_str!")
 
@@ -480,8 +480,8 @@ class MetadataMap(dict):
         if hasattr(lines, "upper"):
             # Try opening if a string was passed
             try:
-                lines = open(lines, 'U')
-            except IOError:
+                lines = open(lines)
+            except OSError:
                 raise BiomParseException("A string was passed that doesn't "
                                          "refer to an accessible filepath.")
 
@@ -565,7 +565,7 @@ class MetadataMap(dict):
 
         {'Sample1': {'Treatment': 'Fast'}, 'Sample2': {'Treatment': 'Control'}}
         """
-        super(MetadataMap, self).__init__(mapping)
+        super().__init__(mapping)
 
 
 def generatedby():

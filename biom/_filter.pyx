@@ -6,10 +6,9 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from __future__ import division, print_function
 
 from itertools import compress
-from collections import Iterable
+from collections.abc import Iterable
 from types import FunctionType
 
 import numpy as np
