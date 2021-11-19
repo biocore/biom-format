@@ -204,7 +204,7 @@ def prefer_self(x, y):
 
 def index_list(item):
     """Takes a list and returns {l[idx]:idx}"""
-    return dict([(id_, idx) for idx, id_ in enumerate(item)])
+    return {id_: idx for idx, id_ in enumerate(item)}
 
 
 def load_biom_config():
