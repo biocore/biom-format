@@ -9,7 +9,7 @@
 import os
 import unittest
 
-import numpy.testing as npt
+import pytest
 
 from biom.cli.table_subsetter import _subset_table
 from biom.parse import parse_biom_table
@@ -55,7 +55,7 @@ class TestSubsetTable(unittest.TestCase):
             _subset_table(json_table_str=self.biom_str1, hdf5_biom='foo',
                           axis='sample', ids=['f2', 'f4'])
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_subset_samples_hdf5(self):
         """Correctly subsets samples in a hdf5 table"""
         cwd = os.getcwd()
@@ -72,7 +72,7 @@ class TestSubsetTable(unittest.TestCase):
         self.assertTrue('Sample2' in obs.ids())
         self.assertTrue('Sample3' in obs.ids())
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_subset_observations_hdf5(self):
         """Correctly subsets samples in a hdf5 table"""
         cwd = os.getcwd()

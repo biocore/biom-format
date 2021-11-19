@@ -14,6 +14,7 @@ from unittest import TestCase, main
 
 import numpy as np
 import numpy.testing as npt
+import pytest
 
 from biom.table import Table
 from biom.parse import parse_biom_table, load_table
@@ -260,7 +261,7 @@ class UtilTests(TestCase):
         # unsupported type raises TypeError
         self.assertRaises(TypeError, safe_md5, 42)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_biom_open_hdf5(self):
         with biom_open(get_data_path('test.biom')) as f:
             self.assertTrue(isinstance(f, h5py.File))
@@ -276,7 +277,7 @@ class UtilTests(TestCase):
                 pass
         self.assertTrue("is empty and can't be parsed" in str(e.exception))
 
-    @npt.dec.skipif(HAVE_H5PY, msg='Can only be tested without H5PY')
+    @pytest.mark.skipif(HAVE_H5PY, reason='Can only be tested without H5PY')
     def test_biom_open_hdf5_no_h5py(self):
         with self.assertRaises(RuntimeError):
             with biom_open(get_data_path('test.biom')):
