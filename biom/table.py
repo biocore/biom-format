@@ -279,7 +279,7 @@ def general_formatter(grp, header, md, compression):
         for dt, m in zip(dtypes, md):
             val = m[header]
             if val is None:
-                val = '\0'
+                val = ''
                 dt = str
 
             if dt == str:
