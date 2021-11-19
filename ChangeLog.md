@@ -8,6 +8,10 @@ Bug fixes:
 
 * `Table.from_json` now respects the creation date [issue #770](https://github.com/biocore/biom-format/issues/770) in Python 3.7 and higher
 
+New Features
+
+* Python 3.10 support, see [PR #865](https://github.com/biocore/biom-format/pull/865)
+
 biom 2.1.10
 -----------
 
