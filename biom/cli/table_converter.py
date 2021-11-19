@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from __future__ import division
 
 import click
 
@@ -113,12 +112,12 @@ def convert(input_fp, output_fp, sample_metadata_fp, observation_metadata_fp,
 
     table = load_table(input_fp)
     if sample_metadata_fp is not None:
-        with open(sample_metadata_fp, 'U') as f:
+        with open(sample_metadata_fp) as f:
             sample_metadata_f = MetadataMap.from_file(f)
     else:
         sample_metadata_f = None
     if observation_metadata_fp is not None:
-        with open(observation_metadata_fp, 'U') as f:
+        with open(observation_metadata_fp) as f:
             observation_metadata_f = MetadataMap.from_file(f)
     else:
         observation_metadata_f = None

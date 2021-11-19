@@ -102,9 +102,9 @@ class ErrorProfileTests(TestCase):
 
     def test_state(self):
         self.ep.state = {'all': 'ignore'}
-        self.assertEqual(set(self.ep._state.values()), set(['ignore']))
+        self.assertEqual(set(self.ep._state.values()), {'ignore'})
         self.ep.state = {'empty': 'call'}
-        self.assertEqual(set(self.ep._state.values()), set(['ignore', 'call']))
+        self.assertEqual(set(self.ep._state.values()), {'ignore', 'call'})
         self.assertEqual(self.ep.state['empty'], 'call')
 
         with self.assertRaises(KeyError):

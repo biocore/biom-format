@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # ----------------------------------------------------------------------------
 
-from __future__ import division
 
 import click
 
@@ -44,9 +43,9 @@ def from_uc(input_fp, output_fp, rep_set_fp):
     $ biom from-uc -i in.uc -o out.biom --rep-set-fp rep-set.fna
 
     """
-    input_f = open(input_fp, 'U')
+    input_f = open(input_fp)
     if rep_set_fp is not None:
-        rep_set_f = open(rep_set_fp, 'U')
+        rep_set_f = open(rep_set_fp)
     else:
         rep_set_f = None
     table = _from_uc(input_f, rep_set_f)

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011-2017, The BIOM Format Development Team.
 #
@@ -15,6 +14,7 @@ from unittest import TestCase, main
 
 import numpy as np
 import numpy.testing as npt
+import pytest
 
 from biom.table import Table
 from biom.parse import parse_biom_table, load_table
@@ -252,7 +252,7 @@ class UtilTests(TestCase):
         tmp_f.write('foo\n')
         tmp_f.flush()
 
-        obs = safe_md5(open(tmp_f.name, 'r'))
+        obs = safe_md5(open(tmp_f.name))
         self.assertEqual(obs, exp)
 
         obs = safe_md5(['foo\n'])
@@ -261,7 +261,7 @@ class UtilTests(TestCase):
         # unsupported type raises TypeError
         self.assertRaises(TypeError, safe_md5, 42)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_biom_open_hdf5(self):
         with biom_open(get_data_path('test.biom')) as f:
             self.assertTrue(isinstance(f, h5py.File))
@@ -277,7 +277,7 @@ class UtilTests(TestCase):
                 pass
         self.assertTrue("is empty and can't be parsed" in str(e.exception))
 
-    @npt.dec.skipif(HAVE_H5PY, msg='Can only be tested without H5PY')
+    @pytest.mark.skipif(HAVE_H5PY, reason='Can only be tested without H5PY')
     def test_biom_open_hdf5_no_h5py(self):
         with self.assertRaises(RuntimeError):
             with biom_open(get_data_path('test.biom')):
@@ -289,12 +289,12 @@ class UtilTests(TestCase):
 
     def test_load_table_gzip_unicode(self):
         t = load_table(get_data_path('bad_table.txt.gz'))
-        self.assertEqual(u's__Cortinarius grosmornënsis',
+        self.assertEqual('s__Cortinarius grosmornënsis',
                          t.metadata('otu1', 'observation')['taxonomy'])
 
     def test_load_table_unicode(self):
         t = load_table(get_data_path('bad_table.txt'))
-        self.assertEqual(u's__Cortinarius grosmornënsis',
+        self.assertEqual('s__Cortinarius grosmornënsis',
                          t.metadata('otu1', 'observation')['taxonomy'])
 
     def test_is_hdf5_file(self):

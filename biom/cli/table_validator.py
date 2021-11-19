@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 # -----------------------------------------------------------------------------
 # Copyright (c) 2011-2017, The BIOM Format Development Team.
 #
@@ -8,7 +7,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from __future__ import division
 import json
 import sys
 from datetime import datetime
@@ -61,15 +59,21 @@ def _validate_table(input_fp, format_version=None):
 
 
 # Refactor in the future. Also need to address #664
-class TableValidator(object):
+class TableValidator:
 
     FormatURL = "http://biom-format.org"
-    TableTypes = set(['otu table', 'pathway table', 'function table',
-                      'ortholog table', 'gene table', 'metabolite table',
-                      'taxon table'])
-    MatrixTypes = set(['sparse', 'dense'])
+    TableTypes = {
+        'otu table',
+        'pathway table',
+        'function table',
+        'ortholog table',
+        'gene table',
+        'metabolite table',
+        'taxon table',
+    }
+    MatrixTypes = {'sparse', 'dense'}
     ElementTypes = {'int': int, 'str': str, 'float': float, 'unicode': str}
-    HDF5FormatVersions = set([(2, 0), (2, 0, 0), (2, 1), (2, 1, 0)])
+    HDF5FormatVersions = {(2, 0), (2, 0, 0), (2, 1), (2, 1, 0)}
 
     def run(self, **kwargs):
         is_json = not is_hdf5_file(kwargs['table'])
@@ -102,7 +106,7 @@ class TableValidator(object):
                     sys.exit(1)
                 return self._validate_hdf5(**kwargs)
             else:
-                raise IOError("h5py is not installed, can only validate JSON "
+                raise OSError("h5py is not installed, can only validate JSON "
                               "tables")
 
     def __call__(self, table, format_version=None):
@@ -448,11 +452,10 @@ class TableValidator(object):
 
     def _valid_format(self, table_json):
         """Format must be the expected version"""
-        formal = "Biological Observation Matrix %s" % self._format_version
+        formal = f"Biological Observation Matrix {self._format_version}"
 
         if table_json['format'] not in [formal, self._format_version]:
-            return "Invalid format '%s', must be '%s'" % (table_json['format'],
-                                                          self._format_version)
+            return f"Invalid format '{table_json['format']}', must be '{self._format_version}'"  # noqa: E501
         else:
             return ''
 

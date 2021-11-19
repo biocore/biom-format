@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 #
 # BIOM documentation build configuration file, created by
 # sphinx-quickstart on Mon Feb 13 08:46:01 2012.
@@ -58,8 +57,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'biom-format'
-copyright = u'2011-2020 The BIOM Format Development Team'
+project = 'biom-format'
+copyright = '2011-2021 The BIOM Format Development Team'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -195,8 +194,7 @@ htmlhelp_basename = 'BIOMdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-    ('index', 'BIOM.tex', u'BIOM Documentation',
-     u'The BIOM Project', 'manual'),
+    ('index', 'BIOM.tex', 'BIOM Documentation', 'The BIOM Project', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -228,8 +226,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'biom', u'BIOM Documentation',
-     [u'The BIOM Project'], 1)
+    ('index', 'biom', 'BIOM Documentation', ['The BIOM Project'], 1)
 ]
 
 # Add the 'copybutton' javascript, to hide/show the prompt in code

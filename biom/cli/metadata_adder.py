@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from __future__ import division
 
 import click
 
@@ -82,11 +81,11 @@ def add_metadata(input_fp, output_fp, sample_metadata_fp,
     """
     table = load_table(input_fp)
     if sample_metadata_fp is not None:
-        sample_metadata_f = open(sample_metadata_fp, 'U')
+        sample_metadata_f = open(sample_metadata_fp)
     else:
         sample_metadata_f = None
     if observation_metadata_fp is not None:
-        observation_metadata_f = open(observation_metadata_fp, 'U')
+        observation_metadata_f = open(observation_metadata_fp)
     else:
         observation_metadata_f = None
     if sc_separated is not None:

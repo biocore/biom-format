@@ -12,7 +12,6 @@ from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 from io import StringIO
 
-import six
 import numpy.testing as npt
 import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
@@ -634,12 +633,12 @@ class TableTests(TestCase):
             obs = general_parser(test)
             self.assertEqual(obs, exp)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_non_hdf5_file_or_group(self):
         with self.assertRaises(ValueError):
             Table.from_hdf5(10)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_empty_md(self):
         """Parse a hdf5 formatted BIOM table w/o metadata"""
         cwd = os.getcwd()
@@ -651,10 +650,10 @@ class TableTests(TestCase):
         self.assertTrue(t._sample_metadata is None)
         self.assertTrue(t._observation_metadata is None)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_custom_parsers(self):
         def parser(item):
-            return item.upper()
+            return general_parser(item).upper()
         parse_fs = {'BODY_SITE': parser}
 
         cwd = os.getcwd()
@@ -667,13 +666,13 @@ class TableTests(TestCase):
         for m in t.metadata():
             self.assertIn(m['BODY_SITE'], ('GUT', 'SKIN'))
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_issue_731(self):
         t = Table.from_hdf5(h5py.File('test_data/test.biom'))
         self.assertTrue(isinstance(t.table_id, str))
         self.assertTrue(isinstance(t.type, str))
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
         cwd = os.getcwd()
@@ -682,72 +681,83 @@ class TableTests(TestCase):
         t = Table.from_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
-        npt.assert_equal(t.ids(), (u'Sample1', u'Sample2', u'Sample3',
-                                   u'Sample4', u'Sample5', u'Sample6'))
+        npt.assert_equal(t.ids(), ('Sample1', 'Sample2', 'Sample3',
+                                   'Sample4', 'Sample5', 'Sample6'))
         npt.assert_equal(t.ids(axis='observation'),
-                         (u'GG_OTU_1', u'GG_OTU_2', u'GG_OTU_3',
-                          u'GG_OTU_4', u'GG_OTU_5'))
-        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
-                                     u'p__Proteobacteria',
-                                     u'c__Gammaproteobacteria',
-                                     u'o__Enterobacteriales',
-                                     u'f__Enterobacteriaceae',
-                                     u'g__Escherichia',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Bacteria',
-                                     u'p__Cyanobacteria',
-                                     u'c__Nostocophycideae',
-                                     u'o__Nostocales',
-                                     u'f__Nostocaceae',
-                                     u'g__Dolichospermum',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Archaea',
-                                     u'p__Euryarchaeota',
-                                     u'c__Methanomicrobia',
-                                     u'o__Methanosarcinales',
-                                     u'f__Methanosarcinaceae',
-                                     u'g__Methanosarcina',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Bacteria',
-                                     u'p__Firmicutes',
-                                     u'c__Clostridia',
-                                     u'o__Halanaerobiales',
-                                     u'f__Halanaerobiaceae',
-                                     u'g__Halanaerobium',
-                                     u's__Halanaerobiumsaccharolyticum']},
-                      {u'taxonomy': [u'k__Bacteria',
-                                     u'p__Proteobacteria',
-                                     u'c__Gammaproteobacteria',
-                                     u'o__Enterobacteriales',
-                                     u'f__Enterobacteriaceae',
-                                     u'g__Escherichia',
-                                     u's__']})
+                         ('GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3',
+                          'GG_OTU_4', 'GG_OTU_5'))
+        exp_obs_md = (
+            {'taxonomy': [
+                'k__Bacteria',
+                'p__Proteobacteria',
+                'c__Gammaproteobacteria',
+                'o__Enterobacteriales',
+                'f__Enterobacteriaceae',
+                'g__Escherichia',
+                's__',
+            ]},
+            {'taxonomy': [
+                'k__Bacteria',
+                'p__Cyanobacteria',
+                'c__Nostocophycideae',
+                'o__Nostocales',
+                'f__Nostocaceae',
+                'g__Dolichospermum',
+                's__',
+            ]},
+            {'taxonomy': [
+                'k__Archaea',
+                'p__Euryarchaeota',
+                'c__Methanomicrobia',
+                'o__Methanosarcinales',
+                'f__Methanosarcinaceae',
+                'g__Methanosarcina',
+                's__',
+            ]},
+            {'taxonomy': [
+                'k__Bacteria',
+                'p__Firmicutes',
+                'c__Clostridia',
+                'o__Halanaerobiales',
+                'f__Halanaerobiaceae',
+                'g__Halanaerobium',
+                's__Halanaerobiumsaccharolyticum',
+            ]},
+            {'taxonomy': [
+                'k__Bacteria',
+                'p__Proteobacteria',
+                'c__Gammaproteobacteria',
+                'o__Enterobacteriales',
+                'f__Enterobacteriaceae',
+                'g__Escherichia',
+                's__',
+            ]})
         self.assertEqual(t._observation_metadata, exp_obs_md)
 
-        exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CGCTTATCGAGA',
-                        u'Description': u'human gut',
-                        u'BODY_SITE': u'gut'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CATACCAGTAGC',
-                        u'Description': u'human gut',
-                        u'BODY_SITE': u'gut'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTCTCTACCTGT',
-                        u'Description': u'human gut',
-                        u'BODY_SITE': u'gut'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTCTCGGCCTGT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTCTCTACCAAT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTAACTACCAAT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'})
+        exp_samp_md = ({'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CGCTTATCGAGA',
+                        'Description': 'human gut',
+                        'BODY_SITE': 'gut'},
+                       {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CATACCAGTAGC',
+                        'Description': 'human gut',
+                        'BODY_SITE': 'gut'},
+                       {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CTCTCTACCTGT',
+                        'Description': 'human gut',
+                        'BODY_SITE': 'gut'},
+                       {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CTCTCGGCCTGT',
+                        'Description': 'human skin',
+                        'BODY_SITE': 'skin'},
+                       {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CTCTCTACCAAT',
+                        'Description': 'human skin',
+                        'BODY_SITE': 'skin'},
+                       {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CTAACTACCAAT',
+                        'Description': 'human skin',
+                        'BODY_SITE': 'skin'})
         self.assertEqual(t._sample_metadata, exp_samp_md)
 
         exp = [np.array([0., 0., 1., 0., 0., 0.]),
@@ -757,7 +767,7 @@ class TableTests(TestCase):
                np.array([0., 1., 1., 0., 0., 0.])]
         npt.assert_equal(list(t.iter_data(axis="observation")), exp)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_sample_subset_no_metadata(self):
         """Parse a sample subset of a hdf5 formatted BIOM table"""
         samples = [b'Sample2', b'Sample4', b'Sample6']
@@ -785,10 +795,10 @@ class TableTests(TestCase):
                np.array([1., 0., 0.])]
         npt.assert_equal(list(t.iter_data(axis='observation')), exp)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_sample_subset(self):
         """Parse a sample subset of a hdf5 formatted BIOM table"""
-        samples = [u'Sample2', u'Sample4', u'Sample6']
+        samples = ['Sample2', 'Sample4', 'Sample6']
 
         cwd = os.getcwd()
         if '/' in __file__:
@@ -796,51 +806,60 @@ class TableTests(TestCase):
         t = Table.from_hdf5(h5py.File('test_data/test.biom'), ids=samples)
         os.chdir(cwd)
 
-        npt.assert_equal(t.ids(), [u'Sample2', u'Sample4', u'Sample6'])
+        npt.assert_equal(t.ids(), ['Sample2', 'Sample4', 'Sample6'])
         npt.assert_equal(t.ids(axis='observation'),
-                         [u'GG_OTU_2', u'GG_OTU_3', u'GG_OTU_4', u'GG_OTU_5'])
-        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
-                                     u'p__Cyanobacteria',
-                                     u'c__Nostocophycideae',
-                                     u'o__Nostocales',
-                                     u'f__Nostocaceae',
-                                     u'g__Dolichospermum',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Archaea',
-                                     u'p__Euryarchaeota',
-                                     u'c__Methanomicrobia',
-                                     u'o__Methanosarcinales',
-                                     u'f__Methanosarcinaceae',
-                                     u'g__Methanosarcina',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Bacteria',
-                                     u'p__Firmicutes',
-                                     u'c__Clostridia',
-                                     u'o__Halanaerobiales',
-                                     u'f__Halanaerobiaceae',
-                                     u'g__Halanaerobium',
-                                     u's__Halanaerobiumsaccharolyticum']},
-                      {u'taxonomy': [u'k__Bacteria',
-                                     u'p__Proteobacteria',
-                                     u'c__Gammaproteobacteria',
-                                     u'o__Enterobacteriales',
-                                     u'f__Enterobacteriaceae',
-                                     u'g__Escherichia',
-                                     u's__']})
+                         ['GG_OTU_2', 'GG_OTU_3', 'GG_OTU_4', 'GG_OTU_5'])
+        exp_obs_md = (
+            {'taxonomy': [
+                'k__Bacteria',
+                'p__Cyanobacteria',
+                'c__Nostocophycideae',
+                'o__Nostocales',
+                'f__Nostocaceae',
+                'g__Dolichospermum',
+                's__',
+            ]},
+            {'taxonomy': [
+                'k__Archaea',
+                'p__Euryarchaeota',
+                'c__Methanomicrobia',
+                'o__Methanosarcinales',
+                'f__Methanosarcinaceae',
+                'g__Methanosarcina',
+                's__',
+            ]},
+            {'taxonomy': [
+                'k__Bacteria',
+                'p__Firmicutes',
+                'c__Clostridia',
+                'o__Halanaerobiales',
+                'f__Halanaerobiaceae',
+                'g__Halanaerobium',
+                's__Halanaerobiumsaccharolyticum',
+            ]},
+            {'taxonomy': [
+                'k__Bacteria',
+                'p__Proteobacteria',
+                'c__Gammaproteobacteria',
+                'o__Enterobacteriales',
+                'f__Enterobacteriaceae',
+                'g__Escherichia',
+                's__',
+            ]})
         self.assertEqual(t._observation_metadata, exp_obs_md)
 
-        exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CATACCAGTAGC',
-                        u'Description': u'human gut',
-                        u'BODY_SITE': u'gut'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTCTCGGCCTGT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTAACTACCAAT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'})
+        exp_samp_md = ({'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CATACCAGTAGC',
+                        'Description': 'human gut',
+                        'BODY_SITE': 'gut'},
+                       {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CTCTCGGCCTGT',
+                        'Description': 'human skin',
+                        'BODY_SITE': 'skin'},
+                       {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CTAACTACCAAT',
+                        'Description': 'human skin',
+                        'BODY_SITE': 'skin'})
         self.assertEqual(t._sample_metadata, exp_samp_md)
 
         exp = [np.array([1., 2., 1.]),
@@ -849,7 +868,7 @@ class TableTests(TestCase):
                np.array([1., 0., 0.])]
         npt.assert_equal(list(t.iter_data(axis='observation')), exp)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_observation_subset_no_metadata(self):
         """Parse a observation subset of a hdf5 formatted BIOM table"""
         observations = [b'GG_OTU_1', b'GG_OTU_3', b'GG_OTU_5']
@@ -877,10 +896,10 @@ class TableTests(TestCase):
                np.array([0, 1., 1., 0., 0, 0.])]
         npt.assert_equal(list(t.iter_data(axis='observation')), exp)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_observation_subset(self):
         """Parse a observation subset of a hdf5 formatted BIOM table"""
-        observations = [u'GG_OTU_1', u'GG_OTU_3', u'GG_OTU_5']
+        observations = ['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5']
 
         cwd = os.getcwd()
         if '/' in __file__:
@@ -889,49 +908,56 @@ class TableTests(TestCase):
                             ids=observations, axis='observation')
         os.chdir(cwd)
 
-        npt.assert_equal(t.ids(), [u'Sample2', u'Sample3', u'Sample4',
-                                   u'Sample6'])
+        npt.assert_equal(t.ids(), ['Sample2', 'Sample3', 'Sample4',
+                                   'Sample6'])
         npt.assert_equal(t.ids(axis='observation'),
-                         [u'GG_OTU_1', u'GG_OTU_3', u'GG_OTU_5'])
-        exp_obs_md = ({u'taxonomy': [u'k__Bacteria',
-                                     u'p__Proteobacteria',
-                                     u'c__Gammaproteobacteria',
-                                     u'o__Enterobacteriales',
-                                     u'f__Enterobacteriaceae',
-                                     u'g__Escherichia',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Archaea',
-                                     u'p__Euryarchaeota',
-                                     u'c__Methanomicrobia',
-                                     u'o__Methanosarcinales',
-                                     u'f__Methanosarcinaceae',
-                                     u'g__Methanosarcina',
-                                     u's__']},
-                      {u'taxonomy': [u'k__Bacteria',
-                                     u'p__Proteobacteria',
-                                     u'c__Gammaproteobacteria',
-                                     u'o__Enterobacteriales',
-                                     u'f__Enterobacteriaceae',
-                                     u'g__Escherichia',
-                                     u's__']})
+                         ['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'])
+        exp_obs_md = (
+            {'taxonomy': [
+                'k__Bacteria',
+                'p__Proteobacteria',
+                'c__Gammaproteobacteria',
+                'o__Enterobacteriales',
+                'f__Enterobacteriaceae',
+                'g__Escherichia',
+                's__',
+            ]},
+            {'taxonomy': [
+                'k__Archaea',
+                'p__Euryarchaeota',
+                'c__Methanomicrobia',
+                'o__Methanosarcinales',
+                'f__Methanosarcinaceae',
+                'g__Methanosarcina',
+                's__',
+            ]},
+            {'taxonomy': [
+                'k__Bacteria',
+                'p__Proteobacteria',
+                'c__Gammaproteobacteria',
+                'o__Enterobacteriales',
+                'f__Enterobacteriaceae',
+                'g__Escherichia',
+                's__',
+            ]})
         self.assertEqual(t._observation_metadata, exp_obs_md)
 
-        exp_samp_md = ({u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CATACCAGTAGC',
-                        u'Description': u'human gut',
-                        u'BODY_SITE': u'gut'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTCTCTACCTGT',
-                        u'Description': u'human gut',
-                        u'BODY_SITE': u'gut'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTCTCGGCCTGT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'},
-                       {u'LinkerPrimerSequence': u'CATGCTGCCTCCCGTAGGAGT',
-                        u'BarcodeSequence': u'CTAACTACCAAT',
-                        u'Description': u'human skin',
-                        u'BODY_SITE': u'skin'})
+        exp_samp_md = ({'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CATACCAGTAGC',
+                        'Description': 'human gut',
+                        'BODY_SITE': 'gut'},
+                       {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CTCTCTACCTGT',
+                        'Description': 'human gut',
+                        'BODY_SITE': 'gut'},
+                       {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CTCTCGGCCTGT',
+                        'Description': 'human skin',
+                        'BODY_SITE': 'skin'},
+                       {'LinkerPrimerSequence': 'CATGCTGCCTCCCGTAGGAGT',
+                        'BarcodeSequence': 'CTAACTACCAAT',
+                        'Description': 'human skin',
+                        'BODY_SITE': 'skin'})
         self.assertEqual(t._sample_metadata, exp_samp_md)
 
         exp = [np.array([0., 1., 0., 0.]),
@@ -939,7 +965,7 @@ class TableTests(TestCase):
                np.array([1., 1., 0., 0.])]
         npt.assert_equal(list(t.iter_data(axis='observation')), exp)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_subset_error(self):
         """hdf5 biom table parse throws error with invalid parameters"""
         cwd = os.getcwd()
@@ -958,7 +984,7 @@ class TableTests(TestCase):
                             axis='observation')
         os.chdir(cwd)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_empty_table(self):
         """HDF5 biom parse successfully loads an empty table"""
         cwd = os.getcwd()
@@ -973,7 +999,7 @@ class TableTests(TestCase):
         self.assertEqual(t._sample_metadata, None)
         npt.assert_equal(list(t.iter_data(axis='observation')), [])
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_empty_table(self):
         """Successfully writes an empty OTU table in HDF5 format"""
         # Create an empty OTU table
@@ -983,7 +1009,7 @@ class TableTests(TestCase):
             t.to_hdf5(h5, 'tests')
             h5.close()
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_empty_table_bug_619(self):
         """Successfully writes an empty OTU table in HDF5 format"""
         t = example_table.filter({}, axis='observation', inplace=False)
@@ -998,7 +1024,7 @@ class TableTests(TestCase):
             t.to_hdf5(h5, 'tests')
             h5.close()
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_missing_metadata_observation(self):
         # exercises a vlen_list
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
@@ -1013,7 +1039,7 @@ class TableTests(TestCase):
                          ({'taxonomy': None},
                           {'taxonomy': ['foo', 'baz']}))
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_missing_metadata_sample(self):
         # exercises general formatter
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'], None,
@@ -1028,7 +1054,7 @@ class TableTests(TestCase):
                          ({'dat': ''},
                           {'dat': 'foo'}))
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_inconsistent_metadata_categories_observation(self):
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
                   [{'taxonomy_A': 'foo; bar'},
@@ -1036,15 +1062,11 @@ class TableTests(TestCase):
 
         with NamedTemporaryFile() as tmpfile:
             with h5py.File(tmpfile.name, 'w') as h5:
-                if six.PY3:
-                    with self.assertRaisesRegex(ValueError,
-                                                'inconsistent metadata'):
-                        t.to_hdf5(h5, 'tests')
-                else:
-                    with self.assertRaises(ValueError):
-                        t.to_hdf5(h5, 'tests')
+                with self.assertRaisesRegex(ValueError,
+                                            'inconsistent metadata'):
+                    t.to_hdf5(h5, 'tests')
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_inconsistent_metadata_categories_sample(self):
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
                   None,
@@ -1053,15 +1075,11 @@ class TableTests(TestCase):
 
         with NamedTemporaryFile() as tmpfile:
             with h5py.File(tmpfile.name, 'w') as h5:
-                if six.PY3:
-                    with self.assertRaisesRegex(ValueError,
-                                                'inconsistent metadata'):
-                        t.to_hdf5(h5, 'tests')
-                else:
-                    with self.assertRaises(ValueError):
-                        t.to_hdf5(h5, 'tests')
+                with self.assertRaisesRegex(ValueError,
+                                            'inconsistent metadata'):
+                    t.to_hdf5(h5, 'tests')
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_malformed_taxonomy(self):
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
                   [{'taxonomy': 'foo; bar'},
@@ -1075,7 +1093,7 @@ class TableTests(TestCase):
                          ({'taxonomy': ['foo', 'bar']},
                           {'taxonomy': ['foo', 'baz']}))
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_general_fallback_to_list(self):
         st_rich = Table(self.vals,
                         ['1', '2'], ['a', 'b'],
@@ -1086,7 +1104,7 @@ class TableTests(TestCase):
             h5 = h5py.File(tmpfile.name, 'w')
             st_rich.to_hdf5(h5, 'tests')
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_custom_formatters(self):
         self.st_rich = Table(self.vals,
                              ['1', '2'], ['a', 'b'],
@@ -1122,7 +1140,7 @@ class TableTests(TestCase):
                 self.assertEqual(m1['barcode'].lower(), m2['barcode'])
             h5.close()
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5(self):
         """Write a file"""
         with NamedTemporaryFile() as tmpfile:
@@ -1954,7 +1972,7 @@ class TableTests(TestCase):
                                 [0, 0, 0, 1]]).T,
                       ['a', 'b', 'c', 'd'],
                       ['s1', 's2', 's3', 's4'])
-        tree = skbio.TreeNode.read([u"((a,b)f,d)r;"])
+        tree = skbio.TreeNode.read(["((a,b)f,d)r;"])
         exp_table = Table(np.array([[0, 0, 1],
                                     [2, 3, 4],
                                     [5, 5, 3],
@@ -1976,14 +1994,14 @@ class TableTests(TestCase):
                                 [0, 0, 1]]).T,
                       ['a', 'b', 'd'],
                       ['s1', 's2', 's3', 's4'])
-        tree = skbio.TreeNode.read([u"(((a,b)f, c),d)r;"])
+        tree = skbio.TreeNode.read(["(((a,b)f, c),d)r;"])
         exp_table = Table(np.array([[1, 0, 0],
                                     [4, 2, 3],
                                     [3, 5, 5],
                                     [1, 0, 0]]).T,
                           ['d', 'a', 'b'],
                           ['s1', 's2', 's3', 's4'])
-        exp_tree = skbio.TreeNode.read([u"(d,(a,b)f)r;"])
+        exp_tree = skbio.TreeNode.read(["(d,(a,b)f)r;"])
         res_table, res_tree = table.align_tree(tree)
         self.assertEqual(res_table.descriptive_equality(exp_table),
                          'Tables appear equal')
@@ -1998,14 +2016,14 @@ class TableTests(TestCase):
                                 [0, 0, 1]]),
                       ['o1', 'o2', 'o3', 'o4'],
                       ['s1', 's2', 's4'])
-        tree = skbio.TreeNode.read([u"(((s1,s2)F, s3),s4)R;"])
+        tree = skbio.TreeNode.read(["(((s1,s2)F, s3),s4)R;"])
         exp_table = Table(np.array([[1, 0, 0],
                                     [4, 2, 3],
                                     [3, 5, 5],
                                     [1, 0, 0]]),
                           ['o1', 'o2', 'o3', 'o4'],
                           ['s4', 's1', 's2'])
-        exp_tree = skbio.TreeNode.read([u"(s4,(s1,s2)F)R;"])
+        exp_tree = skbio.TreeNode.read(["(s4,(s1,s2)F)R;"])
         res_table, res_tree = table.align_tree(tree, axis='sample')
         self.assertEqual(res_table.descriptive_equality(exp_table),
                          'Tables appear equal')
@@ -3208,7 +3226,7 @@ class SparseTableTests(TestCase):
         """
         a = np.array([[2, 1, 2, 1, 8, 6, 3, 3, 5, 5], ]).T
         dt = Table(data=a, sample_ids=['S1', ],
-                   observation_ids=['OTU{:02d}'.format(i) for i in range(10)])
+                   observation_ids=[f'OTU{i:02d}' for i in range(10)])
         actual = set()
         for i in range(1000):
             obs = dt.subsample(35)
@@ -3226,7 +3244,7 @@ class SparseTableTests(TestCase):
         """
         a = np.array([[2, 1, 2, 1, 8, 6, 3, 3, 5, 5], ]).T
         dt = Table(data=a, sample_ids=['S1', ],
-                   observation_ids=['OTU{:02d}'.format(i) for i in range(10)])
+                   observation_ids=[f'OTU{i:02d}' for i in range(10)])
         actual = set()
         for i in range(1000):
             obs = dt.subsample(35, with_replacement=True)
@@ -3556,7 +3574,7 @@ class SparseTableTests(TestCase):
 
         # two partitions, (a, c, e) and (b, d, f)
         def partition_f(id_, md):
-            return id_ in set(['b', 'd', 'f'])
+            return id_ in {'b', 'd', 'f'}
 
         def collapse_f(t, axis):
             return np.asarray([np.median(v) for v in t.iter_data(dense=True)])
@@ -4129,13 +4147,9 @@ class SparseTableTests(TestCase):
     def test_extract_data_from_tsv_badvalue_complaint(self):
         tsv = ['#OTU ID\ta\tb', '1\t2\t3', '2\tfoo\t6']
 
-        if six.PY3:
-            msg = "Invalid value on line 2, column 1, value foo"
-            with self.assertRaisesRegex(TypeError, msg):
-                Table._extract_data_from_tsv(tsv, dtype=int)
-        else:
-            with self.assertRaises(TypeError):
-                Table._extract_data_from_tsv(tsv, dtype=int)
+        msg = "Invalid value on line 2, column 1, value foo"
+        with self.assertRaisesRegex(TypeError, msg):
+            Table._extract_data_from_tsv(tsv, dtype=int)
 
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
@@ -4447,7 +4461,7 @@ class SupportTests2(TestCase):
         self.assertEqual((obs != exp).sum(), 0)
 
 
-legacy_otu_table1 = u"""# some comment goes here
+legacy_otu_table1 = """# some comment goes here
 #OTU id\tFing\tKey\tNA\tConsensus Lineage
 0\t19111\t44536\t42 \tBacteria; Actinobacteria; Actinobacteridae; Propioniba\
 cterineae; Propionibacterium
@@ -4460,7 +4474,7 @@ ae; Corynebacteriaceae
 aphylococcaceae
 4\t589\t2074\t34\tBacteria; Cyanobacteria; Chloroplasts; vectors
 """
-legacy_otu_table_bad_metadata = u"""# some comment goes here
+legacy_otu_table_bad_metadata = """# some comment goes here
 #OTU id\tFing\tKey\tNA\tConsensus Lineage
 0\t19111\t44536\t42 \t
 1\t1216\t3500\t6\tBacteria; Firmicutes; Alicyclobacillaceae; Bacilli; La\
@@ -4475,7 +4489,7 @@ extract_tsv_bug = """#OTU ID	s1	s2	taxonomy
 1	123	32\t
 2	315	3	k__test;p__test
 3	0	22	k__test;p__test"""
-otu_table1 = u"""# Some comment
+otu_table1 = """# Some comment
 #OTU ID\tFing\tKey\tNA\tConsensus Lineage
 0\t19111\t44536\t42\tBacteria; Actinobacteria; Actinobacteridae; \
 Propionibacterineae; Propionibacterium

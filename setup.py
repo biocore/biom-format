@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 
 # ----------------------------------------------------------------------------
 # Copyright (c) 2011-2020, The BIOM Format Development Team.
@@ -90,6 +89,8 @@ classes = """
     Programming Language :: Python :: 3.6
     Programming Language :: Python :: 3.7
     Programming Language :: Python :: 3.8
+    Programming Language :: Python :: 3.9
+    Programming Language :: Python :: 3.10
     Programming Language :: Python :: Implementation :: CPython
     Operating System :: OS Independent
     Operating System :: POSIX :: Linux
@@ -110,10 +111,15 @@ extensions = [Extension("biom._filter",
                         include_dirs=[np.get_include()])]
 extensions = cythonize(extensions)
 
-install_requires = ["click", "numpy >= 1.9.2", "future >= 0.16.0",
-                    "scipy >= 1.3.1", 'pandas >= 0.20.0',
-                    "six >= 1.10.0", "cython >= 0.29", "h5py",
-                    "cython"]
+install_requires = [
+    "click",
+    "numpy >= 1.9.2",
+    "scipy >= 1.3.1",
+    'pandas >= 0.20.0',
+    "cython >= 0.29",
+    "h5py",
+    "cython"
+]
 
 if sys.version_info[0] < 3:
     raise SystemExit("Python 2.7 is no longer supported")
@@ -130,10 +136,11 @@ setup(name='biom-format',
       maintainer_email=__email__,
       url='http://www.biom-format.org',
       packages=find_packages(),
-      tests_require=['pytest < 5.3.4',
-                     'pytest-cov',
-                     'flake8',
-                     'nose'],
+      tests_require=[
+          'pytest>=6.2.4',
+          'pytest-cov',
+          'flake8',
+      ],
       include_package_data=True,
       ext_modules=extensions,
       include_dirs=[np.get_include()],

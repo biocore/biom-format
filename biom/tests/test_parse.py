@@ -15,6 +15,7 @@ from unittest import TestCase, main
 
 import numpy as np
 import numpy.testing as npt
+import pytest
 
 from biom.parse import (generatedby, MetadataMap, parse_biom_table, parse_uc,
                         load_table)
@@ -170,7 +171,7 @@ class ParseTests(TestCase):
         self.assertEqual(tab.metadata(), None)
         self.assertEqual(tab.metadata(axis='observation'), None)
 
-        tablestring = u'''{
+        tablestring = '''{
             "id":null,
             "format": "Biological Observation Matrix 0.9.1-dev",
             "format_url": "http://biom-format.org",
@@ -274,7 +275,7 @@ class ParseTests(TestCase):
         obs = Table.from_adjacency(''.join(lines))
         self.assertEqual(obs, exp)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_parse_biom_table_hdf5(self):
         """Make sure we can parse a HDF5 table through the same loader"""
         cwd = os.getcwd()
@@ -283,7 +284,7 @@ class ParseTests(TestCase):
         Table.from_hdf5(h5py.File('test_data/test.biom'))
         os.chdir(cwd)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_load_table_filepath(self):
         cwd = os.getcwd()
         if '/' in __file__[1:]:
@@ -291,7 +292,7 @@ class ParseTests(TestCase):
         load_table('test_data/test.biom')
         os.chdir(cwd)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_load_table_inmemory(self):
         cwd = os.getcwd()
         if '/' in __file__[1:]:
@@ -337,7 +338,7 @@ class ParseTests(TestCase):
         t_json = parse_biom_table(t_json_stringio)
         self.assertEqual(t, t_json)
 
-    @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_parse_biom_table_with_hdf5(self):
         """tests for parse_biom_table when we have h5py"""
         # We will round-trip the HDF5 file to several different formats, and
@@ -448,7 +449,7 @@ K00507	0.0	0.0	Metabolism; Lipid Metabolism; Biosynthesis of unsaturated fatt\
 y acids|Organismal Systems; Endocrine System; PPAR signaling pathway
 """
 
-biom_minimal_sparse = u"""
+biom_minimal_sparse = """
     {
         "id":null,
         "format": "Biological Observation Matrix v0.9",

@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from __future__ import division
 
 import click
 
@@ -60,10 +59,10 @@ def subset_table(input_hdf5_fp, input_json_fp, axis, ids, output_fp):
 
     """
     if input_json_fp is not None:
-        with open(input_json_fp, 'U') as f:
+        with open(input_json_fp) as f:
             input_json_fp = f.read()
 
-    with open(ids, 'U') as f:
+    with open(ids) as f:
         ids = []
         for line in f:
             if not line.startswith('#'):

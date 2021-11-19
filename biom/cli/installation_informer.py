@@ -6,7 +6,6 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
-from __future__ import division
 
 import sys
 
@@ -118,4 +117,4 @@ def _format_info(info, title):
 
 
 def _get_max_length(info):
-    return max([len(e[0]) for e in info])
+    return max(len(e[0]) for e in info)
