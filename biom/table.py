@@ -462,7 +462,7 @@ class Table(object):
                  observation_metadata=None, sample_metadata=None,
                  table_id=None, type=None, create_date=None, generated_by=None,
                  observation_group_metadata=None, sample_group_metadata=None,
-                 **kwargs):
+                 validate=True, **kwargs):
 
         self.type = type
         self.table_id = table_id
@@ -507,7 +507,8 @@ class Table(object):
         self._sample_group_metadata = sample_group_metadata
         self._observation_group_metadata = observation_group_metadata
 
-        errcheck(self)
+        if validate:
+            errcheck(self)
 
         # These will be set by _index_ids()
         self._sample_index = None
@@ -2452,7 +2453,7 @@ class Table(object):
                 samp_md = md[:] if md is not None else None
 
             yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
-                              self.table_id, type=self.type)
+                              self.table_id, type=self.type, validate=False)
 
     def collapse(self, f, collapse_f=None, norm=True, min_group_size=1,
                  include_collapsed_metadata=True, one_to_many=False,
