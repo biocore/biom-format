@@ -653,7 +653,7 @@ class TableTests(TestCase):
     @npt.dec.skipif(HAVE_H5PY is False, msg='H5PY is not installed')
     def test_from_hdf5_custom_parsers(self):
         def parser(item):
-            return item.upper()
+            return general_parser(item).upper()
         parse_fs = {'BODY_SITE': parser}
 
         cwd = os.getcwd()
