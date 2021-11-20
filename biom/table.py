@@ -448,6 +448,7 @@ class Table:
                  observation_metadata=None, sample_metadata=None,
                  table_id=None, type=None, create_date=None, generated_by=None,
                  observation_group_metadata=None, sample_group_metadata=None,
+                 validate=True, observation_index=None, sample_index=None,
                  **kwargs):
 
         self.type = type
@@ -493,22 +494,30 @@ class Table:
         self._sample_group_metadata = sample_group_metadata
         self._observation_group_metadata = observation_group_metadata
 
-        errcheck(self)
+        if validate:
+            errcheck(self)
 
         # These will be set by _index_ids()
         self._sample_index = None
         self._obs_index = None
 
         self._cast_metadata()
-        self._index_ids()
+        self._index_ids(observation_index, sample_index)
 
-    def _index_ids(self):
+    def _index_ids(self, observation_index, sample_index):
         """Sets lookups {id:index in _data}.
 
         Should only be called in constructor as this modifies state.
         """
-        self._sample_index = index_list(self._sample_ids)
-        self._obs_index = index_list(self._observation_ids)
+        if sample_index is None:
+            self._sample_index = index_list(self._sample_ids)
+        else:
+            self._sample_index = sample_index
+
+        if observation_index is None:
+            self._obs_index = index_list(self._observation_ids)
+        else:
+            self._obs_index = observation_index
 
     def _index(self, axis='sample'):
         """Return the index lookups of the given axis
@@ -1407,7 +1416,7 @@ class Table:
         else:
             result._observation_ids = updated_ids
 
-        result._index_ids()
+        result._index_ids(None, None)
 
         # check for errors (specifically, we want to esnsure that duplicate
         # ids haven't been introduced)
@@ -2345,11 +2354,12 @@ class Table:
         if axis == 1:
             table._sample_ids = ids
             table._sample_metadata = metadata
+            table._index_ids(self._obs_index.copy(), None)
         elif axis == 0:
             table._observation_ids = ids
             table._observation_metadata = metadata
+            table._index_ids(None, self._sample_index.copy())
 
-        table._index_ids()
         errcheck(table)
 
         return table
@@ -2430,6 +2440,7 @@ class Table:
                 samp_md = metadata
                 obs_ids = self.ids(axis='observation')[:]
                 obs_md = md[:] if md is not None else None
+                indices = {'observation_index': self._obs_index.copy()}
 
             elif axis == 'observation':
                 data = self._conv_to_self_type(values, transpose=False)
@@ -2437,9 +2448,11 @@ class Table:
                 obs_md = metadata
                 samp_ids = self.ids()[:]
                 samp_md = md[:] if md is not None else None
+                indices = {'sample_index': self._sample_index.copy()}
 
             yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
-                              self.table_id, type=self.type)
+                              self.table_id, type=self.type, validate=False,
+                              **indices)
 
     def collapse(self, f, collapse_f=None, norm=True, min_group_size=1,
                  include_collapsed_metadata=True, one_to_many=False,
