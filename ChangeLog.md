@@ -11,6 +11,7 @@ Bug fixes:
 New Features
 
 * Python 3.10 support, see [PR #865](https://github.com/biocore/biom-format/pull/865)
+* 10x improvement on `Table.collapse` when operating over many partitions, see [PR #866](https://github.com/biocore/biom-format/pull/866)
 
 biom 2.1.10
 -----------
