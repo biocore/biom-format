@@ -4070,6 +4070,12 @@ html
                 shape = (len(to_keep), len(samp_ids))
                 mat = csr_matrix((data, indices, indptr), shape=shape)
 
+            # use a fixed width dtype
+            obs_ids_dtype = 'U%d' % max([len(v) for v in obs_ids])
+            samp_ids_dtype = 'U%d' % max([len(v) for v in samp_ids])
+            obs_ids = np.asarray(obs_ids, dtype=obs_ids_dtype)
+            samp_ids = np.asarray(samp_ids, dtype=samp_ids_dtype)
+
             return Table(mat, obs_ids, samp_ids)
 
         id_ = h5grp.attrs['id']
@@ -4090,8 +4096,9 @@ html
             # fetch all of the IDs
             ids = grp['ids'][:]
 
-            if ids.size > 0 and isinstance(ids[0], bytes):
-                ids = np.array([i.decode('utf8') for i in ids])
+            if ids.size > 0:
+                ids_dtype = 'U%d' % max([len(v) for v in ids])
+                ids = np.asarray(ids, dtype=ids_dtype)
 
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
