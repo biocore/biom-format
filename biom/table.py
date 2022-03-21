@@ -467,9 +467,8 @@ class Table:
 
         self._data = self._data.astype(float)
 
-        # using object to allow for variable length strings
-        self._sample_ids = np.asarray(sample_ids, dtype=object)
-        self._observation_ids = np.asarray(observation_ids, dtype=object)
+        self._sample_ids = np.asarray(sample_ids)
+        self._observation_ids = np.asarray(observation_ids)
 
         if sample_metadata is not None:
             # not m will evaluate True if the object tested is None or
@@ -1398,7 +1397,8 @@ class Table:
         >>> print(updated_table.ids(axis='sample'))
         ['s1.1' 's2.2' 's3.3']
         """
-        updated_ids = zeros(self.ids(axis=axis).size, dtype=object)
+        str_dtype = 'U%d' % max([len(v) for v in id_map.values()])
+        updated_ids = zeros(self.ids(axis=axis).size, dtype=str_dtype)
         for idx, old_id in enumerate(self.ids(axis=axis)):
             if strict and old_id not in id_map:
                 raise TableException(
@@ -2340,7 +2340,6 @@ class Table:
         ids = table.ids(axis=axis)
         index = self._index(axis=axis)
         axis = table._axis_to_num(axis=axis)
-
         arr = table._data
         arr, ids, metadata = _filter(arr,
                                      ids,

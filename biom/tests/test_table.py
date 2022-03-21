@@ -2348,8 +2348,8 @@ class SparseTableTests(TestCase):
         """ids are updated as expected"""
         # update observation ids
         exp = self.st1.copy()
-        exp._observation_ids = np.array(['41', '42'])
-        id_map = {'2': '42', '1': '41'}
+        exp._observation_ids = np.array(['41', '42long'])
+        id_map = {'2': '42long', '1': '41'}
         obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
         self.assertEqual(obs, exp)
 
@@ -2932,10 +2932,10 @@ class SparseTableTests(TestCase):
 
     def test_copy_ids(self):
         copied_table = self.st_rich.copy()
-        self.st_rich._sample_ids[0] = 'a different id'
+        self.st_rich._sample_ids[0] = 'X'
         self.assertNotEqual(copied_table, self.st_rich)
         copied_table = self.st_rich.copy()
-        self.st_rich._observation_ids[0] = 'a different id'
+        self.st_rich._observation_ids[0] = 'X'
         self.assertNotEqual(copied_table, self.st_rich)
 
     def test_copy_data(self):

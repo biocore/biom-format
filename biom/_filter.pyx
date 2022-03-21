@@ -140,7 +140,8 @@ def _filter(arr, ids, metadata, index, ids_to_keep, axis, invert):
         _remove_rows_csr(arr, bools)
         arr = arr.T  # Back to CSC
 
-    ids = np.asarray(list(compress(ids, bools)), dtype=object)
+    ids_dtype = ids.dtype
+    ids = np.asarray(list(compress(ids, bools)), dtype=ids_dtype)
     metadata = tuple(compress(metadata, bools))
 
     if metadata_is_None:
