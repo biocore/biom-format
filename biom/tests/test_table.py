@@ -664,7 +664,7 @@ class TableTests(TestCase):
         os.chdir(cwd)
 
         for m in t.metadata():
-            self.assertIn(m['BODY_SITE'], ('GUT', 'SKIN'))
+            self.assertIn(m['BODY_SITE'], ('GUT', 'SKIN', b'GUT', b'SKIN'))
 
     @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_issue_731(self):
