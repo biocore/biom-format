@@ -57,6 +57,12 @@ class ParseTests(TestCase):
         self.classic_table_with_complex_metadata = \
             classic_table_with_complex_metadata.split('\n')
 
+    def test_from_tsv_bug_854(self):
+        data = StringIO('#FeatureID\tSample1')
+        exp = Table([], [], ['Sample1'])
+        obs = Table.from_tsv(data, None, None, lambda x: x)
+        self.assertEqual(obs, exp)
+
     def test_generatedby(self):
         """get a generatedby string"""
         exp = "BIOM-Format %s" % __version__
