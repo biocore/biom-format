@@ -6,12 +6,38 @@ on:
       - '*'
 
 jobs:
-  release:
+  strategy:
+    max-parallel: 1  # run jobs sequentially
+  docs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
         with:
-          submodules: true
+          ref: 'gh-pages'
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Build documentation
+        run: |
+          # set version from '${{ github.ref_name }}'
+          export RELEASE_VERSION=${{ github.ref_name }}
+          pip install sphinx numpydoc
+          make html
+      - name: Update docs
+        run: |
+          # https://stackoverflow.com/a/58393457/19741
+          git config --global user.name 'Github actions'
+          git config --global user.email 'wasade@users.noreply.github.com'
+          rsync ...
+          git add ...
+          git commit -am "Automated build on release"
+          git push
+
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
