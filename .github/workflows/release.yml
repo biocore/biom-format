@@ -27,9 +27,9 @@ jobs:
           git config --global user.name 'Github actions'
           git config --global user.email 'wasade@users.noreply.github.com'
           mkdir _temp_html
-          cp -r docs/_build/html/* _temp_html/
+          cp -r doc/_build/html/* _temp_html/
           git checkout gh-pages
-          rsync _temp_html/ .
+          rsync -avp _temp_html/* .
           rm -fr _temp_html
           git add .
           git commit -am "Automated build on release"
