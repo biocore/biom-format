@@ -14,16 +14,16 @@ jobs:
       - uses: actions/checkout@v2
         with:
           ref: 'gh-pages'
-      - name: Set up Python 3.8
+      - name: Set up Python 3.6
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8
+          python-version: 3.6
       - name: Build documentation
         run: |
           # set version from '${{ github.ref_name }}'
           export RELEASE_VERSION=${{ github.ref_name }}
-          pip install sphinx numpydoc
-          make html
+          pip install sphinx==1.2.2 'docutils<0.14'
+          make -C doc html
       - name: Update docs
         run: |
           # https://stackoverflow.com/a/58393457/19741
