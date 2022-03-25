@@ -263,8 +263,13 @@ def vlen_list_of_str_parser(value):
 def general_formatter(grp, header, md, compression):
     """Creates a dataset for a general atomic type category"""
     shape = (len(md),)
-    name = 'metadata/%s' % header
     dtypes = [type(m[header]) for m in md]
+
+    # "/" are considered part of the path in hdf5 and must be
+    # escaped. However, escaping with "\" leads to a truncation
+    # so let's replace "/" with an unexpected keyword.
+    sanitized = header.replace('/', '@@SLASH@@')
+    name = 'metadata/%s' % sanitized
 
     if set(dtypes).issubset({str}):
         grp.create_dataset(name, shape=shape,
@@ -299,7 +304,6 @@ def general_formatter(grp, header, md, compression):
             dtype=dtype_to_use,
             data=formatted,
             compression=compression)
-
 
 def vlen_list_of_str_formatter(grp, header, md, compression):
     """Creates a (N, ?) vlen str dataset"""
@@ -4109,6 +4113,7 @@ html
             # fetch ID specific metadata
             md = [{} for i in range(len(ids))]
             for category, dset in grp['metadata'].items():
+                category = category.replace('@@SLASH@@', '/')
                 parse_f = parser[category]
                 data = dset[:]
                 for md_dict, data_row in zip(md, data):
@@ -4561,7 +4566,7 @@ html
                                                      other_id, list(other_md),
                                                      ids[0], list(exp)))
 
-                for category in md[0]:
+                for category in list(md[0]):
                     # Create the dataset for the current category,
                     # putting values in id order
                     formatter[category](grp, category, md, compression)
