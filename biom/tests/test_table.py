@@ -1000,6 +1000,22 @@ class TableTests(TestCase):
         npt.assert_equal(list(t.iter_data(axis='observation')), [])
 
     @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
+    def test_to_from_hdf5_bug_861(self):
+        t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
+                  ['c', 'd', 'e'])
+        t.add_metadata({'a': {'a / problem': 10}, 'b': {'a / problem': 20}},
+                       axis='observation')
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            t.to_hdf5(h5, 'tests')
+            h5.close()
+
+            h5 = h5py.File(tmpfile.name)
+            obs = Table.from_hdf5(h5)
+
+        self.assertEqual(obs, t)
+
+    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_empty_table(self):
         """Successfully writes an empty OTU table in HDF5 format"""
         # Create an empty OTU table
