@@ -4508,6 +4508,9 @@ html
         if format_fs is None:
             format_fs = {}
 
+        # cache nnz to avoid multiple calls to eliminate_zeros() as it is
+        # expensive per profiling
+        nnz = self.nnz
         h5grp.attrs['id'] = self.table_id if self.table_id else "No Table ID"
         h5grp.attrs['type'] = self.type if self.type else ""
         h5grp.attrs['format-url'] = "http://biom-format.org"
@@ -4515,7 +4518,7 @@ html
         h5grp.attrs['generated-by'] = generated_by
         h5grp.attrs['creation-date'] = datetime.now().isoformat()
         h5grp.attrs['shape'] = self.shape
-        h5grp.attrs['nnz'] = self.nnz
+        h5grp.attrs['nnz'] = nnz
 
         compression = None
         if compress is True:
@@ -4535,7 +4538,7 @@ html
             ids = self.ids(axis=axis)
             len_ids = len(ids)
             len_indptr = len(self._data.indptr)
-            len_data = self.nnz
+            len_data = nnz
 
             md = self.metadata(axis=axis)
 
