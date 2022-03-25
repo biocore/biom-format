@@ -779,10 +779,10 @@ class TableTests(TestCase):
                             subset_with_metadata=False)
         os.chdir(cwd)
 
-        npt.assert_equal(t.ids(), [b'Sample2', b'Sample4', b'Sample6'])
+        npt.assert_equal(t.ids(), ['Sample2', 'Sample4', 'Sample6'])
         npt.assert_equal(t.ids(axis='observation'),
-                         [b'GG_OTU_1', b'GG_OTU_2', b'GG_OTU_3', b'GG_OTU_4',
-                          b'GG_OTU_5'])
+                         ['GG_OTU_1', 'GG_OTU_2', 'GG_OTU_3', 'GG_OTU_4',
+                          'GG_OTU_5'])
         exp_obs_md = None
         self.assertEqual(t._observation_metadata, exp_obs_md)
         exp_samp_md = None
@@ -881,10 +881,10 @@ class TableTests(TestCase):
                             subset_with_metadata=False)
         os.chdir(cwd)
 
-        npt.assert_equal(t.ids(), [b'Sample1', b'Sample2', b'Sample3',
-                                   b'Sample4', b'Sample5', b'Sample6'])
+        npt.assert_equal(t.ids(), ['Sample1', 'Sample2', 'Sample3',
+                                   'Sample4', 'Sample5', 'Sample6'])
         npt.assert_equal(t.ids(axis='observation'),
-                         [b'GG_OTU_1', b'GG_OTU_3', b'GG_OTU_5'])
+                         ['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'])
         exp_obs_md = None
         self.assertEqual(t._observation_metadata, exp_obs_md)
 
@@ -2348,8 +2348,8 @@ class SparseTableTests(TestCase):
         """ids are updated as expected"""
         # update observation ids
         exp = self.st1.copy()
-        exp._observation_ids = np.array(['41', '42'])
-        id_map = {'2': '42', '1': '41'}
+        exp._observation_ids = np.array(['41', '42long'])
+        id_map = {'2': '42long', '1': '41'}
         obs = self.st1.update_ids(id_map, axis='observation', inplace=False)
         self.assertEqual(obs, exp)
 
@@ -2932,10 +2932,10 @@ class SparseTableTests(TestCase):
 
     def test_copy_ids(self):
         copied_table = self.st_rich.copy()
-        self.st_rich._sample_ids[0] = 'a different id'
+        self.st_rich._sample_ids[0] = 'X'
         self.assertNotEqual(copied_table, self.st_rich)
         copied_table = self.st_rich.copy()
-        self.st_rich._observation_ids[0] = 'a different id'
+        self.st_rich._observation_ids[0] = 'X'
         self.assertNotEqual(copied_table, self.st_rich)
 
     def test_copy_data(self):

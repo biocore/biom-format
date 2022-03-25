@@ -467,9 +467,8 @@ class Table:
 
         self._data = self._data.astype(float)
 
-        # using object to allow for variable length strings
-        self._sample_ids = np.asarray(sample_ids, dtype=object)
-        self._observation_ids = np.asarray(observation_ids, dtype=object)
+        self._sample_ids = np.asarray(sample_ids)
+        self._observation_ids = np.asarray(observation_ids)
 
         if sample_metadata is not None:
             # not m will evaluate True if the object tested is None or
@@ -1398,7 +1397,8 @@ class Table:
         >>> print(updated_table.ids(axis='sample'))
         ['s1.1' 's2.2' 's3.3']
         """
-        updated_ids = zeros(self.ids(axis=axis).size, dtype=object)
+        str_dtype = 'U%d' % max([len(v) for v in id_map.values()])
+        updated_ids = zeros(self.ids(axis=axis).size, dtype=str_dtype)
         for idx, old_id in enumerate(self.ids(axis=axis)):
             if strict and old_id not in id_map:
                 raise TableException(
@@ -2340,7 +2340,6 @@ class Table:
         ids = table.ids(axis=axis)
         index = self._index(axis=axis)
         axis = table._axis_to_num(axis=axis)
-
         arr = table._data
         arr, ids, metadata = _filter(arr,
                                      ids,
@@ -4071,6 +4070,12 @@ html
                 shape = (len(to_keep), len(samp_ids))
                 mat = csr_matrix((data, indices, indptr), shape=shape)
 
+            # use a fixed width dtype
+            obs_ids_dtype = 'U%d' % max([len(v) for v in obs_ids])
+            samp_ids_dtype = 'U%d' % max([len(v) for v in samp_ids])
+            obs_ids = np.asarray(obs_ids, dtype=obs_ids_dtype)
+            samp_ids = np.asarray(samp_ids, dtype=samp_ids_dtype)
+
             return Table(mat, obs_ids, samp_ids)
 
         id_ = h5grp.attrs['id']
@@ -4091,8 +4096,9 @@ html
             # fetch all of the IDs
             ids = grp['ids'][:]
 
-            if ids.size > 0 and isinstance(ids[0], bytes):
-                ids = np.array([i.decode('utf8') for i in ids])
+            if ids.size > 0:
+                ids_dtype = 'U%d' % max([len(v) for v in ids])
+                ids = np.asarray(ids, dtype=ids_dtype)
 
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
