@@ -1,8 +1,10 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.11-dev
+biom 2.1.11
 -----------
+
+General maintenance and feature expansion, released on 25 March 2022.
 
 Bug fixes:
 
@@ -12,6 +14,9 @@ New Features
 
 * Python 3.10 support, see [PR #865](https://github.com/biocore/biom-format/pull/865)
 * 10x improvement on `Table.collapse` when operating over many partitions, see [PR #866](https://github.com/biocore/biom-format/pull/866)
+* Minor performance improvement, see [PR #871](https://github.com/biocore/biom-format/pull/871)
+* Coerce consistent, and fixed width, types for IDs, see [PR #872](https://github.com/biocore/biom-format/pull/872)
+* Table / metadata alignment support, see [PR #859](https://github.com/biocore/biom-format/pull/859)
 
 biom 2.1.10
 -----------

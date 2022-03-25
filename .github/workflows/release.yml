@@ -1,0 +1,59 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  strategy:
+    max-parallel: 1  # run jobs sequentially
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python 3.6
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.6
+      - name: Build documentation
+        run: |
+          # set version from '${{ github.ref_name }}'
+          export RELEASE_VERSION=${{ github.ref_name }}
+          pip install sphinx==1.2.2 'docutils<0.14' numpy cython
+          pip install -e .  # build imports biom so install needs to exist
+          make -C doc html
+      - name: Update docs
+        run: |
+          # https://stackoverflow.com/a/58393457/19741
+          git config --global user.name 'Github actions'
+          git config --global user.email 'wasade@users.noreply.github.com'
+          mkdir _temp_html
+          cp -r docs/_build/html/* _temp_html/
+          git checkout gh-pages
+          rsync _temp_html/ .
+          rm -fr _temp_html
+          git add .
+          git commit -am "Automated build on release"
+          git push
+
+          #release:
+          #  runs-on: ubuntu-latest
+          #  steps:
+          #    - uses: actions/checkout@v2
+          #    - name: Set up Python 3.8
+          #      uses: actions/setup-python@v2
+          #      with:
+          #        python-version: 3.8
+          #    - name: Build distribution
+          #      run: |
+          #        # set version from '${{ github.ref_name }}'
+          #        export RELEASE_VERSION=${{ github.ref_name }}
+          #        pip install numpy cython
+          #        python setup.py sdist
+          #    - name: Publish a Python distribution to PyPI
+          #      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+          #      uses: pypa/gh-action-pypi-publish@release/v1
+          #      with:
+          #        user: __token__
+          #        password: ${{ secrets.PYPI_API_TOKEN }}
