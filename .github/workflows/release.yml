@@ -6,8 +6,6 @@ on:
       - '*'
 
 jobs:
-  strategy:
-    max-parallel: 1  # run jobs sequentially
   docs:
     runs-on: ubuntu-latest
     steps:
