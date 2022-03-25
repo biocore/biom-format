@@ -5082,6 +5082,7 @@ html
         # with a #
         header = False
         list_index = 0
+        data_start = 0
         for line in lines:
             if not line.strip():
                 continue
@@ -5113,7 +5114,7 @@ html
         last_column_is_numeric = all([isfloat(i) for i in last_values])
 
         # determine sample ids
-        if last_column_is_numeric:
+        if last_column_is_numeric or data_start == 0:
             md_name = None
             metadata = None
             samp_ids = header[:]
