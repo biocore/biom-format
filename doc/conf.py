@@ -232,4 +232,7 @@ man_pages = [
 # Add the 'copybutton' javascript, to hide/show the prompt in code
 # examples, originally taken from scikit-learn's doc/conf.py
 def setup(app):
-    app.add_javascript('copybutton.js')
+    try:
+        app.add_javascript('copybutton.js')
+    except:
+        app.add_js_file('copybutton.js')
