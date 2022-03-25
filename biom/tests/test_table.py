@@ -1002,7 +1002,7 @@ class TableTests(TestCase):
     @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_from_hdf5_bug_861(self):
         t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
-                           ['c', 'd', 'e'])
+                  ['c', 'd', 'e'])
         t.add_metadata({'a': {'a / problem': 10}, 'b': {'a / problem': 20}},
                        axis='observation')
         with NamedTemporaryFile() as tmpfile:

@@ -305,6 +305,7 @@ def general_formatter(grp, header, md, compression):
             data=formatted,
             compression=compression)
 
+
 def vlen_list_of_str_formatter(grp, header, md, compression):
     """Creates a (N, ?) vlen str dataset"""
     # It is possible that the value for some sample/observation
