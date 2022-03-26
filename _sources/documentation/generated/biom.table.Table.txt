@@ -47,6 +47,8 @@ biom.table.Table
          Table.add_group_metadata
          Table.add_metadata
          Table.align_to
+         Table.align_to_dataframe
+         Table.align_tree
          Table.collapse
          Table.concat
          Table.copy

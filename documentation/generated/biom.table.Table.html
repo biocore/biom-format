@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.9',
+        VERSION:     '2.1.11',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -58,7 +58,7 @@
 <h1>biom.table.Table<a class="headerlink" href="#biom-table-table" title="Permalink to this headline">¶</a></h1>
 <dl class="class">
 <dt id="biom.table.Table">
-<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">Table</tt><big>(</big><em>data</em>, <em>observation_ids</em>, <em>sample_ids</em>, <em>observation_metadata=None</em>, <em>sample_metadata=None</em>, <em>table_id=None</em>, <em>type=None</em>, <em>create_date=None</em>, <em>generated_by=None</em>, <em>observation_group_metadata=None</em>, <em>sample_group_metadata=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.Table" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">biom.table.</tt><tt class="descname">Table</tt><big>(</big><em>data</em>, <em>observation_ids</em>, <em>sample_ids</em>, <em>observation_metadata=None</em>, <em>sample_metadata=None</em>, <em>table_id=None</em>, <em>type=None</em>, <em>create_date=None</em>, <em>generated_by=None</em>, <em>observation_group_metadata=None</em>, <em>sample_group_metadata=None</em>, <em>validate=True</em>, <em>observation_index=None</em>, <em>sample_index=None</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#biom.table.Table" title="Permalink to this definition">¶</a></dt>
 <dd><p>The (canonically pronounced &#8216;teh&#8217;) Table.</p>
 <p>Give in to the power of the Table!</p>
 <p>Creates an in-memory representation of a BIOM file. BIOM version 1.0 is
@@ -157,6 +157,12 @@ GigaScience 2012 1:7</td></tr>
 </tr>
 <tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.align_to.html#biom.table.Table.align_to" title="biom.table.Table.align_to"><tt class="xref py py-obj docutils literal"><span class="pre">align_to</span></tt></a>(other[,&nbsp;axis])</td>
 <td>Align self to other over a requested axis</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="biom.table.Table.align_to_dataframe.html#biom.table.Table.align_to_dataframe" title="biom.table.Table.align_to_dataframe"><tt class="xref py py-obj docutils literal"><span class="pre">align_to_dataframe</span></tt></a>(metadata[,&nbsp;axis])</td>
+<td>Aligns dataframe against biom table, only keeping common ids.</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="biom.table.Table.align_tree.html#biom.table.Table.align_tree" title="biom.table.Table.align_tree"><tt class="xref py py-obj docutils literal"><span class="pre">align_tree</span></tt></a>(tree[,&nbsp;axis])</td>
+<td>Aligns biom table against tree, only keeping common ids.</td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="biom.table.Table.collapse.html#biom.table.Table.collapse" title="biom.table.Table.collapse"><tt class="xref py py-obj docutils literal"><span class="pre">collapse</span></tt></a>(f[,&nbsp;collapse_f,&nbsp;norm,&nbsp;...])</td>
 <td>Collapse partitions in a table by metadata or by IDs</td>
@@ -327,8 +333,8 @@ GigaScience 2012 1:7</td></tr>
 
 
     <div class="footer">
-        &copy; Copyright 2011-2020 The BIOM Format Development Team.
-      Last updated on Nov 05, 2020.
+        &copy; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on Mar 25, 2022.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
