@@ -34,9 +34,9 @@ jobs:
       run: |
         conda create --yes -n env_name python=3.6
         conda activate env_name
-        conda install --name env_name pip click numpy 'scipy>=1.3.1' pep8 flake8 coverage 'pandas>=0.20.0' nose 'h5py>=2.2.0' cython scikit-bio
+        conda install --name env_name pip click numpy 'scipy>=1.3.1' pep8 flake8 coverage 'pandas>=0.20.0' nose 'h5py>=2.2.0' cython scikit-bio anndata
         pip install sphinx==1.2.2 'docutils<0.14'
-        pip install -e .[hdf5,anndata] --no-deps
+        pip install -e . --no-deps
     - name: Build docs
       shell: bash -l {0}
       run: |
