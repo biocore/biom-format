@@ -34,7 +34,7 @@ jobs:
       run: |
         conda create --yes -n env_name python=3.6
         conda activate env_name
-        conda install --name env_name pip click numpy 'scipy>=1.3.1' pep8 flake8 coverage 'pandas>=0.20.0' nose 'h5py>=2.2.0' cython scikit-bio anndata
+        conda install --name env_name pip click numpy 'scipy>=1.3.1' pep8 flake8 coverage 'pandas>=0.20.0' nose 'h5py>=2.2.0' cython scikit-bio
         pip install sphinx==1.2.2 'docutils<0.14'
         pip install -e . --no-deps
     - name: Build docs
@@ -62,8 +62,7 @@ jobs:
       run: |
         conda create --yes -n env_name python=${{ matrix.python-version }}
         conda activate env_name
-        conda install -y pip click numpy 'scipy>=1.3.1' 'pandas>=0.20.0' 'h5py>=2.2.0' cython 'pytest>=6.2.4' flake8
-        pip install anndata
+        conda install -y pip click numpy 'scipy>=1.3.1' 'pandas>=0.20.0' 'h5py>=2.2.0' cython 'pytest>=6.2.4' flake8 anndata
 
     - name: Tests
       shell: bash -l {0}
