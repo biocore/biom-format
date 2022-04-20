@@ -12,4 +12,4 @@ Further details can be found at http://biom-format.org.
 Getting help
 ------------
 
-To get help with biom, you should use the [biom](http://stackoverflow.com/questions/tagged/biom) tag on StackOverflow (SO), or post the the [QIIME 2 Forum](http://forum.qiime2.org). Before posting a question, check out SO's guide on how to [ask a question](http://stackoverflow.com/questions/how-to-ask). The biom-format developers regularly monitor the `biom` SO tag.
+To get help with biom, you should use the [biom](http://stackoverflow.com/questions/tagged/biom) tag on StackOverflow (SO), or post to the [QIIME 2 Forum](http://forum.qiime2.org). Before posting a question, check out SO's guide on how to [ask a question](http://stackoverflow.com/questions/how-to-ask). The biom-format developers regularly monitor the `biom` SO tag.
