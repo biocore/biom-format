@@ -19,7 +19,7 @@ Classes
 
 Examples
 --------
-First, lets create a toy table to play around with. For this example, we're
+First, let's create a toy table to play around with. For this example, we're
 going to construct a 10x4 `Table`, or one that has 10 observations and 4
 samples. Each observation and sample will be given an arbitrary but unique
 name. We'll also add on some metadata.
@@ -1349,12 +1349,13 @@ class Table:
             raise UnknownAxisError(axis)
 
     def update_ids(self, id_map, axis='sample', strict=True, inplace=True):
-        """Update the ids along the given axis
+        """Update the ids along the given axis.
 
         Parameters
         ----------
         id_map : dict
-            Mapping of old to new ids
+            Mapping of old to new ids. All keys and values in this dict should
+            be strings.
         axis : {'sample', 'observation'}, optional
             Axis to search for `id`. Defaults to 'sample'
         strict : bool, optional
