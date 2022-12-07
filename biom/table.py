@@ -182,7 +182,7 @@ from collections import defaultdict
 from collections.abc import Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
-                          vstack, hstack)
+                          vstack, hstack, dok_matrix)
 import pandas as pd
 import re
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
@@ -2670,11 +2670,11 @@ class Table:
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
-            dtype = float if one_to_many_mode == 'divide' else self.dtype
+            dtype = np.float if one_to_many_mode == 'divide' else self.dtype
 
-            new_data = zeros(new_data_shape(self.ids(self._invert_axis(axis)),
-                                            new_md),
-                             dtype=dtype)
+            nds = new_data_shape(self.ids(self._invert_axis(axis)),
+                                 new_md)
+            new_data = dok_matrix(nds, dtype=dtype)
 
             # for each vector
             # for each bin in the metadata
@@ -2697,11 +2697,15 @@ class Table:
                             continue
                     except StopIteration:
                         break
+
+                    column = idx_lookup[part]
                     if one_to_many_mode == 'add':
-                        new_data[axis_slice(idx_lookup, part)] += vals
+                        for vidx, v in enumerate(vals):
+                            new_data[vidx, column] += v
                     else:
-                        new_data[axis_slice(idx_lookup, part)] += \
-                            vals / md_count[id_]
+                        divisor = md_count[id_]
+                        for vidx, v in enumerate(vals):
+                            new_data[vidx, column] += (v / divisor)
 
             if include_collapsed_metadata:
                 # reassociate pathway information
@@ -2713,7 +2717,7 @@ class Table:
                                                   key=itemgetter(1))]
 
             # convert back to self type
-            data = self._conv_to_self_type(new_data)
+            data = self._conv_to_self_type(csc_matrix(new_data))
         else:
             if collapse_f is None:
                 def collapse_f(t, axis):
