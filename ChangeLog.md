@@ -1,6 +1,13 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1.11-dev
+---------------
+
+New features
+
+* `table.collapse(..., one_to_many=True)` now uses a sparse matrix on construction, substantially reducing memory overhead [PR #884](https://github.com/biocore/biom-format/pull/884).
+
 biom 2.1.11
 -----------
 
