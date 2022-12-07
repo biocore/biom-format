@@ -2698,6 +2698,14 @@ class Table:
                     except StopIteration:
                         break
 
+                    # TODO: refactor Table.collapse(..., one_to_many=True) so
+                    # writes into new_data are performed without regard to
+                    # the requested axis, and perform a single transpose at the
+                    # end. Right now we incur many calls to `axis_update` which
+                    # could be avoided. However, this refactor is likely
+                    # complex to do correctly, so punting for now as we don't
+                    # yet have data showing this is a real world performance
+                    # concern.
                     column = idx_lookup[part]
                     if one_to_many_mode == 'add':
                         for vidx, v in enumerate(vals):
