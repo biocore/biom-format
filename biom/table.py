@@ -2607,6 +2607,7 @@ class Table:
 
         # transpose is only necessary in the one-to-one case
         # new_data_shape is only necessary in the one-to-many case
+        # axis_update is only necessary in the one-to-many case
         def axis_ids_md(t):
             return (t.ids(axis=axis), t.metadata(axis=axis))
 
@@ -2616,11 +2617,17 @@ class Table:
             def new_data_shape(ids, collapsed):
                 return (len(ids), len(collapsed))
 
+            def axis_update(offaxis, onaxis):
+                return (offaxis, onaxis)
+
         elif axis == 'observation':
             transpose = False
 
             def new_data_shape(ids, collapsed):
                 return (len(collapsed), len(ids))
+
+            def axis_update(offaxis, onaxis):
+                return (onaxis, offaxis)
 
         else:
             raise UnknownAxisError(axis)
@@ -2694,11 +2701,11 @@ class Table:
                     column = idx_lookup[part]
                     if one_to_many_mode == 'add':
                         for vidx, v in enumerate(vals):
-                            new_data[vidx, column] += v
+                            new_data[axis_update(vidx, column)] += v
                     else:
-                        divisor = md_count[id_]
+                        dv = md_count[id_]
                         for vidx, v in enumerate(vals):
-                            new_data[vidx, column] += (v / divisor)
+                            new_data[axis_update(vidx, column)] += (v / dv)
 
             if include_collapsed_metadata:
                 # reassociate pathway information
