@@ -2607,7 +2607,6 @@ class Table:
 
         # transpose is only necessary in the one-to-one case
         # new_data_shape is only necessary in the one-to-many case
-        # axis_slice is only necessary in the one-to-many case
         def axis_ids_md(t):
             return (t.ids(axis=axis), t.metadata(axis=axis))
 
@@ -2617,17 +2616,11 @@ class Table:
             def new_data_shape(ids, collapsed):
                 return (len(ids), len(collapsed))
 
-            def axis_slice(lookup, key):
-                return (slice(None), lookup[key])
-
         elif axis == 'observation':
             transpose = False
 
             def new_data_shape(ids, collapsed):
                 return (len(collapsed), len(ids))
-
-            def axis_slice(lookup, key):
-                return (lookup[key], slice(None))
 
         else:
             raise UnknownAxisError(axis)
