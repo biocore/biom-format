@@ -2670,7 +2670,7 @@ class Table:
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
-            dtype = np.float if one_to_many_mode == 'divide' else self.dtype
+            dtype = np.float64 if one_to_many_mode == 'divide' else self.dtype
 
             nds = new_data_shape(self.ids(self._invert_axis(axis)),
                                  new_md)
