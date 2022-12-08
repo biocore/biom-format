@@ -2712,8 +2712,8 @@ class Table:
                             new_data[axis_update(vidx, column)] += v
                     else:
                         dv = md_count[id_]
-                        for vidx, v in enumerate(vals):
-                            new_data[axis_update(vidx, column)] += (v / dv)
+                        for vidx, v in enumerate(vals / dv):
+                            new_data[axis_update(vidx, column)] += v
 
             if include_collapsed_metadata:
                 # reassociate pathway information
