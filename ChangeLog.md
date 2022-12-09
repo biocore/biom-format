@@ -10,7 +10,11 @@ Important:
 
 New features:
 
-* `table.collapse(..., one_to_many=True)` now uses a sparse matrix on construction, substantially reducing memory overhead [PR #884](https://github.com/biocore/biom-format/pull/884).
+* `Table.collapse(..., one_to_many=True)` now uses a sparse matrix on construction, substantially reducing memory overhead [PR #884](https://github.com/biocore/biom-format/pull/884).
+
+Bug fixes:
+
+* `Table.metadata_to_dataframe()` now considers all rows for column names, see [PR #881](https://github.com/biocore/biom-format/pull/881)
 
 biom 2.1.11
 -----------
