@@ -4378,18 +4378,21 @@ html
         if md is None:
             raise KeyError("%s does not have metadata" % axis)
 
-        test = md[0]
-        kv_test = sorted(list(test.items()))
-        columns = []
-        expand = {}
-        for key, value in kv_test:
-            if isinstance(value, (tuple, list)):
-                expand[key] = True
-                for idx in range(len(value)):
-                    columns.append("%s_%d" % (key, idx))
-            else:
-                expand[key] = False
-                columns.append(key)
+        mcols = []
+        for test in md:
+            kv_test = sorted(list(test.items()))
+            columns = []
+            expand = {}
+            for key, value in kv_test:
+                if isinstance(value, (tuple, list)):
+                    expand[key] = True
+                    for idx in range(len(value)):
+                        columns.append("%s_%d" % (key, idx))
+                else:
+                    expand[key] = False
+                    columns.append(key)
+            if len(columns) > len(mcols):
+                mcols = columns
 
         rows = []
         for m in md:
@@ -4402,7 +4405,7 @@ html
                     row.append(value)
             rows.append(row)
 
-        return pd.DataFrame(rows, index=self.ids(axis=axis), columns=columns)
+        return pd.DataFrame(rows, index=self.ids(axis=axis), columns=mcols)
 
     def to_hdf5(self, h5grp, generated_by, compress=True, format_fs=None):
         """Store CSC and CSR in place
