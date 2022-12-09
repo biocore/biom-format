@@ -14,7 +14,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../../',
-        VERSION:     '2.1.11',
+        VERSION:     '2.1.13',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -59,14 +59,15 @@
 <dl class="method">
 <dt id="biom.table.Table.update_ids">
 <tt class="descclassname">Table.</tt><tt class="descname">update_ids</tt><big>(</big><em>id_map</em>, <em>axis='sample'</em>, <em>strict=True</em>, <em>inplace=True</em><big>)</big><a class="headerlink" href="#biom.table.Table.update_ids" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update the ids along the given axis</p>
+<dd><p>Update the ids along the given axis.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>id_map</strong> : dict</p>
 <blockquote>
-<div><p>Mapping of old to new ids</p>
+<div><p>Mapping of old to new ids. All keys and values in this dict should
+be strings.</p>
 </div></blockquote>
 <p><strong>axis</strong> : {&#8216;sample&#8217;, &#8216;observation&#8217;}, optional</p>
 <blockquote>
@@ -148,7 +149,7 @@ updated table:</p>
 
     <div class="footer">
         &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Mar 25, 2022.
+      Last updated on Dec 09, 2022.
       Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
     </div>
 <script type="text/javascript">
