@@ -2614,17 +2614,11 @@ class Table:
         if axis == 'sample':
             transpose = True
 
-            def new_data_shape(ids, collapsed):
-                return (len(ids), len(collapsed))
-
             def axis_update(offaxis, onaxis):
                 return (offaxis, onaxis)
 
         elif axis == 'observation':
             transpose = False
-
-            def new_data_shape(ids, collapsed):
-                return (len(collapsed), len(ids))
 
             def axis_update(offaxis, onaxis):
                 return (onaxis, offaxis)
@@ -2672,9 +2666,13 @@ class Table:
             # evenly.
             dtype = np.float64 if one_to_many_mode == 'divide' else self.dtype
 
-            nds = new_data_shape(self.ids(self._invert_axis(axis)),
-                                 new_md)
-            new_data = dok_matrix(nds, dtype=dtype)
+            if axis == 'observation':
+                new_data = dok_matrix((len(self.ids(axis='sample')),
+                                       len(new_md)),
+                                      dtype=dtype)
+            else:
+                new_data = dok_matrix((len(self.ids(axis='observation')),
+                                       len(new_md)), dtype=dtype)
 
             # for each vector
             # for each bin in the metadata
@@ -2709,11 +2707,11 @@ class Table:
                     column = idx_lookup[part]
                     if one_to_many_mode == 'add':
                         for vidx, v in enumerate(vals):
-                            new_data[axis_update(vidx, column)] += v
+                            new_data[vidx, column] += v
                     else:
                         dv = md_count[id_]
                         for vidx, v in enumerate(vals / dv):
-                            new_data[axis_update(vidx, column)] += v
+                            new_data[vidx, column] += v
 
             if include_collapsed_metadata:
                 # reassociate pathway information
@@ -2725,7 +2723,12 @@ class Table:
                                                   key=itemgetter(1))]
 
             # convert back to self type
-            data = self._conv_to_self_type(csc_matrix(new_data))
+            if axis == 'observation':
+                new_data = csr_matrix(new_data.T)
+            else:
+                new_data = csc_matrix(new_data)
+
+            data = self._conv_to_self_type(new_data)
         else:
             if collapse_f is None:
                 def collapse_f(t, axis):
