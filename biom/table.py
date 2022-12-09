@@ -182,7 +182,7 @@ from collections import defaultdict
 from collections.abc import Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
-                          vstack, hstack)
+                          vstack, hstack, dok_matrix)
 import pandas as pd
 import re
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
@@ -2608,27 +2608,21 @@ class Table:
 
         # transpose is only necessary in the one-to-one case
         # new_data_shape is only necessary in the one-to-many case
-        # axis_slice is only necessary in the one-to-many case
+        # axis_update is only necessary in the one-to-many case
         def axis_ids_md(t):
             return (t.ids(axis=axis), t.metadata(axis=axis))
 
         if axis == 'sample':
             transpose = True
 
-            def new_data_shape(ids, collapsed):
-                return (len(ids), len(collapsed))
-
-            def axis_slice(lookup, key):
-                return (slice(None), lookup[key])
+            def axis_update(offaxis, onaxis):
+                return (offaxis, onaxis)
 
         elif axis == 'observation':
             transpose = False
 
-            def new_data_shape(ids, collapsed):
-                return (len(collapsed), len(ids))
-
-            def axis_slice(lookup, key):
-                return (lookup[key], slice(None))
+            def axis_update(offaxis, onaxis):
+                return (onaxis, offaxis)
 
         else:
             raise UnknownAxisError(axis)
@@ -2671,11 +2665,15 @@ class Table:
 
             # We need to store floats, not ints, as things won't always divide
             # evenly.
-            dtype = float if one_to_many_mode == 'divide' else self.dtype
+            dtype = np.float64 if one_to_many_mode == 'divide' else self.dtype
 
-            new_data = zeros(new_data_shape(self.ids(self._invert_axis(axis)),
-                                            new_md),
-                             dtype=dtype)
+            if axis == 'observation':
+                new_data = dok_matrix((len(self.ids(axis='sample')),
+                                       len(new_md)),
+                                      dtype=dtype)
+            else:
+                new_data = dok_matrix((len(self.ids(axis='observation')),
+                                       len(new_md)), dtype=dtype)
 
             # for each vector
             # for each bin in the metadata
@@ -2698,11 +2696,23 @@ class Table:
                             continue
                     except StopIteration:
                         break
+
+                    # TODO: refactor Table.collapse(..., one_to_many=True) so
+                    # writes into new_data are performed without regard to
+                    # the requested axis, and perform a single transpose at the
+                    # end. Right now we incur many calls to `axis_update` which
+                    # could be avoided. However, this refactor is likely
+                    # complex to do correctly, so punting for now as we don't
+                    # yet have data showing this is a real world performance
+                    # concern.
+                    column = idx_lookup[part]
                     if one_to_many_mode == 'add':
-                        new_data[axis_slice(idx_lookup, part)] += vals
+                        for vidx, v in enumerate(vals):
+                            new_data[vidx, column] += v
                     else:
-                        new_data[axis_slice(idx_lookup, part)] += \
-                            vals / md_count[id_]
+                        dv = md_count[id_]
+                        for vidx, v in enumerate(vals / dv):
+                            new_data[vidx, column] += v
 
             if include_collapsed_metadata:
                 # reassociate pathway information
@@ -2714,6 +2724,11 @@ class Table:
                                                   key=itemgetter(1))]
 
             # convert back to self type
+            if axis == 'observation':
+                new_data = csr_matrix(new_data.T)
+            else:
+                new_data = csc_matrix(new_data)
+
             data = self._conv_to_self_type(new_data)
         else:
             if collapse_f is None:
