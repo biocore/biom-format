@@ -1,8 +1,10 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.11-dev
----------------
+biom 2.1.13
+-----------
+
+Substantial performance improvement and bug fix, released on 9 December 2022.
 
 Important:
 
