@@ -2678,7 +2678,7 @@ class Table:
             # for each vector
             # for each bin in the metadata
             # for each partition associated with the vector
-            for vals, id_, md in self.iter(axis=axis):
+            for vals, id_, md in self.iter(axis=axis, dense=False):
                 md_iter = f(id_, md)
 
                 while True:
@@ -2707,11 +2707,12 @@ class Table:
                     # concern.
                     column = idx_lookup[part]
                     if one_to_many_mode == 'add':
-                        for vidx, v in enumerate(vals):
+                        for vidx, v in zip(vals.indices, vals.data):
                             new_data[vidx, column] += v
                     else:
                         dv = md_count[id_]
-                        for vidx, v in enumerate(vals / dv):
+                        tmp = vals / dv
+                        for vidx, v in zip(tmp.indices, tmp.data):
                             new_data[vidx, column] += v
 
             if include_collapsed_metadata:
