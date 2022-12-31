@@ -1,6 +1,13 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1.13-dev
+---------------
+
+New features:
+
+* `Table.collapse(..., one_to_many=True)` had a lingering dense conversion being performed. Avoiding this conversion yields nearly a 100x performance gain [PR #888](https://github.com/biocore/biom-format/pull/888).
+
 biom 2.1.13
 -----------
 
