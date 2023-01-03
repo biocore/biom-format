@@ -32,7 +32,7 @@ __copyright__ = "Copyright 2011-2020, The BIOM Format Development Team"
 __credits__ = ["Greg Caporaso", "Daniel McDonald", "Jose Clemente",
                "Jai Ram Rideout", "Jorge Cañardo Alastuey", "Michael Hall"]
 __license__ = "BSD"
-__version__ = "2.1.14"
+__version__ = "2.1.14-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
 
