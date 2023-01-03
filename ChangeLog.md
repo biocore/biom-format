@@ -1,10 +1,12 @@
 BIOM-Format ChangeLog
 =====================
 
-biom 2.1.13-dev
----------------
+biom 2.1.14
+-----------
 
-New features:
+Bug fix, released on 3 January 2023.
+
+Bug:
 
 * `Table.collapse(..., one_to_many=True)` had a lingering dense conversion being performed. Avoiding this conversion yields nearly a 100x performance gain [PR #888](https://github.com/biocore/biom-format/pull/888).
 
