@@ -118,7 +118,6 @@ install_requires = [
     'pandas >= 0.20.0',
     "cython >= 0.29",
     "h5py",
-    "cython"
 ]
 
 if sys.version_info[0] < 3:
