@@ -50,7 +50,7 @@ Contents
 BIOM version
 ============
 
-The latest official version of the biom-format project is |release| and of the BIOM file format is 2.0. Details on the `file format can be found here <./documentation/biom_format.html>`_.
+The latest official version of the biom-format project is |release| and of the BIOM file format is 2.1. Details on the `file format can be found here <./documentation/biom_format.html>`_.
 
 Installing the ``biom-format`` Python package
 =============================================
