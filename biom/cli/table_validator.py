@@ -155,10 +155,12 @@ class TableValidator:
 
         for group in required_groups:
             if group not in table:
+                report_lines.append("Missing required '%s' group" % group)
                 valid_table = False
 
         for dataset in required_datasets:
             if dataset not in table:
+                report_lines.append("Missing required '%s' dataset" % dataset)
                 valid_table = False
 
         if 'shape' in table.attrs:
@@ -186,6 +188,7 @@ class TableValidator:
                 report_lines.append("Number of sample IDs is not equal "
                                     "to the described shape")
         else:
+            report_lines.append("Missing 'shape' attribute")
             valid_table = False
 
         if 'format-version' in table.attrs:
