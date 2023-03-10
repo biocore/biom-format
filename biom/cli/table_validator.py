@@ -23,7 +23,7 @@ from biom.util import HAVE_H5PY, biom_open, is_hdf5_file
 @cli.command(name='validate-table')
 @click.option('-i', '--input-fp', required=True,
               type=click.Path(exists=True, dir_okay=False),
-              help='The input filpath to validate against the BIOM format'
+              help='The input filepath to validate against the BIOM format'
                    ' specification')
 @click.option('-f', '--format-version', default=None,
               help='The specific format version to validate against')
