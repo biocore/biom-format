@@ -17,7 +17,7 @@ from biom.exception import BiomParseException, UnknownAxisError
 from biom.table import Table
 from biom.util import biom_open, __version__
 import json
-from collections import defaultdict, OrderedDict
+from collections import defaultdict
 
 
 __author__ = "Justin Kuczynski"
@@ -407,22 +407,19 @@ def parse_biom_table(file_obj, ids=None, axis='sample', input_is_dense=False):
             c = file_obj.read(1)
         if c == '{':
             file_obj.seek(old_pos)
-            t = Table.from_json(json.load(file_obj,
-                                          object_pairs_hook=OrderedDict),
+            t = Table.from_json(json.load(file_obj),
                                 input_is_dense=input_is_dense)
         else:
             file_obj.seek(old_pos)
             t = Table.from_tsv(file_obj, None, None, lambda x: x)
     elif isinstance(file_obj, list):
         try:
-            t = Table.from_json(json.loads(''.join(file_obj),
-                                           object_pairs_hook=OrderedDict),
+            t = Table.from_json(json.loads(''.join(file_obj)),
                                 input_is_dense=input_is_dense)
         except ValueError:
             t = Table.from_tsv(file_obj, None, None, lambda x: x)
     else:
-        t = Table.from_json(json.loads(file_obj,
-                                       object_pairs_hook=OrderedDict),
+        t = Table.from_json(json.loads(file_obj),
                             input_is_dense=input_is_dense)
 
     def subset_ids(data, id_, md):
