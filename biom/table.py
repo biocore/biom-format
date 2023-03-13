@@ -4381,10 +4381,9 @@ html
 
         mcols = []
         for test in md:
-            kv_test = sorted(list(test.items()))
             columns = []
             expand = {}
-            for key, value in kv_test:
+            for key, value in test.items():
                 if isinstance(value, (tuple, list)):
                     expand[key] = True
                     for idx in range(len(value)):
@@ -4398,7 +4397,7 @@ html
         rows = []
         for m in md:
             row = []
-            for key, value in sorted(m.items()):
+            for key, value in m.items():
                 if expand[key]:
                     for v in value:
                         row.append(v)
