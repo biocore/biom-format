@@ -116,7 +116,6 @@ install_requires = [
     "numpy >= 1.9.2",
     "scipy >= 1.3.1",
     'pandas >= 0.20.0',
-    "cython >= 0.29",
     "h5py",
 ]
 
