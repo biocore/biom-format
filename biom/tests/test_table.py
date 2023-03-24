@@ -3144,12 +3144,20 @@ class SparseTableTests(TestCase):
         with errstate(empty='raise'), self.assertRaises(TableException):
             self.st_rich.filter(f, 'observation')
 
-    def test_subsample_same_seed(self):
+    def test_subsample_same_seed_without_replacement(self):
         table = Table(np.array([[3, 1, 2], [0, 3, 4]]), ['O1', 'O2'],
                       ['S1', 'S2', 'S3'])
         exp = table.subsample(2, seed=1234)
         for _ in range(100):
             obs = table.subsample(2, seed=1234)
+            self.assertEqual(obs, exp)
+
+    def test_subsample_same_seed_with_replacement(self):
+        table = Table(np.array([[3, 1, 2], [0, 3, 4]]), ['O1', 'O2'],
+                      ['S1', 'S2', 'S3'])
+        exp = table.subsample(2, seed=1234, with_replacement=True)
+        for _ in range(100):
+            obs = table.subsample(2, seed=1234, with_replacement=True)
             self.assertEqual(obs, exp)
 
     def test_subsample_by_id(self):
