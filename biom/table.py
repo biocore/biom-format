@@ -2871,7 +2871,8 @@ class Table:
 
         return max_val
 
-    def subsample(self, n, axis='sample', by_id=False, with_replacement=False):
+    def subsample(self, n, axis='sample', by_id=False, with_replacement=False,
+                  seed=None):
         """Randomly subsample without replacement.
 
         Parameters
@@ -2889,6 +2890,8 @@ class Table:
             If `False` (default), subsample without replacement. If `True`,
             resample with replacement via the multinomial distribution.
             Should not be `True` if `by_id` is `True`.
+        seed : int, optional
+            If provided, set the numpy random seed with this value
 
         Returns
         -------
@@ -2941,6 +2944,9 @@ class Table:
         [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
 
         """
+        if seed is not None:
+            np.random.seed(seed)
+
         if n < 0:
             raise ValueError("n cannot be negative.")
 
