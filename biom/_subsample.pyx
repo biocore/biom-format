@@ -34,7 +34,7 @@ def _subsample(arr, n, with_replacement):
     cdef:
         cnp.int64_t counts_sum
         cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
-        cnp.ndarray[cnp.int32_t, ndim=1] data_i = arr.data.astype(np.int32)
+        cnp.ndarray[cnp.int64_t, ndim=1] data_i = arr.data.astype(np.int64)
         cnp.ndarray[cnp.float64_t, ndim=1] result
         cnp.ndarray[cnp.int32_t, ndim=1] indices = arr.indices
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
