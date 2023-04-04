@@ -2944,9 +2944,6 @@ class Table:
         [('S1', 'S2'), ('S1', 'S3'), ('S2', 'S3')]
 
         """
-        if seed is not None:
-            np.random.seed(seed)
-
         if n < 0:
             raise ValueError("n cannot be negative.")
 
@@ -2955,14 +2952,16 @@ class Table:
 
         table = self.copy()
 
+        rng = np.random.default_rng(seed)
+
         if by_id:
             ids = table.ids(axis=axis).copy()
-            np.random.shuffle(ids)
+            rng.shuffle(ids)
             subset = set(ids[:n])
             table.filter(lambda v, i, md: i in subset, axis=axis)
         else:
             data = table._get_sparse_data()
-            _subsample(data, n, with_replacement)
+            _subsample(data, n, with_replacement, rng)
             table._data = data
 
             table.filter(lambda v, i, md: v.sum() > 0, axis=axis)

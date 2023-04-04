@@ -11,7 +11,7 @@ import numpy as np
 cimport numpy as cnp
 
 
-def _subsample(arr, n, with_replacement):
+def _subsample(arr, n, with_replacement, rng):
     """Subsample non-zero values of a sparse array
 
     Parameters
@@ -20,7 +20,12 @@ def _subsample(arr, n, with_replacement):
         A 1xM sparse vector
     n : int
         Number of items to subsample from `arr`
-    
+    with_replacement : bool
+        Whether to permute or use multinomial sampling
+    rng : Generator instance
+        A random generator. This will likely be an instance returned 
+        by np.random.default_rng
+
     Returns
     -------
     ndarray
@@ -49,7 +54,7 @@ def _subsample(arr, n, with_replacement):
         
         if with_replacement:
             pvals = data[start:end] / counts_sum
-            data[start:end] = np.random.multinomial(n, pvals)
+            data[start:end] = rng.multinomial(n, pvals)
         else:
             if counts_sum < n:
                 data[start:end] = 0
@@ -57,7 +62,7 @@ def _subsample(arr, n, with_replacement):
 
             r = np.arange(length, dtype=np.int32)
             unpacked = np.repeat(r, data_i[start:end])
-            permuted = np.random.permutation(unpacked)[:n]
+            permuted = rng.permutation(unpacked)[:n]
 
             result = np.zeros(length, dtype=np.float64)
             for idx in range(permuted.shape[0]):
