@@ -80,7 +80,8 @@ class TableValidatorTests(TestCase):
 
     def test_invalid_non_json(self):
         """Verify we error politely if a non-json ascii string is provided"""
-        with self.assertRaisesRegex(ValueError, "^The provided table does not"):
+        with self.assertRaisesRegex(ValueError,
+                                    "^The provided table does not"):
             self.cmd(table=__file__)
 
     @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
