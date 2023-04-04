@@ -16,7 +16,7 @@ import numpy.testing as npt
 import numpy as np
 from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
 import scipy.sparse
-import pandas.util.testing as pdt
+import pandas.testing as pdt
 import pandas as pd
 import pytest
 
