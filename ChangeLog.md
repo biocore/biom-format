@@ -4,7 +4,9 @@ BIOM-Format ChangeLog
 biom 2.1.14-dev
 ---------------
 
-Changes go here
+New features:
+
+* You can now set a random seed at the call to `Table.subsample`, see issue [#914](https://github.com/biocore/biom-format/issues/914).
 
 biom 2.1.14
 -----------
