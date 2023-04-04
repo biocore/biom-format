@@ -78,6 +78,11 @@ class TableValidatorTests(TestCase):
         obs = self.cmd(table=self.hdf5_file_valid)
         self.assertEqual(obs, exp)
 
+    def test_invalid_non_json(self):
+        """Verify we error politely if a non-json ascii string is provided"""
+        with self.assertRaisesRegex(ValueError, "^The provided table does not"):
+            self.cmd(table=__file__)
+
     @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_invalid_hdf5(self):
         """Test an invalid HDF5 table"""
