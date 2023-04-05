@@ -14,7 +14,6 @@ from unittest import TestCase, main
 
 import numpy as np
 import numpy.testing as npt
-import pytest
 
 from biom.table import Table
 from biom.parse import parse_biom_table, load_table

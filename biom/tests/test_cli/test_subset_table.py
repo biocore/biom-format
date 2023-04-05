@@ -9,8 +9,6 @@
 import os
 import unittest
 
-import pytest
-
 from biom.cli.table_subsetter import _subset_table
 from biom.parse import parse_biom_table
 

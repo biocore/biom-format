@@ -22,7 +22,6 @@ from unittest import TestCase, main
 from shutil import copy
 
 import numpy as np
-import pytest
 
 from biom.cli.table_validator import TableValidator
 import h5py

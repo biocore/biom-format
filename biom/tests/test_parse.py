@@ -15,7 +15,6 @@ from unittest import TestCase, main
 
 import numpy as np
 import numpy.testing as npt
-import pytest
 
 from biom.parse import (generatedby, MetadataMap, parse_biom_table, parse_uc,
                         load_table)
