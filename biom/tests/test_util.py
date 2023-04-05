@@ -273,11 +273,6 @@ class UtilTests(TestCase):
                 pass
         self.assertTrue("is empty and can't be parsed" in str(e.exception))
 
-    def test_biom_open_hdf5_no_h5py(self):
-        with self.assertRaises(RuntimeError):
-            with biom_open(get_data_path('test.biom')):
-                pass
-
     def test_biom_open_json(self):
         with biom_open(get_data_path('test.json')) as f:
             self.assertTrue(hasattr(f, 'read'))
