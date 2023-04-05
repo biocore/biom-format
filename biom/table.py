@@ -1414,6 +1414,12 @@ class Table:
 
             updated_ids[idx] = id_map.get(old_id, old_id)
 
+        # see issue #892, this protects against modifying inplace with bad
+        # duplicate identifiers
+        if inplace:
+            if len(updated_ids) != len(set(updated_ids)):
+                raise TableException("Duplicate IDs observed")
+
         # prepare the result object and update the ids along the specified
         # axis
         result = self if inplace else self.copy()
@@ -1424,7 +1430,7 @@ class Table:
 
         result._index_ids(None, None)
 
-        # check for errors (specifically, we want to esnsure that duplicate
+        # check for errors (specifically, we want to ensure that duplicate
         # ids haven't been introduced)
         errcheck(result)
 
