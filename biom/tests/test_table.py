@@ -2360,6 +2360,13 @@ class SparseTableTests(TestCase):
                          self.st_rich.data('2', 'observation'))
         self.assertEqual(obs.transpose(), self.st_rich)
 
+    def test_update_ids_inplace_bug_892(self):
+        t = example_table.copy()
+        exp = t.ids().copy()
+        with self.assertRaises(TableException):
+            t.update_ids({i: 'foo' for i in t.ids()}, inplace=True)
+        npt.assert_equal(t.ids(), exp)
+
     def test_update_ids(self):
         """ids are updated as expected"""
         # update observation ids
