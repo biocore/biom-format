@@ -4,6 +4,10 @@ BIOM-Format ChangeLog
 biom 2.1.14-dev
 ---------------
 
+Bug fixes:
+
+* Allow `Table.to_json` to properly handle numpy types in metadata, see issue [#886](https://github.com/biocore/biom-format/issues/886)
+
 New features:
 
 * You can now set a random seed at the call to `Table.subsample`, see issue [#914](https://github.com/biocore/biom-format/issues/914).
