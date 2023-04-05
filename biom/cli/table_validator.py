@@ -9,6 +9,7 @@
 
 import json
 import sys
+import h5py
 from datetime import datetime
 from operator import and_
 from functools import reduce
@@ -17,7 +18,7 @@ import click
 import numpy as np
 
 from biom.cli import cli
-from biom.util import HAVE_H5PY, biom_open, is_hdf5_file
+from biom.util import biom_open, is_hdf5_file
 
 
 @cli.command(name='validate-table')
@@ -96,8 +97,7 @@ class TableValidator:
             if is_json:
                 kwargs['table'] = json.load(f)
                 return self._validate_json(**kwargs)
-            elif HAVE_H5PY:
-                import h5py
+            else:
                 kwargs['table'] = f
 
                 if not isinstance(f, h5py.File):
@@ -105,9 +105,6 @@ class TableValidator:
                           "table does not appear to be in HDF5 format!")
                     sys.exit(1)
                 return self._validate_hdf5(**kwargs)
-            else:
-                raise OSError("h5py is not installed, can only validate JSON "
-                              "tables")
 
     def __call__(self, table, format_version=None):
         return self.run(table=table, format_version=format_version)

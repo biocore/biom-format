@@ -13,7 +13,6 @@ from biom import load_table
 from biom.cli import cli
 from biom.cli.util import write_biom_table
 from biom.parse import MetadataMap
-from biom.util import HAVE_H5PY
 
 
 @cli.command(name='add-metadata')
@@ -61,7 +60,7 @@ from biom.util import HAVE_H5PY
                    'provided with the metadata, if you want to rename the '
                    'fields, or if you want to include only the first n fields '
                    'where n is the number of entries provided here.')
-@click.option('--output-as-json', default=not HAVE_H5PY, is_flag=True,
+@click.option('--output-as-json', default=False, is_flag=True,
               help='Write the output file in JSON format.')
 def add_metadata(input_fp, output_fp, sample_metadata_fp,
                  observation_metadata_fp, sc_separated, sc_pipe_separated,

@@ -25,11 +25,7 @@ import numpy as np
 import pytest
 
 from biom.cli.table_validator import TableValidator
-from biom.util import HAVE_H5PY
-
-
-if HAVE_H5PY:
-    import h5py
+import h5py
 
 
 class TableValidatorTests(TestCase):
@@ -55,7 +51,6 @@ class TableValidatorTests(TestCase):
         for f in self.to_remove:
             os.remove(f)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_valid_hdf5_metadata_v210(self):
         exp = {'valid_table': True, 'report_lines': []}
         obs = self.cmd(table=self.hdf5_file_valid,
@@ -65,11 +60,9 @@ class TableValidatorTests(TestCase):
                        format_version='2.1')
         self.assertEqual(obs, exp)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_valid_hdf5_metadata_v200(self):
         pass  # omitting, not a direct way to test at this time using the repo
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_valid_hdf5(self):
         """Test a valid HDF5 table"""
         exp = {'valid_table': True,
@@ -78,7 +71,6 @@ class TableValidatorTests(TestCase):
         obs = self.cmd(table=self.hdf5_file_valid)
         self.assertEqual(obs, exp)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_invalid_hdf5(self):
         """Test an invalid HDF5 table"""
         exp = {'valid_table': False,

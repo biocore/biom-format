@@ -18,10 +18,11 @@ import pytest
 
 from biom.table import Table
 from biom.parse import parse_biom_table, load_table
-from biom.util import (natsort, flatten, unzip, HAVE_H5PY,
+from biom.util import (natsort, flatten, unzip,
                        get_biom_project_dir, parse_biom_config_files,
                        compute_counts_per_sample_stats, safe_md5, biom_open,
                        get_data_path, generate_subsamples, is_hdf5_file)
+import h5py
 
 np.random.seed(1234)
 
@@ -34,10 +35,6 @@ __license__ = "BSD"
 __url__ = "http://biom-format.org"
 __maintainer__ = "Daniel McDonald"
 __email__ = "daniel.mcdonald@colorado.edu"
-
-
-if HAVE_H5PY:
-    import h5py
 
 
 class UtilTests(TestCase):
@@ -261,7 +258,6 @@ class UtilTests(TestCase):
         # unsupported type raises TypeError
         self.assertRaises(TypeError, safe_md5, 42)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_biom_open_hdf5(self):
         with biom_open(get_data_path('test.biom')) as f:
             self.assertTrue(isinstance(f, h5py.File))
@@ -277,7 +273,6 @@ class UtilTests(TestCase):
                 pass
         self.assertTrue("is empty and can't be parsed" in str(e.exception))
 
-    @pytest.mark.skipif(HAVE_H5PY, reason='Can only be tested without H5PY')
     def test_biom_open_hdf5_no_h5py(self):
         with self.assertRaises(RuntimeError):
             with biom_open(get_data_path('test.biom')):
