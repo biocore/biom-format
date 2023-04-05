@@ -175,7 +175,7 @@ import numpy as np
 import scipy.stats
 from copy import deepcopy
 from datetime import datetime
-from json import dumps
+from json import dumps as _json_dumps, JSONEncoder
 from functools import reduce, partial
 from operator import itemgetter, or_
 from collections import defaultdict
@@ -211,6 +211,22 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': str,
                        'int': int, 'float': float, 'unicode': str}
+
+
+# NpEncoder from:
+# https://stackoverflow.com/a/57915246/19741
+class NpEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
+
+
+dumps = partial(_json_dumps, cls=NpEncoder)
 
 
 def _identify_bad_value(dtype, fields):
