@@ -1015,6 +1015,21 @@ class TableTests(TestCase):
 
         self.assertEqual(obs, t)
 
+    def test_to_from_hdf5_timestamp(self):
+        t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
+                  ['c', 'd', 'e'])
+        current = datetime.now()
+        with NamedTemporaryFile() as tmpfile:
+            h5 = h5py.File(tmpfile.name, 'w')
+            t.to_hdf5(h5, 'tests', creation_date=current)
+            h5.close()
+
+            h5 = h5py.File(tmpfile.name)
+            obs = Table.from_hdf5(h5)
+            self.assertEqual(obs.create_date, current.isoformat())
+
+        self.assertEqual(obs, t)
+
     @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_empty_table(self):
         """Successfully writes an empty OTU table in HDF5 format"""
@@ -4048,6 +4063,27 @@ class SparseTableTests(TestCase):
 
         # verify that the tables are the same
         self.assertEqual(t, t2)
+
+    def test_to_json_sparse_float_creation_date(self):
+        """Get a BIOM format string for a sparse table of floats"""
+        # check by round trip
+        obs_ids = ['a', 'b']
+        samp_ids = ['c', 'd']
+        obs_md = [{'foo': i} for i in range(2)]
+        samp_md = [{'bar': i} for i in range(2)]
+        data = [[0, 0, 0.01], [0, 1, 1.5], [1, 0, 0.0], [1, 1, 0.79]]
+        current = datetime.now()
+
+        # using OTUTable type to support parsing round trip
+        t = Table(data, obs_ids, samp_ids, obs_md, samp_md, obs_md)
+
+        # verify that we can parse still
+        t2 = parse_biom_table(StringIO(t.to_json('asd',
+                                                 creation_date=current)))
+
+        # verify that the tables are the same
+        self.assertEqual(t, t2)
+        self.assertEqual(t2.create_date, current.isoformat())
 
     def test_to_json_sparse_int_directio(self):
         """Get a BIOM format string for a sparse table of integers"""
