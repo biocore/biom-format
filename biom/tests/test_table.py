@@ -4066,7 +4066,7 @@ class SparseTableTests(TestCase):
         self.assertEqual(t, t2)
 
     def test_to_json_sparse_float_creation_date(self):
-        """Get a BIOM format string for a sparse table of floats"""
+        """Verify we can inject a creation date"""
         # check by round trip
         obs_ids = ['a', 'b']
         samp_ids = ['c', 'd']
