@@ -4109,6 +4109,12 @@ html
         create_date = h5grp.attrs['creation-date']
         generated_by = h5grp.attrs['generated-by']
 
+        if hasattr(datetime, "fromisoformat"):
+            try:
+                create_date = datetime.fromisoformat(create_date)
+            except (TypeError, ValueError):
+                pass
+
         shape = h5grp.attrs['shape']
         type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
 
