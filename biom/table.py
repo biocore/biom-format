@@ -4412,7 +4412,8 @@ html
 
         return pd.DataFrame(rows, index=self.ids(axis=axis), columns=mcols)
 
-    def to_hdf5(self, h5grp, generated_by, compress=True, format_fs=None):
+    def to_hdf5(self, h5grp, generated_by, compress=True, format_fs=None,
+                creation_date=None):
         """Store CSC and CSR in place
 
         The resulting structure of this group is below. A few basic
@@ -4509,6 +4510,9 @@ dataset of int32
             the category being operated on, the metadata for the entire axis
             being operated on, and whether to enable compression on the
             dataset.  Anything returned by this function is ignored.
+        creation_date : datetime, optional
+            If provided, use this specific datetime on write as the creation
+            timestamp
 
         Notes
         -----
@@ -4552,7 +4556,10 @@ html
         h5grp.attrs['format-url'] = "http://biom-format.org"
         h5grp.attrs['format-version'] = self.format_version
         h5grp.attrs['generated-by'] = generated_by
-        h5grp.attrs['creation-date'] = datetime.now().isoformat()
+        if creation_date is None:
+            h5grp.attrs['creation-date'] = datetime.now().isoformat()
+        else:
+            h5grp.attrs['creation-date'] = creation_date.isoformat()
         h5grp.attrs['shape'] = self.shape
         h5grp.attrs['nnz'] = nnz
 
@@ -4727,7 +4734,7 @@ html
                           input_is_dense=input_is_dense)
         return table_obj
 
-    def to_json(self, generated_by, direct_io=None):
+    def to_json(self, generated_by, direct_io=None, creation_date=None):
         """Returns a JSON string representing the table in BIOM format.
 
         Parameters
@@ -4738,6 +4745,8 @@ html
             Defaults to ``None``. Must implementing a ``write`` function. If
             `direct_io` is not ``None``, the final output is written directly
             to `direct_io` during processing.
+        creation_date : datetime, optional
+            If provided, use this datetime as the creation date on write.
 
         Returns
         -------
@@ -4746,6 +4755,11 @@ html
         """
         if not isinstance(generated_by, str):
             raise TableException("Must specify a generated_by string")
+
+        if creation_date is None:
+            creation_date = datetime.now().isoformat()
+        else:
+            creation_date = creation_date.isoformat()
 
         # Fill in top-level metadata.
         if direct_io:
@@ -4758,14 +4772,14 @@ html
                 '"format_url": "%s",' %
                 get_biom_format_url_string())
             direct_io.write('"generated_by": "%s",' % generated_by)
-            direct_io.write('"date": "%s",' % datetime.now().isoformat())
+            direct_io.write('"date": "%s",' % creation_date)
         else:
             id_ = '"id": "%s",' % str(self.table_id)
             format_ = '"format": "%s",' % get_biom_format_version_string(
                 (1, 0))  # JSON table -> 1.0.0
             format_url = '"format_url": "%s",' % get_biom_format_url_string()
             generated_by = '"generated_by": "%s",' % generated_by
-            date = '"date": "%s",' % datetime.now().isoformat()
+            date = '"date": "%s",' % creation_date
 
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.

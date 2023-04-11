@@ -11,6 +11,7 @@ from json import loads
 from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 from io import StringIO
+from datetime import datetime
 
 import numpy.testing as npt
 import numpy as np
@@ -1015,7 +1016,7 @@ class TableTests(TestCase):
 
         self.assertEqual(obs, t)
 
-    def test_to_from_hdf5_timestamp(self):
+    def test_to_from_hdf5_creation_date(self):
         t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
                   ['c', 'd', 'e'])
         current = datetime.now()
@@ -1026,7 +1027,7 @@ class TableTests(TestCase):
 
             h5 = h5py.File(tmpfile.name)
             obs = Table.from_hdf5(h5)
-            self.assertEqual(obs.create_date, current.isoformat())
+            self.assertEqual(obs.create_date, current)
 
         self.assertEqual(obs, t)
 
@@ -4083,7 +4084,7 @@ class SparseTableTests(TestCase):
 
         # verify that the tables are the same
         self.assertEqual(t, t2)
-        self.assertEqual(t2.create_date, current.isoformat())
+        self.assertEqual(t2.create_date, current)
 
     def test_to_json_sparse_int_directio(self):
         """Get a BIOM format string for a sparse table of integers"""
