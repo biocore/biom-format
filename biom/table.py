@@ -4215,10 +4215,10 @@ html
             indptr[0] = 0
             indptr[1:] = indptr_subset.cumsum()
 
-            data = np.hstack(h5_data[start:end]
-                             for start, end in indptr_indices)
-            indices = np.hstack(h5_indices[start:end]
-                                for start, end in indptr_indices)
+            data = np.hstack([h5_data[start:end]
+                              for start, end in indptr_indices])
+            indices = np.hstack([h5_indices[start:end]
+                                 for start, end in indptr_indices])
         else:
             # no subset need, just pass all data to scipy
             data = h5_data
