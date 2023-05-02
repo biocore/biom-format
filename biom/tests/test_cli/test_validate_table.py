@@ -75,7 +75,7 @@ class TableValidatorTests(TestCase):
         with self.assertRaisesRegex(ValueError,
                                     "^The provided table does not"):
             self.cmd(table=__file__)
-            
+
     def test_invalid_hdf5(self):
         """Test an invalid HDF5 table"""
         exp = {'valid_table': False,
