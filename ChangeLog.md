@@ -4,9 +4,15 @@ BIOM-Format ChangeLog
 biom 2.1.14-dev
 ---------------
 
+Bug fixes:
+
+* Do not modify IDs in place in the presence of duplicate relabels, see issue [#892](https://github.com/biocore/biom-format/issues/892)
+
 New features:
 
 * You can now set a random seed at the call to `Table.subsample`, see issue [#914](https://github.com/biocore/biom-format/issues/914).
+
+
 
 biom 2.1.14
 -----------

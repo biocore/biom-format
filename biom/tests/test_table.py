@@ -12,6 +12,7 @@ from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
 from io import StringIO
 from datetime import datetime
+import warnings
 
 import numpy.testing as npt
 import numpy as np
@@ -115,30 +116,39 @@ class SupportTests(TestCase):
             example_table.head(5, 0)
 
     def test_remove_empty_sample(self):
-        t = example_table.copy()
-        t._data[:, 0] = 0
-        t.remove_empty()
-        exp = example_table.filter({'S2', 'S3'}, inplace=False)
-        self.assertEqual(t, exp)
+        wrn = "Changing the sparsity structure of a csr_matrix is expensive. lil_matrix is more efficient."  # noqa
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message=wrn)
+            t = example_table.copy()
+            t._data[:, 0] = 0
+            t.remove_empty()
+            exp = example_table.filter({'S2', 'S3'}, inplace=False)
+            self.assertEqual(t, exp)
 
     def test_remove_empty_obs(self):
-        t = example_table.copy()
-        t._data[0, :] = 0
-        t.remove_empty()
-        exp = example_table.filter({'O2', }, axis='observation',
-                                   inplace=False)
-        self.assertEqual(t, exp)
+        wrn = "Changing the sparsity structure of a csr_matrix is expensive. lil_matrix is more efficient."  # noqa
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message=wrn)
+            t = example_table.copy()
+            t._data[0, :] = 0
+            t.remove_empty()
+            exp = example_table.filter({'O2', }, axis='observation',
+                                       inplace=False)
+            self.assertEqual(t, exp)
 
     def test_remove_empty_both(self):
-        t = example_table.copy()
-        t._data[:, 0] = 0
-        t._data[0, :] = 0
-        obs_base = t.copy()
+        wrn = "Changing the sparsity structure of a csr_matrix is expensive. lil_matrix is more efficient."  # noqa
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message=wrn)
+            t = example_table.copy()
+            t._data[:, 0] = 0
+            t._data[0, :] = 0
+            obs_base = t.copy()
 
-        obs = obs_base.remove_empty(inplace=False)
-        exp = example_table.filter({'S2', 'S3'}, inplace=False)
-        exp = exp.filter({'O2', }, axis='observation', inplace=False)
-        self.assertEqual(obs, exp)
+            obs = obs_base.remove_empty(inplace=False)
+            exp = example_table.filter({'S2', 'S3'}, inplace=False)
+            exp = exp.filter({'O2', }, axis='observation', inplace=False)
+            self.assertEqual(obs, exp)
 
     def test_remove_empty_identity(self):
         obs = example_table.copy()
@@ -645,7 +655,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/empty.biom'))
+        t = Table.from_hdf5(h5py.File('test_data/empty.biom', 'r'))
         os.chdir(cwd)
 
         self.assertTrue(t._sample_metadata is None)
@@ -660,7 +670,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'),
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'),
                             parse_fs=parse_fs)
         os.chdir(cwd)
 
@@ -669,7 +679,7 @@ class TableTests(TestCase):
 
     @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_issue_731(self):
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'))
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'))
         self.assertTrue(isinstance(t.table_id, str))
         self.assertTrue(isinstance(t.type, str))
 
@@ -679,7 +689,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'))
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'))
         os.chdir(cwd)
 
         npt.assert_equal(t.ids(), ('Sample1', 'Sample2', 'Sample3',
@@ -776,7 +786,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'), ids=samples,
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'), ids=samples,
                             subset_with_metadata=False)
         os.chdir(cwd)
 
@@ -804,7 +814,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'), ids=samples)
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'), ids=samples)
         os.chdir(cwd)
 
         npt.assert_equal(t.ids(), ['Sample2', 'Sample4', 'Sample6'])
@@ -877,7 +887,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'),
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'),
                             ids=observations, axis='observation',
                             subset_with_metadata=False)
         os.chdir(cwd)
@@ -905,7 +915,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/test.biom'),
+        t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'),
                             ids=observations, axis='observation')
         os.chdir(cwd)
 
@@ -975,12 +985,12 @@ class TableTests(TestCase):
 
         # Raises an error if not all the given samples are in the OTU table
         with self.assertRaises(ValueError):
-            Table.from_hdf5(h5py.File('test_data/test.biom'),
+            Table.from_hdf5(h5py.File('test_data/test.biom', 'r'),
                             ids=['Sample2', 'DoesNotExist', 'Sample6'])
 
         # Raises an error if not all the given observation are in the OTU table
         with self.assertRaises(ValueError):
-            Table.from_hdf5(h5py.File('test_data/test.biom'),
+            Table.from_hdf5(h5py.File('test_data/test.biom', 'r'),
                             ids=['GG_OTU_1', 'DoesNotExist'],
                             axis='observation')
         os.chdir(cwd)
@@ -991,7 +1001,7 @@ class TableTests(TestCase):
         cwd = os.getcwd()
         if '/' in __file__:
             os.chdir(__file__.rsplit('/', 1)[0])
-        t = Table.from_hdf5(h5py.File('test_data/empty.biom'))
+        t = Table.from_hdf5(h5py.File('test_data/empty.biom', 'r'))
         os.chdir(cwd)
 
         npt.assert_equal(t.ids(), [])
@@ -1011,7 +1021,7 @@ class TableTests(TestCase):
             t.to_hdf5(h5, 'tests')
             h5.close()
 
-            h5 = h5py.File(tmpfile.name)
+            h5 = h5py.File(tmpfile.name, 'r')
             obs = Table.from_hdf5(h5)
 
         self.assertEqual(obs, t)
@@ -2157,10 +2167,13 @@ class TableTests(TestCase):
         self.assertEqual(self.explicit_zeros.nnz, 4)
 
     def test_nnz_issue_727(self):
-        tab = Table(np.array([[0, 1], [0, 0]]), ['a', 'b'], ['1', '2'])
-        self.assertEqual(tab.nnz, 1)
-        tab._data[0, 0] = 0
-        self.assertEqual(tab.nnz, 1)
+        wrn = "Changing the sparsity structure of a csr_matrix is expensive. lil_matrix is more efficient."  # noqa
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", message=wrn)
+            tab = Table(np.array([[0, 1], [0, 0]]), ['a', 'b'], ['1', '2'])
+            self.assertEqual(tab.nnz, 1)
+            tab._data[0, 0] = 0
+            self.assertEqual(tab.nnz, 1)
 
     def test_get_row(self):
         """Test grabbing a row from the matrix."""
@@ -2375,6 +2388,13 @@ class SparseTableTests(TestCase):
         npt.assert_equal(obs.data('2', 'sample'),
                          self.st_rich.data('2', 'observation'))
         self.assertEqual(obs.transpose(), self.st_rich)
+
+    def test_update_ids_inplace_bug_892(self):
+        t = example_table.copy()
+        exp = t.ids().copy()
+        with self.assertRaises(TableException):
+            t.update_ids({i: 'foo' for i in t.ids()}, inplace=True)
+        npt.assert_equal(t.ids(), exp)
 
     def test_update_ids(self):
         """ids are updated as expected"""
