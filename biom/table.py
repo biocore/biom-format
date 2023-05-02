@@ -1430,6 +1430,12 @@ class Table:
 
             updated_ids[idx] = id_map.get(old_id, old_id)
 
+        # see issue #892, this protects against modifying inplace with bad
+        # duplicate identifiers
+        if inplace:
+            if len(updated_ids) != len(set(updated_ids)):
+                raise TableException("Duplicate IDs observed")
+
         # prepare the result object and update the ids along the specified
         # axis
         result = self if inplace else self.copy()
@@ -1440,7 +1446,7 @@ class Table:
 
         result._index_ids(None, None)
 
-        # check for errors (specifically, we want to esnsure that duplicate
+        # check for errors (specifically, we want to ensure that duplicate
         # ids haven't been introduced)
         errcheck(result)
 
@@ -4231,10 +4237,10 @@ html
             indptr[0] = 0
             indptr[1:] = indptr_subset.cumsum()
 
-            data = np.hstack(h5_data[start:end]
-                             for start, end in indptr_indices)
-            indices = np.hstack(h5_indices[start:end]
-                                for start, end in indptr_indices)
+            data = np.hstack([h5_data[start:end]
+                              for start, end in indptr_indices])
+            indices = np.hstack([h5_indices[start:end]
+                                 for start, end in indptr_indices])
         else:
             # no subset need, just pass all data to scipy
             data = h5_data
