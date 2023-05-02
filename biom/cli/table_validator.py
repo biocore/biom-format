@@ -95,7 +95,14 @@ class TableValidator:
 
         with biom_open(kwargs['table']) as f:
             if is_json:
-                kwargs['table'] = json.load(f)
+                try:
+                    kwargs['table'] = json.load(f)
+                except ValueError:
+                    # if we hit this, we've already determined the file is
+                    # not hdf5, so if it also is not json then it cannot be
+                    # a valid biom-format file with the current formats.
+                    raise ValueError("The provided table does not appear to "
+                                     "be biom-format 1.0.0, 2.0.0 or 2.1.0.")
                 return self._validate_json(**kwargs)
             else:
                 kwargs['table'] = f
