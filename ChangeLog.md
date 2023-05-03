@@ -12,6 +12,7 @@ Bug fixes:
 
 New features:
 
+* biom.util.biom_open now supports pathlib.Path, see issue [#894](https://github.com/biocore/biom-format/issues/894)
 * You can now set a random seed at the call to `Table.subsample`, see issue [#914](https://github.com/biocore/biom-format/issues/914).
 
 General maintenance:

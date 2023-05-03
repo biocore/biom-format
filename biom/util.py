@@ -392,7 +392,7 @@ def biom_open(fp, permission='r'):
 
     Parameters
     ----------
-    file_fp : file path
+    file_fp : file path or pathlib.Path
     permission : str, {'r', 'w', 'wb', 'rb', 'U'}
 
     Returns
@@ -444,7 +444,7 @@ def biom_open(fp, permission='r'):
         def opener(fp, mode):
             return codecs.getreader('utf-8')(gzip_open(fp, mode))
         mode = 'rb' if permission in ['U', 'r'] else permission
-    elif mode in ['w', 'wb'] and fp.endswith('.gz'):
+    elif mode in ['w', 'wb'] and str(fp).endswith('.gz'):
         def opener(fp, mode):
             codecs.getwriter('utf-8')(gzip_open(fp, mode))
 

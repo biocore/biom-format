@@ -11,6 +11,8 @@ from os import remove
 from os.path import abspath, dirname, exists
 from tempfile import NamedTemporaryFile
 from unittest import TestCase, main
+import pathlib
+import os
 
 import numpy as np
 import numpy.testing as npt
@@ -256,6 +258,21 @@ class UtilTests(TestCase):
 
         # unsupported type raises TypeError
         self.assertRaises(TypeError, safe_md5, 42)
+
+    def test_biom_open_hdf5_pathlib_write(self):
+        t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
+                  ['c', 'd', 'e'])
+        with NamedTemporaryFile() as tmpfile:
+            with biom_open(pathlib.Path(tmpfile.name), 'w') as fp:
+                t.to_hdf5(fp, 'tests')
+
+    def test_biom_open_hdf5_pathlib_read(self):
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        with biom_open(pathlib.Path('test_data/test.biom')) as f:
+            self.assertTrue(isinstance(f, h5py.File))
+        os.chdir(cwd)
 
     def test_biom_open_hdf5(self):
         with biom_open(get_data_path('test.biom')) as f:
