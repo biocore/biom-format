@@ -4142,6 +4142,12 @@ html
         if isinstance(type_, bytes):
             type_ = type_.decode('ascii')
 
+        def ensure_utf8(x):
+            if isinstance(x, bytes):
+                return x.decode('utf8')
+            else:
+                return
+
         def axis_load(grp):
             """Loads all the data of the given group"""
             # fetch all of the IDs
@@ -4170,7 +4176,7 @@ html
             md = md if any(md) else None
 
             # Fetch the group metadata
-            grp_md = {cat: val[0]
+            grp_md = {cat: ensure_utf8(val[0])
                       for cat, val in grp['group-metadata'].items()}
             return ids, md, grp_md
 
