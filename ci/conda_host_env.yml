@@ -7,5 +7,6 @@ channels:
 dependencies:
   - hdf5
   - pip
+  - cython
   - pip:
       - "-r requirements.test.txt"
