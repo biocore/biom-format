@@ -4170,7 +4170,7 @@ html
             md = md if any(md) else None
 
             # Fetch the group metadata
-            grp_md = {cat: val
+            grp_md = {cat: val[0]
                       for cat, val in grp['group-metadata'].items()}
             return ids, md, grp_md
 
