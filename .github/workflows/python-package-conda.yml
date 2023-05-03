@@ -99,7 +99,6 @@ jobs:
           build-args: |
             PYTHON_VERSION=${{ env.latest_python }}
 
-
   test-cython:
     name: Test (${{ needs.conf.outputs.latest_python }}, ${{ matrix.os }}, ${{ fromJSON('["pypi", "conda"]')[matrix.use_conda] }})
     needs: ["conf", "lint"]
