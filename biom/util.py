@@ -20,16 +20,13 @@ from os.path import abspath, dirname, exists
 import re
 from hashlib import md5
 from gzip import open as gzip_open
+import h5py
 
 try:
-    import h5py
-    HAVE_H5PY = True
-
     H5PY_VLEN_STR = h5py.special_dtype(vlen=str)
     H5PY_VLEN_UNICODE = h5py.special_dtype(vlen=str)
 
 except ImportError:
-    HAVE_H5PY = False
     H5PY_VLEN_STR = None
     H5PY_VLEN_UNICODE = None
 
@@ -437,16 +434,11 @@ def biom_open(fp, permission='r'):
         if os.path.getsize(fp) == 0:
             raise ValueError("The file '%s' is empty and can't be parsed" % fp)
 
-        if is_hdf5_file(fp) and not HAVE_H5PY:
-            raise RuntimeError("h5py is not installed, cannot parse HDF5 "
-                               "BIOM file")
-
-    if HAVE_H5PY:
-        if mode in ['U', 'r', 'rb'] and h5py.is_hdf5(fp):
-            opener = h5py.File
-            mode = 'r' if permission == 'U' else permission
-        elif mode == 'w':
-            opener = h5py.File
+    if mode in ['U', 'r', 'rb'] and h5py.is_hdf5(fp):
+        opener = h5py.File
+        mode = 'r' if permission == 'U' else permission
+    elif mode == 'w':
+        opener = h5py.File
 
     if mode in ['U', 'r', 'rb'] and is_gzip(fp):
         def opener(fp, mode):

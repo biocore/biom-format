@@ -25,7 +25,7 @@ import pytest
 from biom import example_table, load_table, concat
 from biom.exception import (UnknownAxisError, UnknownIDError, TableException,
                             DisjointIDError)
-from biom.util import unzip, HAVE_H5PY, H5PY_VLEN_STR
+from biom.util import unzip, H5PY_VLEN_STR
 from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
                         list_dict_to_sparse, dict_to_sparse,
                         coo_arrays_to_sparse, list_list_to_sparse,
@@ -33,11 +33,10 @@ from biom.table import (Table, prefer_self, index_list, list_nparray_to_sparse,
                         _identify_bad_value, general_parser)
 from biom.parse import parse_biom_table
 from biom.err import errstate
+import h5py
 
 np.random.seed(1234)
 
-if HAVE_H5PY:
-    import h5py
 
 try:
     import anndata
@@ -644,12 +643,10 @@ class TableTests(TestCase):
             obs = general_parser(test)
             self.assertEqual(obs, exp)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_non_hdf5_file_or_group(self):
         with self.assertRaises(ValueError):
             Table.from_hdf5(10)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_empty_md(self):
         """Parse a hdf5 formatted BIOM table w/o metadata"""
         cwd = os.getcwd()
@@ -661,7 +658,6 @@ class TableTests(TestCase):
         self.assertTrue(t._sample_metadata is None)
         self.assertTrue(t._observation_metadata is None)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_custom_parsers(self):
         def parser(item):
             return general_parser(item).upper()
@@ -677,13 +673,11 @@ class TableTests(TestCase):
         for m in t.metadata():
             self.assertIn(m['BODY_SITE'], ('GUT', 'SKIN', b'GUT', b'SKIN'))
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_issue_731(self):
         t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'))
         self.assertTrue(isinstance(t.table_id, str))
         self.assertTrue(isinstance(t.type, str))
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
         cwd = os.getcwd()
@@ -778,7 +772,6 @@ class TableTests(TestCase):
                np.array([0., 1., 1., 0., 0., 0.])]
         npt.assert_equal(list(t.iter_data(axis="observation")), exp)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_sample_subset_no_metadata(self):
         """Parse a sample subset of a hdf5 formatted BIOM table"""
         samples = [b'Sample2', b'Sample4', b'Sample6']
@@ -806,7 +799,6 @@ class TableTests(TestCase):
                np.array([1., 0., 0.])]
         npt.assert_equal(list(t.iter_data(axis='observation')), exp)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_sample_subset(self):
         """Parse a sample subset of a hdf5 formatted BIOM table"""
         samples = ['Sample2', 'Sample4', 'Sample6']
@@ -879,7 +871,6 @@ class TableTests(TestCase):
                np.array([1., 0., 0.])]
         npt.assert_equal(list(t.iter_data(axis='observation')), exp)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_observation_subset_no_metadata(self):
         """Parse a observation subset of a hdf5 formatted BIOM table"""
         observations = [b'GG_OTU_1', b'GG_OTU_3', b'GG_OTU_5']
@@ -907,7 +898,6 @@ class TableTests(TestCase):
                np.array([0, 1., 1., 0., 0, 0.])]
         npt.assert_equal(list(t.iter_data(axis='observation')), exp)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_observation_subset(self):
         """Parse a observation subset of a hdf5 formatted BIOM table"""
         observations = ['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5']
@@ -976,7 +966,6 @@ class TableTests(TestCase):
                np.array([1., 1., 0., 0.])]
         npt.assert_equal(list(t.iter_data(axis='observation')), exp)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_subset_error(self):
         """hdf5 biom table parse throws error with invalid parameters"""
         cwd = os.getcwd()
@@ -995,7 +984,6 @@ class TableTests(TestCase):
                             axis='observation')
         os.chdir(cwd)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_from_hdf5_empty_table(self):
         """HDF5 biom parse successfully loads an empty table"""
         cwd = os.getcwd()
@@ -1010,7 +998,6 @@ class TableTests(TestCase):
         self.assertEqual(t._sample_metadata, None)
         npt.assert_equal(list(t.iter_data(axis='observation')), [])
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_from_hdf5_bug_861(self):
         t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
                   ['c', 'd', 'e'])
@@ -1041,7 +1028,6 @@ class TableTests(TestCase):
 
         self.assertEqual(obs, t)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_empty_table(self):
         """Successfully writes an empty OTU table in HDF5 format"""
         # Create an empty OTU table
@@ -1051,7 +1037,6 @@ class TableTests(TestCase):
             t.to_hdf5(h5, 'tests')
             h5.close()
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_empty_table_bug_619(self):
         """Successfully writes an empty OTU table in HDF5 format"""
         t = example_table.filter({}, axis='observation', inplace=False)
@@ -1066,7 +1051,6 @@ class TableTests(TestCase):
             t.to_hdf5(h5, 'tests')
             h5.close()
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_missing_metadata_observation(self):
         # exercises a vlen_list
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
@@ -1081,7 +1065,6 @@ class TableTests(TestCase):
                          ({'taxonomy': None},
                           {'taxonomy': ['foo', 'baz']}))
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_missing_metadata_sample(self):
         # exercises general formatter
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'], None,
@@ -1096,7 +1079,6 @@ class TableTests(TestCase):
                          ({'dat': ''},
                           {'dat': 'foo'}))
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_inconsistent_metadata_categories_observation(self):
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
                   [{'taxonomy_A': 'foo; bar'},
@@ -1108,7 +1090,6 @@ class TableTests(TestCase):
                                             'inconsistent metadata'):
                     t.to_hdf5(h5, 'tests')
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_inconsistent_metadata_categories_sample(self):
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
                   None,
@@ -1121,7 +1102,6 @@ class TableTests(TestCase):
                                             'inconsistent metadata'):
                     t.to_hdf5(h5, 'tests')
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_malformed_taxonomy(self):
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
                   [{'taxonomy': 'foo; bar'},
@@ -1135,7 +1115,6 @@ class TableTests(TestCase):
                          ({'taxonomy': ['foo', 'bar']},
                           {'taxonomy': ['foo', 'baz']}))
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_general_fallback_to_list(self):
         st_rich = Table(self.vals,
                         ['1', '2'], ['a', 'b'],
@@ -1146,7 +1125,6 @@ class TableTests(TestCase):
             h5 = h5py.File(tmpfile.name, 'w')
             st_rich.to_hdf5(h5, 'tests')
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5_custom_formatters(self):
         self.st_rich = Table(self.vals,
                              ['1', '2'], ['a', 'b'],
@@ -1182,7 +1160,6 @@ class TableTests(TestCase):
                 self.assertEqual(m1['barcode'].lower(), m2['barcode'])
             h5.close()
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_to_hdf5(self):
         """Write a file"""
         with NamedTemporaryFile() as tmpfile:
@@ -3963,6 +3940,13 @@ class SparseTableTests(TestCase):
         reloaded = Table.from_json(loads(serialized))
         self.assertEqual(t, reloaded)
         self.assertEqual(reloaded.generated_by, 'foo')
+
+    def test_to_json_int64_metadata_issue_886(self):
+        t = example_table.copy()
+        t.add_metadata({'S1': {'X': np.int64(1)},
+                        'S2': {'X': np.int64(2)},
+                        'S3': {'X': np.int64(3)}})
+        t.to_json('test')
 
     def test_to_json_empty(self):
         t = Table({}, [], [])
