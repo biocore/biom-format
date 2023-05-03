@@ -674,9 +674,22 @@ class TableTests(TestCase):
             self.assertIn(m['BODY_SITE'], ('GUT', 'SKIN', b'GUT', b'SKIN'))
 
     def test_from_hdf5_issue_731(self):
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
         t = Table.from_hdf5(h5py.File('test_data/test.biom', 'r'))
+        os.chdir(cwd)
         self.assertTrue(isinstance(t.table_id, str))
         self.assertTrue(isinstance(t.type, str))
+
+    def test_from_hdf5_group_metadata_issue_926(self):
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        t = Table.from_hdf5(h5py.File('test_data/test_grp_metadata.biom', 'r'))
+        os.chdir(cwd)
+        obs = t.group_metadata(axis='observation')
+        self.assertEqual(obs, {'tree': '(GG_OTU_5:0.1,(GG_OTU_3:0.1,GG_OTU_4:0.5):0.1,(GG_OTU_1:0.3,GG_OTU_2:0.4):0.1);'})  # noqa
 
     def test_from_hdf5(self):
         """Parse a hdf5 formatted BIOM table"""
@@ -1022,7 +1035,7 @@ class TableTests(TestCase):
             t.to_hdf5(h5, 'tests', creation_date=current)
             h5.close()
 
-            h5 = h5py.File(tmpfile.name)
+            h5 = h5py.File(tmpfile.name, 'r')
             obs = Table.from_hdf5(h5)
             self.assertEqual(obs.create_date, current)
 
