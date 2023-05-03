@@ -38,7 +38,7 @@ autosummary_generate = glob.glob('*.rst') + glob.glob('documentation/*.rst')
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
 extensions = ['sphinx.ext.autodoc',
-              'sphinx.ext.pngmath',
+              'sphinx.ext.imgmath',
               'numpydoc',
               'sphinx.ext.coverage',
               'sphinx.ext.doctest',
