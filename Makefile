@@ -12,6 +12,8 @@ else
 	TEST_COMMAND = python setup.py test 
 endif
 
+.PHONY: doc lint test
+
 test:
 	$(TEST_COMMAND)
 	biom show-install-info
