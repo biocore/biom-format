@@ -9,6 +9,7 @@
 
 import biom.util
 import biom.parse
+import h5py
 
 
 def write_biom_table(table, fmt, filepath):
@@ -16,9 +17,6 @@ def write_biom_table(table, fmt, filepath):
 
     if fmt not in ['hdf5', 'json', 'tsv']:
         raise ValueError("Unknown file format")
-
-    if fmt == 'hdf5' and not biom.util.HAVE_H5PY:
-        fmt = 'json'
 
     if fmt == 'json':
         with open(filepath, 'w') as f:
@@ -28,7 +26,6 @@ def write_biom_table(table, fmt, filepath):
             f.write(table)
             f.write('\n')
     else:
-        import h5py
 
         with h5py.File(filepath, 'w') as f:
             table.to_hdf5(f, biom.parse.generatedby())

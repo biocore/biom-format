@@ -8,12 +8,13 @@
 
 
 import click
+import h5py
 
 from biom.cli import cli
 from biom.parse import (get_axis_indices, direct_slice_data, direct_parse_key,
                         generatedby)
 from biom.table import Table
-from biom.util import biom_open, HAVE_H5PY
+from biom.util import biom_open
 
 
 @cli.command(name='subset-table')
@@ -76,12 +77,6 @@ def subset_table(input_hdf5_fp, input_json_fp, axis, ids, output_fp):
                 f.write(line)
                 f.write('\n')
     else:
-        if HAVE_H5PY:
-            import h5py
-        else:
-            # This should never be raised here
-            raise ImportError("h5py is not available, cannot write HDF5!")
-
         with h5py.File(output_fp, 'w') as f:
             table.to_hdf5(f, generatedby())
 

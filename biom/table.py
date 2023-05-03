@@ -173,6 +173,7 @@ Bacteria; Bacteroidetes   1.0 1.0 0.0 1.0
 
 import numpy as np
 import scipy.stats
+import h5py
 from copy import deepcopy
 from datetime import datetime
 from json import dumps
@@ -189,7 +190,7 @@ from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
-                       prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
+                       prefer_self, index_list, H5PY_VLEN_STR,
                        __format_version__)
 from biom.err import errcheck
 from ._filter import _filter
@@ -4060,11 +4061,6 @@ html
         >>>     t = Table.from_hdf5(f, ids=["GG_OTU_1"],
         ...                         axis='observation') # doctest: +SKIP
         """
-        if not HAVE_H5PY:
-            raise RuntimeError("h5py is not in the environment, HDF5 support "
-                               "is not available")
-
-        import h5py
         if not isinstance(h5grp, (h5py.Group, h5py.File)):
             raise ValueError("h5grp does not appear to be an HDF5 file or "
                              "group")
@@ -4543,10 +4539,6 @@ html
         ...     t.to_hdf5(f, "example")
 
         """
-        if not HAVE_H5PY:
-            raise RuntimeError("h5py is not in the environment, HDF5 support "
-                               "is not available")
-
         if format_fs is None:
             format_fs = {}
 
