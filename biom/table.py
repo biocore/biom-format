@@ -453,8 +453,8 @@ class Table:
 
     Notes
     -----
-    Allowed table types are None, "OTU table", "Pathway table", "Function table",
-    "Ortholog table", "Gene table", "Metabolite table", "Taxon table"
+    Allowed table types are None, "OTU table", "Pathway table", "Function
+    table", "Ortholog table", "Gene table", "Metabolite table", "Taxon table"
 
     Raises
     ------
@@ -3955,36 +3955,36 @@ class Table:
         The expected HDF5 group structure is below. An example of an HDF5 file
         in DDL can be found here [1]_.
 
-        - ./id                                                  : str, an arbitrary ID
-        - ./type                                                : str, the table type (e.g, OTU table)
-        - ./format-url                                          : str, a URL that describes the format
-        - ./format-version                                      : two element tuple of int32, major and minor
-        - ./generated-by                                        : str, what generated this file
-        - ./creation-date                                       : str, ISO format
-        - ./shape                                               : two element tuple of int32, N by M
-        - ./nnz                                                 : int32 or int64, number of non zero elems
-        - ./observation                                         : Group
-        - ./observation/ids                                     : (N,) dataset of str or vlen str
-        - ./observation/matrix                                  : Group
-        - ./observation/matrix/data                             : (nnz,) dataset of float64
-        - ./observation/matrix/indices                          : (nnz,) dataset of int32
-        - ./observation/matrix/indptr                           : (M+1,) dataset of int32
-        - ./observation/metadata                                : Group
-        - [./observation/metadata/foo]                          : Optional, (N,) dataset of any valid HDF5 type in index order with IDs.
-        - ./observation/group-metadata                          : Group
-        - [./observation/group-metadata/foo]                    : Optional, (?,) dataset of group metadata that relates IDs
-        - [./observation/group-metadata/foo.attrs['data_type']] : attribute of the foo dataset that describes contained type (e.g., newick)
-        - ./sample                                              : Group
-        - ./sample/ids                                          : (M,) dataset of str or vlen str
-        - ./sample/matrix                                       : Group
-        - ./sample/matrix/data                                  : (nnz,) dataset of float64
-        - ./sample/matrix/indices                               : (nnz,) dataset of int32
-        - ./sample/matrix/indptr                                : (N+1,) dataset of int32
-        - ./sample/metadata                                     : Group
-        - [./sample/metadata/foo]                               : Optional, (M,) dataset of any valid HDF5 type in index order with IDs.
-        - ./sample/group-metadata                               : Group
-        - [./sample/group-metadata/foo]                         : Optional, (?,) dataset of group metadata that relates IDs
-        - [./sample/group-metadata/foo.attrs['data_type']]      : attribute of the foo dataset that describes contained type (e.g., newick)
+        - ./id                                                  : str, an arbitrary ID  # noqa
+        - ./type                                                : str, the table type (e.g, OTU table)  # noqa
+        - ./format-url                                          : str, a URL that describes the format  # noqa
+        - ./format-version                                      : two element tuple of int32, major and minor  # noqa
+        - ./generated-by                                        : str, what generated this file  # noqa
+        - ./creation-date                                       : str, ISO format  # noqa
+        - ./shape                                               : two element tuple of int32, N by M  # noqa
+        - ./nnz                                                 : int32 or int64, number of non zero elems  # noqa
+        - ./observation                                         : Group  # noqa
+        - ./observation/ids                                     : (N,) dataset of str or vlen str  # noqa
+        - ./observation/matrix                                  : Group  # noqa
+        - ./observation/matrix/data                             : (nnz,) dataset of float64  # noqa
+        - ./observation/matrix/indices                          : (nnz,) dataset of int32  # noqa
+        - ./observation/matrix/indptr                           : (M+1,) dataset of int32  # noqa
+        - ./observation/metadata                                : Group  # noqa
+        - [./observation/metadata/foo]                          : Optional, (N,) dataset of any valid HDF5 type in index order with IDs.  # noqa
+        - ./observation/group-metadata                          : Group  # noqa
+        - [./observation/group-metadata/foo]                    : Optional, (?,) dataset of group metadata that relates IDs  # noqa
+        - [./observation/group-metadata/foo.attrs['data_type']] : attribute of the foo dataset that describes contained type (e.g., newick)  # noqa
+        - ./sample                                              : Group  # noqa
+        - ./sample/ids                                          : (M,) dataset of str or vlen str  # noqa
+        - ./sample/matrix                                       : Group  # noqa
+        - ./sample/matrix/data                                  : (nnz,) dataset of float64  # noqa
+        - ./sample/matrix/indices                               : (nnz,) dataset of int32  # noqa
+        - ./sample/matrix/indptr                                : (N+1,) dataset of int32  # noqa
+        - ./sample/metadata                                     : Group  # noqa
+        - [./sample/metadata/foo]                               : Optional, (M,) dataset of any valid HDF5 type in index order with IDs.  # noqa
+        - ./sample/group-metadata                               : Group  # noqa
+        - [./sample/group-metadata/foo]                         : Optional, (?,) dataset of group metadata that relates IDs  # noqa
+        - [./sample/group-metadata/foo.attrs['data_type']]      : attribute of the foo dataset that describes contained type (e.g., newick)  # noqa
 
         The '?' character on the dataset size means that it can be of arbitrary
         length.
