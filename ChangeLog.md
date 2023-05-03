@@ -8,12 +8,19 @@ Bug fixes:
 
 * Allow `Table.to_json` to properly handle numpy types in metadata, see issue [#886](https://github.com/biocore/biom-format/issues/886)
 * Do not modify IDs in place in the presence of duplicate relabels, see issue [#892](https://github.com/biocore/biom-format/issues/892)
+* Catch an edge case where a failured ID update in place would actually change IDs, see issue [#892](https://github.com/biocore/biom-format/issues/892)
 
 New features:
 
 * You can now set a random seed at the call to `Table.subsample`, see issue [#914](https://github.com/biocore/biom-format/issues/914).
 
+General maintenance:
 
+* Allow specifying a creation time on write, see issue [#895](https://github.com/biocore/biom-format/issues/895)
+* h5py optional code blocks have been removed, see issue [#896](https://github.com/biocore/biom-format/issues/896)
+* Many warnings from the test suite have been resolved, see issue [#912](https://github.com/biocore/biom-format/issues/912)
+* Politely error when validating non biom-format files, see issue [#901](https://github.com/biocore/biom-format/issues/901)
+* Disallow `head` with `-n <= 0` and `-m <= 0`, see issue [#899](https://github.com/biocore/biom-format/issues/899)
 
 biom 2.1.14
 -----------
