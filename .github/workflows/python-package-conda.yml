@@ -74,8 +74,8 @@ jobs:
         shell: bash -l {0}
         run: make doc
 
-  test-cython:
-    name: Test (${{ needs.conf.outputs.latest_python }}, ${{ matrix.os }}, ${{ fromJSON('["pypi", "conda"]')[matrix.use_conda] }})
+  test-all:
+    name: Test (${{ matrix.python_version }}, ${{ matrix.os }}, ${{ fromJSON('["pypi", "conda"]')[matrix.use_conda] }})
     needs: ["conf", "lint"]
     runs-on: ${{ matrix.os }}
     strategy:
@@ -110,28 +110,27 @@ jobs:
         shell: bash -l {0}
         run: make test
   
-          #  test-aarch64:
-          #    name: Test (${{ needs.conf.outputs.latest_python }}, qemu::aarch64-centos)
-          #    needs: ["conf", "lint", "doc", "test-cython"]
-          #    runs-on: ubuntu-latest
-          #    steps:
-          #      - uses: actions/checkout@v3
-          #        # setup-buildx-action uses the git context directly
-          #        # but checklist wants the .git directory
-          #      - name: Set up QEMU
-          #        id: qemu
-          #        uses: docker/setup-qemu-action@v1
-          #      - name: Set up Docker Buildx
-          #        uses: docker/setup-buildx-action@v1
-          #      - name: Build and test for linux-aarch64
-          #        id: docker_build
-          #        uses: docker/build-push-action@v2
-          #        with:
-          #          context: .
-          #          # ^ to use the local checkout, not the git context
-          #          file: aarch64.Dockerfile
-          #          cache-from: type=gha
-          #          cache-to: type=gha,mode=max
-          #          build-args: |
-          #            PYTHON_VERSION=${{ env.latest_python }}
-
+  test-aarch64:
+    name: Test (${{ needs.conf.outputs.latest_python }}, qemu::aarch64-centos)
+    needs: ["conf", "lint", "doc", "test-all"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        # setup-buildx-action uses the git context directly
+        # but checklist wants the .git directory
+      - name: Set up QEMU
+        id: qemu
+        uses: docker/setup-qemu-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Build and test for linux-aarch64
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          # ^ to use the local checkout, not the git context
+          file: aarch64.Dockerfile
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            PYTHON_VERSION=${{ env.latest_python }}
