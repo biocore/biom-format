@@ -15,20 +15,16 @@ from unittest import TestCase, main
 
 import numpy as np
 import numpy.testing as npt
-import pytest
 
 from biom.parse import (generatedby, MetadataMap, parse_biom_table, parse_uc,
                         load_table)
 from biom.table import Table
-from biom.util import HAVE_H5PY, __version__
+from biom.util import __version__
 from biom.tests.long_lines import (uc_empty, uc_invalid_id, uc_minimal,
                                    uc_lib_minimal,
                                    uc_seed_hits, uc_mixed_hits,
                                    uc_underscores_in_sample_id)
-
-
-if HAVE_H5PY:
-    import h5py
+import h5py
 
 __author__ = "Justin Kuczynski"
 __copyright__ = "Copyright 2011-2017, The BIOM Format Development Team"
@@ -281,16 +277,14 @@ class ParseTests(TestCase):
         obs = Table.from_adjacency(''.join(lines))
         self.assertEqual(obs, exp)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_parse_biom_table_hdf5(self):
         """Make sure we can parse a HDF5 table through the same loader"""
         cwd = os.getcwd()
         if '/' in __file__[1:]:
             os.chdir(__file__.rsplit('/', 1)[0])
-        Table.from_hdf5(h5py.File('test_data/test.biom'))
+        Table.from_hdf5(h5py.File('test_data/test.biom', 'r'))
         os.chdir(cwd)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_load_table_filepath(self):
         cwd = os.getcwd()
         if '/' in __file__[1:]:
@@ -298,12 +292,11 @@ class ParseTests(TestCase):
         load_table('test_data/test.biom')
         os.chdir(cwd)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_load_table_inmemory(self):
         cwd = os.getcwd()
         if '/' in __file__[1:]:
             os.chdir(__file__.rsplit('/', 1)[0])
-        load_table(h5py.File('test_data/test.biom'))
+        load_table(h5py.File('test_data/test.biom', 'r'))
         os.chdir(cwd)
 
     def test_load_table_inmemory_json(self):
@@ -344,7 +337,6 @@ class ParseTests(TestCase):
         t_json = parse_biom_table(t_json_stringio)
         self.assertEqual(t, t_json)
 
-    @pytest.mark.skipif(HAVE_H5PY is False, reason='H5PY is not installed')
     def test_parse_biom_table_with_hdf5(self):
         """tests for parse_biom_table when we have h5py"""
         # We will round-trip the HDF5 file to several different formats, and
@@ -352,7 +344,7 @@ class ParseTests(TestCase):
         if '/' in __file__[1:]:
             os.chdir(__file__.rsplit('/', 1)[0])
 
-        t = parse_biom_table(h5py.File('test_data/test.biom'))
+        t = parse_biom_table(h5py.File('test_data/test.biom', 'r'))
 
         # These things are not round-trippable using the general-purpose
         # parse_biom_table function

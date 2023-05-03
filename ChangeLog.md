@@ -4,14 +4,15 @@ BIOM-Format ChangeLog
 biom 2.1.14-dev
 ---------------
 
+Bug fixes:
+
+* Allow `Table.to_json` to properly handle numpy types in metadata, see issue [#886](https://github.com/biocore/biom-format/issues/886)
+* Do not modify IDs in place in the presence of duplicate relabels, see issue [#892](https://github.com/biocore/biom-format/issues/892)
+* Catch an edge case where a failured ID update in place would actually change IDs, see issue [#892](https://github.com/biocore/biom-format/issues/892)
+
 New features:
 
 * You can now set a random seed at the call to `Table.subsample`, see issue [#914](https://github.com/biocore/biom-format/issues/914).
-
-Bug fixes:
-
-* Catch an edge case where a failured ID update in place would actually change IDs, see issue [#892](https://github.com/biocore/biom-format/issues/892)
-* Properly handle NumPy types in metadata on serialization, see issue [#886](https://github.com/biocore/biom-format/issues/886)
 
 General maintenance:
 

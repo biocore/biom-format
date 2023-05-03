@@ -173,9 +173,10 @@ Bacteria; Bacteroidetes   1.0 1.0 0.0 1.0
 
 import numpy as np
 import scipy.stats
+import h5py
 from copy import deepcopy
 from datetime import datetime
-from json import dumps
+from json import dumps as _json_dumps, JSONEncoder
 from functools import reduce, partial
 from operator import itemgetter, or_
 from collections import defaultdict
@@ -189,7 +190,7 @@ from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
-                       prefer_self, index_list, H5PY_VLEN_STR, HAVE_H5PY,
+                       prefer_self, index_list, H5PY_VLEN_STR,
                        __format_version__)
 from biom.err import errcheck
 from ._filter import _filter
@@ -211,6 +212,22 @@ __email__ = "daniel.mcdonald@colorado.edu"
 
 MATRIX_ELEMENT_TYPE = {'int': int, 'float': float, 'unicode': str,
                        'int': int, 'float': float, 'unicode': str}
+
+
+# NpEncoder from:
+# https://stackoverflow.com/a/57915246/19741
+class NpEncoder(JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        if isinstance(obj, np.floating):
+            return float(obj)
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NpEncoder, self).default(obj)
+
+
+dumps = partial(_json_dumps, cls=NpEncoder)
 
 
 def _identify_bad_value(dtype, fields):
@@ -1414,6 +1431,12 @@ class Table:
 
             updated_ids[idx] = id_map.get(old_id, old_id)
 
+        # see issue #892, this protects against modifying inplace with bad
+        # duplicate identifiers
+        if inplace:
+            if len(updated_ids) != len(set(updated_ids)):
+                raise TableException("Duplicate IDs observed")
+
         # prepare the result object and update the ids along the specified
         # axis
         result = self if inplace else self.copy()
@@ -1424,7 +1447,7 @@ class Table:
 
         result._index_ids(None, None)
 
-        # check for errors (specifically, we want to esnsure that duplicate
+        # check for errors (specifically, we want to ensure that duplicate
         # ids haven't been introduced)
         errcheck(result)
 
@@ -4054,11 +4077,6 @@ html
         >>>     t = Table.from_hdf5(f, ids=["GG_OTU_1"],
         ...                         axis='observation') # doctest: +SKIP
         """
-        if not HAVE_H5PY:
-            raise RuntimeError("h5py is not in the environment, HDF5 support "
-                               "is not available")
-
-        import h5py
         if not isinstance(h5grp, (h5py.Group, h5py.File)):
             raise ValueError("h5grp does not appear to be an HDF5 file or "
                              "group")
@@ -4108,6 +4126,12 @@ html
         id_ = h5grp.attrs['id']
         create_date = h5grp.attrs['creation-date']
         generated_by = h5grp.attrs['generated-by']
+
+        if hasattr(datetime, "fromisoformat"):
+            try:
+                create_date = datetime.fromisoformat(create_date)
+            except (TypeError, ValueError):
+                pass
 
         shape = h5grp.attrs['shape']
         type_ = None if h5grp.attrs['type'] == '' else h5grp.attrs['type']
@@ -4215,10 +4239,10 @@ html
             indptr[0] = 0
             indptr[1:] = indptr_subset.cumsum()
 
-            data = np.hstack(h5_data[start:end]
-                             for start, end in indptr_indices)
-            indices = np.hstack(h5_indices[start:end]
-                                for start, end in indptr_indices)
+            data = np.hstack([h5_data[start:end]
+                              for start, end in indptr_indices])
+            indices = np.hstack([h5_indices[start:end]
+                                 for start, end in indptr_indices])
         else:
             # no subset need, just pass all data to scipy
             data = h5_data
@@ -4412,7 +4436,8 @@ html
 
         return pd.DataFrame(rows, index=self.ids(axis=axis), columns=mcols)
 
-    def to_hdf5(self, h5grp, generated_by, compress=True, format_fs=None):
+    def to_hdf5(self, h5grp, generated_by, compress=True, format_fs=None,
+                creation_date=None):
         """Store CSC and CSR in place
 
         The resulting structure of this group is below. A few basic
@@ -4509,6 +4534,9 @@ dataset of int32
             the category being operated on, the metadata for the entire axis
             being operated on, and whether to enable compression on the
             dataset.  Anything returned by this function is ignored.
+        creation_date : datetime, optional
+            If provided, use this specific datetime on write as the creation
+            timestamp
 
         Notes
         -----
@@ -4537,10 +4565,6 @@ html
         ...     t.to_hdf5(f, "example")
 
         """
-        if not HAVE_H5PY:
-            raise RuntimeError("h5py is not in the environment, HDF5 support "
-                               "is not available")
-
         if format_fs is None:
             format_fs = {}
 
@@ -4552,7 +4576,10 @@ html
         h5grp.attrs['format-url'] = "http://biom-format.org"
         h5grp.attrs['format-version'] = self.format_version
         h5grp.attrs['generated-by'] = generated_by
-        h5grp.attrs['creation-date'] = datetime.now().isoformat()
+        if creation_date is None:
+            h5grp.attrs['creation-date'] = datetime.now().isoformat()
+        else:
+            h5grp.attrs['creation-date'] = creation_date.isoformat()
         h5grp.attrs['shape'] = self.shape
         h5grp.attrs['nnz'] = nnz
 
@@ -4727,7 +4754,7 @@ html
                           input_is_dense=input_is_dense)
         return table_obj
 
-    def to_json(self, generated_by, direct_io=None):
+    def to_json(self, generated_by, direct_io=None, creation_date=None):
         """Returns a JSON string representing the table in BIOM format.
 
         Parameters
@@ -4738,6 +4765,8 @@ html
             Defaults to ``None``. Must implementing a ``write`` function. If
             `direct_io` is not ``None``, the final output is written directly
             to `direct_io` during processing.
+        creation_date : datetime, optional
+            If provided, use this datetime as the creation date on write.
 
         Returns
         -------
@@ -4746,6 +4775,11 @@ html
         """
         if not isinstance(generated_by, str):
             raise TableException("Must specify a generated_by string")
+
+        if creation_date is None:
+            creation_date = datetime.now().isoformat()
+        else:
+            creation_date = creation_date.isoformat()
 
         # Fill in top-level metadata.
         if direct_io:
@@ -4758,14 +4792,14 @@ html
                 '"format_url": "%s",' %
                 get_biom_format_url_string())
             direct_io.write('"generated_by": "%s",' % generated_by)
-            direct_io.write('"date": "%s",' % datetime.now().isoformat())
+            direct_io.write('"date": "%s",' % creation_date)
         else:
             id_ = '"id": "%s",' % str(self.table_id)
             format_ = '"format": "%s",' % get_biom_format_version_string(
                 (1, 0))  # JSON table -> 1.0.0
             format_url = '"format_url": "%s",' % get_biom_format_url_string()
             generated_by = '"generated_by": "%s",' % generated_by
-            date = '"date": "%s",' % datetime.now().isoformat()
+            date = '"date": "%s",' % creation_date
 
         # Determine if we have any data in the matrix, and what the shape of
         # the matrix is.

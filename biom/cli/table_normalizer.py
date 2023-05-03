@@ -14,7 +14,6 @@ import click
 from biom import load_table
 from biom.cli import cli
 from biom.cli.util import write_biom_table
-from biom.util import HAVE_H5PY
 
 
 @cli.command(name='normalize-table')
@@ -55,7 +54,7 @@ def normalize_table(input_fp, output_fp, relative_abund, presence_absence,
     table = load_table(input_fp)
     result = _normalize_table(table, relative_abund, presence_absence, axis)
 
-    write_biom_table(result, 'hdf5' if HAVE_H5PY else 'json', output_fp)
+    write_biom_table(result, 'hdf5', output_fp)
 
 
 def _normalize_table(table, relative_abund=False, presence_absence=False,

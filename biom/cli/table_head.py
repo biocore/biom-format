@@ -36,6 +36,16 @@ def head(input_fp, output_fp, n_obs, n_samp):
     $ biom head -i table.biom
 
     """
+    if n_obs == 0 or n_samp == 0:
+        raise ValueError("Sample and observation identifiers can be obtained "
+                         "from 'biom table-ids'")
+
+    if n_obs < 0:
+        raise ValueError("-n/--n-obs must be > 0")
+
+    if n_samp < 0:
+        raise ValueError("-m/--m-samp must be > 0")
+
     table = load_table(input_fp).head(n=n_obs, m=n_samp)
 
     if output_fp is None:
