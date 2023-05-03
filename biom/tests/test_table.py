@@ -3925,6 +3925,13 @@ class SparseTableTests(TestCase):
         self.assertEqual(t, reloaded)
         self.assertEqual(reloaded.generated_by, 'foo')
 
+    def test_to_json_int64_metadata_issue_886(self):
+        t = example_table.copy()
+        t.add_metadata({'S1': {'X': np.int64(1)},
+                        'S2': {'X': np.int64(2)},
+                        'S3': {'X': np.int64(3)}})
+        t.to_json('test')
+
     def test_to_json_empty(self):
         t = Table({}, [], [])
         serialized = t.to_json('foo')

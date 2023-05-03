@@ -6,6 +6,7 @@ biom 2.1.14-dev
 
 Bug fixes:
 
+* Allow `Table.to_json` to properly handle numpy types in metadata, see issue [#886](https://github.com/biocore/biom-format/issues/886)
 * Do not modify IDs in place in the presence of duplicate relabels, see issue [#892](https://github.com/biocore/biom-format/issues/892)
 
 New features:
