@@ -264,7 +264,7 @@ class UtilTests(TestCase):
                   ['c', 'd', 'e'])
         with NamedTemporaryFile() as tmpfile:
             with biom_open(pathlib.Path(tmpfile.name), 'w') as fp:
-                t.to_hdf5(h5, 'tests')
+                t.to_hdf5(fp, 'tests')
 
     def test_biom_open_hdf5_pathlib_read(self):
         cwd = os.getcwd()
