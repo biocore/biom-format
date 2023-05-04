@@ -23,7 +23,7 @@ jobs:
   # adapted from 
   # https://github.com/biopython/biopython/blob/master/.github/workflows/ci.yml
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels (py ${{ matrix.pyver }}) ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
