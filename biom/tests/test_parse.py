@@ -12,12 +12,13 @@ import os
 from io import StringIO
 import json
 from unittest import TestCase, main
+from tempfile import NamedTemporaryFile
 
 import numpy as np
 import numpy.testing as npt
 
 from biom.parse import (generatedby, MetadataMap, parse_biom_table, parse_uc,
-                        load_table)
+                        load_table, save_table)
 from biom.table import Table
 from biom.util import __version__
 from biom.tests.long_lines import (uc_empty, uc_invalid_id, uc_minimal,
@@ -284,6 +285,14 @@ class ParseTests(TestCase):
             os.chdir(__file__.rsplit('/', 1)[0])
         Table.from_hdf5(h5py.File('test_data/test.biom', 'r'))
         os.chdir(cwd)
+
+    def test_save_table_filepath(self):
+        t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
+                  ['c', 'd', 'e'])
+        with NamedTemporaryFile() as tmpfile:
+            save_table(t, tmpfile.name)
+            obs = load_table(tmpfile.name)
+            self.assertEqual(obs, t)
 
     def test_load_table_filepath(self):
         cwd = os.getcwd()

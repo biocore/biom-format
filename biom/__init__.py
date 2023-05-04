@@ -49,7 +49,7 @@ either in TSV, HDF5, JSON, gzip'd JSON or gzip'd TSV and parse accordingly:
 # ----------------------------------------------------------------------------
 
 from .table import Table
-from .parse import parse_biom_table as parse_table, load_table
+from .parse import parse_biom_table as parse_table, load_table, save_table
 from .util import __format_version__, __version__
 
 __author__ = "Daniel McDonald"
@@ -95,4 +95,4 @@ def concat(tables, *args, **kwargs):
 
 
 __all__ = ['Table', 'example_table', 'parse_table', 'load_table',
-           '__format_version__', '__version__']
+           '__format_version__', '__version__', 'save_table']
