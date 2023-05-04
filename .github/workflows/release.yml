@@ -14,12 +14,22 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
+
+      - name: Dist cache
+        id: dist-cache
+        uses: actions/cache@v2
+        with:
+          path: dist-cache
+          key: dist-cache
+
       - name: Build distribution
         run: |
           # set version from '${{ github.ref_name }}'
           export RELEASE_VERSION=${{ github.ref_name }}
           pip install numpy cython
           python setup.py sdist
+          cp dist/* dist-cache/
+          ls dist-cache
 
   # adapted from 
   # https://github.com/biopython/biopython/blob/master/.github/workflows/ci.yml
@@ -38,6 +48,13 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Dist cache
+        id: dist-cache
+        uses: actions/cache@v2
+        with:
+          path: dist-cache
+          key: dist-cache
+
       - name: Install Python packaging tools
         run: |
           export RELEASE_VERSION=${{ github.ref_name }}
@@ -47,13 +64,28 @@ jobs:
       - name: Build wheels
         run: |
           python setup.py bdist_wheel
+          cp dist/* dist-cache/
+          ls dist-cache
 
   release:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
     steps:
+      - name: Dist cache
+        id: dist-cache
+        uses: actions/cache@v2
+        with:
+          path: dist-cache
+          key: dist-cache
+
+      - name: Stage dist
+        run: |
+          mkdir -p dist
+          cp dist-cache/* dist
+          ls dist
+
       - name: Publish a Python distribution to PyPI
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+        if: github.event_name == 'push-DONOTPUSH' && startsWith(github.ref, 'refs/tags')
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
