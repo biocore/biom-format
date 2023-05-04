@@ -23,15 +23,19 @@ jobs:
   # adapted from 
   # https://github.com/biopython/biopython/blob/master/.github/workflows/ci.yml
   build_wheels:
-    name: Build wheels
-    runs-on: ubuntu-latest
+    name: Build wheels on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        pyver: ["37", "38", "39", "310", "311"]
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: 3.9
 
       - name: Install Python packaging tools
         run: |
@@ -40,12 +44,23 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
 
       # https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml
-      - name: Build wheels
+      - name: Build wheels cp${{ matrix.pyver}} Linux
+        if: matrix.os == 'ubuntu-latest' 
         env:
-          CIBW_ARCHS_MACOS: x86_64 arm64
-          CIBW_SKIP: cp36-* "*-win*"
+          CIBW_ARCHS_MACOS: x86_64
+          CIBW_SKIP: "*-musllinux*"
+          CIBW_BUILD: cp${{ matrix.pyver }}-
 
         uses: pypa/cibuildwheel@v2.12.3
+      
+      - name: Build wheels cp${{ matrix.pyver}} MacOS 
+        if: matrix.os == 'macos-latest'
+        env:
+          CIBW_ARCHS_MACOS: x86_64 arm64
+          CIBW_BUILD: cp${{ matrix.pyver }}-
+
+        uses: pypa/cibuildwheel@v2.12.3
+      
       
       - name: Upload wheels
         uses: actions/upload-artifact@v3
