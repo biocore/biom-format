@@ -19,7 +19,7 @@ jobs:
         id: dist-cache
         uses: actions/cache@v2
         with:
-          path: dist-cache
+          path: dist
           key: dist-cache
 
       - name: Build distribution
@@ -28,8 +28,7 @@ jobs:
           export RELEASE_VERSION=${{ github.ref_name }}
           pip install numpy cython
           python setup.py sdist
-          cp dist/* dist-cache/
-          ls dist-cache
+          ls dist
 
   # adapted from 
   # https://github.com/biopython/biopython/blob/master/.github/workflows/ci.yml
@@ -52,7 +51,7 @@ jobs:
         id: dist-cache
         uses: actions/cache@v2
         with:
-          path: dist-cache
+          path: dist
           key: dist-cache
 
       - name: Install Python packaging tools
@@ -64,8 +63,7 @@ jobs:
       - name: Build wheels
         run: |
           python setup.py bdist_wheel
-          cp dist/* dist-cache/
-          ls dist-cache
+          ls dist
 
   release:
     needs: [build_wheels, build_sdist]
@@ -75,13 +73,11 @@ jobs:
         id: dist-cache
         uses: actions/cache@v2
         with:
-          path: dist-cache
+          path: dist
           key: dist-cache
 
       - name: Stage dist
         run: |
-          mkdir -p dist
-          cp dist-cache/* dist
           ls dist
 
       - name: Publish a Python distribution to PyPI
