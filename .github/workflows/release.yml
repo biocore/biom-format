@@ -44,16 +44,16 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
 
       # https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml
-      - name: Build wheels cp${{ matrix.pyver}} Linux
+      - name: Build wheels cp${{ matrix.pyver }} Linux
         if: matrix.os == 'ubuntu-latest' 
         env:
-          CIBW_ARCHS_MACOS: x86_64
+          CIBW_ARCHS_LINUX: x86_64
           CIBW_SKIP: "pp*" "*-musllinux*"
           CIBW_BUILD: cp${{ matrix.pyver }}-*
 
         uses: pypa/cibuildwheel@v2.12.3
       
-      - name: Build wheels cp${{ matrix.pyver}} MacOS 
+      - name: Build wheels cp${{ matrix.pyver }} MacOS 
         if: matrix.os == 'macos-latest'
         env:
           CIBW_ARCHS_MACOS: x86_64 arm64
