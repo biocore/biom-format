@@ -47,12 +47,8 @@ jobs:
 
         uses: pypa/cibuildwheel@v2.12.3
       
-      # https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml
-      - name: Build wheels Linux
-        if: ${{ matrix.os }} == 'ubuntu-latest'
-        uses: pypa/cibuildwheel@v2.12.3
-      
-      - uses: actions/upload-artifact@v3
+      - name: Upload wheels
+        uses: actions/upload-artifact@v3
         with:
           name: dist-artifacts
           path: ./wheelhouse/*.whl
