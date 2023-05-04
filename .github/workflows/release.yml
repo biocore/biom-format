@@ -24,12 +24,7 @@ jobs:
   # https://github.com/biopython/biopython/blob/master/.github/workflows/ci.yml
   build_wheels:
     name: Build wheels
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: ["3.7", "3.8", "3.9", "3.10", "3.11"]
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v3
@@ -45,10 +40,11 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
 
       # https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml
-      - name: Build wheels MacOS
-        if: ${{ matrix.os }} == 'macos-latest'
+      - name: Build wheels
         env:
           CIBW_ARCHS_MACOS: x86_64 arm64
+          CIBW_SKIP: cp36-* "*-win*"
+
         uses: pypa/cibuildwheel@v2.12.3
       
       # https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml
