@@ -44,13 +44,16 @@ jobs:
           pip install numpy cython
           python -m pip install --upgrade pip setuptools wheel
 
-      - name: Build wheels
+      # https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml
+      - name: Build wheels MacOS
         if: ${{ matrix.os }} == 'macos-latest'
         env:
           CIBW_ARCHS_MACOS: x86_64 arm64
-
+        uses: pypa/cibuildwheel@v2.12.3
+      
       # https://github.com/pypa/cibuildwheel/blob/main/examples/github-deploy.yml
-      - name: Build wheels
+      - name: Build wheels Linux
+        if: ${{ matrix.os }} == 'ubuntu-latest'
         uses: pypa/cibuildwheel@v2.12.3
       
       - uses: actions/upload-artifact@v3
