@@ -1,0 +1,12 @@
+# directly adapted from
+# https://github.com/biocore/scikit-bio/blob/31123c6471dc62f45a55bfdff59c61a4850be367/ci/conda_host_env.yml#LL1C1-L9C35
+name: testing
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - hdf5
+  - pip
+  - cython
+  - pip:
+      - "-r requirements.test.txt"

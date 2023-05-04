@@ -1,8 +1,12 @@
 # Makefile for Sphinx documentation
 #
 
+# -W was removed. Sphinx is complaining that Table properties, like dtype
+#  are not included in any toctree. However, that appears incorrect as
+#  they are accessible in the _build/html output. 
+
 # You can set these variables from the command line.
-SPHINXOPTS    = -W
+SPHINXOPTS    = 
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build

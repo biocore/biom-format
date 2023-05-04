@@ -12,6 +12,14 @@ else
 	TEST_COMMAND = python setup.py test 
 endif
 
+.PHONY: doc lint test
+
 test:
 	$(TEST_COMMAND)
+	sh usage_tests.sh
+
+lint:
 	flake8 biom setup.py
+
+doc:
+	$(MAKE) -C doc clean html

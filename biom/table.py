@@ -389,7 +389,6 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
 
 
 class Table:
-
     """The (canonically pronounced 'teh') Table.
 
     Give in to the power of the Table!
@@ -404,15 +403,15 @@ class Table:
     data : array_like
         An (N,M) sample by observation matrix represented as one of these
         types:
-            An 1-dimensional array of values
-            An n-dimensional array of values
-            An empty list
-            A list of numpy arrays
-            A list of dict
-            A list of sparse matrices
-            A dictionary of values
-            A list of lists
-            A sparse matrix of values
+        * An 1-dimensional array of values
+        * An n-dimensional array of values
+        * An empty list
+        * A list of numpy arrays
+        * A list of dict
+        * A list of sparse matrices
+        * A dictionary of values
+        * A list of lists
+        * A sparse matrix of values
     observation_ids : array_like of str
         A (N,) dataset of the observation IDs, where N is the total number
         of IDs
@@ -427,8 +426,7 @@ class Table:
         metadata field that contains sample specific metadata information, ie
     table_id : str, optional
         A field that can be used to identify the table
-    type : {None, "OTU table", "Pathway table", "Function table",
-            "Ortholog table", "Gene table", "Metabolite table", "Taxon table"}
+    type : str, see notes
         The type of table represented
     create_date : str, optional
         Date that this table was built
@@ -452,6 +450,11 @@ class Table:
     create_date
     generated_by
     format_version
+
+    Notes
+    -----
+    Allowed table types are None, "OTU table", "Pathway table", "Function
+    table", "Ortholog table", "Gene table", "Metabolite table", "Taxon table"
 
     Raises
     ------
@@ -3703,8 +3706,10 @@ class Table:
         other : biom.Table or Iterable of Table
             The other table to merge with this one. If an iterable, the tables
             are expected to not have metadata.
-        sample : {'union', 'intersection'}, optional
-        observation : {'union', 'intersection'}, optional
+        sample : 'union', 'intersection', optional
+            How the sample axis is handled
+        observation : 'union', 'intersection', optional
+            How the observation axis is handled
         sample_metadata_f : function, optional
             Defaults to ``biom.util.prefer_self``. Defines how to handle sample
             metadata during merge.
@@ -3948,60 +3953,38 @@ class Table:
         Notes
         -----
         The expected HDF5 group structure is below. An example of an HDF5 file
-        in DDL can be found here [3]_.
+        in DDL can be found here [1]_.
 
-        - ./id                                                  : str, an \
-arbitrary ID
-        - ./type                                                : str, the \
-table type (e.g, OTU table)
-        - ./format-url                                          : str, a URL \
-that describes the format
-        - ./format-version                                      : two element \
-tuple of int32, major and minor
-        - ./generated-by                                        : str, what \
-generated this file
-        - ./creation-date                                       : str, ISO \
-format
-        - ./shape                                               : two element \
-tuple of int32, N by M
-        - ./nnz                                                 : int32 or \
-int64, number of non zero elems
-        - ./observation                                         : Group
-        - ./observation/ids                                     : (N,) dataset\
- of str or vlen str
-        - ./observation/matrix                                  : Group
-        - ./observation/matrix/data                             : (nnz,) \
-dataset of float64
-        - ./observation/matrix/indices                          : (nnz,) \
-dataset of int32
-        - ./observation/matrix/indptr                           : (M+1,) \
-dataset of int32
-        - ./observation/metadata                                : Group
-        - [./observation/metadata/foo]                          : Optional, \
-(N,) dataset of any valid HDF5 type in index order with IDs.
-        - ./observation/group-metadata                          : Group
-        - [./observation/group-metadata/foo]                    : Optional, \
-(?,) dataset of group metadata that relates IDs
-        - [./observation/group-metadata/foo.attrs['data_type']] : attribute of\
- the foo dataset that describes contained type (e.g., newick)
-        - ./sample                                              : Group
-        - ./sample/ids                                          : (M,) dataset\
- of str or vlen str
-        - ./sample/matrix                                       : Group
-        - ./sample/matrix/data                                  : (nnz,) \
-dataset of float64
-        - ./sample/matrix/indices                               : (nnz,) \
-dataset of int32
-        - ./sample/matrix/indptr                                : (N+1,) \
-dataset of int32
-        - ./sample/metadata                                     : Group
-        - [./sample/metadata/foo]                               : Optional, \
-(M,) dataset of any valid HDF5 type in index order with IDs.
-        - ./sample/group-metadata                               : Group
-        - [./sample/group-metadata/foo]                         : Optional, \
-(?,) dataset of group metadata that relates IDs
-        - [./sample/group-metadata/foo.attrs['data_type']]      : attribute of\
- the foo dataset that describes contained type (e.g., newick)
+        - ./id                                                  : str, an arbitrary ID  # noqa
+        - ./type                                                : str, the table type (e.g, OTU table)  # noqa
+        - ./format-url                                          : str, a URL that describes the format  # noqa
+        - ./format-version                                      : two element tuple of int32, major and minor  # noqa
+        - ./generated-by                                        : str, what generated this file  # noqa
+        - ./creation-date                                       : str, ISO format  # noqa
+        - ./shape                                               : two element tuple of int32, N by M  # noqa
+        - ./nnz                                                 : int32 or int64, number of non zero elems  # noqa
+        - ./observation                                         : Group  # noqa
+        - ./observation/ids                                     : (N,) dataset of str or vlen str  # noqa
+        - ./observation/matrix                                  : Group  # noqa
+        - ./observation/matrix/data                             : (nnz,) dataset of float64  # noqa
+        - ./observation/matrix/indices                          : (nnz,) dataset of int32  # noqa
+        - ./observation/matrix/indptr                           : (M+1,) dataset of int32  # noqa
+        - ./observation/metadata                                : Group  # noqa
+        - [./observation/metadata/foo]                          : Optional, (N,) dataset of any valid HDF5 type in index order with IDs.  # noqa
+        - ./observation/group-metadata                          : Group  # noqa
+        - [./observation/group-metadata/foo]                    : Optional, (?,) dataset of group metadata that relates IDs  # noqa
+        - [./observation/group-metadata/foo.attrs['data_type']] : attribute of the foo dataset that describes contained type (e.g., newick)  # noqa
+        - ./sample                                              : Group  # noqa
+        - ./sample/ids                                          : (M,) dataset of str or vlen str  # noqa
+        - ./sample/matrix                                       : Group  # noqa
+        - ./sample/matrix/data                                  : (nnz,) dataset of float64  # noqa
+        - ./sample/matrix/indices                               : (nnz,) dataset of int32  # noqa
+        - ./sample/matrix/indptr                                : (N+1,) dataset of int32  # noqa
+        - ./sample/metadata                                     : Group  # noqa
+        - [./sample/metadata/foo]                               : Optional, (M,) dataset of any valid HDF5 type in index order with IDs.  # noqa
+        - ./sample/group-metadata                               : Group  # noqa
+        - [./sample/group-metadata/foo]                         : Optional, (?,) dataset of group metadata that relates IDs  # noqa
+        - [./sample/group-metadata/foo.attrs['data_type']]      : attribute of the foo dataset that describes contained type (e.g., newick)  # noqa
 
         The '?' character on the dataset size means that it can be of arbitrary
         length.
@@ -4019,10 +4002,11 @@ dataset of int32
         Parameters
         ----------
         h5grp : a h5py ``Group`` or an open h5py ``File``
+            The object to load from
         ids : iterable
             The sample/observation ids of the samples/observations that we need
             to retrieve from the hdf5 biom table
-        axis : {'sample', 'observation'}, optional
+        axis : 'sample', 'observation', optional
             The axis to subset on
         parse_fs : dict, optional
             Specify custom parsing functions for metadata fields. This dict is
@@ -4050,11 +4034,7 @@ dataset of int32
 
         References
         ----------
-        .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-py.sparse.csr_matrix.html
-        .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-py.sparse.csc_matrix.html
-        .. [3] http://biom-format.org/documentation/format_versions/biom-2.0.\
+        .. [1] http://biom-format.org/documentation/format_versions/biom-2.1.\
 html
 
         See Also
@@ -4454,6 +4434,8 @@ html
 
         Notes
         -----
+        This method does not return anything and operates in place on h5grp.
+
         The expected HDF5 group structure is below. An example of an HDF5 file
         in DDL can be found here [3]_.
 
@@ -4543,10 +4525,6 @@ dataset of int32
         creation_date : datetime, optional
             If provided, use this specific datetime on write as the creation
             timestamp
-
-        Notes
-        -----
-        This method does not return anything and operates in place on h5grp.
 
         See Also
         --------
@@ -5105,6 +5083,7 @@ html
         delim: string
             delimeter in file lines
         dtype: type
+            The expected type
         md_parse:  function or None
             funtion used to parse metdata
 
