@@ -71,7 +71,9 @@ jobs:
   release:
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' && github.event.action == 'published'
+    # this is not ideal as it doesn't limit to what type of tag
+    # but it at least seems to work
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
 
     steps:
       - name: Stage artifacts
