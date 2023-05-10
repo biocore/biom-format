@@ -1,100 +1,76 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>biom.table.Table.__getitem__ &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../../index.html" />
-    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
-    <link rel="next" title="biom.table.Table._extract_data_from_tsv" href="biom.table.Table._extract_data_from_tsv.html" />
-    <link rel="prev" title="biom.table.Table.matrix_data" href="biom.table.Table.matrix_data.html" /> 
-  </head>
-  <body>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>biom.table.Table.__getitem__ &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>biom.table.Table.__getitem__</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
-        «&#160;&#160;<a href="biom.table.Table.matrix_data.html">biom.table.Table.matrix_data</a>
-        &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../../index.html">Contents</a>
-        &#160;&#160;::&#160;&#160;
-        <a href="biom.table.Table._extract_data_from_tsv.html">biom.table.Table._extract_data_from_tsv</a>&#160;&#160;»
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="biom-table-table-getitem">
-<h1>biom.table.Table.__getitem__<a class="headerlink" href="#biom-table-table-getitem" title="Permalink to this headline">¶</a></h1>
-<dl class="method">
-<dt id="biom.table.Table.__getitem__">
-<tt class="descclassname">Table.</tt><tt class="descname">__getitem__</tt><big>(</big><em>args</em><big>)</big><a class="headerlink" href="#biom.table.Table.__getitem__" title="Permalink to this definition">¶</a></dt>
+  <section id="biom-table-table-getitem">
+<h1>biom.table.Table.__getitem__<a class="headerlink" href="#biom-table-table-getitem" title="Permalink to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="biom.table.Table.__getitem__">
+<span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">__getitem__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table.__getitem__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handles row or column slices</p>
 <p>Slicing over an individual axis is supported, but slicing over both
 axes at the same time is not supported. Partial slices, such as
 <cite>foo[0, 5:10]</cite> are not supported, however full slices are supported,
 such as <cite>foo[0, :]</cite>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>args</strong> : tuple or slice</p>
-<blockquote>
-<div><p>The specific element (by index position) to return or an entire
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>args</strong><span class="classifier">tuple or slice</span></dt><dd><p>The specific element (by index position) to return or an entire
 row or column of the data.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">float or spmatrix</p>
-<blockquote>
-<div><p>A float is return if a specific element is specified, otherwise a
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>float or spmatrix</dt><dd><p>A float is return if a specific element is specified, otherwise a
 spmatrix object representing a vector of sparse data is returned.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>IndexError</strong></p>
-<blockquote class="last">
-<div><ul class="simple">
-<li>If the matrix is empty</li>
-<li>If the arguments do not appear to be a tuple</li>
-<li>If a slice on row and column is specified</li>
-<li>If a partial slice is specified</li>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>IndexError</dt><dd><ul class="simple">
+<li><p>If the matrix is empty</p></li>
+<li><p>If the arguments do not appear to be a tuple</p></li>
+<li><p>If a slice on row and column is specified</p></li>
+<li><p>If a partial slice is specified</p></li>
 </ul>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <p>Switching between slicing rows and columns is inefficient.  Slicing of
 rows requires a CSR representation, while slicing of columns requires a
@@ -103,27 +79,23 @@ data are not in the required representation. These transforms can be
 expensive if done frequently.</p>
 </dd></dl>
 
-</div>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
-        «&#160;&#160;<a href="biom.table.Table.matrix_data.html">biom.table.Table.matrix_data</a>
-        &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../../index.html">Contents</a>
-        &#160;&#160;::&#160;&#160;
-        <a href="biom.table.Table._extract_data_from_tsv.html">biom.table.Table._extract_data_from_tsv</a>&#160;&#160;»
         </p>
 
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

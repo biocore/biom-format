@@ -1,0 +1,6 @@
+biom.table.Table.nnz
+====================
+
+.. currentmodule:: biom.table
+
+.. autoproperty:: Table.nnz

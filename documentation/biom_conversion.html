@@ -1,46 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Converting between file formats &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../index.html" />
-    <link rel="up" title="BIOM Documentation" href="index.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Converting between file formats &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/haiku.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Adding sample and observation metadata to biom files" href="adding_metadata.html" />
     <link rel="prev" title="biom.table.Table.update_ids" href="generated/biom.table.Table.update_ids.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>Converting between file formats</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="generated/biom.table.Table.update_ids.html">biom.table.Table.update_ids</a>
@@ -51,80 +37,78 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="converting-between-file-formats">
-<span id="converting"></span><h1>Converting between file formats<a class="headerlink" href="#converting-between-file-formats" title="Permalink to this headline">¶</a></h1>
-<dl class="docutils">
-<dt>The <tt class="docutils literal"><span class="pre">convert</span></tt> command in the biom-format project can be used to convert between biom and tab-delimited table formats. This is useful for several reasons:</dt>
-<dd><ul class="first simple">
-<li>converting biom format tables to tab-delimited tables for easy viewing in programs such as Excel</li>
-<li>converting between sparse and dense biom formats (note: dense is only supported in biom-format 1.0.0)</li>
+  <section id="converting-between-file-formats">
+<span id="converting"></span><h1>Converting between file formats<a class="headerlink" href="#converting-between-file-formats" title="Permalink to this heading">¶</a></h1>
+<dl>
+<dt>The <code class="docutils literal notranslate"><span class="pre">convert</span></code> command in the biom-format project can be used to convert between biom and tab-delimited table formats. This is useful for several reasons:</dt><dd><ul class="simple">
+<li><p>converting biom format tables to tab-delimited tables for easy viewing in programs such as Excel</p></li>
+<li><p>converting between sparse and dense biom formats (note: dense is only supported in biom-format 1.0.0)</p></li>
 </ul>
-<div class="last admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">The tab-delimited tables are commonly referred to as the <cite>classic format</cite> tables, while BIOM formatted tables are referred to as <cite>biom tables</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The tab-delimited tables are commonly referred to as the <cite>classic format</cite> tables, while BIOM formatted tables are referred to as <cite>biom tables</cite>.</p>
 </div>
 </dd>
 </dl>
-<div class="section" id="general-usage-examples">
-<h2>General usage examples<a class="headerlink" href="#general-usage-examples" title="Permalink to this headline">¶</a></h2>
+<section id="general-usage-examples">
+<h2>General usage examples<a class="headerlink" href="#general-usage-examples" title="Permalink to this heading">¶</a></h2>
 <p>Convert a tab-delimited table to a HDF5 or JSON biom format. Note that you <em>must</em> specify the type of table here:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom convert -i table.txt -o table.from_txt_json.biom --table-type=&quot;OTU table&quot; --to-json
-biom convert -i table.txt -o table.from_txt_hdf5.biom --table-type=&quot;OTU table&quot; --to-hdf5
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">convert</span> <span class="o">-</span><span class="n">i</span> <span class="n">table</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">from_txt_json</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">table</span><span class="o">-</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;OTU table&quot;</span> <span class="o">--</span><span class="n">to</span><span class="o">-</span><span class="n">json</span>
+<span class="n">biom</span> <span class="n">convert</span> <span class="o">-</span><span class="n">i</span> <span class="n">table</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">from_txt_hdf5</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">table</span><span class="o">-</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;OTU table&quot;</span> <span class="o">--</span><span class="n">to</span><span class="o">-</span><span class="n">hdf5</span>
 </pre></div>
 </div>
 <p>Convert biom format to tab-delimited table format:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom convert -i table.biom -o table.from_biom.txt --to-tsv
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">convert</span> <span class="o">-</span><span class="n">i</span> <span class="n">table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">from_biom</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">to</span><span class="o">-</span><span class="n">tsv</span>
 </pre></div>
 </div>
-<p>Convert biom format to classic format, including the <tt class="docutils literal"><span class="pre">taxonomy</span></tt> observation metadata as the last column of the classic format table. Because the BIOM format can support an arbitrary number of observation (or sample) metadata entries, and the classic format can support only a single observation metadata entry, you must specify which of the observation metadata entries you want to include in the output table:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom convert -i table.biom -o table.from_biom_w_taxonomy.txt --to-tsv --header-key taxonomy
+<p>Convert biom format to classic format, including the <code class="docutils literal notranslate"><span class="pre">taxonomy</span></code> observation metadata as the last column of the classic format table. Because the BIOM format can support an arbitrary number of observation (or sample) metadata entries, and the classic format can support only a single observation metadata entry, you must specify which of the observation metadata entries you want to include in the output table:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">convert</span> <span class="o">-</span><span class="n">i</span> <span class="n">table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">from_biom_w_taxonomy</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">to</span><span class="o">-</span><span class="n">tsv</span> <span class="o">--</span><span class="n">header</span><span class="o">-</span><span class="n">key</span> <span class="n">taxonomy</span>
 </pre></div>
 </div>
-<p>Convert biom format to classic format, including the <tt class="docutils literal"><span class="pre">taxonomy</span></tt> observation metadata as the last column of the classic format table, but renaming that column as <tt class="docutils literal"><span class="pre">ConsensusLineage</span></tt>. This is useful when using legacy tools that require a specific name for the observation metadata column.:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom convert -i table.biom -o table.from_biom_w_consensuslineage.txt --to-tsv --header-key taxonomy --output-metadata-id &quot;ConsensusLineage&quot;
+<p>Convert biom format to classic format, including the <code class="docutils literal notranslate"><span class="pre">taxonomy</span></code> observation metadata as the last column of the classic format table, but renaming that column as <code class="docutils literal notranslate"><span class="pre">ConsensusLineage</span></code>. This is useful when using legacy tools that require a specific name for the observation metadata column.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">convert</span> <span class="o">-</span><span class="n">i</span> <span class="n">table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">from_biom_w_consensuslineage</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">to</span><span class="o">-</span><span class="n">tsv</span> <span class="o">--</span><span class="n">header</span><span class="o">-</span><span class="n">key</span> <span class="n">taxonomy</span> <span class="o">--</span><span class="n">output</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="nb">id</span> <span class="s2">&quot;ConsensusLineage&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="special-case-usage-examples">
-<h2>Special case usage examples<a class="headerlink" href="#special-case-usage-examples" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="round-tripping-between-biom-and-tsv">
-<h3>Round-tripping between biom and tsv<a class="headerlink" href="#round-tripping-between-biom-and-tsv" title="Permalink to this headline">¶</a></h3>
+</section>
+<section id="special-case-usage-examples">
+<h2>Special case usage examples<a class="headerlink" href="#special-case-usage-examples" title="Permalink to this heading">¶</a></h2>
+<section id="round-tripping-between-biom-and-tsv">
+<h3>Round-tripping between biom and tsv<a class="headerlink" href="#round-tripping-between-biom-and-tsv" title="Permalink to this heading">¶</a></h3>
 <p>In specific cases, see <a class="reference external" href="https://groups.google.com/forum/#!msg/qiime-forum/fSPGQff2IEw/UdjtYaLJCecJ">this comment</a>, it is still useful to convert our biom table to tsv so we can open in Excel, make some changes to the file and then convert back to biom. For this cases you should follow this steps:</p>
 <ul>
-<li><p class="first">Convert from biom to txt:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom convert -i otu_table.biom -o otu_table.txt --to-tsv --header-key taxonomy
+<li><p>Convert from biom to txt:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">convert</span> <span class="o">-</span><span class="n">i</span> <span class="n">otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">otu_table</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">to</span><span class="o">-</span><span class="n">tsv</span> <span class="o">--</span><span class="n">header</span><span class="o">-</span><span class="n">key</span> <span class="n">taxonomy</span>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Make your changes in Excel.</p>
-</li>
-<li><p class="first">Convert back to biom:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom convert -i otu_table.txt -o new_otu_table.biom --to-hdf5 --table-type=&quot;OTU table&quot; --process-obs-metadata taxonomy
+<li><p>Make your changes in Excel.</p></li>
+<li><p>Convert back to biom:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">convert</span> <span class="o">-</span><span class="n">i</span> <span class="n">otu_table</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">o</span> <span class="n">new_otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">to</span><span class="o">-</span><span class="n">hdf5</span> <span class="o">--</span><span class="n">table</span><span class="o">-</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;OTU table&quot;</span> <span class="o">--</span><span class="n">process</span><span class="o">-</span><span class="n">obs</span><span class="o">-</span><span class="n">metadata</span> <span class="n">taxonomy</span>
 </pre></div>
 </div>
 </li>
 </ul>
-</div>
-<div class="section" id="converting-qiime-1-4-0-and-earlier-otu-tables-to-biom-format">
-<h3>Converting QIIME 1.4.0 and earlier OTU tables to BIOM format<a class="headerlink" href="#converting-qiime-1-4-0-and-earlier-otu-tables-to-biom-format" title="Permalink to this headline">¶</a></h3>
-<p>If you are converting a QIIME 1.4.0 or earlier OTU table to BIOM format, there are a few steps to go through. First, for convenience, you might want to rename the <tt class="docutils literal"><span class="pre">ConsensusLineage</span></tt> column <tt class="docutils literal"><span class="pre">taxonomy</span></tt>. You can do this with the following command:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>sed &#39;s/Consensus Lineage/ConsensusLineage/&#39; &lt; otu_table.txt | sed &#39;s/ConsensusLineage/taxonomy/&#39; &gt; otu_table.taxonomy.txt
+</section>
+<section id="converting-qiime-1-4-0-and-earlier-otu-tables-to-biom-format">
+<h3>Converting QIIME 1.4.0 and earlier OTU tables to BIOM format<a class="headerlink" href="#converting-qiime-1-4-0-and-earlier-otu-tables-to-biom-format" title="Permalink to this heading">¶</a></h3>
+<p>If you are converting a QIIME 1.4.0 or earlier OTU table to BIOM format, there are a few steps to go through. First, for convenience, you might want to rename the <code class="docutils literal notranslate"><span class="pre">ConsensusLineage</span></code> column <code class="docutils literal notranslate"><span class="pre">taxonomy</span></code>. You can do this with the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sed</span> <span class="s1">&#39;s/Consensus Lineage/ConsensusLineage/&#39;</span> <span class="o">&lt;</span> <span class="n">otu_table</span><span class="o">.</span><span class="n">txt</span> <span class="o">|</span> <span class="n">sed</span> <span class="s1">&#39;s/ConsensusLineage/taxonomy/&#39;</span> <span class="o">&gt;</span> <span class="n">otu_table</span><span class="o">.</span><span class="n">taxonomy</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
-<p>Then, you&#8217;ll want to perform the conversion including a step to convert the taxonomy <cite>string</cite> from the classic OTU table to a taxonomy <cite>list</cite>, as it&#8217;s represented in QIIME 1.4.0-dev and later:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom convert -i otu_table.taxonomy.txt -o otu_table.from_txt.biom --table-type=&quot;OTU table&quot; --process-obs-metadata taxonomy --to-hdf5
+<p>Then, you’ll want to perform the conversion including a step to convert the taxonomy <cite>string</cite> from the classic OTU table to a taxonomy <cite>list</cite>, as it’s represented in QIIME 1.4.0-dev and later:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">convert</span> <span class="o">-</span><span class="n">i</span> <span class="n">otu_table</span><span class="o">.</span><span class="n">taxonomy</span><span class="o">.</span><span class="n">txt</span> <span class="o">-</span><span class="n">o</span> <span class="n">otu_table</span><span class="o">.</span><span class="n">from_txt</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">table</span><span class="o">-</span><span class="nb">type</span><span class="o">=</span><span class="s2">&quot;OTU table&quot;</span> <span class="o">--</span><span class="n">process</span><span class="o">-</span><span class="n">obs</span><span class="o">-</span><span class="n">metadata</span> <span class="n">taxonomy</span> <span class="o">--</span><span class="n">to</span><span class="o">-</span><span class="n">hdf5</span>
 </pre></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="generated/biom.table.Table.update_ids.html">biom.table.Table.update_ids</a>
@@ -137,10 +121,10 @@ biom convert -i table.txt -o table.from_txt_hdf5.biom --table-type=&quot;OTU tab
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

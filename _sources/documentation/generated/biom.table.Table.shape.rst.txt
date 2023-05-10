@@ -1,0 +1,6 @@
+biom.table.Table.shape
+======================
+
+.. currentmodule:: biom.table
+
+.. autoproperty:: Table.shape

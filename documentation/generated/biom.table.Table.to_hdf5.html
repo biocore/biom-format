@@ -1,46 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>biom.table.Table.to_hdf5 &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../../index.html" />
-    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>biom.table.Table.to_hdf5 &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="biom.table.Table.to_json" href="biom.table.Table.to_json.html" />
     <link rel="prev" title="biom.table.Table.to_dataframe" href="biom.table.Table.to_dataframe.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>biom.table.Table.to_hdf5</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="biom.table.Table.to_dataframe.html">biom.table.Table.to_dataframe</a>
@@ -51,78 +37,115 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="biom-table-table-to-hdf5">
-<h1>biom.table.Table.to_hdf5<a class="headerlink" href="#biom-table-table-to-hdf5" title="Permalink to this headline">¶</a></h1>
-<dl class="method">
-<dt id="biom.table.Table.to_hdf5">
-<tt class="descclassname">Table.</tt><tt class="descname">to_hdf5</tt><big>(</big><em>h5grp</em>, <em>generated_by</em>, <em>compress=True</em>, <em>format_fs=None</em><big>)</big><a class="headerlink" href="#biom.table.Table.to_hdf5" title="Permalink to this definition">¶</a></dt>
+  <section id="biom-table-table-to-hdf5">
+<h1>biom.table.Table.to_hdf5<a class="headerlink" href="#biom-table-table-to-hdf5" title="Permalink to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="biom.table.Table.to_hdf5">
+<span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">to_hdf5</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">h5grp</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">generated_by</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">compress</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">format_fs</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">creation_date</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table.to_hdf5" title="Permalink to this definition">¶</a></dt>
 <dd><p>Store CSC and CSR in place</p>
 <p>The resulting structure of this group is below. A few basic
 definitions, N is the number of observations and M is the number of
-samples. Data are stored in both compressed sparse row <a class="reference internal" href="#r12" id="id1">[R12]</a> (CSR, for
-observation oriented operations) and compressed sparse column <a class="reference internal" href="#r13" id="id2">[R13]</a>
+samples. Data are stored in both compressed sparse row <a class="reference internal" href="#rf735f397d947-1" id="id1">[1]</a> (CSR, for
+observation oriented operations) and compressed sparse column <a class="reference internal" href="#rf735f397d947-2" id="id2">[2]</a>
 (CSC, for sample oriented operations).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>h5grp</strong> : <cite>h5py.Group</cite> or <cite>h5py.File</cite></p>
-<blockquote>
-<div><p>The HDF5 entity in which to write the BIOM formatted data.</p>
-</div></blockquote>
-<p><strong>generated_by</strong> : str</p>
-<blockquote>
-<div><p>A description of what generated the table</p>
-</div></blockquote>
-<p><strong>compress</strong> : bool, optional</p>
-<blockquote>
-<div><p>Defaults to <tt class="docutils literal"><span class="pre">True</span></tt> means fields will be compressed with gzip,
-<tt class="docutils literal"><span class="pre">False</span></tt> means no compression</p>
-</div></blockquote>
-<p><strong>format_fs</strong> : dict, optional</p>
-<blockquote class="last">
-<div><p>Specify custom formatting functions for metadata fields. This dict
-is expected to be {&#8216;metadata_field&#8217;: function}, where the function
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>h5grp</strong><span class="classifier"><cite>h5py.Group</cite> or <cite>h5py.File</cite></span></dt><dd><p>The HDF5 entity in which to write the BIOM formatted data.</p>
+</dd>
+<dt><strong>generated_by</strong><span class="classifier">str</span></dt><dd><p>A description of what generated the table</p>
+</dd>
+<dt><strong>compress</strong><span class="classifier">bool, optional</span></dt><dd><p>Defaults to <code class="docutils literal notranslate"><span class="pre">True</span></code> means fields will be compressed with gzip,
+<code class="docutils literal notranslate"><span class="pre">False</span></code> means no compression</p>
+</dd>
+<dt><strong>format_fs</strong><span class="classifier">dict, optional</span></dt><dd><p>Specify custom formatting functions for metadata fields. This dict
+is expected to be {‘metadata_field’: function}, where the function
 signature is (h5py.Group, str, dict, bool) corresponding to the
 specific HDF5 group the metadata dataset will be associated with,
 the category being operated on, the metadata for the entire axis
 being operated on, and whether to enable compression on the
 dataset.  Anything returned by this function is ignored.</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt><strong>creation_date</strong><span class="classifier">datetime, optional</span></dt><dd><p>If provided, use this specific datetime on write as the creation
+timestamp</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <div class="admonition seealso">
-<p class="first admonition-title">See also</p>
-<p class="last"><a class="reference internal" href="biom.table.Table.from_hdf5.html#biom.table.Table.from_hdf5" title="biom.table.Table.from_hdf5"><tt class="xref py py-obj docutils literal"><span class="pre">Table.from_hdf5</span></tt></a></p>
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="biom.table.Table.from_hdf5.html#biom.table.Table.from_hdf5" title="biom.table.Table.from_hdf5"><code class="xref py py-obj docutils literal notranslate"><span class="pre">Table.from_hdf5</span></code></a></dt><dd></dd>
+</dl>
 </div>
 <p class="rubric">Notes</p>
 <p>This method does not return anything and operates in place on h5grp.</p>
+<p>The expected HDF5 group structure is below. An example of an HDF5 file
+in DDL can be found here <a class="reference internal" href="#rf735f397d947-3" id="id3">[3]</a>.</p>
+<ul class="simple">
+<li><p>./id                                                  : str, an arbitrary ID</p></li>
+<li><p>./type                                                : str, the table type (e.g, OTU table)</p></li>
+<li><p>./format-url                                          : str, a URL that describes the format</p></li>
+<li><p>./format-version                                      : two element tuple of int32, major and minor</p></li>
+<li><p>./generated-by                                        : str, what generated this file</p></li>
+<li><p>./creation-date                                       : str, ISO format</p></li>
+<li><p>./shape                                               : two element tuple of int32, N by M</p></li>
+<li><p>./nnz                                                 : int32 or int64, number of non zero elems</p></li>
+<li><p>./observation                                         : Group</p></li>
+<li><p>./observation/ids                                     : (N,) dataset of str or vlen str</p></li>
+<li><p>./observation/matrix                                  : Group</p></li>
+<li><p>./observation/matrix/data                             : (nnz,) dataset of float64</p></li>
+<li><p>./observation/matrix/indices                          : (nnz,) dataset of int32</p></li>
+<li><p>./observation/matrix/indptr                           : (M+1,) dataset of int32</p></li>
+<li><p>./observation/metadata                                : Group</p></li>
+<li><p>[./observation/metadata/foo]                          : Optional, (N,) dataset of any valid HDF5 type in index order with IDs.</p></li>
+<li><p>./observation/group-metadata                          : Group</p></li>
+<li><p>[./observation/group-metadata/foo]                    : Optional, (?,) dataset of group metadata that relates IDs</p></li>
+<li><p>[./observation/group-metadata/foo.attrs[‘data_type’]] : attribute of the foo dataset that describes contained type (e.g., newick)</p></li>
+<li><p>./sample                                              : Group</p></li>
+<li><p>./sample/ids                                          : (M,) dataset of str or vlen str</p></li>
+<li><p>./sample/matrix                                       : Group</p></li>
+<li><p>./sample/matrix/data                                  : (nnz,) dataset of float64</p></li>
+<li><p>./sample/matrix/indices                               : (nnz,) dataset of int32</p></li>
+<li><p>./sample/matrix/indptr                                : (N+1,) dataset of int32</p></li>
+<li><p>./sample/metadata                                     : Group</p></li>
+<li><p>[./sample/metadata/foo]                               : Optional, (M,) dataset of any valid HDF5 type in index order with IDs.</p></li>
+<li><p>./sample/group-metadata                               : Group</p></li>
+<li><p>[./sample/group-metadata/foo]                         : Optional, (?,) dataset of group metadata that relates IDs</p></li>
+<li><p>[./sample/group-metadata/foo.attrs[‘data_type’]]      : attribute of the foo dataset that describes contained type (e.g., newick)</p></li>
+</ul>
+<p>The ‘?’ character on the dataset size means that it can be of arbitrary
+length.</p>
+<p>The expected structure for each of the metadata datasets is a list of
+atomic type objects (int, float, str, …), where the index order of
+the list corresponds to the index order of the relevant axis IDs.
+Special metadata fields have been defined, and they are stored in a
+specific way. Currently, the available special metadata fields are:</p>
+<ul class="simple">
+<li><p>taxonomy: (N, ?) dataset of str or vlen str</p></li>
+<li><p>KEGG_Pathways: (N, ?) dataset of str or vlen str</p></li>
+<li><p>collapsed_ids: (N, ?) dataset of str or vlen str</p></li>
+</ul>
 <p class="rubric">References</p>
-<table class="docutils citation" frame="void" id="r12" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[R12]</td><td><em>(<a class="fn-backref" href="#id1">1</a>, <a class="fn-backref" href="#id3">2</a>)</em> <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="r13" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label">[R13]</td><td><em>(<a class="fn-backref" href="#id2">1</a>, <a class="fn-backref" href="#id4">2</a>)</em> <a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html</a></td></tr>
-</tbody>
-</table>
-<table class="docutils citation" frame="void" id="r14" rules="none">
-<colgroup><col class="label" /><col /></colgroup>
-<tbody valign="top">
-<tr><td class="label"><a class="fn-backref" href="#id5">[R14]</a></td><td><a class="reference external" href="http://biom-format.org/documentation/format_versions/biom-2.1.html">http://biom-format.org/documentation/format_versions/biom-2.1.html</a></td></tr>
-</tbody>
-</table>
+<div role="list" class="citation-list">
+<div class="citation" id="rf735f397d947-1" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id1">1</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csr_matrix.html</a></p>
+</div>
+<div class="citation" id="rf735f397d947-2" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id2">2</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html">http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/scipy.sparse.csc_matrix.html</a></p>
+</div>
+<div class="citation" id="rf735f397d947-3" role="doc-biblioentry">
+<span class="label"><span class="fn-bracket">[</span><a role="doc-backlink" href="#id3">3</a><span class="fn-bracket">]</span></span>
+<p><a class="reference external" href="http://biom-format.org/documentation/format_versions/biom-2.1.html">http://biom-format.org/documentation/format_versions/biom-2.1.html</a></p>
+</div>
+</div>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.util</span> <span class="kn">import</span> <span class="n">biom_open</span>  
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.util</span> <span class="kn">import</span> <span class="n">biom_open</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">array</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">]]),</span> <span class="p">[</span><span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="s1">&#39;b&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;y&#39;</span><span class="p">])</span>
@@ -132,11 +155,11 @@ dataset.  Anything returned by this function is ignored.</p>
 </div>
 </dd></dl>
 
-</div>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="biom.table.Table.to_dataframe.html">biom.table.Table.to_dataframe</a>
@@ -149,10 +172,10 @@ dataset.  Anything returned by this function is ignored.</p>
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

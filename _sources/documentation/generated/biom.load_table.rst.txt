@@ -1,0 +1,6 @@
+﻿biom.load\_table
+================
+
+.. currentmodule:: biom
+
+.. autofunction:: load_table

@@ -1,46 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>biom.table.Table.subsample &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../../index.html" />
-    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>biom.table.Table.subsample &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="biom.table.Table.sum" href="biom.table.Table.sum.html" />
     <link rel="prev" title="biom.table.Table.sort_order" href="biom.table.Table.sort_order.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>biom.table.Table.subsample</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="biom.table.Table.sort_order.html">biom.table.Table.sort_order</a>
@@ -51,59 +37,51 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="biom-table-table-subsample">
-<h1>biom.table.Table.subsample<a class="headerlink" href="#biom-table-table-subsample" title="Permalink to this headline">¶</a></h1>
-<dl class="method">
-<dt id="biom.table.Table.subsample">
-<tt class="descclassname">Table.</tt><tt class="descname">subsample</tt><big>(</big><em>n</em>, <em>axis='sample'</em>, <em>by_id=False</em>, <em>with_replacement=False</em><big>)</big><a class="headerlink" href="#biom.table.Table.subsample" title="Permalink to this definition">¶</a></dt>
+  <section id="biom-table-table-subsample">
+<h1>biom.table.Table.subsample<a class="headerlink" href="#biom-table-table-subsample" title="Permalink to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="biom.table.Table.subsample">
+<span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">subsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sample'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_replacement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table.subsample" title="Permalink to this definition">¶</a></dt>
 <dd><p>Randomly subsample without replacement.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>n</strong> : int</p>
-<blockquote>
-<div><p>Number of items to subsample from <cite>counts</cite>.</p>
-</div></blockquote>
-<p><strong>axis</strong> : {&#8216;sample&#8217;, &#8216;observation&#8217;}, optional</p>
-<blockquote>
-<div><p>The axis to sample over</p>
-</div></blockquote>
-<p><strong>by_id</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If <cite>False</cite>, the subsampling is based on the counts contained in the
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>n</strong><span class="classifier">int</span></dt><dd><p>Number of items to subsample from <cite>counts</cite>.</p>
+</dd>
+<dt><strong>axis</strong><span class="classifier">{‘sample’, ‘observation’}, optional</span></dt><dd><p>The axis to sample over</p>
+</dd>
+<dt><strong>by_id</strong><span class="classifier">boolean, optional</span></dt><dd><p>If <cite>False</cite>, the subsampling is based on the counts contained in the
 matrix (e.g., rarefaction). If <cite>True</cite>, the subsampling is based on
 the IDs (e.g., fetch a random subset of samples). Default is
 <cite>False</cite>.</p>
-</div></blockquote>
-<p><strong>with_replacement</strong> : boolean, optional</p>
-<blockquote>
-<div><p>If <cite>False</cite> (default), subsample without replacement. If <cite>True</cite>,
+</dd>
+<dt><strong>with_replacement</strong><span class="classifier">boolean, optional</span></dt><dd><p>If <cite>False</cite> (default), subsample without replacement. If <cite>True</cite>,
 resample with replacement via the multinomial distribution.
 Should not be <cite>True</cite> if <cite>by_id</cite> is <cite>True</cite>.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">biom.Table</p>
-<blockquote>
-<div><p>A subsampled version of self</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><strong>ValueError</strong></p>
-<blockquote class="last">
-<div><ul class="simple">
-<li>If <cite>n</cite> is less than zero.</li>
-<li>If <cite>by_id</cite> and <cite>with_replacement</cite> are both True.</li>
+</dd>
+<dt><strong>seed</strong><span class="classifier">int, optional</span></dt><dd><p>If provided, set the numpy random seed with this value</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>biom.Table</dt><dd><p>A subsampled version of self</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt>ValueError</dt><dd><ul class="simple">
+<li><p>If <cite>n</cite> is less than zero.</p></li>
+<li><p>If <cite>by_id</cite> and <cite>with_replacement</cite> are both True.</p></li>
 </ul>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <p>Subsampling is performed without replacement. If <cite>n</cite> is greater than
 the sum of a given vector, that vector is omitted from the result.</p>
@@ -111,29 +89,29 @@ the sum of a given vector, that vector is omitted from the result.</p>
 information about scikit-bio.</p>
 <p>This code assumes absolute abundance if <cite>by_id</cite> is False.</p>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]]),</span> <span class="p">[</span><span class="s1">&#39;O1&#39;</span><span class="p">,</span> <span class="s1">&#39;O2&#39;</span><span class="p">],</span>
 <span class="gp">... </span>              <span class="p">[</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="s1">&#39;S3&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
 <p>Subsample 1 item over the sample axis by value (e.g., rarefaction):</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
 <span class="go">[ 1.  1.  1.]</span>
 </pre></div>
 </div>
-<p>Subsample 2 items over the sample axis, note that &#8216;S1&#8217; is filtered out:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ss</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+<p>Subsample 2 items over the sample axis, note that ‘S1’ is filtered out:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ss</span> <span class="o">=</span> <span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ss</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="s1">&#39;sample&#39;</span><span class="p">))</span>
 <span class="go">[ 2.  2.]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">ss</span><span class="o">.</span><span class="n">ids</span><span class="p">())</span>
 <span class="go">[&#39;S2&#39; &#39;S3&#39;]</span>
 </pre></div>
 </div>
-<p>Subsample by IDs over the sample axis. For this example, we&#8217;re going to
+<p>Subsample by IDs over the sample axis. For this example, we’re going to
 randomly select 2 samples and do this 100 times, and then print out the
 set of IDs observed.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">by_id</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">ids</span><span class="p">())</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">ids</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="nb">tuple</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">subsample</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">by_id</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">ids</span><span class="p">())</span>
 <span class="gp">... </span>           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">)])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">ids</span><span class="p">))</span>
 <span class="go">[(&#39;S1&#39;, &#39;S2&#39;), (&#39;S1&#39;, &#39;S3&#39;), (&#39;S2&#39;, &#39;S3&#39;)]</span>
@@ -141,11 +119,11 @@ set of IDs observed.</p>
 </div>
 </dd></dl>
 
-</div>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="biom.table.Table.sort_order.html">biom.table.Table.sort_order</a>
@@ -158,10 +136,10 @@ set of IDs observed.</p>
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

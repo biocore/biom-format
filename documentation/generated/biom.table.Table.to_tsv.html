@@ -1,46 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>biom.table.Table.to_tsv &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../../index.html" />
-    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>biom.table.Table.to_tsv &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="biom.table.Table.transform" href="biom.table.Table.transform.html" />
     <link rel="prev" title="biom.table.Table.to_json" href="biom.table.Table.to_json.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>biom.table.Table.to_tsv</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="biom.table.Table.to_json.html">biom.table.Table.to_json</a>
@@ -51,63 +37,51 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="biom-table-table-to-tsv">
-<h1>biom.table.Table.to_tsv<a class="headerlink" href="#biom-table-table-to-tsv" title="Permalink to this headline">¶</a></h1>
-<dl class="method">
-<dt id="biom.table.Table.to_tsv">
-<tt class="descclassname">Table.</tt><tt class="descname">to_tsv</tt><big>(</big><em>header_key=None</em>, <em>header_value=None</em>, <em>metadata_formatter=&lt;class 'str'&gt;</em>, <em>observation_column_name='#OTU ID'</em>, <em>direct_io=None</em><big>)</big><a class="headerlink" href="#biom.table.Table.to_tsv" title="Permalink to this definition">¶</a></dt>
+  <section id="biom-table-table-to-tsv">
+<h1>biom.table.Table.to_tsv<a class="headerlink" href="#biom-table-table-to-tsv" title="Permalink to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="biom.table.Table.to_tsv">
+<span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">to_tsv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">header_key=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_value=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_formatter=&lt;class</span> <span class="pre">'str'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_column_name='#OTU</span> <span class="pre">ID'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direct_io=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table.to_tsv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return self as a string in tab delimited form</p>
-<p>Default <tt class="docutils literal"><span class="pre">str</span></tt> output for the <tt class="docutils literal"><span class="pre">Table</span></tt> is just row/col ids and table
+<p>Default <code class="docutils literal notranslate"><span class="pre">str</span></code> output for the <code class="docutils literal notranslate"><span class="pre">Table</span></code> is just row/col ids and table
 data without any metadata</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>header_key</strong> : str or <tt class="docutils literal"><span class="pre">None</span></tt>, optional</p>
-<blockquote>
-<div><p>Defaults to <tt class="docutils literal"><span class="pre">None</span></tt></p>
-</div></blockquote>
-<p><strong>header_value</strong> : str or <tt class="docutils literal"><span class="pre">None</span></tt>, optional</p>
-<blockquote>
-<div><p>Defaults to <tt class="docutils literal"><span class="pre">None</span></tt></p>
-</div></blockquote>
-<p><strong>metadata_formatter</strong> : function, optional</p>
-<blockquote>
-<div><p>Defaults to <tt class="docutils literal"><span class="pre">str</span></tt>.  a function which takes a metadata entry and
+<dl class="field-list">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl>
+<dt><strong>header_key</strong><span class="classifier">str or <code class="docutils literal notranslate"><span class="pre">None</span></code>, optional</span></dt><dd><p>Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+<dt><strong>header_value</strong><span class="classifier">str or <code class="docutils literal notranslate"><span class="pre">None</span></code>, optional</span></dt><dd><p>Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code></p>
+</dd>
+<dt><strong>metadata_formatter</strong><span class="classifier">function, optional</span></dt><dd><p>Defaults to <code class="docutils literal notranslate"><span class="pre">str</span></code>.  a function which takes a metadata entry and
 returns a formatted version that should be written to file</p>
-</div></blockquote>
-<p><strong>observation_column_name</strong> : str, optional</p>
-<blockquote>
-<div><p>Defaults to &#8220;#OTU ID&#8221;. The name of the first column in the output
+</dd>
+<dt><strong>observation_column_name</strong><span class="classifier">str, optional</span></dt><dd><p>Defaults to “#OTU ID”. The name of the first column in the output
 table, corresponding to the observation IDs.</p>
-</div></blockquote>
-<p><strong>direct_io</strong> : file or file-like object, optional</p>
-<blockquote>
-<div><p>Defaults to <tt class="docutils literal"><span class="pre">None</span></tt>. Must implement a <tt class="docutils literal"><span class="pre">write</span></tt> function. If
-<cite>direct_io</cite> is not <tt class="docutils literal"><span class="pre">None</span></tt>, the final output is written directly
+</dd>
+<dt><strong>direct_io</strong><span class="classifier">file or file-like object, optional</span></dt><dd><p>Defaults to <code class="docutils literal notranslate"><span class="pre">None</span></code>. Must implement a <code class="docutils literal notranslate"><span class="pre">write</span></code> function. If
+<cite>direct_io</cite> is not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the final output is written directly
 to <cite>direct_io</cite> during processing.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">str</p>
-<blockquote class="last">
-<div><p>tab delimited representation of the Table</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>str</dt><dd><p>tab delimited representation of the Table</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
 </pre></div>
 </div>
 <p>Create a 2x3 BIOM table, with observation metadata and no sample
 metadata:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">42</span><span class="p">]])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">42</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;O1&#39;</span><span class="p">,</span> <span class="s1">&#39;O2&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="s1">&#39;S2&#39;</span><span class="p">,</span> <span class="s1">&#39;S3&#39;</span><span class="p">],</span>
 <span class="gp">... </span>              <span class="p">[{</span><span class="s1">&#39;foo&#39;</span><span class="p">:</span> <span class="s1">&#39;bar&#39;</span><span class="p">},</span> <span class="p">{</span><span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="s1">&#39;y&#39;</span><span class="p">}],</span> <span class="kc">None</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">table</span><span class="o">.</span><span class="n">to_tsv</span><span class="p">())</span> 
@@ -121,11 +95,11 @@ metadata:</p>
 </div>
 </dd></dl>
 
-</div>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="biom.table.Table.to_json.html">biom.table.Table.to_json</a>
@@ -138,10 +112,10 @@ metadata:</p>
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

@@ -1,46 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>biom.table.Table.delimited_self &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../../index.html" />
-    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>biom.table.Table.delimited_self &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="biom.table.Table.descriptive_equality" href="biom.table.Table.descriptive_equality.html" />
     <link rel="prev" title="biom.table.Table.del_metadata" href="biom.table.Table.del_metadata.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>biom.table.Table.delimited_self</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="biom.table.Table.del_metadata.html">biom.table.Table.del_metadata</a>
@@ -51,39 +37,40 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="biom-table-table-delimited-self">
-<h1>biom.table.Table.delimited_self<a class="headerlink" href="#biom-table-table-delimited-self" title="Permalink to this headline">¶</a></h1>
-<dl class="method">
-<dt id="biom.table.Table.delimited_self">
-<tt class="descclassname">Table.</tt><tt class="descname">delimited_self</tt><big>(</big><em>delim='t'</em>, <em>header_key=None</em>, <em>header_value=None</em>, <em>metadata_formatter=&lt;class 'str'&gt;</em>, <em>observation_column_name='#OTU ID'</em>, <em>direct_io=None</em><big>)</big><a class="headerlink" href="#biom.table.Table.delimited_self" title="Permalink to this definition">¶</a></dt>
+  <section id="biom-table-table-delimited-self">
+<h1>biom.table.Table.delimited_self<a class="headerlink" href="#biom-table-table-delimited-self" title="Permalink to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="biom.table.Table.delimited_self">
+<span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">delimited_self</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">delim='\t'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_key=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">header_value=None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata_formatter=&lt;class</span> <span class="pre">'str'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_column_name='#OTU</span> <span class="pre">ID'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">direct_io=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table.delimited_self" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return self as a string in a delimited form</p>
 <p>Default str output for the Table is just row/col ids and table data
 without any metadata</p>
-<p>Including observation metadata in output: If <tt class="docutils literal"><span class="pre">header_key</span></tt> is not
-<tt class="docutils literal"><span class="pre">None</span></tt>, the observation metadata with that name will be included
-in the delimited output. If <tt class="docutils literal"><span class="pre">header_value</span></tt> is also not <tt class="docutils literal"><span class="pre">None</span></tt>, the
-observation metadata will use the provided <tt class="docutils literal"><span class="pre">header_value</span></tt> as the
+<p>Including observation metadata in output: If <code class="docutils literal notranslate"><span class="pre">header_key</span></code> is not
+<code class="docutils literal notranslate"><span class="pre">None</span></code>, the observation metadata with that name will be included
+in the delimited output. If <code class="docutils literal notranslate"><span class="pre">header_value</span></code> is also not <code class="docutils literal notranslate"><span class="pre">None</span></code>, the
+observation metadata will use the provided <code class="docutils literal notranslate"><span class="pre">header_value</span></code> as the
 observation metadata name (i.e., the column header) in the delimited
 output.</p>
-<p><tt class="docutils literal"><span class="pre">metadata_formatter</span></tt>: a function which takes a metadata entry and
+<p><code class="docutils literal notranslate"><span class="pre">metadata_formatter</span></code>: a function which takes a metadata entry and
 returns a formatted version that should be written to file</p>
-<p><tt class="docutils literal"><span class="pre">observation_column_name</span></tt>: the name of the first column in the output
+<p><code class="docutils literal notranslate"><span class="pre">observation_column_name</span></code>: the name of the first column in the output
 table, corresponding to the observation IDs. For example, the default
 will look something like:</p>
 <blockquote>
-<div>#OTU ID     Sample1 Sample2
+<div><p>#OTU ID     Sample1 Sample2
 OTU1        10      2
-OTU2        4       8</div></blockquote>
+OTU2        4       8</p>
+</div></blockquote>
 </dd></dl>
 
-</div>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="biom.table.Table.del_metadata.html">biom.table.Table.del_metadata</a>
@@ -96,10 +83,10 @@ OTU2        4       8</div></blockquote>
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

@@ -1,46 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Summarizing BIOM tables &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../index.html" />
-    <link rel="up" title="BIOM Documentation" href="index.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Summarizing BIOM tables &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/haiku.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="The BIOM Format License" href="../BIOM_LICENSE.html" />
     <link rel="prev" title="Adding sample and observation metadata to biom files" href="adding_metadata.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>Summarizing BIOM tables</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="adding_metadata.html">Adding sample and observation metadata to biom files</a>
@@ -51,82 +37,82 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="summarizing-biom-tables">
-<span id="id1"></span><h1>Summarizing BIOM tables<a class="headerlink" href="#summarizing-biom-tables" title="Permalink to this headline">¶</a></h1>
-<p>If you have an existing BIOM file and want to compile a summary of the information in that table, you can use the <tt class="docutils literal"><span class="pre">biom</span> <span class="pre">summarize-table</span></tt> command.</p>
-<p>To get help with <tt class="docutils literal"><span class="pre">biom</span> <span class="pre">summarize-table</span></tt> you can call:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom summarize-table -h
+  <section id="summarizing-biom-tables">
+<span id="id1"></span><h1>Summarizing BIOM tables<a class="headerlink" href="#summarizing-biom-tables" title="Permalink to this heading">¶</a></h1>
+<p>If you have an existing BIOM file and want to compile a summary of the information in that table, you can use the <code class="docutils literal notranslate"><span class="pre">biom</span> <span class="pre">summarize-table</span></code> command.</p>
+<p>To get help with <code class="docutils literal notranslate"><span class="pre">biom</span> <span class="pre">summarize-table</span></code> you can call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">summarize</span><span class="o">-</span><span class="n">table</span> <span class="o">-</span><span class="n">h</span>
 </pre></div>
 </div>
-<p>This command takes a BIOM file or gzipped BIOM file as input, and will print a summary of the count information on a per-sample basis to the new file specified by the <tt class="docutils literal"><span class="pre">-o</span></tt> parameter. The example file used in the commands below can be found in the <tt class="docutils literal"><span class="pre">biom-format/examples</span></tt> directory.</p>
-<div class="section" id="summarizing-sample-data">
-<h2>Summarizing sample data<a class="headerlink" href="#summarizing-sample-data" title="Permalink to this headline">¶</a></h2>
+<p>This command takes a BIOM file or gzipped BIOM file as input, and will print a summary of the count information on a per-sample basis to the new file specified by the <code class="docutils literal notranslate"><span class="pre">-o</span></code> parameter. The example file used in the commands below can be found in the <code class="docutils literal notranslate"><span class="pre">biom-format/examples</span></code> directory.</p>
+<section id="summarizing-sample-data">
+<h2>Summarizing sample data<a class="headerlink" href="#summarizing-sample-data" title="Permalink to this heading">¶</a></h2>
 <p>To summarize the per-sample data in a BIOM file, you can run:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom summarize-table -i rich_sparse_otu_table.biom -o rich_sparse_otu_table_summary.txt
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">summarize</span><span class="o">-</span><span class="n">table</span> <span class="o">-</span><span class="n">i</span> <span class="n">rich_sparse_otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">rich_sparse_otu_table_summary</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
-<p>The following information will be written to <tt class="docutils literal"><span class="pre">rich_sparse_otu_table_summary.txt</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>Num samples: 6
-Num observations: 5
-Total count: 27
-Table density (fraction of non-zero values): 0.500
+<p>The following information will be written to <code class="docutils literal notranslate"><span class="pre">rich_sparse_otu_table_summary.txt</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Num</span> <span class="n">samples</span><span class="p">:</span> <span class="mi">6</span>
+<span class="n">Num</span> <span class="n">observations</span><span class="p">:</span> <span class="mi">5</span>
+<span class="n">Total</span> <span class="n">count</span><span class="p">:</span> <span class="mi">27</span>
+<span class="n">Table</span> <span class="n">density</span> <span class="p">(</span><span class="n">fraction</span> <span class="n">of</span> <span class="n">non</span><span class="o">-</span><span class="n">zero</span> <span class="n">values</span><span class="p">):</span> <span class="mf">0.500</span>
 
-Counts/sample summary:
- Min: 3.0
- Max: 7.0
- Median: 4.000
- Mean: 4.500
- Std. dev.: 1.500
- Sample Metadata Categories: LinkerPrimerSequence; BarcodeSequence; Description; BODY_SITE
- Observation Metadata Categories: taxonomy
+<span class="n">Counts</span><span class="o">/</span><span class="n">sample</span> <span class="n">summary</span><span class="p">:</span>
+ <span class="n">Min</span><span class="p">:</span> <span class="mf">3.0</span>
+ <span class="n">Max</span><span class="p">:</span> <span class="mf">7.0</span>
+ <span class="n">Median</span><span class="p">:</span> <span class="mf">4.000</span>
+ <span class="n">Mean</span><span class="p">:</span> <span class="mf">4.500</span>
+ <span class="n">Std</span><span class="o">.</span> <span class="n">dev</span><span class="o">.</span><span class="p">:</span> <span class="mf">1.500</span>
+ <span class="n">Sample</span> <span class="n">Metadata</span> <span class="n">Categories</span><span class="p">:</span> <span class="n">LinkerPrimerSequence</span><span class="p">;</span> <span class="n">BarcodeSequence</span><span class="p">;</span> <span class="n">Description</span><span class="p">;</span> <span class="n">BODY_SITE</span>
+ <span class="n">Observation</span> <span class="n">Metadata</span> <span class="n">Categories</span><span class="p">:</span> <span class="n">taxonomy</span>
 
-Counts/sample detail:
- Sample5: 3.0
- Sample2: 3.0
- Sample6: 4.0
- Sample3: 4.0
- Sample4: 6.0
- Sample1: 7.0
+<span class="n">Counts</span><span class="o">/</span><span class="n">sample</span> <span class="n">detail</span><span class="p">:</span>
+ <span class="n">Sample5</span><span class="p">:</span> <span class="mf">3.0</span>
+ <span class="n">Sample2</span><span class="p">:</span> <span class="mf">3.0</span>
+ <span class="n">Sample6</span><span class="p">:</span> <span class="mf">4.0</span>
+ <span class="n">Sample3</span><span class="p">:</span> <span class="mf">4.0</span>
+ <span class="n">Sample4</span><span class="p">:</span> <span class="mf">6.0</span>
+ <span class="n">Sample1</span><span class="p">:</span> <span class="mf">7.0</span>
 </pre></div>
 </div>
 <p>As you can see, general summary information about the table is provided, including the number of samples, the number of observations, the total count (i.e., the sum of all values in the table), and so on, followed by the per-sample counts.</p>
-</div>
-<div class="section" id="summarizing-sample-data-qualitatively">
-<h2>Summarizing sample data qualitatively<a class="headerlink" href="#summarizing-sample-data-qualitatively" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="summarizing-sample-data-qualitatively">
+<h2>Summarizing sample data qualitatively<a class="headerlink" href="#summarizing-sample-data-qualitatively" title="Permalink to this heading">¶</a></h2>
 <p>To summarize the per-sample data in a BIOM file qualitatively, where the number of unique observations per sample (rather than the total count of observations per sample) are provided, you can run:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom summarize-table -i rich_sparse_otu_table.biom --qualitative -o rich_sparse_otu_table_qual_summary.txt
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">summarize</span><span class="o">-</span><span class="n">table</span> <span class="o">-</span><span class="n">i</span> <span class="n">rich_sparse_otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">qualitative</span> <span class="o">-</span><span class="n">o</span> <span class="n">rich_sparse_otu_table_qual_summary</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
-<p>The following information will be written to <tt class="docutils literal"><span class="pre">rich_sparse_otu_table_qual_summary.txt</span></tt>:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>Num samples: 6
-Num observations: 5
+<p>The following information will be written to <code class="docutils literal notranslate"><span class="pre">rich_sparse_otu_table_qual_summary.txt</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Num</span> <span class="n">samples</span><span class="p">:</span> <span class="mi">6</span>
+<span class="n">Num</span> <span class="n">observations</span><span class="p">:</span> <span class="mi">5</span>
 
-Observations/sample summary:
- Min: 1
- Max: 4
- Median: 2.500
- Mean: 2.500
- Std. dev.: 0.957
- Sample Metadata Categories: LinkerPrimerSequence; BarcodeSequence; Description; BODY_SITE
- Observation Metadata Categories: taxonomy
+<span class="n">Observations</span><span class="o">/</span><span class="n">sample</span> <span class="n">summary</span><span class="p">:</span>
+ <span class="n">Min</span><span class="p">:</span> <span class="mi">1</span>
+ <span class="n">Max</span><span class="p">:</span> <span class="mi">4</span>
+ <span class="n">Median</span><span class="p">:</span> <span class="mf">2.500</span>
+ <span class="n">Mean</span><span class="p">:</span> <span class="mf">2.500</span>
+ <span class="n">Std</span><span class="o">.</span> <span class="n">dev</span><span class="o">.</span><span class="p">:</span> <span class="mf">0.957</span>
+ <span class="n">Sample</span> <span class="n">Metadata</span> <span class="n">Categories</span><span class="p">:</span> <span class="n">LinkerPrimerSequence</span><span class="p">;</span> <span class="n">BarcodeSequence</span><span class="p">;</span> <span class="n">Description</span><span class="p">;</span> <span class="n">BODY_SITE</span>
+ <span class="n">Observation</span> <span class="n">Metadata</span> <span class="n">Categories</span><span class="p">:</span> <span class="n">taxonomy</span>
 
-Observations/sample detail:
- Sample5: 1
- Sample4: 2
- Sample1: 2
- Sample6: 3
- Sample2: 3
+<span class="n">Observations</span><span class="o">/</span><span class="n">sample</span> <span class="n">detail</span><span class="p">:</span>
+ <span class="n">Sample5</span><span class="p">:</span> <span class="mi">1</span>
+ <span class="n">Sample4</span><span class="p">:</span> <span class="mi">2</span>
+ <span class="n">Sample1</span><span class="p">:</span> <span class="mi">2</span>
+ <span class="n">Sample6</span><span class="p">:</span> <span class="mi">3</span>
+ <span class="n">Sample2</span><span class="p">:</span> <span class="mi">3</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="adding_metadata.html">Adding sample and observation metadata to biom files</a>
@@ -139,10 +125,10 @@ Observations/sample detail:
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

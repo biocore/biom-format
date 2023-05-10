@@ -1,46 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>biom.table.Table.merge &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../../index.html" />
-    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>biom.table.Table.merge &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="biom.table.Table.metadata" href="biom.table.Table.metadata.html" />
     <link rel="prev" title="biom.table.Table.max" href="biom.table.Table.max.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>biom.table.Table.merge</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="biom.table.Table.max.html">biom.table.Table.max</a>
@@ -51,70 +37,64 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="biom-table-table-merge">
-<h1>biom.table.Table.merge<a class="headerlink" href="#biom-table-table-merge" title="Permalink to this headline">¶</a></h1>
-<dl class="method">
-<dt id="biom.table.Table.merge">
-<tt class="descclassname">Table.</tt><tt class="descname">merge</tt><big>(</big><em>other</em>, <em>sample='union'</em>, <em>observation='union'</em>, <em>sample_metadata_f=&lt;function prefer_self at 0x7f8a717a8ea0&gt;</em>, <em>observation_metadata_f=&lt;function prefer_self at 0x7f8a717a8ea0&gt;</em><big>)</big><a class="headerlink" href="#biom.table.Table.merge" title="Permalink to this definition">¶</a></dt>
+  <section id="biom-table-table-merge">
+<h1>biom.table.Table.merge<a class="headerlink" href="#biom-table-table-merge" title="Permalink to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="biom.table.Table.merge">
+<span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">merge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">other</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample='union'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation='union'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sample_metadata_f=&lt;function</span> <span class="pre">prefer_self&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">observation_metadata_f=&lt;function</span> <span class="pre">prefer_self&gt;</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table.merge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Merge two tables together</p>
 <p>The axes, samples and observations, can be controlled independently.
-Both can work on either &#8220;union&#8221; or &#8220;intersection&#8221;.</p>
+Both can work on either “union” or “intersection”.</p>
 <p><cite>sample_metadata_f</cite> and <cite>observation_metadata_f</cite> define how to
 merge metadata between tables. The default is to just keep the metadata
 associated to self if self has metadata otherwise take metadata from
 other. These functions are given both metadata dicts and must return
 a single metadata dict</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>other</strong> : biom.Table or Iterable of Table</p>
-<blockquote>
-<div><p>The other table to merge with this one. If an iterable, the tables
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>other</strong><span class="classifier">biom.Table or Iterable of Table</span></dt><dd><p>The other table to merge with this one. If an iterable, the tables
 are expected to not have metadata.</p>
-</div></blockquote>
-<p><strong>sample</strong> : {&#8216;union&#8217;, &#8216;intersection&#8217;}, optional</p>
-<p><strong>observation</strong> : {&#8216;union&#8217;, &#8216;intersection&#8217;}, optional</p>
-<p><strong>sample_metadata_f</strong> : function, optional</p>
-<blockquote>
-<div><p>Defaults to <tt class="docutils literal"><span class="pre">biom.util.prefer_self</span></tt>. Defines how to handle sample
+</dd>
+<dt><strong>sample</strong><span class="classifier">‘union’, ‘intersection’, optional</span></dt><dd><p>How the sample axis is handled</p>
+</dd>
+<dt><strong>observation</strong><span class="classifier">‘union’, ‘intersection’, optional</span></dt><dd><p>How the observation axis is handled</p>
+</dd>
+<dt><strong>sample_metadata_f</strong><span class="classifier">function, optional</span></dt><dd><p>Defaults to <code class="docutils literal notranslate"><span class="pre">biom.util.prefer_self</span></code>. Defines how to handle sample
 metadata during merge.</p>
-</div></blockquote>
-<p><strong>obesrvation_metadata_f</strong> : function, optional</p>
-<blockquote>
-<div><p>Defaults to <tt class="docutils literal"><span class="pre">biom.util.prefer_self</span></tt>. Defines how to handle
+</dd>
+<dt><strong>obesrvation_metadata_f</strong><span class="classifier">function, optional</span></dt><dd><p>Defaults to <code class="docutils literal notranslate"><span class="pre">biom.util.prefer_self</span></code>. Defines how to handle
 observation metdata during merge.</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">biom.Table</p>
-<blockquote class="last">
-<div><p>The merged table</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>biom.Table</dt><dd><p>The merged table</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <ul class="simple">
-<li><dl class="first docutils">
-<dt>If <tt class="docutils literal"><span class="pre">sample_metadata_f</span></tt> and <tt class="docutils literal"><span class="pre">observation_metadata_f</span></tt> are None,</dt>
-<dd>then a fast merge is applied.</dd>
+<li><dl class="simple">
+<dt>If <code class="docutils literal notranslate"><span class="pre">sample_metadata_f</span></code> and <code class="docutils literal notranslate"><span class="pre">observation_metadata_f</span></code> are None,</dt><dd><p>then a fast merge is applied.</p>
+</dd>
 </dl>
 </li>
-<li>There is an implicit type conversion to <tt class="docutils literal"><span class="pre">float</span></tt>.</li>
-<li>The return type is always that of <tt class="docutils literal"><span class="pre">self</span></tt></li>
+<li><p>There is an implicit type conversion to <code class="docutils literal notranslate"><span class="pre">float</span></code>.</p></li>
+<li><p>The return type is always that of <code class="docutils literal notranslate"><span class="pre">self</span></code></p></li>
 </ul>
 <p class="rubric">Examples</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
 </pre></div>
 </div>
 <p>Create a 2x2 table and a 3x2 table:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">d_a</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">1</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t_a</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">d_a</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;O1&#39;</span><span class="p">,</span> <span class="s1">&#39;O2&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="s1">&#39;S2&#39;</span><span class="p">])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">d_b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">([[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">10</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">t_b</span> <span class="o">=</span> <span class="n">Table</span><span class="p">(</span><span class="n">d_b</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;O1&#39;</span><span class="p">,</span> <span class="s1">&#39;O2&#39;</span><span class="p">,</span> <span class="s1">&#39;O3&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;S1&#39;</span><span class="p">,</span> <span class="s1">&#39;S2&#39;</span><span class="p">])</span>
@@ -123,7 +103,7 @@ observation metdata during merge.</p>
 <p>Merging the table results in the overlapping samples/observations (see
 <cite>O1</cite> and <cite>S2</cite>) to be summed and the non-overlapping ones to be added to
 the resulting table (see <cite>S3</cite>).</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">merged_table</span> <span class="o">=</span> <span class="n">t_a</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">t_b</span><span class="p">)</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">merged_table</span> <span class="o">=</span> <span class="n">t_a</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">t_b</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">merged_table</span><span class="p">)</span>  
 <span class="go"># Constructed from biom file</span>
 <span class="go">#OTU ID S1      S2</span>
@@ -134,11 +114,11 @@ the resulting table (see <cite>S3</cite>).</p>
 </div>
 </dd></dl>
 
-</div>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="biom.table.Table.max.html">biom.table.Table.max</a>
@@ -151,10 +131,10 @@ the resulting table (see <cite>S3</cite>).</p>
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

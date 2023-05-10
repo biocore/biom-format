@@ -1,0 +1,6 @@
+biom.table.Table.matrix\_data
+=============================
+
+.. currentmodule:: biom.table
+
+.. autoproperty:: Table.matrix_data

@@ -1,46 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>The biom file format: Version 1.0 &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../../index.html" />
-    <link rel="up" title="The biom file format" href="../biom_format.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>The biom file format: Version 1.0 &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="The biom file format: Version 2.0" href="biom-2.0.html" />
     <link rel="prev" title="The biom file format" href="../biom_format.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>The biom file format: Version 1.0</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="../biom_format.html">The biom file format</a>
@@ -51,77 +37,77 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="the-biom-file-format-version-1-0">
-<span id="biom-1-0"></span><h1>The biom file format: Version 1.0<a class="headerlink" href="#the-biom-file-format-version-1-0" title="Permalink to this headline">¶</a></h1>
-<p>The <tt class="docutils literal"><span class="pre">biom</span></tt> format is based on <a class="reference external" href="http://www.json.org">JSON</a> to provide the overall structure for the format. JSON is a widely supported format with native parsers available within many programming languages.</p>
+  <section id="the-biom-file-format-version-1-0">
+<span id="biom-1-0"></span><h1>The biom file format: Version 1.0<a class="headerlink" href="#the-biom-file-format-version-1-0" title="Permalink to this heading">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">biom</span></code> format is based on <a class="reference external" href="http://www.json.org">JSON</a> to provide the overall structure for the format. JSON is a widely supported format with native parsers available within many programming languages.</p>
 <p>Required top-level fields:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>id                  : &lt;string or null&gt; a field that can be used to id a table (or null)
-format              : &lt;string&gt; The name and version of the current biom format
-format_url          : &lt;url&gt; A string with a static URL providing format details
-type                : &lt;string&gt; Table type (a controlled vocabulary)
-                      Acceptable values:
-                       &quot;OTU table&quot;
-                       &quot;Pathway table&quot;
-                       &quot;Function table&quot;
-                       &quot;Ortholog table&quot;
-                       &quot;Gene table&quot;
-                       &quot;Metabolite table&quot;
-                       &quot;Taxon table&quot;
-generated_by        : &lt;string&gt; Package and revision that built the table
-date                : &lt;datetime&gt; Date the table was built (ISO 8601 format)
-rows                : &lt;list of objects&gt; An ORDERED list of obj describing the rows
-                      (explained in detail below)
-columns             : &lt;list of objects&gt; An ORDERED list of obj  describing the columns
-                      (explained in detail below)
-matrix_type         : &lt;string&gt; Type of matrix data representation (a controlled vocabulary)
-                      Acceptable values:
-                       &quot;sparse&quot; : only non-zero values are specified
-                       &quot;dense&quot; : every element must be specified
-matrix_element_type : Value type in matrix (a controlled vocabulary)
-                      Acceptable values:
-                       &quot;int&quot; : integer
-                       &quot;float&quot; : floating point
-                       &quot;unicode&quot; : unicode string
-shape               : &lt;list of ints&gt;, the number of rows and number of columns in data
-data                : &lt;list of lists&gt;, counts of observations by sample
-                       if matrix_type is &quot;sparse&quot;, [[row, column, value],
-                                                    [row, column, value],
-                                                    ...]
-                       if matrix_type is &quot;dense&quot;,  [[value, value, value, ...],
-                                                    [value, value, value, ...],
-                                                    ...]
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">id</span>                  <span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span> <span class="ow">or</span> <span class="n">null</span><span class="o">&gt;</span> <span class="n">a</span> <span class="n">field</span> <span class="n">that</span> <span class="n">can</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="nb">id</span> <span class="n">a</span> <span class="n">table</span> <span class="p">(</span><span class="ow">or</span> <span class="n">null</span><span class="p">)</span>
+<span class="nb">format</span>              <span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">The</span> <span class="n">name</span> <span class="ow">and</span> <span class="n">version</span> <span class="n">of</span> <span class="n">the</span> <span class="n">current</span> <span class="n">biom</span> <span class="nb">format</span>
+<span class="n">format_url</span>          <span class="p">:</span> <span class="o">&lt;</span><span class="n">url</span><span class="o">&gt;</span> <span class="n">A</span> <span class="n">string</span> <span class="k">with</span> <span class="n">a</span> <span class="n">static</span> <span class="n">URL</span> <span class="n">providing</span> <span class="nb">format</span> <span class="n">details</span>
+<span class="nb">type</span>                <span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">Table</span> <span class="nb">type</span> <span class="p">(</span><span class="n">a</span> <span class="n">controlled</span> <span class="n">vocabulary</span><span class="p">)</span>
+                      <span class="n">Acceptable</span> <span class="n">values</span><span class="p">:</span>
+                       <span class="s2">&quot;OTU table&quot;</span>
+                       <span class="s2">&quot;Pathway table&quot;</span>
+                       <span class="s2">&quot;Function table&quot;</span>
+                       <span class="s2">&quot;Ortholog table&quot;</span>
+                       <span class="s2">&quot;Gene table&quot;</span>
+                       <span class="s2">&quot;Metabolite table&quot;</span>
+                       <span class="s2">&quot;Taxon table&quot;</span>
+<span class="n">generated_by</span>        <span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">Package</span> <span class="ow">and</span> <span class="n">revision</span> <span class="n">that</span> <span class="n">built</span> <span class="n">the</span> <span class="n">table</span>
+<span class="n">date</span>                <span class="p">:</span> <span class="o">&lt;</span><span class="n">datetime</span><span class="o">&gt;</span> <span class="n">Date</span> <span class="n">the</span> <span class="n">table</span> <span class="n">was</span> <span class="n">built</span> <span class="p">(</span><span class="n">ISO</span> <span class="mi">8601</span> <span class="nb">format</span><span class="p">)</span>
+<span class="n">rows</span>                <span class="p">:</span> <span class="o">&lt;</span><span class="nb">list</span> <span class="n">of</span> <span class="n">objects</span><span class="o">&gt;</span> <span class="n">An</span> <span class="n">ORDERED</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">obj</span> <span class="n">describing</span> <span class="n">the</span> <span class="n">rows</span>
+                      <span class="p">(</span><span class="n">explained</span> <span class="ow">in</span> <span class="n">detail</span> <span class="n">below</span><span class="p">)</span>
+<span class="n">columns</span>             <span class="p">:</span> <span class="o">&lt;</span><span class="nb">list</span> <span class="n">of</span> <span class="n">objects</span><span class="o">&gt;</span> <span class="n">An</span> <span class="n">ORDERED</span> <span class="nb">list</span> <span class="n">of</span> <span class="n">obj</span>  <span class="n">describing</span> <span class="n">the</span> <span class="n">columns</span>
+                      <span class="p">(</span><span class="n">explained</span> <span class="ow">in</span> <span class="n">detail</span> <span class="n">below</span><span class="p">)</span>
+<span class="n">matrix_type</span>         <span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">Type</span> <span class="n">of</span> <span class="n">matrix</span> <span class="n">data</span> <span class="n">representation</span> <span class="p">(</span><span class="n">a</span> <span class="n">controlled</span> <span class="n">vocabulary</span><span class="p">)</span>
+                      <span class="n">Acceptable</span> <span class="n">values</span><span class="p">:</span>
+                       <span class="s2">&quot;sparse&quot;</span> <span class="p">:</span> <span class="n">only</span> <span class="n">non</span><span class="o">-</span><span class="n">zero</span> <span class="n">values</span> <span class="n">are</span> <span class="n">specified</span>
+                       <span class="s2">&quot;dense&quot;</span> <span class="p">:</span> <span class="n">every</span> <span class="n">element</span> <span class="n">must</span> <span class="n">be</span> <span class="n">specified</span>
+<span class="n">matrix_element_type</span> <span class="p">:</span> <span class="n">Value</span> <span class="nb">type</span> <span class="ow">in</span> <span class="n">matrix</span> <span class="p">(</span><span class="n">a</span> <span class="n">controlled</span> <span class="n">vocabulary</span><span class="p">)</span>
+                      <span class="n">Acceptable</span> <span class="n">values</span><span class="p">:</span>
+                       <span class="s2">&quot;int&quot;</span> <span class="p">:</span> <span class="n">integer</span>
+                       <span class="s2">&quot;float&quot;</span> <span class="p">:</span> <span class="n">floating</span> <span class="n">point</span>
+                       <span class="s2">&quot;unicode&quot;</span> <span class="p">:</span> <span class="n">unicode</span> <span class="n">string</span>
+<span class="n">shape</span>               <span class="p">:</span> <span class="o">&lt;</span><span class="nb">list</span> <span class="n">of</span> <span class="n">ints</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">the</span> <span class="n">number</span> <span class="n">of</span> <span class="n">rows</span> <span class="ow">and</span> <span class="n">number</span> <span class="n">of</span> <span class="n">columns</span> <span class="ow">in</span> <span class="n">data</span>
+<span class="n">data</span>                <span class="p">:</span> <span class="o">&lt;</span><span class="nb">list</span> <span class="n">of</span> <span class="n">lists</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">counts</span> <span class="n">of</span> <span class="n">observations</span> <span class="n">by</span> <span class="n">sample</span>
+                       <span class="k">if</span> <span class="n">matrix_type</span> <span class="ow">is</span> <span class="s2">&quot;sparse&quot;</span><span class="p">,</span> <span class="p">[[</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">value</span><span class="p">],</span>
+                                                    <span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">column</span><span class="p">,</span> <span class="n">value</span><span class="p">],</span>
+                                                    <span class="o">...</span><span class="p">]</span>
+                       <span class="k">if</span> <span class="n">matrix_type</span> <span class="ow">is</span> <span class="s2">&quot;dense&quot;</span><span class="p">,</span>  <span class="p">[[</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+                                                    <span class="p">[</span><span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span>
+                                                    <span class="o">...</span><span class="p">]</span>
 </pre></div>
 </div>
 <p>Optional top-level fields:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>comment             : &lt;string&gt; A free text field containing any information that you
-                       feel is relevant (or just feel like sharing)
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">comment</span>             <span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">A</span> <span class="n">free</span> <span class="n">text</span> <span class="n">field</span> <span class="n">containing</span> <span class="nb">any</span> <span class="n">information</span> <span class="n">that</span> <span class="n">you</span>
+                       <span class="n">feel</span> <span class="ow">is</span> <span class="n">relevant</span> <span class="p">(</span><span class="ow">or</span> <span class="n">just</span> <span class="n">feel</span> <span class="n">like</span> <span class="n">sharing</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>The rows value is an ORDERED list of objects where each object corresponds to a single
 row in the matrix. Each object can currently store arbitrary keys, although
 this might become restricted based on table type. Each object must provide,
 at the minimum:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>id                  : &lt;string&gt; an arbitrary UNIQUE identifier
-metadata            : &lt;an object or null&gt; A object containing key, value metadata pairs
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">id</span>                  <span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">an</span> <span class="n">arbitrary</span> <span class="n">UNIQUE</span> <span class="n">identifier</span>
+<span class="n">metadata</span>            <span class="p">:</span> <span class="o">&lt;</span><span class="n">an</span> <span class="nb">object</span> <span class="ow">or</span> <span class="n">null</span><span class="o">&gt;</span> <span class="n">A</span> <span class="nb">object</span> <span class="n">containing</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="n">metadata</span> <span class="n">pairs</span>
 </pre></div>
 </div>
 <p>The columns value is an ORDERED list of objects where each object corresponds to a single
 column in the matrix. Each object can currently store arbitrary keys, although
 this might become restricted based on table type. Each object must provide,
 at the minimum:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>id                  : &lt;string&gt; an arbitrary UNIQUE identifier
-metadata            : &lt;an object or null&gt; A object containing key, value metadata pairs
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">id</span>                  <span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span><span class="o">&gt;</span> <span class="n">an</span> <span class="n">arbitrary</span> <span class="n">UNIQUE</span> <span class="n">identifier</span>
+<span class="n">metadata</span>            <span class="p">:</span> <span class="o">&lt;</span><span class="n">an</span> <span class="nb">object</span> <span class="ow">or</span> <span class="n">null</span><span class="o">&gt;</span> <span class="n">A</span> <span class="nb">object</span> <span class="n">containing</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="n">metadata</span> <span class="n">pairs</span>
 </pre></div>
 </div>
-<div class="section" id="example-biom-files">
-<h2>Example biom files<a class="headerlink" href="#example-biom-files" title="Permalink to this headline">¶</a></h2>
-<p>Below are examples of minimal and rich biom files in both sparse and dense formats. To decide which of these you should generate for new data types, see the section on <a class="reference internal" href="../biom_format.html#sparse-or-dense"><em>Tips and FAQs regarding the BIOM file format</em></a>.</p>
-<div class="section" id="minimal-sparse-otu-table">
-<h3>Minimal sparse OTU table<a class="headerlink" href="#minimal-sparse-otu-table" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span>
+<section id="example-biom-files">
+<h2>Example biom files<a class="headerlink" href="#example-biom-files" title="Permalink to this heading">¶</a></h2>
+<p>Below are examples of minimal and rich biom files in both sparse and dense formats. To decide which of these you should generate for new data types, see the section on <a class="reference internal" href="../biom_format.html#sparse-or-dense"><span class="std std-ref">Tips and FAQs regarding the BIOM file format</span></a>.</p>
+<section id="minimal-sparse-otu-table">
+<h3>Minimal sparse OTU table<a class="headerlink" href="#minimal-sparse-otu-table" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">,</span>
     <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
     <span class="s2">&quot;format_url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://biom-format.org&quot;</span><span class="p">,</span>
@@ -165,10 +151,10 @@ metadata            : &lt;an object or null&gt; A object containing key, value m
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="minimal-dense-otu-table">
-<h3>Minimal dense OTU table<a class="headerlink" href="#minimal-dense-otu-table" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span>
+</section>
+<section id="minimal-dense-otu-table">
+<h3>Minimal dense OTU table<a class="headerlink" href="#minimal-dense-otu-table" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">,</span>
     <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;Biological Observation Matrix 0.9.1-dev&quot;</span><span class="p">,</span>
     <span class="s2">&quot;format_url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://biom-format.org/documentation/format_versions/biom-1.0.html&quot;</span><span class="p">,</span>
@@ -201,10 +187,10 @@ metadata            : &lt;an object or null&gt; A object containing key, value m
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="rich-sparse-otu-table">
-<h3>Rich sparse OTU table<a class="headerlink" href="#rich-sparse-otu-table" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span>
+</section>
+<section id="rich-sparse-otu-table">
+<h3>Rich sparse OTU table<a class="headerlink" href="#rich-sparse-otu-table" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
  <span class="s2">&quot;id&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">,</span>
  <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;Biological Observation Matrix 0.9.1-dev&quot;</span><span class="p">,</span>
  <span class="s2">&quot;format_url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://biom-format.org/documentation/format_versions/biom-1.0.html&quot;</span><span class="p">,</span>
@@ -272,10 +258,10 @@ metadata            : &lt;an object or null&gt; A object containing key, value m
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="rich-dense-otu-table">
-<h3>Rich dense OTU table<a class="headerlink" href="#rich-dense-otu-table" title="Permalink to this headline">¶</a></h3>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span>
+</section>
+<section id="rich-dense-otu-table">
+<h3>Rich dense OTU table<a class="headerlink" href="#rich-dense-otu-table" title="Permalink to this heading">¶</a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
  <span class="s2">&quot;id&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">,</span>
  <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;Biological Observation Matrix 0.9.1-dev&quot;</span><span class="p">,</span>
  <span class="s2">&quot;format_url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://biom-format.org/documentation/format_versions/biom-1.0.html&quot;</span><span class="p">,</span>
@@ -332,13 +318,13 @@ metadata            : &lt;an object or null&gt; A object containing key, value m
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-</div>
-</div>
+</section>
+</section>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="../biom_format.html">The biom file format</a>
@@ -351,10 +337,10 @@ metadata            : &lt;an object or null&gt; A object containing key, value m
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

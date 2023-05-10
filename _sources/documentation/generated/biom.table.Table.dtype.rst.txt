@@ -1,0 +1,6 @@
+biom.table.Table.dtype
+======================
+
+.. currentmodule:: biom.table
+
+.. autoproperty:: Table.dtype

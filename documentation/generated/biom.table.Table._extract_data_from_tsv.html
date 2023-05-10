@@ -1,139 +1,100 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>biom.table.Table._extract_data_from_tsv &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <script type="text/javascript" src="../../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../../index.html" />
-    <link rel="up" title="biom.table.Table" href="biom.table.Table.html" />
-    <link rel="next" title="biom.table.Table.add_group_metadata" href="biom.table.Table.add_group_metadata.html" />
-    <link rel="prev" title="biom.table.Table.__getitem__" href="biom.table.Table.__getitem__.html" /> 
-  </head>
-  <body>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>biom.table.Table._extract_data_from_tsv &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
+    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
+    <script src="../../_static/doctools.js"></script>
+    <script src="../../_static/sphinx_highlight.js"></script>
+    <script src="../../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../../search.html" /> 
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>biom.table.Table._extract_data_from_tsv</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
-        «&#160;&#160;<a href="biom.table.Table.__getitem__.html">biom.table.Table.__getitem__</a>
-        &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../../index.html">Contents</a>
-        &#160;&#160;::&#160;&#160;
-        <a href="biom.table.Table.add_group_metadata.html">biom.table.Table.add_group_metadata</a>&#160;&#160;»
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="biom-table-table-extract-data-from-tsv">
-<h1>biom.table.Table._extract_data_from_tsv<a class="headerlink" href="#biom-table-table-extract-data-from-tsv" title="Permalink to this headline">¶</a></h1>
-<dl class="staticmethod">
-<dt id="biom.table.Table._extract_data_from_tsv">
-<em class="property">static </em><tt class="descclassname">Table.</tt><tt class="descname">_extract_data_from_tsv</tt><big>(</big><em>lines</em>, <em>delim='t'</em>, <em>dtype=&lt;class 'float'&gt;</em>, <em>md_parse=None</em><big>)</big><a class="headerlink" href="#biom.table.Table._extract_data_from_tsv" title="Permalink to this definition">¶</a></dt>
+  <section id="biom-table-table-extract-data-from-tsv">
+<h1>biom.table.Table._extract_data_from_tsv<a class="headerlink" href="#biom-table-table-extract-data-from-tsv" title="Permalink to this heading">¶</a></h1>
+<dl class="py method">
+<dt class="sig sig-object py" id="biom.table.Table._extract_data_from_tsv">
+<em class="property"><span class="pre">static</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">_extract_data_from_tsv</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">lines</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delim='\t'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dtype=&lt;class</span> <span class="pre">'float'&gt;</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">md_parse=None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table._extract_data_from_tsv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse a classic table into (sample_ids, obs_ids, data, metadata,
 name)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><p class="first"><strong>lines: list or file-like object</strong></p>
-<blockquote>
-<div><p>delimted data to parse</p>
-</div></blockquote>
-<p><strong>delim: string</strong></p>
-<blockquote>
-<div><p>delimeter in file lines</p>
-</div></blockquote>
-<p><strong>dtype: type</strong></p>
-<p><strong>md_parse:  function or None</strong></p>
-<blockquote>
-<div><p>funtion used to parse metdata</p>
-</div></blockquote>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list</p>
-<blockquote>
-<div><p>sample_ids</p>
-</div></blockquote>
-<p>list</p>
-<blockquote>
-<div><p>observation_ids</p>
-</div></blockquote>
-<p>array</p>
-<blockquote>
-<div><p>data</p>
-</div></blockquote>
-<p>list</p>
-<blockquote>
-<div><p>metadata</p>
-</div></blockquote>
-<p>string</p>
-<blockquote class="last">
-<div><p>column name if last column is non-numeric</p>
-</div></blockquote>
-</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><dl class="simple">
+<dt><strong>lines: list or file-like object</strong></dt><dd><p>delimted data to parse</p>
+</dd>
+<dt><strong>delim: string</strong></dt><dd><p>delimeter in file lines</p>
+</dd>
+<dt><strong>dtype: type</strong></dt><dd><p>The expected type</p>
+</dd>
+<dt><strong>md_parse:  function or None</strong></dt><dd><p>funtion used to parse metdata</p>
+</dd>
+</dl>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><dl class="simple">
+<dt>list</dt><dd><p>sample_ids</p>
+</dd>
+<dt>list</dt><dd><p>observation_ids</p>
+</dd>
+<dt>array</dt><dd><p>data</p>
+</dd>
+<dt>list</dt><dd><p>metadata</p>
+</dd>
+<dt>string</dt><dd><p>column name if last column is non-numeric</p>
+</dd>
+</dl>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <p>This is intended to be close to how QIIME classic OTU tables are parsed
 with the exception of the additional md_name field</p>
 <p>This function is ported from QIIME (<a class="reference external" href="http://www.qiime.org">http://www.qiime.org</a>), previously
 named parse_classic_otu_table. QIIME is a GPL project, but we obtained
 permission from the authors of this function to port it to the BIOM
-Format project (and keep it under BIOM&#8217;s BSD license).</p>
+Format project (and keep it under BIOM’s BSD license).</p>
 </dd></dl>
 
-</div>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
-        «&#160;&#160;<a href="biom.table.Table.__getitem__.html">biom.table.Table.__getitem__</a>
-        &#160;&#160;::&#160;&#160;
         <a class="uplink" href="../../index.html">Contents</a>
-        &#160;&#160;::&#160;&#160;
-        <a href="biom.table.Table.add_group_metadata.html">biom.table.Table.add_group_metadata</a>&#160;&#160;»
         </p>
 
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

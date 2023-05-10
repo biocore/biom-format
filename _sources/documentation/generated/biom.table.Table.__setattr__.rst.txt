@@ -1,0 +1,8 @@
+:orphan:
+
+biom.table.Table.__setattr__
+============================
+
+.. currentmodule:: biom.table
+
+.. automethod:: Table.__setattr__

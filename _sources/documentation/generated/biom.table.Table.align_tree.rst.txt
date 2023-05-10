@@ -1,0 +1,8 @@
+:orphan:
+
+biom.table.Table.align_tree
+===========================
+
+.. currentmodule:: biom.table
+
+.. automethod:: Table.align_tree

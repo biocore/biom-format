@@ -1,44 +1,31 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>The Biological Observation Matrix (BIOM) format &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <script type="text/javascript" src="_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="#" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>The Biological Observation Matrix (BIOM) format &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="_static/haiku.css" />
+    <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
+    <script src="_static/doctools.js"></script>
+    <script src="_static/sphinx_highlight.js"></script>
+    <script src="_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="BIOM Documentation" href="documentation/index.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="#">
+      <div class="header" role="banner"><h1 class="heading"><a href="#">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>The Biological Observation Matrix (BIOM) format</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         <a class="uplink" href="#">Contents</a>
@@ -47,46 +34,45 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
   <img alt="_images/biom-format.png" src="_images/biom-format.png" />
-<div class="section" id="the-biological-observation-matrix-biom-format">
-<h1>The Biological Observation Matrix (BIOM) format<a class="headerlink" href="#the-biological-observation-matrix-biom-format" title="Permalink to this headline">¶</a></h1>
+<section id="the-biological-observation-matrix-biom-format">
+<h1>The Biological Observation Matrix (BIOM) format<a class="headerlink" href="#the-biological-observation-matrix-biom-format" title="Permalink to this heading">¶</a></h1>
 <p>The <a class="reference external" href="http://www.biom-format.org">BIOM file format</a> (canonically pronounced <cite>biome</cite>) is designed to be a general-use format for representing biological sample by observation contingency tables. BIOM is a recognized standard for the <a class="reference external" href="http://www.earthmicrobiome.org">Earth Microbiome Project</a> and is a <a class="reference external" href="http://gensc.org/">Genomics Standards Consortium</a> supported project.</p>
 <p>The <a class="reference external" href="http://www.biom-format.org">BIOM format</a> is designed for general use in broad areas of comparative -omics. For example, in marker-gene surveys, the primary use of this format is to represent OTU tables: the observations in this case are OTUs and the matrix contains counts corresponding to the number of times each OTU is observed in each sample. With respect to metagenome data, this format would be used to represent metagenome tables: the observations in this case might correspond to SEED subsystems, and the matrix would contain counts corresponding to the number of times each subsystem is observed in each metagenome. Similarly, with respect to genome data, this format may be used to represent a set of genomes: the observations in this case again might correspond to SEED subsystems, and the counts would correspond to the number of times each subsystem is observed in each genome.</p>
 <p>The BIOM project consists of the following components:</p>
 <ul class="simple">
-<li><a class="reference external" href="./documentation/biom_format.html">definition of the BIOM file format</a>;</li>
-<li>command line interface (CLI) for working with BIOM files, including <a class="reference external" href="./documentation/biom_conversion.html">converting between file formats</a>, <a class="reference external" href="./documentation/adding_metadata.html">adding metadata to BIOM files</a>, and <a class="reference external" href="./documentation/summarizing_biom_tables.html">summarizing BIOM files</a> (run <tt class="docutils literal"><span class="pre">biom</span></tt> to see the full list of commands);</li>
-<li>application programming interface (API) for working with BIOM files in multiple programming languages (including Python and R).</li>
+<li><p><a class="reference external" href="./documentation/biom_format.html">definition of the BIOM file format</a>;</p></li>
+<li><p>command line interface (CLI) for working with BIOM files, including <a class="reference external" href="./documentation/biom_conversion.html">converting between file formats</a>, <a class="reference external" href="./documentation/adding_metadata.html">adding metadata to BIOM files</a>, and <a class="reference external" href="./documentation/summarizing_biom_tables.html">summarizing BIOM files</a> (run <code class="docutils literal notranslate"><span class="pre">biom</span></code> to see the full list of commands);</p></li>
+<li><p>application programming interface (API) for working with BIOM files in multiple programming languages (including Python and R).</p></li>
 </ul>
-<p>The <tt class="docutils literal"><span class="pre">biom-format</span></tt> package provides a command line interface and Python API for working with BIOM files. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python <tt class="docutils literal"><span class="pre">biom-format</span></tt> package. For more details about the R API, please see the <a class="reference external" href="https://bioconductor.org/packages/release/bioc/html/biomformat.html">bioconductor biomformat package</a>.</p>
-</div>
-<div class="section" id="projects-using-the-biom-format">
-<h1>Projects using the BIOM format<a class="headerlink" href="#projects-using-the-biom-format" title="Permalink to this headline">¶</a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">biom-format</span></code> package provides a command line interface and Python API for working with BIOM files. The rest of this site contains details about the BIOM file format (which is independent of the API) and the Python <code class="docutils literal notranslate"><span class="pre">biom-format</span></code> package. For more details about the R API, please see the <a class="reference external" href="https://bioconductor.org/packages/release/bioc/html/biomformat.html">bioconductor biomformat package</a>.</p>
+</section>
+<section id="projects-using-the-biom-format">
+<h1>Projects using the BIOM format<a class="headerlink" href="#projects-using-the-biom-format" title="Permalink to this heading">¶</a></h1>
 <ul class="simple">
-<li><a class="reference external" href="http://www.qiime.org">QIIME</a></li>
-<li><a class="reference external" href="http://metagenomics.anl.gov">MG-RAST</a></li>
-<li><a class="reference external" href="http://picrust.github.io/picrust">PICRUSt</a></li>
-<li><a class="reference external" href="http://www.mothur.org/wiki/Make.biom">Mothur</a></li>
-<li><a class="reference external" href="http://www.bioconductor.org/packages/release/bioc/html/phyloseq.html">phyloseq</a></li>
-<li><a class="reference external" href="http://ab.inf.uni-tuebingen.de/software/megan5/">MEGAN</a></li>
-<li><a class="reference external" href="http://vamps.mbl.edu/">VAMPS</a></li>
-<li><a class="reference external" href="http://www.bioconductor.org/packages/release/bioc/html/metagenomeSeq.html">metagenomeSeq</a></li>
-<li><a class="reference external" href="http://phinch.org">Phinch</a></li>
-<li><a class="reference external" href="https://github.com/rdpstaff/classifier">RDP Classifier</a></li>
-<li><a class="reference external" href="http://www.drive5.com/usearch/">USEARCH</a></li>
-<li><a class="reference external" href="http://phylotoast.org/">PhyloToAST</a></li>
-<li><a class="reference external" href="https://www.ebi.ac.uk/metagenomics">EBI Metagenomics</a></li>
-<li><a class="reference external" href="http://gcmodeller.org">GCModeller</a></li>
-<li><a class="reference external" href="http://segatalab.cibio.unitn.it/tools/metaphlan2/">MetaPhlAn 2</a></li>
-<li><a class="reference external" href="https://github.com/peterjc/thapbi-pict/">THAPBI PICT</a></li>
+<li><p><a class="reference external" href="http://www.qiime.org">QIIME</a></p></li>
+<li><p><a class="reference external" href="http://metagenomics.anl.gov">MG-RAST</a></p></li>
+<li><p><a class="reference external" href="http://picrust.github.io/picrust">PICRUSt</a></p></li>
+<li><p><a class="reference external" href="http://www.mothur.org/wiki/Make.biom">Mothur</a></p></li>
+<li><p><a class="reference external" href="http://www.bioconductor.org/packages/release/bioc/html/phyloseq.html">phyloseq</a></p></li>
+<li><p><a class="reference external" href="http://ab.inf.uni-tuebingen.de/software/megan5/">MEGAN</a></p></li>
+<li><p><a class="reference external" href="http://vamps.mbl.edu/">VAMPS</a></p></li>
+<li><p><a class="reference external" href="http://www.bioconductor.org/packages/release/bioc/html/metagenomeSeq.html">metagenomeSeq</a></p></li>
+<li><p><a class="reference external" href="http://phinch.org">Phinch</a></p></li>
+<li><p><a class="reference external" href="https://github.com/rdpstaff/classifier">RDP Classifier</a></p></li>
+<li><p><a class="reference external" href="http://www.drive5.com/usearch/">USEARCH</a></p></li>
+<li><p><a class="reference external" href="http://phylotoast.org/">PhyloToAST</a></p></li>
+<li><p><a class="reference external" href="https://www.ebi.ac.uk/metagenomics">EBI Metagenomics</a></p></li>
+<li><p><a class="reference external" href="http://gcmodeller.org">GCModeller</a></p></li>
+<li><p><a class="reference external" href="http://segatalab.cibio.unitn.it/tools/metaphlan2/">MetaPhlAn 2</a></p></li>
 </ul>
 <p>If you are using BIOM in your project, and would like your project to be listed, please submit a <a class="reference external" href="https://github.com/biocore/biom-format/pulls">pull request</a> to the BIOM project. More information on <a class="reference external" href="https://help.github.com/articles/using-pull-requests">submitting pull requests can be found here</a>.</p>
-</div>
-<div class="section" id="contents">
-<h1>Contents<a class="headerlink" href="#contents" title="Permalink to this headline">¶</a></h1>
+</section>
+<section id="contents">
+<h1>Contents<a class="headerlink" href="#contents" title="Permalink to this heading">¶</a></h1>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="documentation/index.html">BIOM Documentation</a><ul>
@@ -106,7 +92,7 @@
 <li class="toctree-l3"><a class="reference internal" href="documentation/quick_usage_examples.html#examples">Examples</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="documentation/table_objects.html">BIOM Table (<tt class="docutils literal"><span class="pre">biom.table</span></tt>)</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="documentation/table_objects.html">BIOM Table (<code class="xref py py-mod docutils literal notranslate"><span class="pre">biom.table</span></code>)</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="documentation/table_objects.html#classes">Classes</a></li>
 <li class="toctree-l3"><a class="reference internal" href="documentation/table_objects.html#examples">Examples</a></li>
 </ul>
@@ -132,48 +118,48 @@
 <li class="toctree-l1"><a class="reference internal" href="BIOM_LICENSE.html">The BIOM Format License</a></li>
 </ul>
 </div>
-</div>
-<div class="section" id="biom-version">
-<h1>BIOM version<a class="headerlink" href="#biom-version" title="Permalink to this headline">¶</a></h1>
-<p>The latest official version of the biom-format project is 2.1.14 and of the BIOM file format is 2.0. Details on the <a class="reference external" href="./documentation/biom_format.html">file format can be found here</a>.</p>
-</div>
-<div class="section" id="installing-the-biom-format-python-package">
-<h1>Installing the <tt class="docutils literal"><span class="pre">biom-format</span></tt> Python package<a class="headerlink" href="#installing-the-biom-format-python-package" title="Permalink to this headline">¶</a></h1>
-<p>To install the latest release of the <tt class="docutils literal"><span class="pre">biom-format</span></tt> Python package:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>pip install numpy
-pip install biom-format
+</section>
+<section id="biom-version">
+<h1>BIOM version<a class="headerlink" href="#biom-version" title="Permalink to this heading">¶</a></h1>
+<p>The latest official version of the biom-format project is 2.1.15 and of the BIOM file format is 2.1. Details on the <a class="reference external" href="./documentation/biom_format.html">file format can be found here</a>.</p>
+</section>
+<section id="installing-the-biom-format-python-package">
+<h1>Installing the <code class="docutils literal notranslate"><span class="pre">biom-format</span></code> Python package<a class="headerlink" href="#installing-the-biom-format-python-package" title="Permalink to this heading">¶</a></h1>
+<p>To install the latest release of the <code class="docutils literal notranslate"><span class="pre">biom-format</span></code> Python package:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">numpy</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="n">biom</span><span class="o">-</span><span class="nb">format</span>
 </pre></div>
 </div>
 <p>To work with BIOM 2.0+ files:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>pip install h5py
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">h5py</span>
 </pre></div>
 </div>
-<p>To see a list of all <tt class="docutils literal"><span class="pre">biom</span></tt> commands, run:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="n">biom</span>
+<p>To see a list of all <code class="docutils literal notranslate"><span class="pre">biom</span></code> commands, run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span>
 </pre></div>
 </div>
-<p>To enable Bash tab completion of <tt class="docutils literal"><span class="pre">biom</span></tt> commands, add the following line to <tt class="docutils literal"><span class="pre">$HOME/.bashrc</span></tt> (if on Linux) or <tt class="docutils literal"><span class="pre">$HOME/.bash_profile</span></tt> (if on Mac OS X):</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>eval &quot;$(_BIOM_COMPLETE=source biom)&quot;
+<p>To enable Bash tab completion of <code class="docutils literal notranslate"><span class="pre">biom</span></code> commands, add the following line to <code class="docutils literal notranslate"><span class="pre">$HOME/.bashrc</span></code> (if on Linux) or <code class="docutils literal notranslate"><span class="pre">$HOME/.bash_profile</span></code> (if on Mac OS X):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">eval</span> <span class="s2">&quot;$(_BIOM_COMPLETE=source biom)&quot;</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="citing-the-biom-project">
-<h1>Citing the BIOM project<a class="headerlink" href="#citing-the-biom-project" title="Permalink to this headline">¶</a></h1>
+</section>
+<section id="citing-the-biom-project">
+<h1>Citing the BIOM project<a class="headerlink" href="#citing-the-biom-project" title="Permalink to this heading">¶</a></h1>
 <p>You can cite the BIOM format as follows (<a class="reference external" href="https://academic.oup.com/gigascience/article/1/1/2047-217X-1-7/2656152">link</a>):</p>
 <div class="line-block">
 <div class="line">The Biological Observation Matrix (BIOM) format or: how I learned to stop worrying and love the ome-ome.</div>
 <div class="line">Daniel McDonald, Jose C. Clemente, Justin Kuczynski, Jai Ram Rideout, Jesse Stombaugh, Doug Wendel, Andreas Wilke, Susan Huse, John Hufnagle, Folker Meyer, Rob Knight, and J. Gregory Caporaso.</div>
 <div class="line">GigaScience 2012, 1:7. doi:10.1186/2047-217X-1-7</div>
 </div>
-</div>
-<div class="section" id="development-team">
-<h1>Development team<a class="headerlink" href="#development-team" title="Permalink to this headline">¶</a></h1>
-<p>The biom-format project was conceived of and developed by the <a class="reference external" href="http://www.qiime.org">QIIME</a>, <a class="reference external" href="https://www.mg-rast.org/">MG-RAST</a>, and <a class="reference external" href="https://vamps2.mbl.edu/">VAMPS</a> development groups to support interoperability of our software packages. If you have questions about the biom-format project please post them on the <a class="reference external" href="http://forum.qiime.org">QIIME Forum</a>.</p>
-</div>
+</section>
+<section id="development-team">
+<h1>Development team<a class="headerlink" href="#development-team" title="Permalink to this heading">¶</a></h1>
+<p>The biom-format project was conceived of and developed by the <a class="reference external" href="http://www.qiime.org">QIIME</a>, <a class="reference external" href="http://metagenomics.anl.gov">MG-RAST</a>, and <a class="reference external" href="http://vamps.mbl.edu/">VAMPS</a> development groups to support interoperability of our software packages. If you have questions about the biom-format project please post them on the <a class="reference external" href="http://forum.qiime.org">QIIME Forum</a>.</p>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         <a class="uplink" href="#">Contents</a>
@@ -184,10 +170,10 @@ pip install biom-format
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

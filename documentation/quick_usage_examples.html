@@ -1,46 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Quick start &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../index.html" />
-    <link rel="up" title="BIOM Documentation" href="index.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Quick start &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/haiku.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="biom.load_table" href="generated/biom.load_table.html" />
     <link rel="prev" title="The biom file format: Version 2.1" href="format_versions/biom-2.1.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>Quick start</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="format_versions/biom-2.1.html">The biom file format: Version 2.1</a>
@@ -51,31 +37,27 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <span class="target" id="module-biom"></span><div class="section" id="quick-start">
-<h1>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this headline">¶</a></h1>
+  <span class="target" id="module-biom"></span><section id="quick-start">
+<h1>Quick start<a class="headerlink" href="#quick-start" title="Permalink to this heading">¶</a></h1>
 <p>BIOM has an example table and two methods for reading in <cite>Table</cite> objects that
 are immediately available at the package level.</p>
-<div class="section" id="functions">
-<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this headline">¶</a></h2>
-<table border="1" class="longtable docutils">
-<colgroup>
-<col width="10%" />
-<col width="90%" />
-</colgroup>
-<tbody valign="top">
-<tr class="row-odd"><td><a class="reference internal" href="generated/biom.load_table.html#biom.load_table" title="biom.load_table"><tt class="xref py py-obj docutils literal"><span class="pre">load_table</span></tt></a>(f)</td>
-<td>Load a <cite>Table</cite> from a path</td>
+<section id="functions">
+<h2>Functions<a class="headerlink" href="#functions" title="Permalink to this heading">¶</a></h2>
+<table class="autosummary longtable docutils align-default">
+<tbody>
+<tr class="row-odd"><td><p><a class="reference internal" href="generated/biom.load_table.html#biom.load_table" title="biom.load_table"><code class="xref py py-obj docutils literal notranslate"><span class="pre">load_table</span></code></a>(f)</p></td>
+<td><p>Load a <cite>Table</cite> from a path</p></td>
 </tr>
 </tbody>
 </table>
-</div>
-<div class="section" id="examples">
-<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this heading">¶</a></h2>
 <p>Load an example table:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">example_table</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">example_table</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">example_table</span><span class="p">)</span> 
 <span class="go"># Constructed from biom file</span>
 <span class="go">#OTU ID S1  S2  S3</span>
@@ -84,23 +66,23 @@ are immediately available at the package level.</p>
 </pre></div>
 </div>
 <p>Parse a table from an open file object:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">parse_table</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">parse_table</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;path/to/table.biom&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span> 
 <span class="gp">... </span>    <span class="n">table</span> <span class="o">=</span> <span class="n">parse_table</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>Parse a table from a path. BIOM will attempt to determine if the file is
-either in TSV, HDF5, JSON, gzip&#8217;d JSON or gzip&#8217;d TSV and parse accordingly:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">load_table</span>
+either in TSV, HDF5, JSON, gzip’d JSON or gzip’d TSV and parse accordingly:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom</span> <span class="kn">import</span> <span class="n">load_table</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">table</span> <span class="o">=</span> <span class="n">load_table</span><span class="p">(</span><span class="s1">&#39;path/to/table.biom&#39;</span><span class="p">)</span> 
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="format_versions/biom-2.1.html">The biom file format: Version 2.1</a>
@@ -113,10 +95,10 @@ either in TSV, HDF5, JSON, gzip&#8217;d JSON or gzip&#8217;d TSV and parse accor
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 

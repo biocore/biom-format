@@ -1,46 +1,32 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!DOCTYPE html>
 
-
-<html xmlns="http://www.w3.org/1999/xhtml">
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>Adding sample and observation metadata to biom files &mdash; biom-format.org</title>
-    
-    <link rel="stylesheet" href="../_static/haiku.css" type="text/css" />
-    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../',
-        VERSION:     '2.1.14',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../_static/jquery.js"></script>
-    <script type="text/javascript" src="../_static/underscore.js"></script>
-    <script type="text/javascript" src="../_static/doctools.js"></script>
-    <script type="text/javascript" src="../_static/copybutton.js"></script>
-    <link rel="top" title="biom-format.org" href="../index.html" />
-    <link rel="up" title="BIOM Documentation" href="index.html" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Adding sample and observation metadata to biom files &#8212; biom-format.org</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/haiku.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <script src="../_static/copybutton.js"></script>
+    <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Summarizing BIOM tables" href="summarizing_biom_tables.html" />
     <link rel="prev" title="Converting between file formats" href="biom_conversion.html" /> 
-  </head>
-  <body>
+  </head><body>
   
   <a href="https://github.com/biocore/biom-format"><img
     style="position: absolute; top: 0; right: 0; border: 0;"
     src="https://s3.amazonaws.com/github/ribbons/forkme_right_red_aa0000.png"
     alt="Fork me on GitHub"></a>
 
-      <div class="header"><h1 class="heading"><a href="../index.html">
+      <div class="header" role="banner"><h1 class="heading"><a href="../index.html">
           <span>biom-format.org</span></a></h1>
         <h2 class="heading"><span>Adding sample and observation metadata to biom files</span></h2>
       </div>
-      <div class="topnav">
+      <div class="topnav" role="navigation" aria-label="top navigation">
       
         <p>
         «&#160;&#160;<a href="biom_conversion.html">Converting between file formats</a>
@@ -51,19 +37,19 @@
         </p>
 
       </div>
-      <div class="content">
+      <div class="content" role="main">
         
         
-  <div class="section" id="adding-sample-and-observation-metadata-to-biom-files">
-<span id="adding-metadata"></span><h1>Adding sample and observation metadata to biom files<a class="headerlink" href="#adding-sample-and-observation-metadata-to-biom-files" title="Permalink to this headline">¶</a></h1>
-<p>Frequently you&#8217;ll have an existing BIOM file and want to add sample and/or observation metadata to it. For samples, metadata is frequently environmental or technical details about your samples: the subject that a sample was collected from, the pH of the sample, the PCR primers used to amplify DNA from the samples, etc. For observations, metadata is frequently a categorization of the observation: the taxonomy of an OTU, or the EC hierarchy of a gene. You can use the <tt class="docutils literal"><span class="pre">biom</span> <span class="pre">add-metadata</span></tt> command to add this information to an existing BIOM file.</p>
-<p>To get help with <tt class="docutils literal"><span class="pre">add-metadata</span></tt> you can call:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom add-metadata -h
+  <section id="adding-sample-and-observation-metadata-to-biom-files">
+<span id="adding-metadata"></span><h1>Adding sample and observation metadata to biom files<a class="headerlink" href="#adding-sample-and-observation-metadata-to-biom-files" title="Permalink to this heading">¶</a></h1>
+<p>Frequently you’ll have an existing BIOM file and want to add sample and/or observation metadata to it. For samples, metadata is frequently environmental or technical details about your samples: the subject that a sample was collected from, the pH of the sample, the PCR primers used to amplify DNA from the samples, etc. For observations, metadata is frequently a categorization of the observation: the taxonomy of an OTU, or the EC hierarchy of a gene. You can use the <code class="docutils literal notranslate"><span class="pre">biom</span> <span class="pre">add-metadata</span></code> command to add this information to an existing BIOM file.</p>
+<p>To get help with <code class="docutils literal notranslate"><span class="pre">add-metadata</span></code> you can call:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">add</span><span class="o">-</span><span class="n">metadata</span> <span class="o">-</span><span class="n">h</span>
 </pre></div>
 </div>
-<p>This command takes a BIOM file, and corresponding sample and/or observation mapping files. The following examples are used in the commands below. You can find these files in the <tt class="docutils literal"><span class="pre">biom-format/examples</span></tt> directory.</p>
+<p>This command takes a BIOM file, and corresponding sample and/or observation mapping files. The following examples are used in the commands below. You can find these files in the <code class="docutils literal notranslate"><span class="pre">biom-format/examples</span></code> directory.</p>
 <p>Your BIOM file might look like the following:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="p">:</span><span class="n">null</span><span class="p">,</span>
     <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="s2">&quot;1.0.0&quot;</span><span class="p">,</span>
     <span class="s2">&quot;format_url&quot;</span><span class="p">:</span> <span class="s2">&quot;http://biom-format.org&quot;</span><span class="p">,</span>
@@ -108,45 +94,45 @@
 </pre></div>
 </div>
 <p>A sample metadata mapping file could then look like the following. Notice that there is an extra sample in here with respect to the above BIOM table. Any samples in the mapping file that are not in the BIOM file are ignored.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>#SampleID       BarcodeSequence DOB
-# Some optional
-# comment lines...
-Sample1 AGCACGAGCCTA    20060805
-Sample2 AACTCGTCGATG    20060216
-Sample3 ACAGACCACTCA    20060109
-Sample4 ACCAGCGACTAG    20070530
-Sample5 AGCAGCACTTGT    20070101
-Sample6 AGCAGCACAACT    20070716
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#SampleID       BarcodeSequence DOB</span>
+<span class="c1"># Some optional</span>
+<span class="c1"># comment lines...</span>
+<span class="n">Sample1</span> <span class="n">AGCACGAGCCTA</span>    <span class="mi">20060805</span>
+<span class="n">Sample2</span> <span class="n">AACTCGTCGATG</span>    <span class="mi">20060216</span>
+<span class="n">Sample3</span> <span class="n">ACAGACCACTCA</span>    <span class="mi">20060109</span>
+<span class="n">Sample4</span> <span class="n">ACCAGCGACTAG</span>    <span class="mi">20070530</span>
+<span class="n">Sample5</span> <span class="n">AGCAGCACTTGT</span>    <span class="mi">20070101</span>
+<span class="n">Sample6</span> <span class="n">AGCAGCACAACT</span>    <span class="mi">20070716</span>
 </pre></div>
 </div>
 <p>An observation metadata mapping file might look like the following. Notice that there is an extra observation in here with respect to the above BIOM table. Any observations in the mapping file that are not in the BIOM file are ignored.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>#OTUID  taxonomy        confidence
-# Some optional
-# comment lines
-GG_OTU_0        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__       0.980
-GG_OTU_1        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        0.665
-GG_OTU_2        Root;k__Bacteria        0.980
-GG_OTU_3        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        1.000
-GG_OTU_4        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        0.842
-GG_OTU_5        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        1.000
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1">#OTUID  taxonomy        confidence</span>
+<span class="c1"># Some optional</span>
+<span class="c1"># comment lines</span>
+<span class="n">GG_OTU_0</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span><span class="p">;</span><span class="n">p__Firmicutes</span><span class="p">;</span><span class="n">c__Clostridia</span><span class="p">;</span><span class="n">o__Clostridiales</span><span class="p">;</span><span class="n">f__</span>       <span class="mf">0.980</span>
+<span class="n">GG_OTU_1</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span><span class="p">;</span><span class="n">p__Firmicutes</span><span class="p">;</span><span class="n">c__Clostridia</span><span class="p">;</span><span class="n">o__Clostridiales</span><span class="p">;</span><span class="n">f__Lachnospiraceae</span>        <span class="mf">0.665</span>
+<span class="n">GG_OTU_2</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span>        <span class="mf">0.980</span>
+<span class="n">GG_OTU_3</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span><span class="p">;</span><span class="n">p__Firmicutes</span><span class="p">;</span><span class="n">c__Clostridia</span><span class="p">;</span><span class="n">o__Clostridiales</span><span class="p">;</span><span class="n">f__Lachnospiraceae</span>        <span class="mf">1.000</span>
+<span class="n">GG_OTU_4</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span><span class="p">;</span><span class="n">p__Firmicutes</span><span class="p">;</span><span class="n">c__Clostridia</span><span class="p">;</span><span class="n">o__Clostridiales</span><span class="p">;</span><span class="n">f__Lachnospiraceae</span>        <span class="mf">0.842</span>
+<span class="n">GG_OTU_5</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span><span class="p">;</span><span class="n">p__Firmicutes</span><span class="p">;</span><span class="n">c__Clostridia</span><span class="p">;</span><span class="n">o__Clostridiales</span><span class="p">;</span><span class="n">f__Lachnospiraceae</span>        <span class="mf">1.000</span>
 </pre></div>
 </div>
-<div class="section" id="id1">
-<h2>Adding metadata<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<section id="id1">
+<h2>Adding metadata<a class="headerlink" href="#id1" title="Permalink to this heading">¶</a></h2>
 <p>To add sample metadata to a BIOM file, you can run the following:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom add-metadata -i min_sparse_otu_table.biom -o table.w_smd.biom --sample-metadata-fp sam_md.txt
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">add</span><span class="o">-</span><span class="n">metadata</span> <span class="o">-</span><span class="n">i</span> <span class="n">min_sparse_otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">w_smd</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">sample</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="n">fp</span> <span class="n">sam_md</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>To add observation metadata to a BIOM file, you can run the following:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">add</span><span class="o">-</span><span class="n">metadata</span> <span class="o">-</span><span class="n">i</span> <span class="n">min_sparse_otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">w_omd</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">observation</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="n">fp</span> <span class="n">obs_md</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>You can also combine these in a single command to add both observation and sample metadata:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom add-metadata -i min_sparse_otu_table.biom -o table.w_md.biom --observation-metadata-fp obs_md.txt --sample-metadata-fp sam_md.txt
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">add</span><span class="o">-</span><span class="n">metadata</span> <span class="o">-</span><span class="n">i</span> <span class="n">min_sparse_otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">w_md</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">observation</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="n">fp</span> <span class="n">obs_md</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">sample</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="n">fp</span> <span class="n">sam_md</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>In the last case, the resulting BIOM file will look like the following:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;columns&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;Sample1&quot;</span><span class="p">,</span>
@@ -257,16 +243,16 @@ GG_OTU_5        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f_
 <span class="p">}</span>
 </pre></div>
 </div>
-</div>
-<div class="section" id="processing-metadata-while-adding">
-<h2>Processing metadata while adding<a class="headerlink" href="#processing-metadata-while-adding" title="Permalink to this headline">¶</a></h2>
+</section>
+<section id="processing-metadata-while-adding">
+<h2>Processing metadata while adding<a class="headerlink" href="#processing-metadata-while-adding" title="Permalink to this heading">¶</a></h2>
 <p>There are some additional parameters you can pass to this command for more complex processing.</p>
-<p>You can tell the command to process certain metadata column values as integers (<tt class="docutils literal"><span class="pre">--int-fields</span></tt>), floating point (i.e., decimal or real) numbers (<tt class="docutils literal"><span class="pre">--float-fields</span></tt>), or as hierarchical semicolon-delimited data (<tt class="docutils literal"><span class="pre">--sc-separated</span></tt>).</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom add-metadata -i min_sparse_otu_table.biom -o table.w_md.biom --observation-metadata-fp obs_md.txt --sample-metadata-fp sam_md.txt --int-fields DOB --sc-separated taxonomy --float-fields confidence
+<p>You can tell the command to process certain metadata column values as integers (<code class="docutils literal notranslate"><span class="pre">--int-fields</span></code>), floating point (i.e., decimal or real) numbers (<code class="docutils literal notranslate"><span class="pre">--float-fields</span></code>), or as hierarchical semicolon-delimited data (<code class="docutils literal notranslate"><span class="pre">--sc-separated</span></code>).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">add</span><span class="o">-</span><span class="n">metadata</span> <span class="o">-</span><span class="n">i</span> <span class="n">min_sparse_otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">w_md</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">observation</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="n">fp</span> <span class="n">obs_md</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">sample</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="n">fp</span> <span class="n">sam_md</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="nb">int</span><span class="o">-</span><span class="n">fields</span> <span class="n">DOB</span> <span class="o">--</span><span class="n">sc</span><span class="o">-</span><span class="n">separated</span> <span class="n">taxonomy</span> <span class="o">--</span><span class="nb">float</span><span class="o">-</span><span class="n">fields</span> <span class="n">confidence</span>
 </pre></div>
 </div>
-<p>Here your resulting BIOM file will look like the following, where <tt class="docutils literal"><span class="pre">DOB</span></tt> values are now integers (compare to the above: they&#8217;re not quoted now), <tt class="docutils literal"><span class="pre">confidence</span></tt> values are now floating point numbers (again, not quoted now), and <tt class="docutils literal"><span class="pre">taxonomy</span></tt> values are now lists where each entry is a taxonomy level, opposed to above where they appear as a single semi-colon-separated string.</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="p">{</span>
+<p>Here your resulting BIOM file will look like the following, where <code class="docutils literal notranslate"><span class="pre">DOB</span></code> values are now integers (compare to the above: they’re not quoted now), <code class="docutils literal notranslate"><span class="pre">confidence</span></code> values are now floating point numbers (again, not quoted now), and <code class="docutils literal notranslate"><span class="pre">taxonomy</span></code> values are now lists where each entry is a taxonomy level, opposed to above where they appear as a single semi-colon-separated string.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
     <span class="s2">&quot;columns&quot;</span><span class="p">:</span> <span class="p">[</span>
         <span class="p">{</span>
             <span class="s2">&quot;id&quot;</span><span class="p">:</span> <span class="s2">&quot;Sample1&quot;</span><span class="p">,</span>
@@ -377,37 +363,37 @@ GG_OTU_5        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f_
 <span class="p">}</span>
 </pre></div>
 </div>
-<p>If you have multiple fields that you&#8217;d like processed in one of these ways, you can pass a comma-separated list of field names (e.g., <tt class="docutils literal"><span class="pre">--float-fields</span> <span class="pre">confidence,pH</span></tt>).</p>
-</div>
-<div class="section" id="renaming-or-naming-metadata-columns-while-adding">
-<h2>Renaming (or naming) metadata columns while adding<a class="headerlink" href="#renaming-or-naming-metadata-columns-while-adding" title="Permalink to this headline">¶</a></h2>
-<p>You can also override the names of the metadata fields provided in the mapping files with the <tt class="docutils literal"><span class="pre">--observation-header</span></tt> and <tt class="docutils literal"><span class="pre">--sample-header</span></tt> parameters. This is useful if you want to rename metadata columns, or if metadata column headers aren&#8217;t present in your metadata mapping file. If you pass either of these parameters, you must name all columns in order. If there are more columns in the metadata mapping file then there are headers, extra columns will be ignored (so this is also a useful way to select only the first n columns from your mapping file). For example, if you want to rename the <tt class="docutils literal"><span class="pre">DOB</span></tt> column in the sample metadata mapping you could do the following:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom add-metadata -i min_sparse_otu_table.biom -o table.w_smd.biom --sample-metadata-fp sam_md.txt --sample-header SampleID,BarcodeSequence,DateOfBirth
+<p>If you have multiple fields that you’d like processed in one of these ways, you can pass a comma-separated list of field names (e.g., <code class="docutils literal notranslate"><span class="pre">--float-fields</span> <span class="pre">confidence,pH</span></code>).</p>
+</section>
+<section id="renaming-or-naming-metadata-columns-while-adding">
+<h2>Renaming (or naming) metadata columns while adding<a class="headerlink" href="#renaming-or-naming-metadata-columns-while-adding" title="Permalink to this heading">¶</a></h2>
+<p>You can also override the names of the metadata fields provided in the mapping files with the <code class="docutils literal notranslate"><span class="pre">--observation-header</span></code> and <code class="docutils literal notranslate"><span class="pre">--sample-header</span></code> parameters. This is useful if you want to rename metadata columns, or if metadata column headers aren’t present in your metadata mapping file. If you pass either of these parameters, you must name all columns in order. If there are more columns in the metadata mapping file then there are headers, extra columns will be ignored (so this is also a useful way to select only the first n columns from your mapping file). For example, if you want to rename the <code class="docutils literal notranslate"><span class="pre">DOB</span></code> column in the sample metadata mapping you could do the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">add</span><span class="o">-</span><span class="n">metadata</span> <span class="o">-</span><span class="n">i</span> <span class="n">min_sparse_otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">w_smd</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">sample</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="n">fp</span> <span class="n">sam_md</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">sample</span><span class="o">-</span><span class="n">header</span> <span class="n">SampleID</span><span class="p">,</span><span class="n">BarcodeSequence</span><span class="p">,</span><span class="n">DateOfBirth</span>
 </pre></div>
 </div>
 <p>If you have a mapping file without headers such as the following:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>GG_OTU_0        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__       0.980
-GG_OTU_1        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        0.665
-GG_OTU_2        Root;k__Bacteria        0.980
-GG_OTU_3        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        1.000
-GG_OTU_4        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        0.842
-GG_OTU_5        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f__Lachnospiraceae        1.000
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">GG_OTU_0</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span><span class="p">;</span><span class="n">p__Firmicutes</span><span class="p">;</span><span class="n">c__Clostridia</span><span class="p">;</span><span class="n">o__Clostridiales</span><span class="p">;</span><span class="n">f__</span>       <span class="mf">0.980</span>
+<span class="n">GG_OTU_1</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span><span class="p">;</span><span class="n">p__Firmicutes</span><span class="p">;</span><span class="n">c__Clostridia</span><span class="p">;</span><span class="n">o__Clostridiales</span><span class="p">;</span><span class="n">f__Lachnospiraceae</span>        <span class="mf">0.665</span>
+<span class="n">GG_OTU_2</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span>        <span class="mf">0.980</span>
+<span class="n">GG_OTU_3</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span><span class="p">;</span><span class="n">p__Firmicutes</span><span class="p">;</span><span class="n">c__Clostridia</span><span class="p">;</span><span class="n">o__Clostridiales</span><span class="p">;</span><span class="n">f__Lachnospiraceae</span>        <span class="mf">1.000</span>
+<span class="n">GG_OTU_4</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span><span class="p">;</span><span class="n">p__Firmicutes</span><span class="p">;</span><span class="n">c__Clostridia</span><span class="p">;</span><span class="n">o__Clostridiales</span><span class="p">;</span><span class="n">f__Lachnospiraceae</span>        <span class="mf">0.842</span>
+<span class="n">GG_OTU_5</span>        <span class="n">Root</span><span class="p">;</span><span class="n">k__Bacteria</span><span class="p">;</span><span class="n">p__Firmicutes</span><span class="p">;</span><span class="n">c__Clostridia</span><span class="p">;</span><span class="n">o__Clostridiales</span><span class="p">;</span><span class="n">f__Lachnospiraceae</span>        <span class="mf">1.000</span>
 </pre></div>
 </div>
 <p>you could name these while adding them as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt --observation-header OTUID,taxonomy,confidence
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">add</span><span class="o">-</span><span class="n">metadata</span> <span class="o">-</span><span class="n">i</span> <span class="n">min_sparse_otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">w_omd</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">observation</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="n">fp</span> <span class="n">obs_md</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">observation</span><span class="o">-</span><span class="n">header</span> <span class="n">OTUID</span><span class="p">,</span><span class="n">taxonomy</span><span class="p">,</span><span class="n">confidence</span>
 </pre></div>
 </div>
-<p>As a variation on the last command, if you only want to include the <tt class="docutils literal"><span class="pre">taxonomy</span></tt> column and exclude the <tt class="docutils literal"><span class="pre">confidence</span></tt> column, you could run:</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span>biom add-metadata -i min_sparse_otu_table.biom -o table.w_omd.biom --observation-metadata-fp obs_md.txt --observation-header OTUID,taxonomy --sc-separated taxonomy
+<p>As a variation on the last command, if you only want to include the <code class="docutils literal notranslate"><span class="pre">taxonomy</span></code> column and exclude the <code class="docutils literal notranslate"><span class="pre">confidence</span></code> column, you could run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">biom</span> <span class="n">add</span><span class="o">-</span><span class="n">metadata</span> <span class="o">-</span><span class="n">i</span> <span class="n">min_sparse_otu_table</span><span class="o">.</span><span class="n">biom</span> <span class="o">-</span><span class="n">o</span> <span class="n">table</span><span class="o">.</span><span class="n">w_omd</span><span class="o">.</span><span class="n">biom</span> <span class="o">--</span><span class="n">observation</span><span class="o">-</span><span class="n">metadata</span><span class="o">-</span><span class="n">fp</span> <span class="n">obs_md</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">observation</span><span class="o">-</span><span class="n">header</span> <span class="n">OTUID</span><span class="p">,</span><span class="n">taxonomy</span> <span class="o">--</span><span class="n">sc</span><span class="o">-</span><span class="n">separated</span> <span class="n">taxonomy</span>
 </pre></div>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
       </div>
-      <div class="bottomnav">
+      <div class="bottomnav" role="navigation" aria-label="bottom navigation">
       
         <p>
         «&#160;&#160;<a href="biom_conversion.html">Converting between file formats</a>
@@ -420,10 +406,10 @@ GG_OTU_5        Root;k__Bacteria;p__Firmicutes;c__Clostridia;o__Clostridiales;f_
       </div>
 
 
-    <div class="footer">
-        &copy; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on Jan 03, 2023.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 2011-2022 The BIOM Format Development Team.
+      Last updated on May 10, 2023.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
     </div>
 <script type="text/javascript">
 
