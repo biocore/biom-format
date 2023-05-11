@@ -3653,34 +3653,60 @@ class Table:
         feature_order = [k for k, v in sorted(feature_map.items(), key=get1)]
         sample_order = [k for k, v in sorted(sample_map.items(), key=get1)]
 
+        # construct a dynamic, jagged, sparse matrix to store data values.
+        # this will become csr_matrix.data
+        # the shape of the structures will become csr_matrix.indptr
         mat = [list() for _ in range(len(feature_order))]
+
+        # construct a dynamic, jagged, sparse matrix to store index positions
+        # this will become csr_matrix.indices
         mat_contains = [list() for _ in range(len(feature_order))]
 
         for table in tables:
             table_samples = {idx: sample_map[i]
                              for idx, i in enumerate(table.ids())}
+
             for vec, i, _ in table.iter(axis='observation', dense=False):
+                # for feature, grab the corresponding row values, and the
+                # samples contained in the row
                 row = mat[feature_map[i]]
                 row_contains = mat_contains[feature_map[i]]
 
                 for samp_idx, value in zip(vec.indices, vec.data):
+                    # for each sample, determine the position of that sample
+                    # in the row.
                     col = table_samples[samp_idx]
                     pos = bisect.bisect_left(row_contains, col)
 
                     if len(row_contains) == 0 or (row_contains[-1] < col):
+                        # if the row is empty, or the sample position is
+                        # greater than what is already represented, it means
+                        # we need to add a new column
                         row.append(value)
                         row_contains.append(col)
                     elif row_contains[pos] == col:
+                        # if the sample position is equal to our column, this
+                        # means the column already is present so let's
+                        # increment the value
                         row[pos] += value
                     else:
+                        # otherwise, we have sample that is intermediate
+                        # between other samples already present (or < any
+                        # sample present), so we insert a new column at the
+                        # appropriate position. these insertions ensure
+                        # that row_contains remains sorted as the pos is baeed
+                        # on the bisection.
                         row.insert(pos, value)
                         row_contains.insert(pos, col)
 
+        # indptr is the cumsum of the number of entries per row
         indptr = np.empty(len(mat) + 1, dtype=np.int32)
         indptr[0] = 0
         indptr[1:] = np.array([len(r) for r in mat], np.int32)
         indptr = indptr.cumsum()
 
+        # we already have indices and data, we just need to smash them
+        # all together
         indices = np.hstack(mat_contains).astype(np.int32)
         data = np.hstack(mat)
 
