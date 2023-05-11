@@ -193,6 +193,7 @@ from biom.util import (get_biom_format_version_string,
                        prefer_self, index_list, H5PY_VLEN_STR,
                        __format_version__)
 from biom.err import errcheck
+import bisect
 from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
@@ -3652,40 +3653,41 @@ class Table:
         feature_order = [k for k, v in sorted(feature_map.items(), key=get1)]
         sample_order = [k for k, v in sorted(sample_map.items(), key=get1)]
 
-        mi = []
-        values = []
+        mat = [list() for _ in range(len(feature_order))]
+        mat_contains = [list() for _ in range(len(feature_order))]
+
         for table in tables:
-            # these data are effectively [((row_index, col_index), value), ]
-            data_as_dok = table.matrix_data.todok()
-
-            # construct a map of the feature integer index to what it is in
-            # the full table
-            feat_ids = table.ids(axis='observation')
-            samp_ids = table.ids()
-            table_features = {idx: feature_map[i]
-                              for idx, i in enumerate(feat_ids)}
             table_samples = {idx: sample_map[i]
-                             for idx, i in enumerate(samp_ids)}
+                             for idx, i in enumerate(table.ids())}
+            for vec, i, _ in table.iter(axis='observation', dense=False):
+                row = mat[feature_map[i]]
+                row_contains = mat_contains[feature_map[i]]
 
-            for (f, s), v in data_as_dok.items():
-                # collect the indices and values, adjusting the indices as we
-                # go
-                mi.append((table_features[f], table_samples[s]))
-                values.append(v)
+                for samp_idx, value in zip(vec.indices, vec.data):
+                    col = table_samples[samp_idx]
+                    pos = bisect.bisect_left(row_contains, col)
 
-        # construct a multiindex of the indices where the outer index is the
-        # feature and the inner index is the sample
-        mi = pd.MultiIndex.from_tuples(mi)
-        grouped = pd.Series(values, index=mi)
+                    if len(row_contains) == 0 or (row_contains[-1] < col):
+                        row.append(value)
+                        row_contains.append(col)
+                    elif row_contains[pos] == col:
+                        row[pos] += value
+                    else:
+                        row.insert(pos, value)
+                        row_contains.insert(pos, col)
 
-        # aggregate the values where the outer and inner values in the
-        # multiindex are the same
-        collapsed_rcv = grouped.groupby(level=[0, 1]).sum()
+        indptr = np.empty(len(mat) + 1, dtype=np.int32)
+        indptr[0] = 0
+        indptr[1:] = np.array([len(r) for r in mat], np.int32)
+        indptr = indptr.cumsum()
 
-        # convert into a representation understood by the Table constructor
-        list_list = [[r, c, v] for (r, c), v in collapsed_rcv.items()]
+        indices = np.hstack(mat_contains).astype(np.int32)
+        data = np.hstack(mat)
 
-        return self.__class__(list_list, feature_order, sample_order)
+        shape = (len(feature_order), len(sample_order))
+        csrmat = csr_matrix((data, indices, indptr), shape=shape)
+
+        return self.__class__(csrmat, feature_order, sample_order)
 
     def merge(self, other, sample='union', observation='union',
               sample_metadata_f=prefer_self,
