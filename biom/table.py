@@ -178,7 +178,7 @@ from copy import deepcopy
 from datetime import datetime
 from json import dumps as _json_dumps, JSONEncoder
 from functools import reduce, partial
-from operator import itemgetter, or_
+from operator import itemgetter
 from collections import defaultdict
 from collections.abc import Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
@@ -3638,54 +3638,57 @@ class Table:
         tables = [self] + others
 
         # gather all identifiers across tables
-        all_features = reduce(or_, [set(t.ids(axis='observation'))
-                                    for t in tables])
-        all_samples = reduce(or_, [set(t.ids()) for t in tables])
+        all_features = set(np.hstack([t.ids(axis='observation')
+                                      for t in tables]))
+        all_samples = set(np.hstack([t.ids() for t in tables]))
+
+        # produce a new stable order
+        feature_order = sorted(all_features)
+        sample_order = sorted(all_samples)
 
         # generate unique integer ids for the identifiers, and let's order
         # it to be polite
-        feature_map = {i: idx for idx, i in enumerate(sorted(all_features))}
-        sample_map = {i: idx for idx, i in enumerate(sorted(all_samples))}
+        feature_map = {i: idx for idx, i in enumerate(feature_order)}
+        sample_map = {i: idx for idx, i in enumerate(sample_order)}
 
-        # produce a new stable order
-        get1 = lambda x: x[1]  # noqa
-        feature_order = [k for k, v in sorted(feature_map.items(), key=get1)]
-        sample_order = [k for k, v in sorted(sample_map.items(), key=get1)]
+        ntuples = sum([t.nnz for t in tables])
 
-        mi = []
-        values = []
+        # we're going to aggregate in COO. per scipy, it is efficient for
+        # construction of large matrices. importantly, it allows for
+        # duplicates which in this case correspond to multiple values for
+        # the same sample/feature across tables. the duplicates are summed
+        # implicitly on conversion to csr/csc.
+        rows = np.empty(ntuples, dtype=np.int32)
+        cols = np.empty(ntuples, dtype=np.int32)
+        data = np.empty(ntuples, dtype=self.matrix_data.dtype)
+
+        offset = 0
         for table in tables:
-            # these data are effectively [((row_index, col_index), value), ]
-            data_as_dok = table.matrix_data.todok()
+            t_nnz = table.nnz
 
-            # construct a map of the feature integer index to what it is in
-            # the full table
-            feat_ids = table.ids(axis='observation')
-            samp_ids = table.ids()
-            table_features = {idx: feature_map[i]
-                              for idx, i in enumerate(feat_ids)}
-            table_samples = {idx: sample_map[i]
-                             for idx, i in enumerate(samp_ids)}
+            coo = table.matrix_data.tocoo()
 
-            for (f, s), v in data_as_dok.items():
-                # collect the indices and values, adjusting the indices as we
-                # go
-                mi.append((table_features[f], table_samples[s]))
-                values.append(v)
+            # we need to map the index positions in the current table to the
+            # index positions in the full matrix
+            row_map = np.array([feature_map[i]
+                                for i in table.ids(axis='observation')],
+                               dtype=np.int32)
+            col_map = np.array([sample_map[i]
+                                for i in table.ids()],
+                               dtype=np.int32)
+            coo.row = row_map[coo.row]
+            coo.col = col_map[coo.col]
 
-        # construct a multiindex of the indices where the outer index is the
-        # feature and the inner index is the sample
-        mi = pd.MultiIndex.from_tuples(mi)
-        grouped = pd.Series(values, index=mi)
+            # store our coo data
+            rows[offset:offset + t_nnz] = coo.row
+            cols[offset:offset + t_nnz] = coo.col
+            data[offset:offset + t_nnz] = coo.data
+            offset += t_nnz
 
-        # aggregate the values where the outer and inner values in the
-        # multiindex are the same
-        collapsed_rcv = grouped.groupby(level=[0, 1]).sum()
+        coo = coo_matrix((data, (rows, cols)),
+                         shape=(len(feature_order), len(sample_order)))
 
-        # convert into a representation understood by the Table constructor
-        list_list = [[r, c, v] for (r, c), v in collapsed_rcv.items()]
-
-        return self.__class__(list_list, feature_order, sample_order)
+        return self.__class__(coo.tocsr(), feature_order, sample_order)
 
     def merge(self, other, sample='union', observation='union',
               sample_metadata_f=prefer_self,
