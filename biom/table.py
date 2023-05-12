@@ -178,7 +178,7 @@ from copy import deepcopy
 from datetime import datetime
 from json import dumps as _json_dumps, JSONEncoder
 from functools import reduce, partial
-from operator import itemgetter, or_
+from operator import itemgetter
 from collections import defaultdict
 from collections.abc import Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
@@ -193,7 +193,6 @@ from biom.util import (get_biom_format_version_string,
                        prefer_self, index_list, H5PY_VLEN_STR,
                        __format_version__)
 from biom.err import errcheck
-import bisect
 from ._filter import _filter
 from ._transform import _transform
 from ._subsample import _subsample
@@ -3673,10 +3672,10 @@ class Table:
             # index positions in the full matrix
             row_map = np.array([feature_map[i]
                                 for i in table.ids(axis='observation')],
-                                dtype=np.int32)
+                               dtype=np.int32)
             col_map = np.array([sample_map[i]
                                 for i in table.ids()],
-                                dtype=np.int32)
+                               dtype=np.int32)
             coo.row = row_map[coo.row]
             coo.col = col_map[coo.col]
 
