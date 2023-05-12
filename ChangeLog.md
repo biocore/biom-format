@@ -1,6 +1,13 @@
 BIOM-Format ChangeLog
 =====================
 
+biom 2.1.15-dev
+---------------
+
+Performance improvements:
+
+* Revise `Table._fast_merge` to use COO directly. For very large tables, this reduces runtime by ~50x and memory by ~5x. See PR [#913](https://github.com/biocore/biom-format/pull/933).
+
 biom 2.1.15
 -----------
 
