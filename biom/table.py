@@ -3639,81 +3639,57 @@ class Table:
         tables = [self] + others
 
         # gather all identifiers across tables
-        all_features = reduce(or_, [set(t.ids(axis='observation'))
-                                    for t in tables])
-        all_samples = reduce(or_, [set(t.ids()) for t in tables])
+        all_features = set(np.hstack([t.ids(axis='observation')
+                                      for t in tables]))
+        all_samples = set(np.hstack([t.ids() for t in tables]))
+
+        # produce a new stable order
+        feature_order = sorted(all_features)
+        sample_order = sorted(all_samples)
 
         # generate unique integer ids for the identifiers, and let's order
         # it to be polite
-        feature_map = {i: idx for idx, i in enumerate(sorted(all_features))}
-        sample_map = {i: idx for idx, i in enumerate(sorted(all_samples))}
+        feature_map = {i: idx for idx, i in enumerate(feature_order)}
+        sample_map = {i: idx for idx, i in enumerate(sample_order)}
 
-        # produce a new stable order
-        get1 = lambda x: x[1]  # noqa
-        feature_order = [k for k, v in sorted(feature_map.items(), key=get1)]
-        sample_order = [k for k, v in sorted(sample_map.items(), key=get1)]
+        ntuples = sum([t.nnz for t in tables])
 
-        # construct a dynamic, jagged, sparse matrix to store data values.
-        # this will become csr_matrix.data
-        # the shape of the structures will become csr_matrix.indptr
-        mat = [list() for _ in range(len(feature_order))]
+        # we're going to aggregate in COO. per scipy, it is efficient for
+        # construction of large matrices. importantly, it allows for
+        # duplicates which in this case correspond to multiple values for
+        # the same sample/feature across tables. the duplicates are summed
+        # implicitly on conversion to csr/csc.
+        rows = np.empty(ntuples, dtype=np.int32)
+        cols = np.empty(ntuples, dtype=np.int32)
+        data = np.empty(ntuples, dtype=self.matrix_data.dtype)
 
-        # construct a dynamic, jagged, sparse matrix to store index positions
-        # this will become csr_matrix.indices
-        mat_contains = [list() for _ in range(len(feature_order))]
-
+        offset = 0
         for table in tables:
-            table_samples = {idx: sample_map[i]
-                             for idx, i in enumerate(table.ids())}
+            t_nnz = table.nnz
 
-            for vec, i, _ in table.iter(axis='observation', dense=False):
-                # for feature, grab the corresponding row values, and the
-                # samples contained in the row
-                row = mat[feature_map[i]]
-                row_contains = mat_contains[feature_map[i]]
+            coo = table.matrix_data.tocoo()
 
-                for samp_idx, value in zip(vec.indices, vec.data):
-                    # for each sample, determine the position of that sample
-                    # in the row.
-                    col = table_samples[samp_idx]
-                    pos = bisect.bisect_left(row_contains, col)
+            # we need to map the index positions in the current table to the
+            # index positions in the full matrix
+            row_map = np.array([feature_map[i]
+                                for i in table.ids(axis='observation')],
+                                dtype=np.int32)
+            col_map = np.array([sample_map[i]
+                                for i in table.ids()],
+                                dtype=np.int32)
+            coo.row = row_map[coo.row]
+            coo.col = col_map[coo.col]
 
-                    if len(row_contains) == 0 or (row_contains[-1] < col):
-                        # if the row is empty, or the sample position is
-                        # greater than what is already represented, it means
-                        # we need to add a new column
-                        row.append(value)
-                        row_contains.append(col)
-                    elif row_contains[pos] == col:
-                        # if the sample position is equal to our column, this
-                        # means the column already is present so let's
-                        # increment the value
-                        row[pos] += value
-                    else:
-                        # otherwise, we have sample that is intermediate
-                        # between other samples already present (or < any
-                        # sample present), so we insert a new column at the
-                        # appropriate position. these insertions ensure
-                        # that row_contains remains sorted as the pos is baeed
-                        # on the bisection.
-                        row.insert(pos, value)
-                        row_contains.insert(pos, col)
+            # store our coo data
+            rows[offset:offset + t_nnz] = coo.row
+            cols[offset:offset + t_nnz] = coo.col
+            data[offset:offset + t_nnz] = coo.data
+            offset += t_nnz
 
-        # indptr is the cumsum of the number of entries per row
-        indptr = np.empty(len(mat) + 1, dtype=np.int32)
-        indptr[0] = 0
-        indptr[1:] = np.array([len(r) for r in mat], np.int32)
-        indptr = indptr.cumsum()
+        coo = coo_matrix((data, (rows, cols)),
+                         shape=(len(feature_order), len(sample_order)))
 
-        # we already have indices and data, we just need to smash them
-        # all together
-        indices = np.hstack(mat_contains).astype(np.int32)
-        data = np.hstack(mat)
-
-        shape = (len(feature_order), len(sample_order))
-        csrmat = csr_matrix((data, indices, indptr), shape=shape)
-
-        return self.__class__(csrmat, feature_order, sample_order)
+        return self.__class__(coo.tocsr(), feature_order, sample_order)
 
     def merge(self, other, sample='union', observation='union',
               sample_metadata_f=prefer_self,
