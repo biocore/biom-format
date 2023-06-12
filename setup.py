@@ -108,6 +108,7 @@ extensions = [Extension("biom._filter",
                         include_dirs=[np.get_include()]),
               Extension("biom._subsample",
                         ["biom/_subsample" + ext],
+                        extra_compile_args=["-std=c++17"],
                         include_dirs=[np.get_include()])]
 extensions = cythonize(extensions)
 

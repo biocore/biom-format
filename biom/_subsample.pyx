@@ -6,8 +6,18 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
+# distutils: language = c++
+#
 import numpy as np
 cimport numpy as cnp
+
+cdef extern from "_subsample_cpp.cpp":
+    pass
+
+cdef extern from "_subsample_cpp.hpp":
+    cdef cppclass WeightedSample:
+        WeightedSample(unsigned int _max_count, unsigned int _n, unsigned int random_seed)
+        void do_sample(double* data_arr, int start, int end)
 
 def _subsample_with_replacement(arr, n, rng):
     """Subsample non-zero values of a sparse array with replacement
@@ -73,30 +83,32 @@ def _subsample_without_replacement(arr, n, rng):
     cdef:
         cnp.int64_t counts_sum
         cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
-        cnp.ndarray[cnp.int64_t, ndim=1] data_i = arr.data.astype(np.int64)
-        cnp.ndarray[cnp.float64_t, ndim=1] result
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
-        cnp.ndarray[cnp.int32_t, ndim=1] permuted, unpacked, r
-        Py_ssize_t i, length
+        cnp.ndarray[cnp.int32_t, ndim=1] lengths
+        Py_ssize_t i
+        cnp.uint32_t length,max_len
+        cnp.uint32_t cn = n
+        WeightedSample *sample_data
 
+    lengths = np.empty(indptr.shape[0] - 1, dtype=np.int32)
     for i in range(indptr.shape[0] - 1):
         start, end = indptr[i], indptr[i+1]
         length = end - start
+        lengths[i] = length
         counts_sum = data[start:end].sum()
-        
         if counts_sum < n:
-            data[start:end] = 0
+           data[start:end] = 0
+           length = 0 # special value to signal to skip
+        lengths[i] = length
+
+    max_len = lengths.max()
+    
+    sample_data = new WeightedSample(max_len, cn,
+                                     rng.integers(0,2**32, dtype=np.uint32))
+    for i in range(indptr.shape[0] - 1):
+        if lengths[i]==0:
             continue
-
-        r = np.arange(length, dtype=np.int32)
-        unpacked = np.repeat(r, data_i[start:end])
-        permuted = rng.permutation(unpacked)[:n]
-
-        result = np.zeros(length, dtype=np.float64)
-        for idx in range(permuted.shape[0]):
-            result[permuted[idx]] += 1
-
-        data[start:end] = result
+        sample_data.do_sample(&data[0], indptr[i], indptr[i+1])
 
 
 def _subsample(arr, n, with_replacement, rng):
