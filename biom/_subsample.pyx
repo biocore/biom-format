@@ -72,7 +72,7 @@ def _subsample_without_replacement(arr, n, rng):
     """
     cdef:
         cnp.int64_t counts_sum,idx,count_el, perm_count_ela
-        cnp.float64_t count_rem
+        cnp.int64_t count_rem
         cnp.int64_t cn = n
         cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
         cnp.ndarray[cnp.float64_t, ndim=1] result
@@ -97,16 +97,17 @@ def _subsample_without_replacement(arr, n, rng):
         result = np.zeros(length, dtype=np.float64)
         el=0         # index in result/data
         count_el =0  # index in permutted
-        count_rem=0  # since each data has multiple els, sub count there
+        count_rem=data[start]  # since each data has multiple els, sub count there
         for idx in range(cn):
             perm_count_el = permuted[idx]
             # the array is sorted, so just jump ahead
-            for _ in range(perm_count_el-count_el):
-              count_rem += 1
-              if not (count_rem<data[el+start]):
-                  el += 1
-                  count_rem = 0
+            while (perm_count_el-count_el) >= count_rem:
+               count_el += count_rem
+               el += 1
+               count_rem = data[start+el]
+            count_rem -= (perm_count_el-count_el)
             count_el = perm_count_el
+
             result[el] += 1
 
         data[start:end] = result
