@@ -71,14 +71,14 @@ def _subsample_without_replacement(arr, n, rng):
 
     """
     cdef:
-        cnp.int64_t counts_sum, idx, count_el, perm_count_el
+        cnp.int64_t counts_sum, count_el, perm_count_el
         cnp.int64_t count_rem
         cnp.int64_t cn = n
         cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
         cnp.ndarray[cnp.float64_t, ndim=1] result
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
         cnp.ndarray[cnp.int64_t, ndim=1] permuted
-        Py_ssize_t i
+        Py_ssize_t i, idx
         cnp.int32_t length,el
 
     for i in range(indptr.shape[0] - 1):
