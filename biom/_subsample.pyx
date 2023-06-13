@@ -71,7 +71,7 @@ def _subsample_without_replacement(arr, n, rng):
 
     """
     cdef:
-        cnp.int64_t counts_sum, idx, count_el, perm_count_ela
+        cnp.int64_t counts_sum, idx, count_el, perm_count_el
         cnp.int64_t count_rem
         cnp.int64_t cn = n
         cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
