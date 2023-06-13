@@ -90,7 +90,7 @@ def _subsample_without_replacement(arr, n, rng):
             data[start:end] = 0
             continue
 
-        permuted = rng.choice(counts_sum,cn,replace=False,shuffle=False)
+        permuted = rng.choice(counts_sum, cn, replace=False, shuffle=False)
         permuted.sort()
 
         # now need to do reverse mapping
