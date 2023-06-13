@@ -71,30 +71,43 @@ def _subsample_without_replacement(arr, n, rng):
 
     """
     cdef:
-        cnp.int64_t counts_sum
+        cnp.int64_t counts_sum,idx,count_el, perm_count_ela
+        cnp.float64_t count_rem
+        cnp.int64_t cn = n
         cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
-        cnp.ndarray[cnp.int64_t, ndim=1] data_i = arr.data.astype(np.int64)
         cnp.ndarray[cnp.float64_t, ndim=1] result
         cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
-        cnp.ndarray[cnp.int32_t, ndim=1] permuted, unpacked, r
-        Py_ssize_t i, length
+        cnp.ndarray[cnp.int64_t, ndim=1] permuted
+        Py_ssize_t i
+        cnp.int32_t length,el
 
     for i in range(indptr.shape[0] - 1):
         start, end = indptr[i], indptr[i+1]
         length = end - start
         counts_sum = data[start:end].sum()
         
-        if counts_sum < n:
+        if counts_sum < cn:
             data[start:end] = 0
             continue
 
-        r = np.arange(length, dtype=np.int32)
-        unpacked = np.repeat(r, data_i[start:end])
-        permuted = rng.permutation(unpacked)[:n]
+        permuted = rng.choice(counts_sum,cn,replace=False,shuffle=False)
+        permuted.sort()
 
+        # now need to do reverse mapping
         result = np.zeros(length, dtype=np.float64)
-        for idx in range(permuted.shape[0]):
-            result[permuted[idx]] += 1
+        el=0         # index in result/data
+        count_el =0  # index in permutted
+        count_rem=0  # since each data has multiple els, sub count there
+        for idx in range(cn):
+            perm_count_el = permuted[idx]
+            # the array is sorted, so just jump ahead
+            for _ in range(perm_count_el-count_el):
+              count_rem += 1
+              if not (count_rem<data[el+start]):
+                  el += 1
+                  count_rem = 0
+            count_el = perm_count_el
+            result[el] += 1
 
         data[start:end] = result
 
