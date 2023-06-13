@@ -95,9 +95,9 @@ def _subsample_without_replacement(arr, n, rng):
 
         # now need to do reverse mapping
         result = np.zeros(length, dtype=np.float64)
-        el=0         # index in result/data
-        count_el =0  # index in permutted
-        count_rem=data[start]  # since each data has multiple els, sub count there
+        el = 0         # index in result/data
+        count_el = 0  # index in permutted
+        count_rem = data[start]  # since each data has multiple els, sub count there
         for idx in range(cn):
             perm_count_el = permuted[idx]
             # the array is sorted, so just jump ahead
