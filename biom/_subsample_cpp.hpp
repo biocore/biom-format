@@ -15,12 +15,12 @@
 class WeightedSample
   {
   public:
-   WeightedSample(uint32_t _max_count, uint32_t _n, uint32_t random_seed);
+   WeightedSample(uint32_t _max_count, uint64_t _n, uint32_t random_seed);
    void do_sample(double* data_arr, int start, int end);
 
 private:
     uint32_t max_count;
-    uint32_t n;
+    uint64_t n;
     std::mt19937 generator;
 
     // use persistent buffer to minimize allocation costs

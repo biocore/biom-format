@@ -16,7 +16,7 @@ cdef extern from "_subsample_cpp.cpp":
 
 cdef extern from "_subsample_cpp.hpp":
     cdef cppclass WeightedSample:
-        WeightedSample(unsigned int _max_count, unsigned int _n, unsigned int random_seed)
+        WeightedSample(unsigned int _max_count, unsigned long _n, unsigned int random_seed)
         void do_sample(double* data_arr, int start, int end)
 
 def _subsample_with_replacement(arr, n, rng):
@@ -87,7 +87,7 @@ def _subsample_without_replacement(arr, n, rng):
         cnp.ndarray[cnp.int32_t, ndim=1] lengths
         Py_ssize_t i
         cnp.uint32_t length,max_len
-        cnp.uint32_t cn = n
+        cnp.uint64_t cn = n
         WeightedSample *sample_data
 
     lengths = np.empty(indptr.shape[0] - 1, dtype=np.int32)

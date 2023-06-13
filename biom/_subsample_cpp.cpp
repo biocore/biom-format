@@ -78,7 +78,7 @@ class WeightedSampleIterator
 };
 
 
-WeightedSample::WeightedSample(uint32_t _max_count, uint32_t _n, uint32_t random_seed)
+WeightedSample::WeightedSample(uint32_t _max_count, uint64_t _n, uint32_t random_seed)
     : max_count(_max_count)
     , n(_n)
     , generator(random_seed)
@@ -100,7 +100,7 @@ void WeightedSample::do_sample(double* data_base, int start, int end) {
                     sample_out.begin(), n,
                     generator);
 
-        for (uint32_t j=0; j<n; j++) data_out[sample_out[j]]++;
+        for (uint64_t j=0; j<n; j++) data_out[sample_out[j]]++;
 
         for (unsigned int j=0; j<length; j++) data_arr[j] = data_out[j];
 }
