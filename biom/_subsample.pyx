@@ -94,6 +94,12 @@ def _subsample_without_replacement(arr, n, rng):
         permuted.sort()
 
         # now need to do reverse mapping
+        # since I am not using np.repeat anymore
+        # reminder, old logic was
+        #   r = np.arange(length)
+        #   unpacked = np.repeat(r, data_i[start:end])
+        #   permuted_unpacked = rng.choice(unpacked, cn, replace=False, shuffle=False)
+
         result = np.zeros(length, dtype=np.float64)
         el = 0         # index in result/data
         count_el = 0  # index in permutted
