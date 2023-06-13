@@ -101,7 +101,7 @@ def _subsample_without_replacement(arr, n, rng):
         for idx in range(cn):
             perm_count_el = permuted[idx]
             # the array is sorted, so just jump ahead
-            while (perm_count_el-count_el) >= count_rem:
+            while (perm_count_el - count_el) >= count_rem:
                count_el += count_rem
                el += 1
                count_rem = data[start+el]
