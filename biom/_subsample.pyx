@@ -105,7 +105,7 @@ def _subsample_without_replacement(arr, n, rng):
                count_el += count_rem
                el += 1
                count_rem = data[start+el]
-            count_rem -= (perm_count_el-count_el)
+            count_rem -= (perm_count_el - count_el)
             count_el = perm_count_el
 
             result[el] += 1
