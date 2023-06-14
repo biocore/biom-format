@@ -9,13 +9,18 @@
 import numpy as np
 cimport numpy as cnp
 
-def _subsample_with_replacement(arr, n, rng):
+cdef _subsample_with_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
+                                 cnp.ndarray[cnp.int32_t, ndim=1] indptr,
+                                 cnp.int64_t n,
+                                 object rng):
     """Subsample non-zero values of a sparse array with replacement
 
     Parameters
     ----------
-    arr : {csr_matrix, csc_matrix}
-        A 1xM sparse vector
+    data : {csr_matrix, csc_matrix}.data
+        A 1xM sparse vector data
+    indptr : {csr_matrix, csc_matrix}.indptr
+        A 1xM sparse vector indptr
     n : int
         Number of items to subsample from `arr`
     rng : Generator instance
@@ -34,9 +39,9 @@ def _subsample_with_replacement(arr, n, rng):
     """
     cdef:
         cnp.int64_t counts_sum
-        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
-        cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
-        Py_ssize_t i, length
+        cnp.int32_t start,end,length
+        Py_ssize_t i
+        cnp.ndarray[cnp.float64_t, ndim=1] pvals
 
     for i in range(indptr.shape[0] - 1):
         start, end = indptr[i], indptr[i+1]
@@ -47,13 +52,18 @@ def _subsample_with_replacement(arr, n, rng):
         data[start:end] = rng.multinomial(n, pvals)
 
 
-def _subsample_without_replacement(arr, n, rng):
+cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
+                                    cnp.ndarray[cnp.int32_t, ndim=1] indptr,
+                                    cnp.int64_t n,
+                                    object rng):
     """Subsample non-zero values of a sparse array w/out replacement
 
     Parameters
     ----------
-    arr : {csr_matrix, csc_matrix}
-        A 1xM sparse vector
+    data : {csr_matrix, csc_matrix}.data
+        A 1xM sparse vector data
+    indptr : {csr_matrix, csc_matrix}.indptr
+        A 1xM sparse vector indptr
     n : int
         Number of items to subsample from `arr`
     rng : Generator instance
@@ -73,24 +83,21 @@ def _subsample_without_replacement(arr, n, rng):
     cdef:
         cnp.int64_t counts_sum, count_el, perm_count_el
         cnp.int64_t count_rem
-        cnp.int64_t cn = n
-        cnp.ndarray[cnp.float64_t, ndim=1] data = arr.data
         cnp.ndarray[cnp.float64_t, ndim=1] result
-        cnp.ndarray[cnp.int32_t, ndim=1] indptr = arr.indptr
         cnp.ndarray[cnp.int64_t, ndim=1] permuted
         Py_ssize_t i, idx
-        cnp.int32_t length,el
+        cnp.int32_t length,el,start,end
 
     for i in range(indptr.shape[0] - 1):
         start, end = indptr[i], indptr[i+1]
         length = end - start
         counts_sum = data[start:end].sum()
         
-        if counts_sum < cn:
+        if counts_sum < n:
             data[start:end] = 0
             continue
 
-        permuted = rng.choice(counts_sum, cn, replace=False, shuffle=False)
+        permuted = rng.choice(counts_sum, n, replace=False, shuffle=False)
         permuted.sort()
 
         # now need to do reverse mapping
@@ -98,19 +105,19 @@ def _subsample_without_replacement(arr, n, rng):
         # reminder, old logic was
         #   r = np.arange(length)
         #   unpacked = np.repeat(r, data_i[start:end])
-        #   permuted_unpacked = rng.choice(unpacked, cn, replace=False, shuffle=False)
+        #   permuted_unpacked = rng.choice(unpacked, n, replace=False, shuffle=False)
 
         result = np.zeros(length, dtype=np.float64)
         el = 0         # index in result/data
         count_el = 0  # index in permutted
-        count_rem = data[start]  # since each data has multiple els, sub count there
-        for idx in range(cn):
+        count_rem = long(data[start])  # since each data has multiple els, sub count there
+        for idx in range(n):
             perm_count_el = permuted[idx]
             # the array is sorted, so just jump ahead
             while (perm_count_el - count_el) >= count_rem:
                count_el += count_rem
                el += 1
-               count_rem = data[start+el]
+               count_rem = long(data[start+el])
             count_rem -= (perm_count_el - count_el)
             count_el = perm_count_el
 
@@ -145,6 +152,6 @@ def _subsample(arr, n, with_replacement, rng):
 
     """
     if (with_replacement):
-       return _subsample_with_replacement(arr, n, rng)
+       return _subsample_with_replacement(arr.data, arr.indptr, n, rng)
     else:
-       return _subsample_without_replacement(arr, n, rng)
+       return _subsample_without_replacement(arr.data, arr.indptr, n, rng)
