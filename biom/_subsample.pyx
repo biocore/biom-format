@@ -83,7 +83,6 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
     cdef:
         cnp.int64_t counts_sum, count_el, perm_count_el
         cnp.int64_t count_rem
-        cnp.ndarray[cnp.float64_t, ndim=1] result
         cnp.ndarray[cnp.int64_t, ndim=1] permuted
         Py_ssize_t i, idx
         cnp.int32_t length,el,start,end
@@ -107,10 +106,10 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
         #   unpacked = np.repeat(r, data_i[start:end])
         #   permuted_unpacked = rng.choice(unpacked, n, replace=False, shuffle=False)
 
-        result = np.zeros(length, dtype=np.float64)
         el = 0         # index in result/data
         count_el = 0  # index in permutted
         count_rem = long(data[start])  # since each data has multiple els, sub count there
+        data[start] = 0.0
         for idx in range(n):
             perm_count_el = permuted[idx]
             # the array is sorted, so just jump ahead
@@ -118,12 +117,13 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
                count_el += count_rem
                el += 1
                count_rem = long(data[start+el])
+               data[start+el] = 0.0
             count_rem -= (perm_count_el - count_el)
             count_el = perm_count_el
 
-            result[el] += 1
-
-        data[start:end] = result
+            data[start+el] += 1
+        # clean up tail elements
+        data[start+el+1:end] = 0.0
 
 
 def _subsample(arr, n, with_replacement, rng):
