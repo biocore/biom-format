@@ -105,6 +105,13 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
         #   r = np.arange(length)
         #   unpacked = np.repeat(r, data_i[start:end])
         #   permuted_unpacked = rng.choice(unpacked, n, replace=False, shuffle=False)
+        # 
+        # specifically, what we're going to do here is randomly pick what elements within
+        # each sample to keep. this is analogous issuing the prior np.repeat call, and obtaining
+        # a random set of index positions for that resulting array. however, we do not need to 
+        # perform the np.repeat call as we know the length of that resulting vector already,
+        # and additionally, we can compute the sample associated with an index in that array
+        # without constructing it.
 
         el = 0         # index in result/data
         count_el = 0  # index in permutted
