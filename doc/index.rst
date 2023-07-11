@@ -35,6 +35,8 @@ Projects using the BIOM format
 * `EBI Metagenomics <https://www.ebi.ac.uk/metagenomics>`_
 * `GCModeller <http://gcmodeller.org>`_
 * `MetaPhlAn 2 <http://segatalab.cibio.unitn.it/tools/metaphlan2/>`__
+* `mia (TreeSummarizedExperiment; R/Bioconductor) <http://microbiome.github.io/>`__
+
 
 If you are using BIOM in your project, and would like your project to be listed, please submit a `pull request <https://github.com/biocore/biom-format/pulls>`_ to the BIOM project. More information on `submitting pull requests can be found here <https://help.github.com/articles/using-pull-requests>`_.
 
