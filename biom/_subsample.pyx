@@ -83,7 +83,7 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
     cdef:
         cnp.int64_t counts_sum, count_el, perm_count_el
         cnp.int64_t count_rem
-        cnp.ndarray[cnp.int64_t, ndim=1] permuted
+        cnp.ndarray[cnp.int64_t, ndim=1] permuted, intdata
         Py_ssize_t i, idx
         cnp.int32_t length,el,start,end
         cnp.int64_t el_cnt
@@ -94,7 +94,8 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
         # We are relying on data being integers
         # If there are rounding erros, fp64 sums can lead to
         # big errors in sum, so convert to int64, first
-        counts_sum = data[start:end].astype(np.int64).sum()
+        intdata = data[start:end].astype(np.int64)
+        counts_sum = intdata.sum()
         
         if counts_sum < n:
             data[start:end] = 0
@@ -119,7 +120,7 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
 
         el = 0         # index in result/data
         count_el = 0  # index in permutted
-        count_rem = long(data[start])  # since each data has multiple els, keep track how many are left
+        count_rem = intdata[0]  # since each data has multiple els, keep track how many are left
         el_cnt = 0
         for idx in range(n):
             perm_count_el = permuted[idx]
@@ -133,7 +134,7 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
                # move to the beginning of next element
                count_el += count_rem
                # Load how much we have avaialble
-               count_rem = long(data[start+el])
+               count_rem = intdata[el]
                #re-start the el counter
                el_cnt = 0
             # increment the el counter
