@@ -425,6 +425,7 @@ def biom_open(fp, permission='r'):
     if permission not in ['r', 'w', 'U', 'rb', 'wb']:
         raise OSError("Unknown mode: %s" % permission)
 
+    # default
     opener = functools.partial(io.open, encoding='utf-8')
     mode = permission
 
