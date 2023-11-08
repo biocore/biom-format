@@ -441,11 +441,11 @@ def biom_open(fp, permission='r'):
         opener = h5py.File
 
     if mode in ['U', 'r', 'rb'] and is_gzip(fp):
-        def opener(fp, mode):
+        def opener(fp, mode):  # noqa
             return codecs.getreader('utf-8')(gzip_open(fp, mode))
         mode = 'rb' if permission in ['U', 'r'] else permission
     elif mode in ['w', 'wb'] and str(fp).endswith('.gz'):
-        def opener(fp, mode):
+        def opener(fp, mode):  # noqa
             codecs.getwriter('utf-8')(gzip_open(fp, mode))
 
     f = opener(fp, mode)

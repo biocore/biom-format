@@ -1593,7 +1593,7 @@ class TableTests(TestCase):
         df = example_table.to_dataframe()
         density = (float(example_table.matrix_data.getnnz()) /
                    np.prod(example_table.shape))
-        df_density = (df > 0).sum().sum() / np.prod(df.shape)
+        df_density = (df.values > 0).sum().sum() / np.prod(df.shape)
         assert np.allclose(df_density, density)
 
     def test_to_dataframe_dense(self):
