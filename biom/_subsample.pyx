@@ -38,7 +38,7 @@ cdef _subsample_with_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
 
     """
     cdef:
-        cnp.int64_t counts_sum
+        cnp.float64_t counts_sum
         cnp.int32_t start,end,length
         Py_ssize_t i
         cnp.ndarray[cnp.float64_t, ndim=1] pvals
@@ -83,14 +83,19 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
     cdef:
         cnp.int64_t counts_sum, count_el, perm_count_el
         cnp.int64_t count_rem
-        cnp.ndarray[cnp.int64_t, ndim=1] permuted
+        cnp.ndarray[cnp.int64_t, ndim=1] permuted, intdata
         Py_ssize_t i, idx
         cnp.int32_t length,el,start,end
+        cnp.int64_t el_cnt
 
     for i in range(indptr.shape[0] - 1):
         start, end = indptr[i], indptr[i+1]
         length = end - start
-        counts_sum = data[start:end].sum()
+        # We are relying on data being integers
+        # If there are rounding erros, fp64 sums can lead to
+        # big errors in sum, so convert to int64, first
+        intdata = data[start:end].astype(np.int64)
+        counts_sum = intdata.sum()
         
         if counts_sum < n:
             data[start:end] = 0
@@ -115,22 +120,34 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
 
         el = 0         # index in result/data
         count_el = 0  # index in permutted
-        count_rem = long(data[start])  # since each data has multiple els, sub count there
-        data[start] = 0.0
+        count_rem = intdata[0]  # since each data has multiple els, keep track how many are left
+        el_cnt = 0
         for idx in range(n):
             perm_count_el = permuted[idx]
-            # the array is sorted, so just jump ahead
+            # The array is sorted, so just jump ahead if needed
+            # Move until we get withing the elements range
             while (perm_count_el - count_el) >= count_rem:
-               count_el += count_rem
+               #save the computed value
+               data[start+el] = el_cnt
+               # move to next element
                el += 1
-               count_rem = long(data[start+el])
-               data[start+el] = 0.0
+               # move to the beginning of next element
+               count_el += count_rem
+               # Load how much we have avaialble
+               count_rem = intdata[el]
+               #re-start the el counter
+               el_cnt = 0
+            # increment the el counter
+            el_cnt += 1
+            # update the counters
+            # reduce what is left
             count_rem -= (perm_count_el - count_el)
+            #move the pointer to where we stopped
             count_el = perm_count_el
-
-            data[start+el] += 1
+        # save the last value
+        data[start+el] = el_cnt
         # clean up tail elements
-        data[start+el+1:end] = 0.0
+        data[start+el+1:end] = 0
 
 
 def _subsample(arr, n, with_replacement, rng):
