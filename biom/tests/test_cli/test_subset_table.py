@@ -55,9 +55,10 @@ class TestSubsetTable(unittest.TestCase):
     def test_subset_samples_hdf5(self):
         """Correctly subsets samples in a hdf5 table"""
         cwd = os.getcwd()
-        if '/' in __file__:
-            os.chdir(__file__.rsplit('/', 1)[0])
-        obs = _subset_table(hdf5_biom='test_data/test.biom', axis='sample',
+        if os.path.sep in __file__:
+            os.chdir(__file__.rsplit(os.path.sep, 1)[0])
+        obs = _subset_table(hdf5_biom=os.path.join('test_data', 'test.biom'),
+                            axis='sample',
                             ids=['Sample1', 'Sample2', 'Sample3'],
                             json_table_str=None)
         os.chdir(cwd)
@@ -71,9 +72,9 @@ class TestSubsetTable(unittest.TestCase):
     def test_subset_observations_hdf5(self):
         """Correctly subsets samples in a hdf5 table"""
         cwd = os.getcwd()
-        if '/' in __file__:
-            os.chdir(__file__.rsplit('/', 1)[0])
-        obs = _subset_table(hdf5_biom='test_data/test.biom',
+        if os.path.sep in __file__:
+            os.chdir(__file__.rsplit(os.path.sep, 1)[0])
+        obs = _subset_table(hdf5_biom=os.path.join('test_data', 'test.biom'),
                             axis='observation',
                             ids=['GG_OTU_1', 'GG_OTU_3', 'GG_OTU_5'],
                             json_table_str=None)
