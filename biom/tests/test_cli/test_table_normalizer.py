@@ -25,7 +25,7 @@ class TableNormalizerTests(TestCase):
 
         cwd = os.getcwd()
         if os.path.sep in __file__:
-            os.chdir(__file__.rsplit(os.path.sep, 1)[0])
+            os.chdir(os.path.dirname(__file__))
         self.table = biom.load_table(os.path.join('test_data', 'test.json'))
         os.chdir(cwd)
 

@@ -282,7 +282,7 @@ class ParseTests(TestCase):
         """Make sure we can parse a HDF5 table through the same loader"""
         cwd = os.getcwd()
         if os.path.sep in __file__[1:]:
-            os.chdir(__file__.rsplit(os.path.sep, 1)[0])
+            os.chdir(os.path.dirname(__file__))
         Table.from_hdf5(h5py.File(os.path.join('test_data', 'test.biom'),
                                   'r'))
         os.chdir(cwd)
@@ -298,21 +298,21 @@ class ParseTests(TestCase):
     def test_load_table_filepath(self):
         cwd = os.getcwd()
         if os.path.sep in __file__[1:]:
-            os.chdir(__file__.rsplit(os.path.sep, 1)[0])
+            os.chdir(os.path.dirname(__file__))
         load_table(os.path.join('test_data', 'test.biom'))
         os.chdir(cwd)
 
     def test_load_table_inmemory(self):
         cwd = os.getcwd()
         if os.path.sep in __file__[1:]:
-            os.chdir(__file__.rsplit(os.path.sep, 1)[0])
+            os.chdir(os.path.dirname(__file__))
         load_table(h5py.File(os.path.join('test_data', 'test.biom'), 'r'))
         os.chdir(cwd)
 
     def test_load_table_inmemory_json(self):
         cwd = os.getcwd()
         if os.path.sep in __file__[1:]:
-            os.chdir(__file__.rsplit(os.path.sep, 1)[0])
+            os.chdir(os.path.dirname(__file__))
         load_table(open(os.path.join('test_data', 'test.json')))
         os.chdir(cwd)
 
@@ -352,7 +352,7 @@ class ParseTests(TestCase):
         # We will round-trip the HDF5 file to several different formats, and
         # make sure we can recover the same table using parse_biom_table
         if os.path.sep in __file__[1:]:
-            os.chdir(__file__.rsplit(os.path.sep, 1)[0])
+            os.chdir(os.path.dirname(__file__))
 
         t = parse_biom_table(h5py.File(os.path.join('test_data', 'test.biom'), 'r'))
 
