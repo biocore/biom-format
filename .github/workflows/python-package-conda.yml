@@ -9,8 +9,8 @@ on:
     branches: [ master ]
 
 env:
-  latest_python: "3.11"
-  supported_pythons: '["3.7", "3.8", "3.9", "3.10", "3.11"]'
+  latest_python: "3.12"
+  supported_pythons: '["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]'
   miniforge_version: "22.9.0-2"
   miniforge_variant: "Mambaforge"
 
@@ -34,7 +34,7 @@ jobs:
     needs: conf
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
@@ -56,7 +56,7 @@ jobs:
     needs: ["conf", "lint"]
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
@@ -81,11 +81,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-latest", "macos-latest"]
+        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
         python_version: ${{ fromJSON(needs.conf.outputs.supported_pythons) }}
         use_conda: [true, false]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
@@ -115,7 +115,7 @@ jobs:
     needs: ["conf", "lint", "doc", "test-all"]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         # setup-buildx-action uses the git context directly
         # but checklist wants the .git directory
       - name: Set up QEMU
