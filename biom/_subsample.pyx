@@ -8,6 +8,8 @@
 
 import numpy as np
 cimport numpy as cnp
+cnp.import_array()
+
 
 cdef _subsample_with_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
                                  cnp.ndarray[cnp.int32_t, ndim=1] indptr,
