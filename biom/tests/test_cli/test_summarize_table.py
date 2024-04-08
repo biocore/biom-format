@@ -23,8 +23,7 @@ class TestSummarizeTable(TestCase):
             fh.write(biom1)
             fh.flush()
             self.biom1 = load_table(fh.name)
-            fh.close()
-            os.unlink(fh.name)
+        os.unlink(fh.name)
 
     def test_default(self):
         """ TableSummarizer functions as expected

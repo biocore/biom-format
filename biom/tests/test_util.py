@@ -265,9 +265,10 @@ class UtilTests(TestCase):
     def test_biom_open_hdf5_pathlib_write(self):
         t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
                   ['c', 'd', 'e'])
-        with NamedTemporaryFile() as tmpfile:
+        with NamedTemporaryFile(delete=False) as tmpfile:
             with biom_open(pathlib.Path(tmpfile.name), 'w') as fp:
                 t.to_hdf5(fp, 'tests')
+        os.unlink(tmpfile.name)
 
     def test_biom_open_hdf5_pathlib_read(self):
         cwd = os.getcwd()
@@ -317,8 +318,7 @@ class UtilTests(TestCase):
             fp.flush()
 
             obs = load_table(fp.name)
-            fp.close()
-            os.unlink(fp.name)
+        os.unlink(fp.name)
 
         npt.assert_equal(obs.ids(), tab.ids())
         npt.assert_equal(obs.ids(axis='observation'),

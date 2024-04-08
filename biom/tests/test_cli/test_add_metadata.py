@@ -25,8 +25,7 @@ class TestAddMetadata(TestCase):
             fh.write(biom1)
             fh.flush()
             self.biom_table1 = biom.load_table(fh.name)
-            fh.close()
-            os.unlink(fh.name)
+        os.unlink(fh.name)
         self.sample_md_lines1 = sample_md1.split('\n')
         self.obs_md_lines1 = obs_md1.split('\n')
 

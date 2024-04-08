@@ -41,8 +41,7 @@ class TableConverterTests(TestCase):
             fh.write(classic1)
             fh.flush()
             self.classic_biom1 = load_table(fh.name)
-            fh.close()
-            os.unlink(fh.name)
+        os.unlink(fh.name)
 
         self.sample_md1 = MetadataMap.from_file(sample_md1.split('\n'))
 

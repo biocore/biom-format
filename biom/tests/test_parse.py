@@ -290,10 +290,11 @@ class ParseTests(TestCase):
     def test_save_table_filepath(self):
         t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
                   ['c', 'd', 'e'])
-        with NamedTemporaryFile() as tmpfile:
+        with NamedTemporaryFile(delete=False) as tmpfile:
             save_table(t, tmpfile.name)
             obs = load_table(tmpfile.name)
             self.assertEqual(obs, t)
+        os.unlink(tmpfile.name)
 
     def test_load_table_filepath(self):
         cwd = os.getcwd()
