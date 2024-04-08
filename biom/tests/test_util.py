@@ -246,11 +246,14 @@ class UtilTests(TestCase):
         tmp_f = NamedTemporaryFile(
             mode='w',
             prefix='test_safe_md5',
-            suffix='txt')
+            suffix='txt',
+            delete=False)
         tmp_f.write('foo\n')
         tmp_f.flush()
 
         obs = safe_md5(open(tmp_f.name))
+        tmp_f.close()
+        os.unlink(tmp_f.name)
         self.assertEqual(obs, exp)
 
         obs = safe_md5(['foo\n'])
@@ -309,11 +312,13 @@ class UtilTests(TestCase):
 
     def test_load_classic(self):
         tab = load_table(get_data_path('test.json'))
-        with NamedTemporaryFile(mode='w') as fp:
+        with NamedTemporaryFile(mode='w', delete=False) as fp:
             fp.write(str(tab))
             fp.flush()
 
             obs = load_table(fp.name)
+            fp.close()
+            os.unlink(fp.name)
 
         npt.assert_equal(obs.ids(), tab.ids())
         npt.assert_equal(obs.ids(axis='observation'),

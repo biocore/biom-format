@@ -12,16 +12,19 @@ from biom.cli.table_summarizer import _summarize_table
 from biom.parse import load_table
 
 import tempfile
+import os
 from unittest import TestCase, main
 
 
 class TestSummarizeTable(TestCase):
 
     def setUp(self):
-        with tempfile.NamedTemporaryFile(mode='w') as fh:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False) as fh:
             fh.write(biom1)
             fh.flush()
             self.biom1 = load_table(fh.name)
+            fh.close()
+            os.unlink(fh.name)
 
     def test_default(self):
         """ TableSummarizer functions as expected

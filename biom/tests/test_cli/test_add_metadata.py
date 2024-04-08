@@ -9,6 +9,7 @@
 # -----------------------------------------------------------------------------
 
 import tempfile
+import os
 from unittest import TestCase, main
 
 import biom
@@ -20,10 +21,12 @@ class TestAddMetadata(TestCase):
     def setUp(self):
         """Set up data for use in unit tests."""
         self.cmd = _add_metadata
-        with tempfile.NamedTemporaryFile('w') as fh:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fh:
             fh.write(biom1)
             fh.flush()
             self.biom_table1 = biom.load_table(fh.name)
+            fh.close()
+            os.unlink(fh.name)
         self.sample_md_lines1 = sample_md1.split('\n')
         self.obs_md_lines1 = obs_md1.split('\n')
 

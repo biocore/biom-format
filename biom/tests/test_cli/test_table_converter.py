@@ -8,6 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
+import os
 from os.path import abspath, dirname, join
 import tempfile
 
@@ -28,16 +29,20 @@ class TableConverterTests(TestCase):
         self.cmd = _convert
         self.output_filepath = tempfile.NamedTemporaryFile().name
 
-        with tempfile.NamedTemporaryFile('w') as fh:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fh:
             fh.write(biom1)
             fh.flush()
             self.biom_table1 = load_table(fh.name)
+            fh.close()
+            os.unlink(fh.name)
 
         self.biom_lines1 = biom1.split('\n')
-        with tempfile.NamedTemporaryFile('w') as fh:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fh:
             fh.write(classic1)
             fh.flush()
             self.classic_biom1 = load_table(fh.name)
+            fh.close()
+            os.unlink(fh.name)
 
         self.sample_md1 = MetadataMap.from_file(sample_md1.split('\n'))
 
