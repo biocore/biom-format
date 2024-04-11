@@ -1199,11 +1199,11 @@ class TableTests(TestCase):
             self.assertIn('observation', h5)
             self.assertIn('sample', h5)
             self.assertEqual(sorted(h5.attrs.keys()), sorted(['id', 'type',
-                                                            'format-url',
-                                                            'format-version',
-                                                            'generated-by',
-                                                            'creation-date',
-                                                            'shape', 'nnz']))
+                                                              'format-url',
+                                                              'format-version',
+                                                              'generated-by',
+                                                              'creation-date',
+                                                              'shape', 'nnz']))
 
             obs = Table.from_hdf5(h5)
             self.assertEqual(obs, self.st_rich)

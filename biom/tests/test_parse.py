@@ -355,7 +355,8 @@ class ParseTests(TestCase):
         if os.path.sep in __file__[1:]:
             os.chdir(os.path.dirname(__file__))
 
-        t = parse_biom_table(h5py.File(os.path.join('test_data', 'test.biom'), 'r'))
+        t = parse_biom_table(h5py.File(os.path.join('test_data', 'test.biom'),
+                                       'r'))
 
         # These things are not round-trippable using the general-purpose
         # parse_biom_table function
