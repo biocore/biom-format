@@ -31,6 +31,7 @@ class TestAddMetadata(TestCase):
 
     def tearDown(self):
         os.unlink(self.temporary_fh_name)
+        self.test_workflow = True
 
     def test_add_sample_metadata_no_casting(self):
         """Correctly adds sample metadata without casting it."""
