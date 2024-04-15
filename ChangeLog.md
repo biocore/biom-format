@@ -6,6 +6,7 @@ biom 2.1.15-dev
 
 Performance improvements:
 
+* Add NumPy 2.0 support. PR [#950](https://github.com/biocore/biom-format/pull/950) ensures code compatibility with NumPy 2.0. This support is yet to be added to the CI testing matrix.
 * Revise `Table._fast_merge` to use COO directly. For very large tables, this reduces runtime by ~50x and memory by ~5x. See PR [#913](https://github.com/biocore/biom-format/pull/933).
 * Drastically reduce the memory needs of subsampling when sums are large. Also adds 64-bit support. See PR [#935](https://github.com/biocore/biom-format/pull/935).
 * Improve handling of not-perfectly-integer inputs. See PR [#938](https://github.com/biocore/biom-format/pull/938).

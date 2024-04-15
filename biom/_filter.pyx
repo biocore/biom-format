@@ -13,6 +13,7 @@ from types import FunctionType
 
 import numpy as np
 cimport numpy as cnp
+cnp.import_array()
 
 
 cdef cnp.ndarray[cnp.uint8_t, ndim=1] \

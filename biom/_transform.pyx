@@ -9,6 +9,7 @@
 
 import numpy as np
 cimport numpy as cnp
+cnp.import_array()
 
 
 def _transform(arr, ids, metadata, function, axis):
