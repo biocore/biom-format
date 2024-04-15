@@ -46,13 +46,18 @@ class ParseTests(TestCase):
         self.legacy_otu_table1 = legacy_otu_table1
         self.otu_table1 = otu_table1
         self.otu_table1_floats = otu_table1_floats
-        self.files_to_remove = []
+        self.to_remove = []
         self.biom_minimal_sparse = biom_minimal_sparse
 
         self.classic_otu_table1_w_tax = classic_otu_table1_w_tax.split('\n')
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
         self.classic_table_with_complex_metadata = \
             classic_table_with_complex_metadata.split('\n')
+
+    def tearDown(self):
+        if self.to_remove:
+            for f in self.to_remove:
+                os.remove(f)
 
     def test_from_tsv_bug_854(self):
         data = StringIO('#FeatureID\tSample1')
@@ -281,38 +286,40 @@ class ParseTests(TestCase):
     def test_parse_biom_table_hdf5(self):
         """Make sure we can parse a HDF5 table through the same loader"""
         cwd = os.getcwd()
-        if '/' in __file__[1:]:
-            os.chdir(__file__.rsplit('/', 1)[0])
-        Table.from_hdf5(h5py.File('test_data/test.biom', 'r'))
+        if os.path.sep in __file__[1:]:
+            os.chdir(os.path.dirname(__file__))
+        Table.from_hdf5(h5py.File(os.path.join('test_data', 'test.biom'),
+                                  'r'))
         os.chdir(cwd)
 
     def test_save_table_filepath(self):
         t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
                   ['c', 'd', 'e'])
-        with NamedTemporaryFile() as tmpfile:
+        with NamedTemporaryFile(delete=False) as tmpfile:
             save_table(t, tmpfile.name)
             obs = load_table(tmpfile.name)
             self.assertEqual(obs, t)
+        self.to_remove.append(tmpfile.name)
 
     def test_load_table_filepath(self):
         cwd = os.getcwd()
-        if '/' in __file__[1:]:
-            os.chdir(__file__.rsplit('/', 1)[0])
-        load_table('test_data/test.biom')
+        if os.path.sep in __file__[1:]:
+            os.chdir(os.path.dirname(__file__))
+        load_table(os.path.join('test_data', 'test.biom'))
         os.chdir(cwd)
 
     def test_load_table_inmemory(self):
         cwd = os.getcwd()
-        if '/' in __file__[1:]:
-            os.chdir(__file__.rsplit('/', 1)[0])
-        load_table(h5py.File('test_data/test.biom', 'r'))
+        if os.path.sep in __file__[1:]:
+            os.chdir(os.path.dirname(__file__))
+        load_table(h5py.File(os.path.join('test_data', 'test.biom'), 'r'))
         os.chdir(cwd)
 
     def test_load_table_inmemory_json(self):
         cwd = os.getcwd()
-        if '/' in __file__[1:]:
-            os.chdir(__file__.rsplit('/', 1)[0])
-        load_table(open('test_data/test.json'))
+        if os.path.sep in __file__[1:]:
+            os.chdir(os.path.dirname(__file__))
+        load_table(open(os.path.join('test_data', 'test.json')))
         os.chdir(cwd)
 
     def test_load_table_inmemory_stringio(self):
@@ -350,10 +357,11 @@ class ParseTests(TestCase):
         """tests for parse_biom_table when we have h5py"""
         # We will round-trip the HDF5 file to several different formats, and
         # make sure we can recover the same table using parse_biom_table
-        if '/' in __file__[1:]:
-            os.chdir(__file__.rsplit('/', 1)[0])
+        if os.path.sep in __file__[1:]:
+            os.chdir(os.path.dirname(__file__))
 
-        t = parse_biom_table(h5py.File('test_data/test.biom', 'r'))
+        t = parse_biom_table(h5py.File(os.path.join('test_data', 'test.biom'),
+                                       'r'))
 
         # These things are not round-trippable using the general-purpose
         # parse_biom_table function

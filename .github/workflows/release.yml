@@ -7,7 +7,7 @@ jobs:
     name: Build sdist
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Build distribution
         run: |
@@ -15,7 +15,7 @@ jobs:
           pip install numpy cython
           pipx run build --sdist
 
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: dist-artifacts
           path: dist/*.tar.gz
@@ -27,13 +27,13 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        pyver: ["37", "38", "39", "310", "311"]
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        pyver: ["37", "38", "39", "310", "311", "312"]
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: 3.9
 
@@ -47,7 +47,7 @@ jobs:
       - name: Build wheels (py ${{ matrix.pyver }}) Linux
         if: matrix.os == 'ubuntu-latest' 
         env:
-          CIBW_ARCHS_LINUX: x86_64
+          CIBW_ARCHS_LINUX: "x86_64 aarch64"
           CIBW_SKIP: "*-musllinux*"
           CIBW_BUILD: "cp${{ matrix.pyver }}-*"
 
@@ -60,10 +60,15 @@ jobs:
           CIBW_BUILD: "cp${{ matrix.pyver }}-*"
 
         uses: pypa/cibuildwheel@v2.12.3
-      
-      
+
+      - name: Build wheels (py ${{ matrix.pyver }}) Windows
+        if: matrix.os == 'windows-latest'
+        env:
+          CIBW_ARCHS_WINDOWS: "amd64 win32 arm64"
+          CIBW_BUILD: "cp${{ matrix.pyver }}-*"
+
       - name: Upload wheels
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: dist-artifacts
           path: ./wheelhouse/*.whl

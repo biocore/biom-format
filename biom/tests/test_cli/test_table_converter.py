@@ -8,6 +8,7 @@
 # The full license is in the file COPYING.txt, distributed with this software.
 # -----------------------------------------------------------------------------
 
+import os
 from os.path import abspath, dirname, join
 import tempfile
 
@@ -28,16 +29,18 @@ class TableConverterTests(TestCase):
         self.cmd = _convert
         self.output_filepath = tempfile.NamedTemporaryFile().name
 
-        with tempfile.NamedTemporaryFile('w') as fh:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fh:
             fh.write(biom1)
             fh.flush()
             self.biom_table1 = load_table(fh.name)
+            self.temporary_fh_table_name = fh.name
 
         self.biom_lines1 = biom1.split('\n')
-        with tempfile.NamedTemporaryFile('w') as fh:
+        with tempfile.NamedTemporaryFile('w', delete=False) as fh:
             fh.write(classic1)
             fh.flush()
             self.classic_biom1 = load_table(fh.name)
+            self.temporary_fh_classic_name = fh.name
 
         self.sample_md1 = MetadataMap.from_file(sample_md1.split('\n'))
 
@@ -46,6 +49,10 @@ class TableConverterTests(TestCase):
                                        'json_obs_collapsed.biom')
         self.json_collapsed_samples = join(test_data_dir,
                                            'json_sample_collapsed.biom')
+
+    def tearDown(self):
+        os.unlink(self.temporary_fh_classic_name)
+        os.unlink(self.temporary_fh_table_name)
 
     def test_classic_to_biom(self):
         """Correctly converts classic to biom."""

@@ -24,9 +24,9 @@ class TableNormalizerTests(TestCase):
         self.cmd = _normalize_table
 
         cwd = os.getcwd()
-        if '/' in __file__:
-            os.chdir(__file__.rsplit('/', 1)[0])
-        self.table = biom.load_table('test_data/test.json')
+        if os.path.sep in __file__:
+            os.chdir(os.path.dirname(__file__))
+        self.table = biom.load_table(os.path.join('test_data', 'test.json'))
         os.chdir(cwd)
 
     def test_bad_inputs(self):

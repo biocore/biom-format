@@ -42,6 +42,12 @@ class UtilTests(TestCase):
 
     def setUp(self):
         self.biom_otu_table1_w_tax = parse_biom_table(biom_otu_table1_w_tax)
+        self.to_remove = []
+
+    def tearDown(self):
+        if self.to_remove:
+            for f in self.to_remove:
+                os.remove(f)
 
     def test_generate_subsamples(self):
         table = Table(np.array([[3, 1, 1], [0, 3, 3]]), ['O1', 'O2'],
@@ -246,11 +252,14 @@ class UtilTests(TestCase):
         tmp_f = NamedTemporaryFile(
             mode='w',
             prefix='test_safe_md5',
-            suffix='txt')
+            suffix='txt',
+            delete=False)
         tmp_f.write('foo\n')
         tmp_f.flush()
 
         obs = safe_md5(open(tmp_f.name))
+        tmp_f.close()
+        self.to_remove.append(tmp_f.name)
         self.assertEqual(obs, exp)
 
         obs = safe_md5(['foo\n'])
@@ -262,9 +271,10 @@ class UtilTests(TestCase):
     def test_biom_open_hdf5_pathlib_write(self):
         t = Table(np.array([[0, 1, 2], [3, 4, 5]]), ['a', 'b'],
                   ['c', 'd', 'e'])
-        with NamedTemporaryFile() as tmpfile:
+        with NamedTemporaryFile(delete=False) as tmpfile:
             with biom_open(pathlib.Path(tmpfile.name), 'w') as fp:
                 t.to_hdf5(fp, 'tests')
+        self.to_remove.append(tmpfile.name)
 
     def test_biom_open_hdf5_pathlib_read(self):
         cwd = os.getcwd()
@@ -309,11 +319,12 @@ class UtilTests(TestCase):
 
     def test_load_classic(self):
         tab = load_table(get_data_path('test.json'))
-        with NamedTemporaryFile(mode='w') as fp:
+        with NamedTemporaryFile(mode='w', delete=False) as fp:
             fp.write(str(tab))
             fp.flush()
 
             obs = load_table(fp.name)
+        self.to_remove.append(fp.name)
 
         npt.assert_equal(obs.ids(), tab.ids())
         npt.assert_equal(obs.ids(axis='observation'),
