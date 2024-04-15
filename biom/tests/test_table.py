@@ -1024,7 +1024,7 @@ class TableTests(TestCase):
             h5 = h5py.File(tmpfile.name, 'r')
             obs = Table.from_hdf5(h5)
             h5.close()
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
         self.assertEqual(obs, t)
 
@@ -1041,7 +1041,7 @@ class TableTests(TestCase):
             obs = Table.from_hdf5(h5)
             self.assertEqual(obs.create_date, current)
             h5.close()
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
         self.assertEqual(obs, t)
 
@@ -1053,7 +1053,7 @@ class TableTests(TestCase):
             h5 = h5py.File(tmpfile.name, 'w')
             t.to_hdf5(h5, 'tests')
             h5.close()
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
     def test_to_hdf5_empty_table_bug_619(self):
         """Successfully writes an empty OTU table in HDF5 format"""
@@ -1062,14 +1062,14 @@ class TableTests(TestCase):
             h5 = h5py.File(tmpfile.name, 'w')
             t.to_hdf5(h5, 'tests')
             h5.close()
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
         t = example_table.filter({}, inplace=False)
         with NamedTemporaryFile(delete=False) as tmpfile:
             h5 = h5py.File(tmpfile.name, 'w')
             t.to_hdf5(h5, 'tests')
             h5.close()
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
     def test_to_hdf5_missing_metadata_observation(self):
         # exercises a vlen_list
@@ -1081,7 +1081,7 @@ class TableTests(TestCase):
             with h5py.File(tmpfile.name, 'w') as h5:
                 t.to_hdf5(h5, 'tests')
             obs = load_table(tmpfile.name)
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
         self.assertEqual(obs.metadata(axis='observation'),
                          ({'taxonomy': None},
                           {'taxonomy': ['foo', 'baz']}))
@@ -1096,7 +1096,7 @@ class TableTests(TestCase):
             with h5py.File(tmpfile.name, 'w') as h5:
                 t.to_hdf5(h5, 'tests')
             obs = load_table(tmpfile.name)
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
         self.assertEqual(obs.metadata(axis='sample'),
                          ({'dat': ''},
                           {'dat': 'foo'}))
@@ -1111,7 +1111,7 @@ class TableTests(TestCase):
                 with self.assertRaisesRegex(ValueError,
                                             'inconsistent metadata'):
                     t.to_hdf5(h5, 'tests')
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
     def test_to_hdf5_inconsistent_metadata_categories_sample(self):
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
@@ -1124,7 +1124,7 @@ class TableTests(TestCase):
                 with self.assertRaisesRegex(ValueError,
                                             'inconsistent metadata'):
                     t.to_hdf5(h5, 'tests')
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
     def test_to_hdf5_malformed_taxonomy(self):
         t = Table(np.array([[0, 1], [2, 3]]), ['a', 'b'], ['c', 'd'],
@@ -1135,7 +1135,7 @@ class TableTests(TestCase):
             with h5py.File(tmpfile.name, 'w') as h5:
                 t.to_hdf5(h5, 'tests')
             obs = load_table(tmpfile.name)
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
         self.assertEqual(obs.metadata(axis='observation'),
                          ({'taxonomy': ['foo', 'bar']},
                           {'taxonomy': ['foo', 'baz']}))
@@ -1150,7 +1150,7 @@ class TableTests(TestCase):
             h5 = h5py.File(tmpfile.name, 'w')
             st_rich.to_hdf5(h5, 'tests')
             h5.close()
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
     def test_to_hdf5_custom_formatters(self):
         self.st_rich = Table(self.vals,
@@ -1186,7 +1186,7 @@ class TableTests(TestCase):
                 self.assertNotEqual(m1['barcode'], m2['barcode'])
                 self.assertEqual(m1['barcode'].lower(), m2['barcode'])
             h5.close()
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
     def test_to_hdf5(self):
         """Write a file"""
@@ -1208,7 +1208,7 @@ class TableTests(TestCase):
             obs = Table.from_hdf5(h5)
             self.assertEqual(obs, self.st_rich)
             h5.close()
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
         # Test with a collapsed table
         with NamedTemporaryFile(delete=False) as tmpfile:
@@ -1254,7 +1254,7 @@ class TableTests(TestCase):
                 [{'collapsed_ids': ['a', 'c']},
                  {'collapsed_ids': ['b']}])
             self.assertEqual(obs, exp)
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
         # Test with table having a None on taxonomy
         with NamedTemporaryFile(delete=False) as tmpfile:
@@ -1279,7 +1279,7 @@ class TableTests(TestCase):
             obs = Table.from_hdf5(h5)
             h5.close()
             self.assertEqual(obs, t)
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
     def test_from_tsv(self):
         tab1_fh = StringIO(otu_table1)

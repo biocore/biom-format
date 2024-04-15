@@ -46,13 +46,18 @@ class ParseTests(TestCase):
         self.legacy_otu_table1 = legacy_otu_table1
         self.otu_table1 = otu_table1
         self.otu_table1_floats = otu_table1_floats
-        self.files_to_remove = []
+        self.to_remove = []
         self.biom_minimal_sparse = biom_minimal_sparse
 
         self.classic_otu_table1_w_tax = classic_otu_table1_w_tax.split('\n')
         self.classic_otu_table1_no_tax = classic_otu_table1_no_tax.split('\n')
         self.classic_table_with_complex_metadata = \
             classic_table_with_complex_metadata.split('\n')
+
+    def tearDown(self):
+        if self.to_remove:
+            for f in self.to_remove:
+                os.remove(f)
 
     def test_from_tsv_bug_854(self):
         data = StringIO('#FeatureID\tSample1')
@@ -294,7 +299,7 @@ class ParseTests(TestCase):
             save_table(t, tmpfile.name)
             obs = load_table(tmpfile.name)
             self.assertEqual(obs, t)
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
     def test_load_table_filepath(self):
         cwd = os.getcwd()

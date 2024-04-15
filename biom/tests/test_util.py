@@ -42,6 +42,12 @@ class UtilTests(TestCase):
 
     def setUp(self):
         self.biom_otu_table1_w_tax = parse_biom_table(biom_otu_table1_w_tax)
+        self.to_remove = []
+
+    def tearDown(self):
+        if self.to_remove:
+            for f in self.to_remove:
+                os.remove(f)
 
     def test_generate_subsamples(self):
         table = Table(np.array([[3, 1, 1], [0, 3, 3]]), ['O1', 'O2'],
@@ -253,7 +259,7 @@ class UtilTests(TestCase):
 
         obs = safe_md5(open(tmp_f.name))
         tmp_f.close()
-        os.unlink(tmp_f.name)
+        self.to_remove.append(tmp_f.name)
         self.assertEqual(obs, exp)
 
         obs = safe_md5(['foo\n'])
@@ -268,7 +274,7 @@ class UtilTests(TestCase):
         with NamedTemporaryFile(delete=False) as tmpfile:
             with biom_open(pathlib.Path(tmpfile.name), 'w') as fp:
                 t.to_hdf5(fp, 'tests')
-        os.unlink(tmpfile.name)
+        self.to_remove.append(tmpfile.name)
 
     def test_biom_open_hdf5_pathlib_read(self):
         cwd = os.getcwd()
@@ -318,7 +324,7 @@ class UtilTests(TestCase):
             fp.flush()
 
             obs = load_table(fp.name)
-        os.unlink(fp.name)
+        self.to_remove.append(fp.name)
 
         npt.assert_equal(obs.ids(), tab.ids())
         npt.assert_equal(obs.ids(axis='observation'),
