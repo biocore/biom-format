@@ -4,6 +4,10 @@ BIOM-Format ChangeLog
 biom 2.1.15-dev
 ---------------
 
+General Maintenance:
+
+* The optimized subsample without replacement method is now exposed as `biom.subsample`. Note that this method operates inplace on SciPy `csr_matrix` and `csc_matrix` objects. See issue [#958](https://github.com/biocore/biom-format/issues/958)
+
 Performance improvements:
 
 * Add Windows support. PR[#951](https://github.com/biocore/biom-format/pull/951) revises codebase to be Windows compatible and adds this support to the CI testing matrix.
