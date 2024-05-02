@@ -17,6 +17,8 @@ cdef _subsample_with_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
                                  object rng):
     """Subsample non-zero values of a sparse array with replacement
 
+    Note: this method operates in place
+
     Parameters
     ----------
     data : {csr_matrix, csc_matrix}.data
@@ -28,11 +30,6 @@ cdef _subsample_with_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
     rng : Generator instance
         A random generator. This will likely be an instance returned 
         by np.random.default_rng
-
-    Returns
-    -------
-    ndarray
-        Subsampled data
 
     Notes
     -----
@@ -60,6 +57,8 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
                                     object rng):
     """Subsample non-zero values of a sparse array w/out replacement
 
+    Note: this method operates in place
+
     Parameters
     ----------
     data : {csr_matrix, csc_matrix}.data
@@ -71,16 +70,6 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
     rng : Generator instance
         A random generator. This will likely be an instance returned 
         by np.random.default_rng
-
-    Returns
-    -------
-    ndarray
-        Subsampled data
-
-    Notes
-    -----
-    This code was adapted from scikit-bio (`skbio.math._subsample`)
-
     """
     cdef:
         cnp.int64_t counts_sum, count_el, perm_count_el
@@ -152,8 +141,10 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
         data[start+el+1:end] = 0
 
 
-def _subsample(arr, n, with_replacement, rng):
+def subsample(arr, n, with_replacement, rng):
     """Subsample non-zero values of a sparse array
+
+    Note: this method operates in place
 
     Parameters
     ----------
@@ -167,17 +158,12 @@ def _subsample(arr, n, with_replacement, rng):
         A random generator. This will likely be an instance returned 
         by np.random.default_rng
 
-    Returns
-    -------
-    ndarray
-        Subsampled data
-
     Notes
     -----
     This code was adapted from scikit-bio (`skbio.math._subsample`)
 
     """
     if (with_replacement):
-       return _subsample_with_replacement(arr.data, arr.indptr, n, rng)
+       _subsample_with_replacement(arr.data, arr.indptr, n, rng)
     else:
-       return _subsample_without_replacement(arr.data, arr.indptr, n, rng)
+       _subsample_without_replacement(arr.data, arr.indptr, n, rng)
