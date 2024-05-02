@@ -151,7 +151,7 @@ def flatten(items):
 
 def _natsort_key(item):
     """Provides normalized version of item for sorting with digits.
-
+ 
     This function is ported from QIIME (http://www.qiime.org) and is based on:
     http://lists.canonical.org/pipermail/kragen-hacks/2005-October/000419.html
     QIIME is a GPL project, but we obtained permission from the authors of this
