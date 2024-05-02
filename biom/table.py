@@ -4863,7 +4863,7 @@ html
             for col_index, val in enumerate(obs[0]):
                 if float(val) != 0.0:
                     built_row.append(
-                        "[%d,%d,%r]" % (obs_index, col_index, val)
+                        "[%d,%d,%f]" % (obs_index, col_index, val)
                     )
             if built_row:
                 # if we have written a row already, its safe to add a comma
