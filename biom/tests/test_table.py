@@ -2412,6 +2412,16 @@ class SparseTableTests(TestCase):
                          self.st_rich.data('2', 'observation'))
         self.assertEqual(obs.transpose(), self.st_rich)
 
+    def test_update_ids_strict_dtype_bug_issue_957(self):
+        t = Table(np.arange(6).reshape(2, 3),
+                  ['O1', 'O2'],
+                  ['ab', 'cdef', 'ghijkl'])
+        exp = Table(np.arange(6).reshape(2, 3),
+                    ['O1', 'O2'],
+                    ['AB', 'cdef', 'ghijkl'])
+        obs = t.update_ids({'ab': 'AB'}, strict=False, inplace=False)
+        self.assertEqual(obs, exp)
+
     def test_update_ids_inplace_bug_892(self):
         t = example_table.copy()
         exp = t.ids().copy()
