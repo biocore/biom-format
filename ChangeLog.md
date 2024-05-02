@@ -4,6 +4,10 @@ BIOM-Format ChangeLog
 biom 2.1.15-dev
 ---------------
 
+Bug fixes:
+
+* `update_ids(..., strict=False)` could yield truncated IDs, see issue [#957](https://github.com/biocore/biom-format/issues/957)
+
 Performance improvements:
 
 * Add Windows support. PR[#951](https://github.com/biocore/biom-format/pull/951) revises codebase to be Windows compatible and adds this support to the CI testing matrix.
