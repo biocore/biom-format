@@ -2014,6 +2014,21 @@ class TableTests(TestCase):
             table.align_to_dataframe(metadata)
 
     @pytest.mark.skipif(not HAVE_SKBIO, reason="skbio not installed")
+    def test_align_tree_issue_948(self):
+        table = Table(np.array([[0, 0, 0, 0],
+                                [2, 3, 4, 4],
+                                [5, 5, 3, 3],
+                                [0, 0, 0, 1]]).T,
+                      ['a', 'b', 'c', 'd'],
+                      ['s1', 's2', 's3', 's4'])
+        tree = skbio.TreeNode.read(["(a,b,c,d)r;"])
+        exp_tree = tree
+        exp_table = table.copy()
+        res_table, res_tree = table.align_tree(tree)
+        self.assertEqual(res_table, exp_table)
+        self.assertEqual(str(exp_tree), str(res_tree))
+
+    @pytest.mark.skipif(not HAVE_SKBIO, reason="skbio not installed")
     def test_align_tree_intersect_tips(self):
         # there are less tree tips than observations
         table = Table(np.array([[0, 0, 1, 1],

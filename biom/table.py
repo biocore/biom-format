@@ -1073,7 +1073,6 @@ class Table:
             raise TableException("No common ids between table and tree.")
         _tree = tree.shear(names=common_tips)
         _table = self.filter(common_tips, axis=axis, inplace=False)
-        _table.remove_empty()
         _tree.prune()
         order = [n.name for n in _tree.tips()]
         _table = _table.sort_order(order, axis=axis)
