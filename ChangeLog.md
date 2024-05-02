@@ -4,6 +4,11 @@ BIOM-Format ChangeLog
 biom 2.1.15-dev
 ---------------
 
+Bug Fixes:
+
+* Fixed an edge case on in `align_tree` when a feature was empty, see issue [#948](https://github.com/biocore/biom-format/issues/948)
+* In `subsample(..., with_replacement=True)`, it was possible to trigger a numerical stability on sum, see issue [#952](https://github.com/biocore/biom-format/issues/952)
+
 Performance improvements:
 
 * Add Windows support. PR[#951](https://github.com/biocore/biom-format/pull/951) revises codebase to be Windows compatible and adds this support to the CI testing matrix.
@@ -22,8 +27,7 @@ Bug fixes:
 * Allow `Table.to_json` to properly handle numpy types in metadata, see issue [#886](https://github.com/biocore/biom-format/issues/886)
 * Do not modify IDs in place in the presence of duplicate relabels, see issue [#892](https://github.com/biocore/biom-format/issues/892)
 * Catch an edge case where a failured ID update in place would actually change IDs, see issue [#892](https://github.com/biocore/biom-format/issues/892)
-* Fixed an edge case on in `align_tree` when a feature was empty, see issue [#948](https://github.com/biocore/biom-format/issues/948)
-
+ 
 New features:
 
 * `biom.parse.save_table` makes saving less tedious, see issue [#897](https://github.com/biocore/biom-format/issues/897)
