@@ -425,7 +425,6 @@ def biom_open(fp, permission='r'):
     if permission not in ['r', 'w', 'U', 'rb', 'wb']:
         raise OSError("Unknown mode: %s" % permission)
 
-    opener = functools.partial(io.open, encoding='utf-8')
     mode = permission
 
     # don't try to open an HDF5 file if H5PY is not installed, this can only
@@ -434,12 +433,6 @@ def biom_open(fp, permission='r'):
         if os.path.getsize(fp) == 0:
             raise ValueError("The file '%s' is empty and can't be parsed" % fp)
 
-    if mode in ['U', 'r', 'rb'] and h5py.is_hdf5(fp):
-        opener = h5py.File
-        mode = 'r' if permission == 'U' else permission
-    elif mode == 'w':
-        opener = h5py.File
-
     if mode in ['U', 'r', 'rb'] and is_gzip(fp):
         def opener(fp, mode):  # noqa
             return codecs.getreader('utf-8')(gzip_open(fp, mode))
@@ -447,6 +440,13 @@ def biom_open(fp, permission='r'):
     elif mode in ['w', 'wb'] and str(fp).endswith('.gz'):
         def opener(fp, mode):  # noqa
             codecs.getwriter('utf-8')(gzip_open(fp, mode))
+    elif mode in ['U', 'r', 'rb'] and h5py.is_hdf5(fp):
+        opener = h5py.File
+        mode = 'r' if permission == 'U' else permission
+    elif mode == 'w':
+        opener = h5py.File
+    else:
+        opener = functools.partial(io.open, encoding='utf-8')
 
     f = opener(fp, mode)
     try:
