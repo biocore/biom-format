@@ -41,13 +41,18 @@ cdef _subsample_with_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
         cnp.int32_t start,end,length
         Py_ssize_t i
         cnp.ndarray[cnp.float64_t, ndim=1] pvals
-
+        cnp.ndarray[cnp.float64_t, ndim=1] data_ceil 
+        
+    data_ceil = np.ceil(data)
     for i in range(indptr.shape[0] - 1):
         start, end = indptr[i], indptr[i+1]
         length = end - start
-        counts_sum = data[start:end].sum()
-        
-        pvals = data[start:end] / counts_sum
+
+        # base p-values on integer data to avoid small numerical issues with 
+        # float on sum
+        counts_sum = data_ceil[start:end].sum()
+        pvals = data_ceil[start:end] / counts_sum
+
         data[start:end] = rng.multinomial(n, pvals)
 
 

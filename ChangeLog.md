@@ -4,9 +4,16 @@ BIOM-Format ChangeLog
 biom 2.1.15-dev
 ---------------
 
-General Maintenance:
+New features:
 
+* NumPy 2.0 support, see issue [#956](https://github.com/biocore/biom-format/issues/956)
 * The optimized subsample without replacement method is now exposed as `biom.subsample`. Note that this method operates inplace on SciPy `csr_matrix` and `csc_matrix` objects. See issue [#958](https://github.com/biocore/biom-format/issues/958)
+
+Bug Fixes:
+
+* Fixed an edge case on in `align_tree` when a feature was empty, see issue [#948](https://github.com/biocore/biom-format/issues/948)
+* In `subsample(..., with_replacement=True)`, it was possible to trigger a numerical stability on sum, see issue [#952](https://github.com/biocore/biom-format/issues/952)
+* `update_ids(..., strict=False)` could yield truncated IDs, see issue [#957](https://github.com/biocore/biom-format/issues/957)
 
 Performance improvements:
 
@@ -26,8 +33,7 @@ Bug fixes:
 * Allow `Table.to_json` to properly handle numpy types in metadata, see issue [#886](https://github.com/biocore/biom-format/issues/886)
 * Do not modify IDs in place in the presence of duplicate relabels, see issue [#892](https://github.com/biocore/biom-format/issues/892)
 * Catch an edge case where a failured ID update in place would actually change IDs, see issue [#892](https://github.com/biocore/biom-format/issues/892)
-* Fixed an edge case on in `align_tree` when a feature was empty, see issue [#948](https://github.com/biocore/biom-format/issues/948)
-
+ 
 New features:
 
 * `biom.parse.save_table` makes saving less tedious, see issue [#897](https://github.com/biocore/biom-format/issues/897)

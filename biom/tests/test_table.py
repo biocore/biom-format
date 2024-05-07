@@ -2412,6 +2412,16 @@ class SparseTableTests(TestCase):
                          self.st_rich.data('2', 'observation'))
         self.assertEqual(obs.transpose(), self.st_rich)
 
+    def test_update_ids_strict_dtype_bug_issue_957(self):
+        t = Table(np.arange(6).reshape(2, 3),
+                  ['O1', 'O2'],
+                  ['ab', 'cdef', 'ghijkl'])
+        exp = Table(np.arange(6).reshape(2, 3),
+                    ['O1', 'O2'],
+                    ['AB', 'cdef', 'ghijkl'])
+        obs = t.update_ids({'ab': 'AB'}, strict=False, inplace=False)
+        self.assertEqual(obs, exp)
+
     def test_update_ids_inplace_bug_892(self):
         t = example_table.copy()
         exp = t.ids().copy()
@@ -3202,6 +3212,23 @@ class SparseTableTests(TestCase):
 
         with errstate(empty='raise'), self.assertRaises(TableException):
             self.st_rich.filter(f, 'observation')
+
+    def test_subsample_edgecase_issue_952(self):
+        # this file triggers an exception on Linux on subsample
+        # with replacement where the pvals computed sum to > 1. It is a
+        # subset of the data reported in issue 952, specifically constrained
+        # to the first 10 features with any empty samples removed.
+        path = 'test_data/edgecase_issue_952.biom'
+
+        # ...existing logic for test_data, not ideal, but consistent
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        table = Table.from_hdf5(h5py.File(path, 'r'))
+        os.chdir(cwd)
+
+        obs = table.subsample(10, with_replacement=True)
+        self.assertEqual(set(obs.sum('sample')), {10.0, })
 
     def test_subsample_same_seed_without_replacement(self):
         table = Table(np.array([[3, 1, 2], [0, 3, 4]]), ['O1', 'O2'],
