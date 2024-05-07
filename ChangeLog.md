@@ -4,6 +4,10 @@ BIOM-Format ChangeLog
 biom 2.1.15-dev
 ---------------
 
+New features:
+
+* NumPy 2.0 support, see issue [#956](https://github.com/biocore/biom-format/issues/956)
+
 Bug Fixes:
 
 * Fixed an edge case on in `align_tree` when a feature was empty, see issue [#948](https://github.com/biocore/biom-format/issues/948)
