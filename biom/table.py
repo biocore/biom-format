@@ -2919,7 +2919,8 @@ class Table:
         with_replacement : boolean, optional
             If `False` (default), subsample without replacement. If `True`,
             resample with replacement via the multinomial distribution.
-            Should not be `True` if `by_id` is `True`.
+            Should not be `True` if `by_id` is `True`. Important: If `True`,
+            samples with a sum below `n` are retained.
         seed : int, optional
             If provided, set the numpy random seed with this value
 
@@ -2936,13 +2937,15 @@ class Table:
 
         Notes
         -----
-        Subsampling is performed without replacement. If `n` is greater than
-        the sum of a given vector, that vector is omitted from the result.
-
-        Adapted from `skbio.math.subsample`, see biom-format/licenses for more
-        information about scikit-bio.
+        If subsampling is performed without replacement, vectors with a sum
+        less than `n` are omitted from the result. This condition is not held
+        when operating with replacement.
 
         This code assumes absolute abundance if `by_id` is False.
+
+        If subsampling with replacement, `np.ceil` is applied prior to
+        calculating p-values to ensure that low-abundance features have a
+        chance to be sampled.
 
         Examples
         --------
@@ -4868,7 +4871,7 @@ html
             for col_index, val in enumerate(obs[0]):
                 if float(val) != 0.0:
                     built_row.append(
-                        "[%d,%d,%r]" % (obs_index, col_index, val)
+                        "[%d,%d,%f]" % (obs_index, col_index, val)
                     )
             if built_row:
                 # if we have written a row already, its safe to add a comma

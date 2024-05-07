@@ -3213,6 +3213,23 @@ class SparseTableTests(TestCase):
         with errstate(empty='raise'), self.assertRaises(TableException):
             self.st_rich.filter(f, 'observation')
 
+    def test_subsample_edgecase_issue_952(self):
+        # this file triggers an exception on Linux on subsample
+        # with replacement where the pvals computed sum to > 1. It is a
+        # subset of the data reported in issue 952, specifically constrained
+        # to the first 10 features with any empty samples removed.
+        path = 'test_data/edgecase_issue_952.biom'
+
+        # ...existing logic for test_data, not ideal, but consistent
+        cwd = os.getcwd()
+        if '/' in __file__:
+            os.chdir(__file__.rsplit('/', 1)[0])
+        table = Table.from_hdf5(h5py.File(path, 'r'))
+        os.chdir(cwd)
+
+        obs = table.subsample(10, with_replacement=True)
+        self.assertEqual(set(obs.sum('sample')), {10.0, })
+
     def test_subsample_same_seed_without_replacement(self):
         table = Table(np.array([[3, 1, 2], [0, 3, 4]]), ['O1', 'O2'],
                       ['S1', 'S2', 'S3'])
