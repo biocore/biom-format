@@ -195,7 +195,7 @@ from biom.util import (get_biom_format_version_string,
 from biom.err import errcheck
 from ._filter import _filter
 from ._transform import _transform
-from ._subsample import _subsample
+from ._subsample import subsample
 
 
 __author__ = "Daniel McDonald"
@@ -2994,7 +2994,7 @@ class Table:
             table.filter(lambda v, i, md: i in subset, axis=axis)
         else:
             data = table._get_sparse_data()
-            _subsample(data, n, with_replacement, rng)
+            subsample(data, n, with_replacement, rng)
             table._data = data
 
             table.filter(lambda v, i, md: v.sum() > 0, axis=axis)

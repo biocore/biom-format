@@ -7,6 +7,7 @@ biom 2.1.15-dev
 New features:
 
 * NumPy 2.0 support, see issue [#956](https://github.com/biocore/biom-format/issues/956)
+* The optimized subsample without replacement method is now exposed as `biom.subsample`. Note that this method operates inplace on SciPy `csr_matrix` and `csc_matrix` objects. See issue [#958](https://github.com/biocore/biom-format/issues/958)
 
 Bug Fixes:
 
