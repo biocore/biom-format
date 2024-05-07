@@ -1422,7 +1422,12 @@ class Table:
         >>> print(updated_table.ids(axis='sample'))
         ['s1.1' 's2.2' 's3.3']
         """
-        str_dtype = 'U%d' % max([len(v) for v in id_map.values()])
+        max_str_len = max([len(v) for v in id_map.values()])
+        if not strict:
+            ids = self.ids(axis=axis)
+            max_str_len = max(max_str_len, max([len(i) for i in ids]))
+
+        str_dtype = 'U%d' % max_str_len
         updated_ids = zeros(self.ids(axis=axis).size, dtype=str_dtype)
         for idx, old_id in enumerate(self.ids(axis=axis)):
             if strict and old_id not in id_map:

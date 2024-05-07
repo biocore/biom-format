@@ -12,6 +12,7 @@ Bug Fixes:
 
 * Fixed an edge case on in `align_tree` when a feature was empty, see issue [#948](https://github.com/biocore/biom-format/issues/948)
 * In `subsample(..., with_replacement=True)`, it was possible to trigger a numerical stability on sum, see issue [#952](https://github.com/biocore/biom-format/issues/952)
+* `update_ids(..., strict=False)` could yield truncated IDs, see issue [#957](https://github.com/biocore/biom-format/issues/957)
 
 Performance improvements:
 
