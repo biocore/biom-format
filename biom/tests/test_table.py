@@ -4303,7 +4303,7 @@ class SparseTableTests(TestCase):
                             [4, 0, 0]]),
                   ['O1', 'O2', 'O3'],
                   ['S1', 'S2', 'S3'])
-        part_f = lambda i, m: i == 'S1'
+        part_f = lambda i, m: i == 'S1'  # noqa
         obs = dict(t.partition(part_f, remove_empty=True))
         exp = {True: Table(np.array([[3, ], [4, ]]), ['O2', 'O3'], ['S1', ]),
                False: Table(np.array([[1, 2]]), ['O1', ], ['S2', 'S3'])}
@@ -4315,7 +4315,7 @@ class SparseTableTests(TestCase):
                             [4, 0, 0]]),
                   ['O1', 'O2', 'O3'],
                   ['S1', 'S2', 'S3'])
-        part_f = lambda i, m: True if i == 'S1' else None
+        part_f = lambda i, m: True if i == 'S1' else None  # noqa
         obs = dict(t.partition(part_f, ignore_none=True))
         exp = {True: Table(np.array([[0, ], [3, ], [4, ]]),
                            ['O1', 'O2', 'O3'], ['S1', ])}

@@ -2475,7 +2475,7 @@ class Table:
 
             else:
                 raise ValueError(f"Unable to handle a type of `{type(test)}` "
-                                  "with mapping")
+                                 "with mapping")
 
             def part_f(i, m):
                 return mapping.get(i)
