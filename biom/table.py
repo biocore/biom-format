@@ -4149,6 +4149,7 @@ html
 
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
+            parser['Taxonomy'] = vlen_list_of_str_parser
             parser['KEGG_Pathways'] = vlen_list_of_str_parser
             parser['collapsed_ids'] = vlen_list_of_str_parser
             parser.update(parse_fs)
@@ -4583,6 +4584,7 @@ html
 
         formatter = defaultdict(lambda: general_formatter)
         formatter['taxonomy'] = vlen_list_of_str_formatter
+        formatter['Taxonomy'] = vlen_list_of_str_formatter
         formatter['KEGG_Pathways'] = vlen_list_of_str_formatter
         formatter['collapsed_ids'] = vlen_list_of_str_formatter
         formatter.update(format_fs)
