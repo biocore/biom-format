@@ -4297,6 +4297,64 @@ class SparseTableTests(TestCase):
         with self.assertRaisesRegex(TypeError, msg):
             Table._extract_data_from_tsv(tsv, dtype=int)
 
+    def test_partition_remove_empty(self):
+        t = biom.Table(np.array([[0, 1, 2],
+                                 [3, 0, 0],
+                                 [4, 0, 0]]),
+                       ['O1', 'O2', 'O3'],
+                       ['S1', 'S2', 'S3'])
+        part_f = lambda i, m: i == 'S1'
+        obs = list(t.partition(part_f, remove_empty=True))
+        exp = {True: biom.Table(np.array([[3, ], [4, ]]), ['O2', 'O3'], ['S1', ]),
+               False: biom.Table(np.array([[1, 2]]), ['O1', ], ['S2', 'S3'])}
+        self.assertEqual(obs, exp)
+
+    def test_partition_ignore_none(self):
+        t = biom.Table(np.array([[0, 1, 2],
+                                 [3, 0, 0],
+                                 [4, 0, 0]]),
+                       ['O1', 'O2', 'O3'],
+                       ['S1', 'S2', 'S3'])
+        part_f = lambda i, m: True if i == 'S1' else None
+        obs = list(t.partition(part_f, ignore_none=True))
+        exp = {True: biom.Table(np.array([[3, ], [4, ]]), ['O2', 'O3'], ['S1', ])}
+        self.assertEqual(obs, exp)
+
+    def test_partition_dict_ids_to_groups(self):
+        t = biom.Table(np.array([[0, 1, 2],
+                                 [3, 0, 0],
+                                 [4, 0, 0]]),
+                       ['O1', 'O2', 'O3'],
+                       ['S1', 'S2', 'S3'])
+        by_dict = {'S1': 'foo',
+                   'S2': 'bar',
+                   'S3': 'foo'}
+        exp = {'foo': biom.Table(np.array([[0, 2], [3, 0], [4, 0]]),
+                                 ['O1', 'O2', 'O3'],
+                                 ['S1', 'S3']),
+               'bar': biom.Table(np.array([[1, ], [0, ], [0, ]]),
+                                 ['O1', 'O2', 'O3'],
+                                 ['S2', ])}
+        obs = t.partition(by_dict)
+        self.assertEqual(obs, exp)
+
+    def test_partition_dict_groups_to_ids(self):
+        t = biom.Table(np.array([[0, 1, 2],
+                                 [3, 0, 0],
+                                 [4, 0, 0]]),
+                       ['O1', 'O2', 'O3'],
+                       ['S1', 'S2', 'S3'])
+        by_dict_group = {'foo': ['S1', 'S3'],
+                         'bar': ['S2', ]}
+        exp = {'foo': biom.Table(np.array([[0, 2], [3, 0], [4, 0]]),
+                                 ['O1', 'O2', 'O3'],
+                                 ['S1', 'S3']),
+               'bar': biom.Table(np.array([[1, ], [0, ], [0, ]]),
+                                 ['O1', 'O2', 'O3'],
+                                 ['S2', ])}
+        obs = t.partition(by_dict_group)
+        self.assertEqual(obs, exp)
+
     def test_bin_samples_by_metadata(self):
         """Yield tables binned by sample metadata"""
         def f(id_, md):
