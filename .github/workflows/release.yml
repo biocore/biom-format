@@ -1,6 +1,15 @@
 name: Release
 
-on: [push, pull_request]
+on:
+  push:
+    tags:
+      - '*'
+
+env:
+  earliest_python: "3.8"
+  latest_python: "3.12"
+  miniforge_version: "23.11.0-0"
+  miniforge_variant: "Mambaforge"
 
 jobs:
   build_sdist:
@@ -64,8 +73,10 @@ jobs:
       - name: Build wheels (py ${{ matrix.pyver }}) Windows
         if: matrix.os == 'windows-latest'
         env:
-          CIBW_ARCHS_WINDOWS: "amd64 win32 arm64"
+          CIBW_ARCHS_WINDOWS: "amd64 win32"
           CIBW_BUILD: "cp${{ matrix.pyver }}-*"
+
+        uses: pypa/cibuildwheel@v2.12.3
 
       - name: Upload wheels
         uses: actions/upload-artifact@v4
@@ -90,7 +101,7 @@ jobs:
       - name: Check artifacts
         run: ls -lrt dist/
 
-      - name: Publish a Python distribution to PyPI
+      - name: Publish Distribution
         uses: pypa/gh-action-pypi-publish@v1.5.0
         with:
           user: __token__
