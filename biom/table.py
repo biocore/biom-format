@@ -2399,16 +2399,24 @@ class Table:
 
         return table
 
-    def partition(self, f, axis='sample'):
+    def partition(self, f, axis='sample', remove_empty=False,
+                  ignore_none=False):
         """Yields partitions
 
         Parameters
         ----------
-        f : function
+        f : function, dict
             `f` is given the ID and metadata of the vector and must return
-            what partition the vector is part of.
+            what partition the vector is part of. If `dict`, a mapping of
+            either ID -> group, or group -> [list, of, ID] must be provided.
         axis : {'sample', 'observation'}, optional
             The axis to iterate over
+        remove_empty : bool, optional
+            If `True`, remove empty vectors from a partition. Default is
+            `False`.
+        ignore_none : bool, optional
+            If `True`, ignore partitions with the label `None`. Default is
+            `False`.
 
         Returns
         -------
@@ -2449,11 +2457,39 @@ class Table:
         O1  1.0
         O2  42.0
         """
+        # we are not checking for whether the IDs are or are not present as
+        # that introduces complexity of `strict`. Deferring that for now.
+        if isinstance(f, dict):
+            test = list(f.values())[0]
+
+            if isinstance(test, (list, tuple)):
+                # group -> [list, of, ids]
+                mapping = {}
+                for grp, ids in f.items():
+                    for id_ in ids:
+                        mapping[id_] = grp
+
+            elif isinstance(test, str):
+                # id_ -> grp
+                mapping = f
+
+            else:
+                raise ValueError(f"Unable to handle a type of `{type(test)}` "
+                                 "with mapping")
+
+            def part_f(i, m):
+                return mapping.get(i)
+        else:
+            part_f = f
+
         partitions = {}
         # conversion of vector types is not necessary, vectors are not
         # being passed to an arbitrary function
         for vals, id_, md in self.iter(dense=False, axis=axis):
-            part = f(id_, md)
+            part = part_f(id_, md)
+
+            if part is None:
+                continue
 
             # try to make it hashable...
             if not isinstance(part, Hashable):
@@ -2485,9 +2521,14 @@ class Table:
                 samp_md = md[:] if md is not None else None
                 indices = {'sample_index': self._sample_index.copy()}
 
-            yield part, Table(data, obs_ids, samp_ids, obs_md, samp_md,
-                              self.table_id, type=self.type, validate=False,
-                              **indices)
+            tab = Table(data, obs_ids, samp_ids, obs_md, samp_md,
+                        self.table_id, type=self.type, validate=False,
+                        **indices)
+
+            if remove_empty:
+                tab.remove_empty(inplace=True)
+
+            yield part, tab
 
     def collapse(self, f, collapse_f=None, norm=True, min_group_size=1,
                  include_collapsed_metadata=True, one_to_many=False,
