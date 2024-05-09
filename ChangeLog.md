@@ -8,6 +8,8 @@ Maintenance, bug fix, performance and feature release, May 9th 2024.
 
 New features:
 
+* Add Windows support. PR[#951](https://github.com/biocore/biom-format/pull/951) revises codebase to be Windows compatible and adds this support to the CI testing matrix.
+* Add NumPy 2.0 support. PR [#950](https://github.com/biocore/biom-format/pull/950) ensures code compatibility with NumPy 2.0. This support is yet to be added to the CI testing matrix.
 * Expand API for `Table.partition` to allow for passing `dict` mappings from ids to groups and vice versa, remove of empty vectors, and ignoring `None` partitions. See issue [#937](https://github.com/biocore/biom-format/issues/937)
 * NumPy 2.0 support, see issue [#956](https://github.com/biocore/biom-format/issues/956)
 * The optimized subsample without replacement method is now exposed as `biom.subsample`. Note that this method operates inplace on SciPy `csr_matrix` and `csc_matrix` objects. See issue [#958](https://github.com/biocore/biom-format/issues/958)
@@ -20,8 +22,6 @@ Bug Fixes:
 
 Performance improvements:
 
-* Add Windows support. PR[#951](https://github.com/biocore/biom-format/pull/951) revises codebase to be Windows compatible and adds this support to the CI testing matrix.
-* Add NumPy 2.0 support. PR [#950](https://github.com/biocore/biom-format/pull/950) ensures code compatibility with NumPy 2.0. This support is yet to be added to the CI testing matrix.
 * Revise `Table._fast_merge` to use COO directly. For very large tables, this reduces runtime by ~50x and memory by ~5x. See PR [#913](https://github.com/biocore/biom-format/pull/933).
 * Drastically reduce the memory needs of subsampling when sums are large. Also adds 64-bit support. See PR [#935](https://github.com/biocore/biom-format/pull/935).
 * Improve handling of not-perfectly-integer inputs. See PR [#938](https://github.com/biocore/biom-format/pull/938).
