@@ -2488,7 +2488,7 @@ class Table:
         for vals, id_, md in self.iter(dense=False, axis=axis):
             part = part_f(id_, md)
 
-            if part is None:
+            if ignore_none and part is None:
                 continue
 
             # try to make it hashable...
