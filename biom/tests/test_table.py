@@ -4309,7 +4309,7 @@ class SparseTableTests(TestCase):
                False: Table(np.array([[1, 2]]), ['O1', ], ['S2', 'S3'])}
         self.assertEqual(obs, exp)
 
-    def test_partition_ignore_none(self):
+    def test_partition_ignore_none_true(self):
         t = Table(np.array([[0, 1, 2],
                             [3, 0, 0],
                             [4, 0, 0]]),
@@ -4319,6 +4319,20 @@ class SparseTableTests(TestCase):
         obs = dict(t.partition(part_f, ignore_none=True))
         exp = {True: Table(np.array([[0, ], [3, ], [4, ]]),
                            ['O1', 'O2', 'O3'], ['S1', ])}
+        self.assertEqual(obs, exp)
+
+    def test_partition_ignore_none_false(self):
+        t = Table(np.array([[0, 1, 2],
+                            [3, 0, 0],
+                            [4, 0, 0]]),
+                  ['O1', 'O2', 'O3'],
+                  ['S1', 'S2', 'S3'])
+        part_f = lambda i, m: True if i == 'S1' else None  # noqa
+        obs = dict(t.partition(part_f, ignore_none=False))
+        exp = {True: Table(np.array([[0, ], [3, ], [4, ]]),
+                           ['O1', 'O2', 'O3'], ['S1', ]),
+               None: Table(np.array([[1, 2], [0, 0], [0, 0]]),
+                           ['O1', 'O2', 'O3'], ['S2', 'S3'])}
         self.assertEqual(obs, exp)
 
     def test_partition_dict_ids_to_groups(self):
