@@ -20,7 +20,6 @@ jobs:
 
       - name: Build distribution
         run: |
-          export RELEASE_VERSION=${{ github.ref_name }}
           pip install numpy cython
           pipx run build --sdist
 
@@ -48,7 +47,6 @@ jobs:
 
       - name: Install Python packaging tools
         run: |
-          export RELEASE_VERSION=${{ github.ref_name }}
           pip install numpy cython
           python -m pip install --upgrade pip setuptools wheel
 
