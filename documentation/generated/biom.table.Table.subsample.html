@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>biom.table.Table.subsample &#8212; biom-format.org</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
-    <script src="../../_static/copybutton.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css?v=dfa0e015" />
+    <script src="../../_static/documentation_options.js?v=30ffe591"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/copybutton.js?v=1d1412a1"></script>
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="biom.table.Table.sum" href="biom.table.Table.sum.html" />
     <link rel="prev" title="biom.table.Table.sort_order" href="biom.table.Table.sort_order.html" /> 
@@ -41,10 +41,10 @@
         
         
   <section id="biom-table-table-subsample">
-<h1>biom.table.Table.subsample<a class="headerlink" href="#biom-table-table-subsample" title="Permalink to this heading">¶</a></h1>
+<h1>biom.table.Table.subsample<a class="headerlink" href="#biom-table-table-subsample" title="Link to this heading">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="biom.table.Table.subsample">
-<span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">subsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sample'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_replacement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table.subsample" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">subsample</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sample'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">by_id</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">with_replacement</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">seed</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table.subsample" title="Link to this definition">¶</a></dt>
 <dd><p>Randomly subsample without replacement.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -60,7 +60,8 @@ the IDs (e.g., fetch a random subset of samples). Default is
 </dd>
 <dt><strong>with_replacement</strong><span class="classifier">boolean, optional</span></dt><dd><p>If <cite>False</cite> (default), subsample without replacement. If <cite>True</cite>,
 resample with replacement via the multinomial distribution.
-Should not be <cite>True</cite> if <cite>by_id</cite> is <cite>True</cite>.</p>
+Should not be <cite>True</cite> if <cite>by_id</cite> is <cite>True</cite>. Important: If <cite>True</cite>,
+samples with a sum below <cite>n</cite> are retained.</p>
 </dd>
 <dt><strong>seed</strong><span class="classifier">int, optional</span></dt><dd><p>If provided, set the numpy random seed with this value</p>
 </dd>
@@ -83,11 +84,13 @@ Should not be <cite>True</cite> if <cite>by_id</cite> is <cite>True</cite>.</p>
 </dd>
 </dl>
 <p class="rubric">Notes</p>
-<p>Subsampling is performed without replacement. If <cite>n</cite> is greater than
-the sum of a given vector, that vector is omitted from the result.</p>
-<p>Adapted from <cite>skbio.math.subsample</cite>, see biom-format/licenses for more
-information about scikit-bio.</p>
+<p>If subsampling is performed without replacement, vectors with a sum
+less than <cite>n</cite> are omitted from the result. This condition is not held
+when operating with replacement.</p>
 <p>This code assumes absolute abundance if <cite>by_id</cite> is False.</p>
+<p>If subsampling with replacement, <cite>np.ceil</cite> is applied prior to
+calculating p-values to ensure that low-abundance features have a
+chance to be sampled.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">biom.table</span> <span class="kn">import</span> <span class="n">Table</span>
@@ -137,9 +140,9 @@ set of IDs observed.</p>
 
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on May 10, 2023.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
+    &#169; Copyright 2011-2024 The BIOM Format Development Team.
+      Last updated on May 11, 2024.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
     </div>
 <script type="text/javascript">
 

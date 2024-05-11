@@ -18,7 +18,6 @@
          Table.__ge__
          Table.__getattribute__
          Table.__getitem__
-         Table.__getstate__
          Table.__gt__
          Table.__init__
          Table.__init_subclass__

@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>The biom file format: Version 2.1 &#8212; biom-format.org</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
-    <script src="../../_static/copybutton.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css?v=dfa0e015" />
+    <script src="../../_static/documentation_options.js?v=30ffe591"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/copybutton.js?v=1d1412a1"></script>
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="Quick start" href="../quick_usage_examples.html" />
     <link rel="prev" title="The biom file format: Version 2.0" href="biom-2.0.html" /> 
@@ -41,7 +41,7 @@
         
         
   <section id="the-biom-file-format-version-2-1">
-<span id="biom-2-1"></span><h1>The biom file format: Version 2.1<a class="headerlink" href="#the-biom-file-format-version-2-1" title="Permalink to this heading">¶</a></h1>
+<span id="biom-2-1"></span><h1>The biom file format: Version 2.1<a class="headerlink" href="#the-biom-file-format-version-2-1" title="Link to this heading">¶</a></h1>
 <p>The <code class="docutils literal notranslate"><span class="pre">biom</span></code> format is based on <a class="reference external" href="http://www.hdfgroup.org">HDF5</a> to provide the overall structure for the format. HDF5 is a widely supported binary format with native parsers available within many programming languages.</p>
 <p>Required top-level attributes:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">id</span>                   <span class="p">:</span> <span class="o">&lt;</span><span class="n">string</span> <span class="ow">or</span> <span class="n">null</span><span class="o">&gt;</span> <span class="n">a</span> <span class="n">field</span> <span class="n">that</span> <span class="n">can</span> <span class="n">be</span> <span class="n">used</span> <span class="n">to</span> <span class="nb">id</span> <span class="n">a</span> <span class="n">table</span> <span class="p">(</span><span class="ow">or</span> <span class="n">null</span><span class="p">)</span>
@@ -93,10 +93,10 @@ sample/metadata/collapsed_ids      : &lt;string&gt; or &lt;variable length strin
 </div>
 <p>Under the <code class="docutils literal notranslate"><span class="pre">observation/group-metadata</span></code> and <code class="docutils literal notranslate"><span class="pre">sample/group-metadata</span></code> groups, the user can specify an arbitrary number of datasets that represents a relationship between the ids for that axis. The expected structure for each of these group metadata datasets is a single string or variable length string. Each of these datasets should have defined an attribute called <code class="docutils literal notranslate"><span class="pre">data_type</span></code>, which specifies how the string should be interpreted. One example of such group metadata dataset is <code class="docutils literal notranslate"><span class="pre">observation/group-metadata/phylogeny</span></code>, with the attribute <code class="docutils literal notranslate"><span class="pre">observation/group-metadata/phylogeny.attrs['data_type']</span> <span class="pre">=</span> <span class="pre">&quot;newick&quot;</span></code>, which stores a single string with the newick format of the phylogenetic tree for the observations.</p>
 <section id="example-biom-files">
-<h2>Example biom files<a class="headerlink" href="#example-biom-files" title="Permalink to this heading">¶</a></h2>
+<h2>Example biom files<a class="headerlink" href="#example-biom-files" title="Link to this heading">¶</a></h2>
 <p>Below is an example of a rich biom file before binary compression into HDF5. Example binary files are located in the <a class="reference external" href="https://github.com/biocore/biom-format/tree/master/examples">github repository</a>.</p>
 <section id="biom-2-1-otu-table-in-the-hdf5-data-description-language-ddl">
-<h3>BIOM 2.1 OTU table in the HDF5 data description language (DDL)<a class="headerlink" href="#biom-2-1-otu-table-in-the-hdf5-data-description-language-ddl" title="Permalink to this heading">¶</a></h3>
+<h3>BIOM 2.1 OTU table in the HDF5 data description language (DDL)<a class="headerlink" href="#biom-2-1-otu-table-in-the-hdf5-data-description-language-ddl" title="Link to this heading">¶</a></h3>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">HDF5</span> <span class="s2">&quot;examples/rich_sparse_otu_table_hdf5.biom&quot;</span> <span class="p">{</span>
 <span class="n">GROUP</span> <span class="s2">&quot;/&quot;</span> <span class="p">{</span>
    <span class="n">ATTRIBUTE</span> <span class="s2">&quot;creation-date&quot;</span> <span class="p">{</span>
@@ -365,9 +365,9 @@ sample/metadata/collapsed_ids      : &lt;string&gt; or &lt;variable length strin
 
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on May 10, 2023.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
+    &#169; Copyright 2011-2024 The BIOM Format Development Team.
+      Last updated on May 11, 2024.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
     </div>
 <script type="text/javascript">
 

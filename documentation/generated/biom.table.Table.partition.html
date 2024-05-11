@@ -1,17 +1,17 @@
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-content_root="../../">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <title>biom.table.Table.partition &#8212; biom-format.org</title>
-    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css" />
-    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css" />
-    <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-    <script src="../../_static/doctools.js"></script>
-    <script src="../../_static/sphinx_highlight.js"></script>
-    <script src="../../_static/copybutton.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+    <link rel="stylesheet" type="text/css" href="../../_static/haiku.css?v=dfa0e015" />
+    <script src="../../_static/documentation_options.js?v=30ffe591"></script>
+    <script src="../../_static/doctools.js?v=9a2dae69"></script>
+    <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/copybutton.js?v=1d1412a1"></script>
     <link rel="search" title="Search" href="../../search.html" />
     <link rel="next" title="biom.table.Table.rankdata" href="biom.table.Table.rankdata.html" />
     <link rel="prev" title="biom.table.Table.pa" href="biom.table.Table.pa.html" /> 
@@ -41,18 +41,25 @@
         
         
   <section id="biom-table-table-partition">
-<h1>biom.table.Table.partition<a class="headerlink" href="#biom-table-table-partition" title="Permalink to this heading">¶</a></h1>
+<h1>biom.table.Table.partition<a class="headerlink" href="#biom-table-table-partition" title="Link to this heading">¶</a></h1>
 <dl class="py method">
 <dt class="sig sig-object py" id="biom.table.Table.partition">
-<span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">partition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sample'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table.partition" title="Permalink to this definition">¶</a></dt>
+<span class="sig-prename descclassname"><span class="pre">Table.</span></span><span class="sig-name descname"><span class="pre">partition</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">f</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axis</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sample'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">remove_empty</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ignore_none</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#biom.table.Table.partition" title="Link to this definition">¶</a></dt>
 <dd><p>Yields partitions</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><dl class="simple">
-<dt><strong>f</strong><span class="classifier">function</span></dt><dd><p><cite>f</cite> is given the ID and metadata of the vector and must return
-what partition the vector is part of.</p>
+<dt><strong>f</strong><span class="classifier">function, dict</span></dt><dd><p><cite>f</cite> is given the ID and metadata of the vector and must return
+what partition the vector is part of. If <cite>dict</cite>, a mapping of
+either ID -&gt; group, or group -&gt; [list, of, ID] must be provided.</p>
 </dd>
 <dt><strong>axis</strong><span class="classifier">{‘sample’, ‘observation’}, optional</span></dt><dd><p>The axis to iterate over</p>
+</dd>
+<dt><strong>remove_empty</strong><span class="classifier">bool, optional</span></dt><dd><p>If <cite>True</cite>, remove empty vectors from a partition. Default is
+<cite>False</cite>.</p>
+</dd>
+<dt><strong>ignore_none</strong><span class="classifier">bool, optional</span></dt><dd><p>If <cite>True</cite>, ignore partitions with the label <cite>None</cite>. Default is
+<cite>False</cite>.</p>
 </dd>
 </dl>
 </dd>
@@ -117,9 +124,9 @@ metadata:</p>
 
 
     <div class="footer" role="contentinfo">
-        &#169; Copyright 2011-2022 The BIOM Format Development Team.
-      Last updated on May 10, 2023.
-      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.0.
+    &#169; Copyright 2011-2024 The BIOM Format Development Team.
+      Last updated on May 11, 2024.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.3.7.
     </div>
 <script type="text/javascript">
 
