@@ -3,7 +3,7 @@ BIOM-Format ChangeLog
 
 biom-2.1.16-dev
 ---------------
-* Testing NumPy 2.0 compatibility...
+* Testing NumPy 2.0 compatibility... Again...
 
 biom 2.1.16
 -----------
