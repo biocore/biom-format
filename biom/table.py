@@ -184,14 +184,14 @@ from collections.abc import Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
                           vstack, hstack, dok_matrix)
-import pandas as pd
+# import pandas as pd
 import re
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR,
-                       __format_version__)
+                       __format_version__, LazyMixin)
 from biom.err import errcheck
 from ._filter import _filter
 from ._transform import _transform
@@ -388,7 +388,7 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
         compression=compression)
 
 
-class Table:
+class Table(LazyMixin):
     """The (canonically pronounced 'teh') Table.
 
     Give in to the power of the Table!
@@ -4341,12 +4341,13 @@ html
         index = self.ids(axis='observation')
         columns = self.ids()
 
+        self._get_pd()
         if dense:
             mat = self.matrix_data.toarray()
-            constructor = pd.DataFrame
+            constructor = self.pd.DataFrame
         else:
             mat = self.matrix_data.copy()
-            constructor = partial(pd.DataFrame.sparse.from_spmatrix)
+            constructor = partial(self.pd.DataFrame.sparse.from_spmatrix)
 
         return constructor(mat, index=index, columns=columns)
 
@@ -4442,6 +4443,7 @@ html
         O1   Bacteria     Firmicutes
         O2   Bacteria  Bacteroidetes
         """
+        self._get_pd()
         md = self.metadata(axis=axis)
         if md is None:
             raise KeyError("%s does not have metadata" % axis)
@@ -4472,7 +4474,7 @@ html
                     row.append(value)
             rows.append(row)
 
-        return pd.DataFrame(rows, index=self.ids(axis=axis), columns=mcols)
+        return self.pd.DataFrame(rows, index=self.ids(axis=axis), columns=mcols)
 
     def to_hdf5(self, h5grp, generated_by, compress=True, format_fs=None,
                 creation_date=None):
