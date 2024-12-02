@@ -12,7 +12,6 @@ import sys
 
 from setuptools import setup, find_packages
 from setuptools.extension import Extension
-from setuptools.command.test import test as TestCommand
 import numpy as np
 from Cython.Build import cythonize
 
@@ -35,37 +34,6 @@ __license__ = "BSD"
 __version__ = "2.1.16-dev"
 __maintainer__ = "Daniel McDonald"
 __email__ = "mcdonadt@colorado.edu"
-
-
-# derived from https://docs.pytest.org/en/3.8.0/goodpractices.html
-class PyTest(TestCommand):
-    user_options = [("pytest-args=", "a", "Arguments to pass to pytest")]
-
-    def initialize_options(self):
-        TestCommand.initialize_options(self)
-        self.pytest_args = ""
-
-    def run_tests(self):
-        try:
-            import numpy
-            try:
-                # NumPy 1.14 changed repr output breaking our doctests,
-                # request the legacy 1.13 style
-                numpy.set_printoptions(legacy="1.13")
-            except TypeError:
-                # Old Numpy, output should be fine as it is :)
-                # TypeError: set_printoptions() got an unexpected
-                # keyword argument 'legacy'
-                pass
-        except ImportError:
-            numpy = None
-
-        import shlex
-
-        # import here, cause outside the eggs aren't loaded
-        import pytest
-        errno = pytest.main(shlex.split(self.pytest_args))
-        sys.exit(errno)
 
 
 long_description = """BIOM: Biological Observation Matrix
@@ -152,7 +120,6 @@ setup(name='biom-format',
                       'anndata': ["anndata"],
                       },
       classifiers=classifiers,
-      cmdclass={"pytest": PyTest},
       entry_points='''
           [console_scripts]
           biom=biom.cli:cli
