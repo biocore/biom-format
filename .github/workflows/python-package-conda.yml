@@ -98,13 +98,13 @@ jobs:
         shell: bash -l {0}
         run: |
           conda install -q --yes -c conda-forge --file ci/conda_requirements.txt
-          pip install . --no-deps
+          pip install -e . --no-deps
           conda list
       - name: Install dependencies (pip)
         if: ${{ !matrix.use_conda }}
         shell: bash -l {0}
         run: |
-          pip install .
+          pip install -e .
           conda list
       - name: Run unit tests
         shell: bash -l {0}
