@@ -13,7 +13,6 @@ from contextlib import contextmanager
 import io
 import codecs
 import functools
-import importlib
 
 from collections import defaultdict
 from os import getenv
@@ -505,22 +504,3 @@ def is_hdf5_file(fp):
     with open(fp, 'rb') as f:
         # from the HDF5 documentation about format signature
         return f.read(8) == b'\x89HDF\r\n\x1a\n'
-
-
-class LazyMixin:
-    """A class for implementing lazy import of modules."""
-
-    def _get_pd(self):
-        """Import pandas."""
-        msg = "This function requires pandas."
-        if hasattr(self, "pd"):
-            if self.pd is None:
-                raise ImportError(msg)
-            return
-        try:
-            self.pd = importlib.import_module('pandas')
-        except ImportError:
-            self.pd = None
-            raise ImportError(msg)
-        # else:
-        #     self.pd = import

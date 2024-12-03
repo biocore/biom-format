@@ -172,8 +172,8 @@ Bacteria; Bacteroidetes   1.0 1.0 0.0 1.0
 # -----------------------------------------------------------------------------
 
 import numpy as np
-import scipy.stats
-import h5py
+# import scipy.stats
+# import h5py
 from copy import deepcopy
 from datetime import datetime
 from json import dumps as _json_dumps, JSONEncoder
@@ -186,12 +186,13 @@ from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
                           vstack, hstack, dok_matrix)
 # import pandas as pd
 import re
+# import importlib
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
 from biom.util import (get_biom_format_version_string,
                        get_biom_format_url_string, flatten, natsort,
                        prefer_self, index_list, H5PY_VLEN_STR,
-                       __format_version__, LazyMixin)
+                       __format_version__)
 from biom.err import errcheck
 from ._filter import _filter
 from ._transform import _transform
@@ -388,7 +389,7 @@ def vlen_list_of_str_formatter(grp, header, md, compression):
         compression=compression)
 
 
-class Table(LazyMixin):
+class Table:
     """The (canonically pronounced 'teh') Table.
 
     Give in to the power of the Table!
@@ -3234,6 +3235,8 @@ class Table(LazyMixin):
         o4	1.0	4.0	1.0
 
         """
+        import scipy.stats
+
         def f(val, id_, _):
             return scipy.stats.rankdata(val, method=method)
         return self.transform(f, axis=axis, inplace=inplace)
@@ -4108,6 +4111,8 @@ html
         >>>     t = Table.from_hdf5(f, ids=["GG_OTU_1"],
         ...                         axis='observation') # doctest: +SKIP
         """
+        import h5py
+
         if not isinstance(h5grp, (h5py.Group, h5py.File)):
             raise ValueError("h5grp does not appear to be an HDF5 file or "
                              "group")
@@ -4341,13 +4346,13 @@ html
         index = self.ids(axis='observation')
         columns = self.ids()
 
-        self._get_pd()
+        import pandas as pd
         if dense:
             mat = self.matrix_data.toarray()
-            constructor = self.pd.DataFrame
+            constructor = pd.DataFrame
         else:
             mat = self.matrix_data.copy()
-            constructor = partial(self.pd.DataFrame.sparse.from_spmatrix)
+            constructor = partial(pd.DataFrame.sparse.from_spmatrix)
 
         return constructor(mat, index=index, columns=columns)
 
@@ -4443,7 +4448,7 @@ html
         O1   Bacteria     Firmicutes
         O2   Bacteria  Bacteroidetes
         """
-        self._get_pd()
+        import pandas as pd
         md = self.metadata(axis=axis)
         if md is None:
             raise KeyError("%s does not have metadata" % axis)
@@ -4474,7 +4479,7 @@ html
                     row.append(value)
             rows.append(row)
 
-        return self.pd.DataFrame(rows, index=self.ids(axis=axis), columns=mcols)
+        return pd.DataFrame(rows, index=self.ids(axis=axis), columns=mcols)
 
     def to_hdf5(self, h5grp, generated_by, compress=True, format_fs=None,
                 creation_date=None):
