@@ -2561,6 +2561,16 @@ class SparseTableTests(TestCase):
         with self.assertRaises(UnknownAxisError):
             t.sort(axis='foo')
 
+    def test_allclose(self):
+        self.assertTrue(self.st1.allclose(self.st1))
+        self.assertTrue(self.st1.allclose(self.st2))
+        self.assertFalse(self.st1.allclose(self.st3))
+
+        st4 = self.st1.copy()
+        st4._data.data += 0.0001
+        self.assertFalse(self.st1.allclose(st4))
+        self.assertTrue(self.st1.allclose(st4, atol=1e-1))
+
     def test_eq(self):
         """sparse equality"""
         self.assertTrue(self.st1 == self.st2)
@@ -2573,9 +2583,9 @@ class SparseTableTests(TestCase):
 
     def test_data_equality(self):
         """check equality between tables"""
-        self.assertTrue(self.st1._data_equality(self.st2._data))
-        self.assertTrue(self.st1._data_equality(self.st1._data))
-        self.assertFalse(self.st1._data_equality(self.st3._data))
+        self.assertTrue(self.st1._data_equality(self.st2))
+        self.assertTrue(self.st1._data_equality(self.st1))
+        self.assertFalse(self.st1._data_equality(self.st3))
 
     def test_nonzero(self):
         """Return a list of nonzero positions"""
