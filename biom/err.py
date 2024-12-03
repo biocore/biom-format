@@ -31,6 +31,12 @@ sampmdsize : 'raise'
     Treatment of a table in which the number of sample metadata elements
     differs from the size of the data.
 
+hasnan : 'ignore'
+    Treatment of tables with nan values.
+
+hasinf : 'ignore'
+    Treatment of tables with inf values.
+
 Examples
 --------
 
@@ -62,6 +68,8 @@ from warnings import warn
 from sys import stdout
 from contextlib import contextmanager
 
+import numpy as np
+
 from biom.exception import TableException
 
 
@@ -73,6 +81,15 @@ OBSDUP = "Duplicate observation IDs"
 SAMPDUP = "Duplicate sample IDs!"
 OBSMDSIZE = "Size of observation metadata differs from matrix size!"
 SAMPMDSIZE = "Size of sample metadata differs from matrix size!"
+HASNAN = "Table contains nan values!"
+HASINF = "Table contains inf values!"
+
+IGNORE = 'ignore'
+RAISE = 'raise'
+CALL = 'call'
+WARN = 'warn'
+PRINT = 'print'
+ALL = 'all'
 
 
 # _zz_ so the sort order places this test last
@@ -113,13 +130,25 @@ def _test_sampmdsize(t):
     return t.shape[1] != len(md) if md is not None else False
 
 
+def _test_hasnan(t):
+    """Check if a table contains nan values."""
+    # wrap in bool to ensure return dtype is Python not numpy
+    return bool(np.isnan(t._data.data).any())
+
+
+def _test_hasinf(t):
+    """Check if a table contains inf values."""
+    # wrap in bool to ensure return dtype is Python not numpy
+    return bool(np.isinf(t._data.data).any())
+
+
 def _create_error_states(msg, callback, exception):
     """Create error states"""
-    return {'ignore': lambda x: None,
-            'warn': lambda x: warn(msg),
-            'raise': lambda x: exception(msg),
-            'call': callback if callback is not None else lambda x: None,
-            'print': lambda x: stdout.write(msg + '\n')}
+    return {IGNORE: lambda x: None,
+            WARN: lambda x: warn(msg),
+            RAISE: lambda x: exception(msg),
+            CALL: callback if callback is not None else lambda x: None,
+            PRINT: lambda x: stdout.write(msg + '\n')}
 
 
 class ErrorProfile:
@@ -129,7 +158,7 @@ class ErrorProfile:
     handled, how those errors are handled, and performs the handling of the
     errors.
     """
-    _valid_states = frozenset(['raise', 'ignore', 'call', 'print', 'warn'])
+    _valid_states = frozenset([RAISE, IGNORE, CALL, PRINT, WARN])
 
     def __init__(self):
         self._profile = {}
@@ -213,8 +242,8 @@ class ErrorProfile:
     @state.setter
     def state(self, new_state):
         """Update current state"""
-        if 'all' in new_state:
-            to_update = [(err, new_state['all']) for err in self._state]
+        if ALL in new_state:
+            to_update = [(err, new_state[ALL]) for err in self._state]
         else:
             to_update = new_state.items()
 
@@ -252,7 +281,10 @@ class ErrorProfile:
             args = self._test.keys()
 
         for errtype in sorted(args):
-            test = self._test.get(errtype, lambda: None)
+            test = self._test.get(errtype, lambda _: None)
+
+            if self._state.get(errtype) == IGNORE:
+                continue
 
             if test(item):
                 return self._handle_error(errtype, item)
@@ -320,19 +352,23 @@ class ErrorProfile:
 
 
 __errprof = ErrorProfile()
-__errprof.register('empty', EMPTY, 'ignore', _zz_test_empty,
+__errprof.register('empty', EMPTY, IGNORE, _zz_test_empty,
                    exception=TableException)
-__errprof.register('obssize', OBSSIZE, 'raise', _test_obssize,
+__errprof.register('obssize', OBSSIZE, RAISE, _test_obssize,
                    exception=TableException)
-__errprof.register('sampsize', SAMPSIZE, 'raise', _test_sampsize,
+__errprof.register('sampsize', SAMPSIZE, RAISE, _test_sampsize,
                    exception=TableException)
-__errprof.register('obsdup', OBSDUP, 'raise', _test_obsdup,
+__errprof.register('obsdup', OBSDUP, RAISE, _test_obsdup,
                    exception=TableException)
-__errprof.register('sampdup', SAMPDUP, 'raise', _test_sampdup,
+__errprof.register('sampdup', SAMPDUP, RAISE, _test_sampdup,
                    exception=TableException)
-__errprof.register('obsmdsize', OBSMDSIZE, 'raise', _test_obsmdsize,
+__errprof.register('obsmdsize', OBSMDSIZE, RAISE, _test_obsmdsize,
                    exception=TableException)
-__errprof.register('sampmdsize', SAMPMDSIZE, 'raise', _test_sampmdsize,
+__errprof.register('sampmdsize', SAMPMDSIZE, RAISE, _test_sampmdsize,
+                   exception=TableException)
+__errprof.register('hasnan', HASNAN, IGNORE, _test_hasnan,
+                   exception=TableException)
+__errprof.register('hasinf', HASINF, IGNORE, _test_hasinf,
                    exception=TableException)
 
 
@@ -384,8 +420,8 @@ def seterr(**kwargs):
 
     """
     old_state = __errprof.state.copy()
-    if 'all' in kwargs:
-        __errprof.state = {'all': kwargs['all']}
+    if ALL in kwargs:
+        __errprof.state = {ALL: kwargs[ALL]}
     else:
         __errprof.state = kwargs
     return old_state
@@ -499,5 +535,7 @@ def errstate(**kwargs):
 
     """
     old_state = seterr(**kwargs)
-    yield
-    seterr(**old_state)
+    try:
+        yield
+    finally:
+        seterr(**old_state)
