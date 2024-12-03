@@ -2571,6 +2571,16 @@ class SparseTableTests(TestCase):
         self.assertFalse(self.st1.allclose(st4))
         self.assertTrue(self.st1.allclose(st4, atol=1e-1))
 
+        st5 = self.st1.copy()
+        st6 = self.st1.copy()
+
+        st5._data.data[0] = np.nan
+        st6._data.data[0] = np.nan
+
+        self.assertFalse(st5.allclose(st6))
+        self.assertFalse(st5.allclose(st6, atol=1e-1))
+        self.assertTrue(st5.allclose(st6, equal_nan=True))
+
     def test_eq(self):
         """sparse equality"""
         self.assertTrue(self.st1 == self.st2)
