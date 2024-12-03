@@ -6,6 +6,7 @@ biom-2.1.16-dev
 
 Maintenance:
 
+* Allow testing for nan and inf values with "hasnan" and "hasinf" error states. See issue [#982](https://github.com/biocore/biom-format/issues/982).
 * Python 3.7 and 3.8 removed from CI as they are [end-of-life](https://devguide.python.org/versions/). Python 3.13 added to CI. See PR[#986](https://github.com/biocore/biom-format/pull/986).
 
 biom 2.1.16
