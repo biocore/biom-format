@@ -1864,6 +1864,10 @@ class Table:
         allclose_kwargs : dict
             Any keyword arguments to provide to np.allclose
 
+        Notes
+        -----
+        Specify `equal_nan=True` to allow Nan to test equal.
+
         Returns
         -------
         bool
