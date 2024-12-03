@@ -31,6 +31,12 @@ sampmdsize : 'raise'
     Treatment of a table in which the number of sample metadata elements
     differs from the size of the data.
 
+hasnan : 'ignore'
+    Treatment of tables with nan values.
+
+hasinf : 'ignore'
+    Treatment of tables with inf values.
+
 Examples
 --------
 
