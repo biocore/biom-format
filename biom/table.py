@@ -172,8 +172,6 @@ Bacteria; Bacteroidetes   1.0 1.0 0.0 1.0
 # -----------------------------------------------------------------------------
 
 import numpy as np
-# import scipy.stats
-# import h5py
 from copy import deepcopy
 from datetime import datetime
 from json import dumps as _json_dumps, JSONEncoder
@@ -184,9 +182,7 @@ from collections.abc import Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
 from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
                           vstack, hstack, dok_matrix)
-# import pandas as pd
 import re
-# import importlib
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
 from biom.util import (get_biom_format_version_string,
@@ -3236,7 +3232,6 @@ class Table:
 
         """
         import scipy.stats
-
         def f(val, id_, _):
             return scipy.stats.rankdata(val, method=method)
         return self.transform(f, axis=axis, inplace=inplace)
@@ -4112,7 +4107,6 @@ html
         ...                         axis='observation') # doctest: +SKIP
         """
         import h5py
-
         if not isinstance(h5grp, (h5py.Group, h5py.File)):
             raise ValueError("h5grp does not appear to be an HDF5 file or "
                              "group")
