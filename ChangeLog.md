@@ -4,6 +4,10 @@ BIOM-Format ChangeLog
 biom-2.1.16-dev
 ---------------
 
+New Features:
+
+* `Table.allclose` is now available to provide almost equality support including equality of `nan` by wrapping NumPy's `allclose`. See issues [#982](https://github.com/biocore/biom-format/issues/982) and [#983](https://github.com/biocore/biom-format/issues/983). 
+
 Maintenance:
 
 * Python 3.7 and 3.8 removed from CI as they are [end-of-life](https://devguide.python.org/versions/). Python 3.13 added to CI. See PR[#986](https://github.com/biocore/biom-format/pull/986).
