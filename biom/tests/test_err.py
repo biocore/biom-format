@@ -244,6 +244,7 @@ class SupportTests(TestCase):
         self.assertEqual(result, "the callback called")
         self.assertNotEqual(geterr()['empty'], CALL)
 
+
 def _what_to_raise(errtype):
     d = {k: IGNORE for k in __errprof._state}
     d[errtype] = RAISE
