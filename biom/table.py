@@ -3232,6 +3232,7 @@ class Table:
 
         """
         import scipy.stats
+
         def f(val, id_, _):
             return scipy.stats.rankdata(val, method=method)
         return self.transform(f, axis=axis, inplace=inplace)
