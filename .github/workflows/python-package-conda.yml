@@ -10,7 +10,7 @@ on:
 
 env:
   latest_python: "3.12"
-  supported_pythons: '["3.7", "3.8", "3.9", "3.10", "3.11", "3.12"]'
+  supported_pythons: '["3.9", "3.10", "3.11", "3.12", "3.13"]'
   miniforge_version: "22.9.0-2"
   miniforge_variant: "Mambaforge"
 
@@ -98,13 +98,13 @@ jobs:
         shell: bash -l {0}
         run: |
           conda install -q --yes -c conda-forge --file ci/conda_requirements.txt
-          pip install . --no-deps
+          pip install -e . --no-deps
           conda list
       - name: Install dependencies (pip)
         if: ${{ !matrix.use_conda }}
         shell: bash -l {0}
         run: |
-          pip install .
+          pip install -e .
           conda list
       - name: Run unit tests
         shell: bash -l {0}

@@ -7,9 +7,9 @@
 # ----------------------------------------------------------------------------
 
 ifeq ($(WITH_DOCTEST), TRUE)
-	TEST_COMMAND = python setup.py test -a --doctest-modules --doctest-glob='*.pyx'
+	TEST_COMMAND = pytest --doctest-modules --doctest-glob='*.pyx'
 else
-	TEST_COMMAND = python setup.py test 
+	TEST_COMMAND = pytest
 endif
 
 .PHONY: doc lint test
