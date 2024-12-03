@@ -1839,28 +1839,76 @@ class Table:
             return "Observation metadata are not the same"
         if not np.array_equal(self.metadata(), other.metadata()):
             return "Sample metadata are not the same"
-        if not self._data_equality(other._data):
+        if not self._data_equality(other):
             return "Data elements are not the same"
 
         return "Tables appear equal"
 
     def __eq__(self, other):
         """Equality is determined by the data matrix, metadata, and IDs"""
+        if not self._data_equality_meta(other):
+            return False
+
+        if not self._data_equality(other):
+            return False
+
+        return True
+
+    def allclose(self, other, **allclose_kwargs):
+        """Allow for almost equality testing using np.allclose
+
+        Parameters
+        ----------
+        other : biom.Table
+            The table to compare against.
+        allclose_kwargs : dict
+            Any keyword arguments to provide to np.allclose
+
+        Notes
+        -----
+        Specify `equal_nan=True` to allow Nan to test equal.
+
+        Returns
+        -------
+        bool
+            Whether the two tables are equal within tolerance.
+        """
+        if not self._data_equality_meta(other):
+            return False
+
+        self_data = self._data.tocsr().data
+        other_data = other._data.tocsr().data
+
+        return np.allclose(self_data, other_data, **allclose_kwargs)
+
+    def _data_equality_meta(self, other):
         if not isinstance(other, self.__class__):
             return False
+
         if self.type != other.type:
             return False
+
         if not np.array_equal(self.ids(axis='observation'),
                               other.ids(axis='observation')):
             return False
+
         if not np.array_equal(self.ids(), other.ids()):
             return False
+
         if not np.array_equal(self.metadata(axis='observation'),
                               other.metadata(axis='observation')):
             return False
+
         if not np.array_equal(self.metadata(), other.metadata()):
             return False
-        if not self._data_equality(other._data):
+
+        if self._data.shape != other._data.shape:
+            return False
+
+        if self._data.dtype != other._data.dtype:
+            return False
+
+        if self._data.nnz != other._data.nnz:
             return False
 
         return True
@@ -1879,19 +1927,10 @@ class Table:
         necessary before performing the final comparison.
 
         """
-        if self._data.shape != other.shape:
-            return False
+        self_data = self._data.tocsr()
+        other_data = other._data.tocsr()
 
-        if self._data.dtype != other.dtype:
-            return False
-
-        if self._data.nnz != other.nnz:
-            return False
-
-        self._data = self._data.tocsr()
-        other = other.tocsr()
-
-        if (self._data != other).nnz > 0:
+        if (self_data != other_data).nnz > 0:
             return False
 
         return True
