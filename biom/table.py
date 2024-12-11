@@ -1845,7 +1845,19 @@ class Table:
         return "Tables appear equal"
 
     def __eq__(self, other):
-        """Equality is determined by the data matrix, metadata, and IDs"""
+        """Equality is determined by the data matrix, metadata, and IDs
+
+        Matrices are equal iff the following items are equal:
+        - shape
+        - dtype
+        - size (nnz)
+        - matrix data (more expensive, so checked last)
+
+        The sparse format does not need to be the same between the two
+        matrices. ``self`` and ``other`` will be converted to csr format if
+        necessary before performing the final comparison.
+
+        """
         if not self._data_equality_meta(other):
             return False
 
@@ -1856,6 +1868,14 @@ class Table:
 
     def allclose(self, other, **allclose_kwargs):
         """Allow for almost equality testing using np.allclose
+
+        Matrices must have identical:
+        - shape
+        - dtype
+        - size (nnz)
+
+        Assuming those properties are identical, the matrix data are then
+        tested for equality within tolerance using `np.allclose`.
 
         Parameters
         ----------
@@ -1914,19 +1934,6 @@ class Table:
         return True
 
     def _data_equality(self, other):
-        """Return ``True`` if both matrices are equal.
-
-        Matrices are equal iff the following items are equal:
-        - shape
-        - dtype
-        - size (nnz)
-        - matrix data (more expensive, so checked last)
-
-        The sparse format does not need to be the same between the two
-        matrices. ``self`` and ``other`` will be converted to csr format if
-        necessary before performing the final comparison.
-
-        """
         self_data = self._data.tocsr()
         other_data = other._data.tocsr()
 
