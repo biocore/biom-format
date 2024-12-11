@@ -20,6 +20,7 @@ import numpy.testing as npt
 from biom.parse import (generatedby, MetadataMap, parse_biom_table, parse_uc,
                         load_table, save_table)
 from biom.table import Table
+from biom.err import errstate, IGNORE
 from biom.util import __version__
 from biom.tests.long_lines import (uc_empty, uc_invalid_id, uc_minimal,
                                    uc_lib_minimal,
@@ -61,8 +62,9 @@ class ParseTests(TestCase):
 
     def test_from_tsv_bug_854(self):
         data = StringIO('#FeatureID\tSample1')
-        exp = Table([], [], ['Sample1'])
-        obs = Table.from_tsv(data, None, None, lambda x: x)
+        with errstate(all=IGNORE):
+            exp = Table([], [], ['Sample1'])
+            obs = Table.from_tsv(data, None, None, lambda x: x)
         self.assertEqual(obs, exp)
 
     def test_generatedby(self):
