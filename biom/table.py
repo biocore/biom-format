@@ -395,7 +395,7 @@ class Table:
     versions 2.0 and 2.1 are based on HDF5. For more information see [1]_
     and [2]_
 
-    Paramaters
+    Parameters
     ----------
     data : array_like
         An (N,M) sample by observation matrix represented as one of these
