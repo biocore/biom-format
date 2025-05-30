@@ -20,7 +20,7 @@ def _transform(arr, ids, metadata, function, axis):
 
     Parameters
     ----------
-    arr : csr_matrix or csc_matrix
+    arr : csr_array or csc_array
         Matrix whose rows or columns (respectively) are to be
         transformed.
     ids : 1D array_like

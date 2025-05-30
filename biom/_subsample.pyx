@@ -21,9 +21,9 @@ cdef _subsample_with_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
 
     Parameters
     ----------
-    data : {csr_matrix, csc_matrix}.data
+    data : {csr_array, csc_array}.data
         A 1xM sparse vector data
-    indptr : {csr_matrix, csc_matrix}.indptr
+    indptr : {csr_array, csc_array}.indptr
         A 1xM sparse vector indptr
     n : int
         Number of items to subsample from `arr`
@@ -66,9 +66,9 @@ cdef _subsample_without_replacement(cnp.ndarray[cnp.float64_t, ndim=1] data,
 
     Parameters
     ----------
-    data : {csr_matrix, csc_matrix}.data
+    data : {csr_array, csc_array}.data
         A 1xM sparse vector data
-    indptr : {csr_matrix, csc_matrix}.indptr
+    indptr : {csr_array, csc_array}.indptr
         A 1xM sparse vector indptr
     n : int
         Number of items to subsample from `arr`
@@ -153,7 +153,7 @@ def subsample(arr, n, with_replacement, rng):
 
     Parameters
     ----------
-    arr : {csr_matrix, csc_matrix}
+    arr : {csr_array, csc_array}
         A 1xM sparse vector
     n : int
         Number of items to subsample from `arr`
