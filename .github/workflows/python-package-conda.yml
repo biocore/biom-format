@@ -9,9 +9,9 @@ on:
     branches: [ master ]
 
 env:
-  latest_python: "3.12"
+  latest_python: "3.13"
   supported_pythons: '["3.9", "3.10", "3.11", "3.12", "3.13"]'
-  miniforge_version: "22.9.0-2"
+  miniforge_version: latest
   miniforge_variant: "Mambaforge"
 
 jobs:
