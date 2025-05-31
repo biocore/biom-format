@@ -9,9 +9,9 @@ on:
     branches: [ master ]
 
 env:
-  latest_python: "3.12"
+  latest_python: "3.13"
   supported_pythons: '["3.9", "3.10", "3.11", "3.12", "3.13"]'
-  miniforge_version: "22.9.0-2"
+  miniforge_version: "23.11.0-0"
   miniforge_variant: "Mambaforge"
 
 jobs:
@@ -35,7 +35,7 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ env.latest_python }}
@@ -57,7 +57,7 @@ jobs:
     runs-on: "ubuntu-latest"
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ env.latest_python }}
@@ -81,12 +81,12 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: ["ubuntu-latest", "macos-latest", "windows-latest"]
+        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-24.04-arm, macos-13]
         python_version: ${{ fromJSON(needs.conf.outputs.supported_pythons) }}
         use_conda: [true, false]
     steps:
       - uses: actions/checkout@v4
-      - uses: conda-incubator/setup-miniconda@v2
+      - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python_version }}
@@ -110,27 +110,3 @@ jobs:
         shell: bash -l {0}
         run: make test
   
-  test-aarch64:
-    name: Test (${{ needs.conf.outputs.latest_python }}, qemu::aarch64-centos)
-    needs: ["conf", "lint", "doc", "test-all"]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        # setup-buildx-action uses the git context directly
-        # but checklist wants the .git directory
-      - name: Set up QEMU
-        id: qemu
-        uses: docker/setup-qemu-action@v1
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Build and test for linux-aarch64
-        id: docker_build
-        uses: docker/build-push-action@v2
-        with:
-          context: .
-          # ^ to use the local checkout, not the git context
-          file: aarch64.Dockerfile
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            PYTHON_VERSION=${{ env.latest_python }}
