@@ -924,7 +924,7 @@ class Table:
             else:
                 raise IndexError("Can only handle full : slices per axis.")
         else:
-            if self._data.getformat() == 'coo':
+            if self._data.format == 'coo':
                 self._data = self._data.tocsr()
 
             return self._data[row, col]
@@ -944,7 +944,7 @@ class Table:
 
         """
         self._data = self._data.tocsr()
-        return self._data.getrow(row_idx)
+        return self._data[row_idx]
 
     def _get_col(self, col_idx):
         """Return the column at ``col_idx``.
@@ -1202,7 +1202,7 @@ class Table:
         sample_md_copy = deepcopy(self.metadata())
         obs_md_copy = deepcopy(self.metadata(axis='observation'))
 
-        if self._data.getformat() == 'lil':
+        if self._data.format == 'lil':
             # lil's transpose method doesn't have the copy kwarg, but all of
             # the others do.
             self._data = self._data.tocsr()

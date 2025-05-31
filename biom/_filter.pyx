@@ -116,7 +116,7 @@ def _filter(arr, ids, metadata, index, ids_to_keep, axis, invert):
         arr = arr.tocsr()
     elif axis == 1:
         arr = arr.tocsc()
-    fmt = arr.getformat()
+    fmt = arr.format
 
     cdef cnp.ndarray[cnp.uint8_t, ndim=1] bools
 
