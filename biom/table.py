@@ -5384,6 +5384,8 @@ def list_list_to_sparse(data, dtype=float, shape=None):
         The newly generated matrix
     """
     rows, cols, values = zip(*data)
+    rows = np.asarray(rows, dtype=np.int32)
+    cols = np.asarray(cols, dtype=np.int32)
 
     if shape is None:
         n_rows = max(rows) + 1
