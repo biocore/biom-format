@@ -944,7 +944,7 @@ class Table:
 
         """
         self._data = self._data.tocsr()
-        return self._data[row_idx]
+        return self._data[row_idx, None, :]  # this makes a 2D row
 
     def _get_col(self, col_idx):
         """Return the column at ``col_idx``.
@@ -962,7 +962,7 @@ class Table:
 
         """
         self._data = self._data.tocsc()
-        return self._data[:, col_idx]
+        return self._data[:, None, col_idx]  # this makes a 2D column
 
     def align_to_dataframe(self, metadata, axis='sample'):
         """ Aligns dataframe against biom table, only keeping common ids.
@@ -4347,7 +4347,7 @@ html
             constructor = pd.DataFrame
         else:
             mat = self.matrix_data.copy()
-            constructor = partial(pd.DataFrame.sparse.from_sparray)
+            constructor = partial(pd.DataFrame.sparse.from_spmatrix)
 
         return constructor(mat, index=index, columns=columns)
 
@@ -5066,8 +5066,8 @@ html
         samp_index = {s: i for i, s in enumerate(samp_order)}
 
         # fill the matrix
-        row = np.array([obs_index[obs] for obs in observations], dtype=int)
-        col = np.array([samp_index[samp] for samp in samples], dtype=int)
+        row = np.array([obs_index[obs] for obs in observations], dtype=np.int32)
+        col = np.array([samp_index[samp] for samp in samples], dtype=np.int32)
         data = np.asarray(values)
         mat = coo_array((data, (row, col)))
 
@@ -5428,11 +5428,14 @@ def nparray_to_sparse(data, dtype=float):
         return csr_array((0, 0), dtype=dtype)
     elif len(data.shape) == 1:
         # a vector
-        shape = (1, data.shape[0])
+        n = data.size
+        row = np.zeros(n, dtype=np.int32)
+        col = np.arange(n, dtype=np.int32)
+        matrix = coo_array((data, (row, col)), shape=(1, n), dtype=dtype)
     else:
-        shape = data.shape
+        # a 2D array
+        matrix = coo_array(data, dtype=dtype)
 
-    matrix = coo_array(data, shape=shape, dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
@@ -5491,8 +5494,7 @@ def list_sparse_to_sparse(data, dtype=float):
             n_rows = len(data)
 
     data = vstack(data)
-    matrix = coo_array(data, shape=(n_rows, n_cols),
-                        dtype=dtype)
+    matrix = coo_array(data, shape=(n_rows, n_cols), dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
@@ -5548,6 +5550,8 @@ def list_dict_to_sparse(data, dtype=float):
                 cols.append(col_idx)
                 vals.append(val)
 
+    rows = np.asarray(rows, dtype=np.int32)
+    cols = np.asarray(cols, dtype=np.int32)
     matrix = coo_array((vals, (rows, cols)), shape=(n_rows, n_cols),
                         dtype=dtype)
     matrix = matrix.tocsr()
@@ -5584,5 +5588,7 @@ def dict_to_sparse(data, dtype=float, shape=None):
         cols.append(c)
         vals.append(v)
 
+    rows = np.asarray(rows, dtype=np.int32)
+    cols = np.asarray(cols, dtype=np.int32)
     return coo_arrays_to_sparse((vals, (rows, cols)),
                                 shape=(n_rows, n_cols), dtype=dtype)

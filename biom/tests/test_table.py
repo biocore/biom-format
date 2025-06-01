@@ -1596,7 +1596,7 @@ class TableTests(TestCase):
     def test_to_dataframe(self):
         mat = csr_array(np.array([[0.0, 1.0, 2.0],
                                    [3.0, 4.0, 5.0]]))
-        exp = pd.DataFrame.sparse.from_sparray(mat,
+        exp = pd.DataFrame.sparse.from_spmatrix(mat,
                                                 index=['O1', 'O2'],
                                                 columns=['S1', 'S2', 'S3'])
         obs = example_table.to_dataframe()
@@ -1609,7 +1609,7 @@ class TableTests(TestCase):
 
     def test_to_dataframe_is_sparse(self):
         df = example_table.to_dataframe()
-        density = (float(example_table.matrix_data.getnnz()) /
+        density = (float(example_table.matrix_data.nnz) /
                    np.prod(example_table.shape))
         df_density = (df.values > 0).sum().sum() / np.prod(df.shape)
         assert np.allclose(df_density, density)
@@ -2761,7 +2761,7 @@ class SparseTableTests(TestCase):
             self.st1.data('asdasd', 'sample')
 
         # Returns samples for a given observation
-        exp = csr_array(np.array([5, 6]))
+        exp = csr_array(np.array([[5, 6]]))
         obs = self.st1.data('1', 'observation', dense=False)
         self.assertEqual((obs != exp).nnz, 0)
         with self.assertRaises(UnknownIDError):
@@ -2851,8 +2851,8 @@ class SparseTableTests(TestCase):
         npt.assert_equal(obs, exp)
 
     def test_iter_data_sparse(self):
-        exp = [csr_array(np.array([5, 7])),
-               csr_array(np.array([6, 8]))]
+        exp = [csr_array(np.array([[5, 7]])),
+               csr_array(np.array([[6, 8]]))]
         obs = list(self.st1.iter_data(dense=False))
         for o, e in zip(obs, exp):
             self.assertTrue((o != e).nnz == 0)
