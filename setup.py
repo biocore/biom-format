@@ -85,7 +85,7 @@ extensions = cythonize(extensions)
 install_requires = [
     "click",
     "numpy >= 1.9.2",
-    "scipy >= 1.3.1",
+    "scipy >= 1.8.0",
     'pandas >= 0.20.0',
     "h5py",
 ]

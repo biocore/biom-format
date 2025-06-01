@@ -4,6 +4,10 @@ BIOM-Format ChangeLog
 biom-2.1.16-dev
 ---------------
 
+Important:
+
+* The underlying data structure has been migrated from SciPy sparse matrix (spmatrix) to sparse array (sparray). See PR[#993](https://github.com/biocore/biom-format/pull/993). This change does not affect any public-facing API of biom-format. However, be minded that the downstream analysis of data extracted from a BIOM table may be impacted by the API change in sparray vs. spmatrix. See SciPy's documentation: https://docs.scipy.org/doc/scipy/reference/sparse.html for details. This change requires SciPy >= 1.8.0. See its release note: https://docs.scipy.org/doc/scipy/release/1.8.0-notes.html for details.
+
 Performance improvements:
 
 * Decreased execution time of `import biom` by half with lazy imports. See PR[#987](https://github.com/biocore/biom-format/pull/987)
