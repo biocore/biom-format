@@ -8,7 +8,7 @@
 
 
 import sys
-from importlib.metadata import version
+from importlib.metadata import version, PackageNotFoundError
 
 import click
 

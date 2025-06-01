@@ -1595,7 +1595,7 @@ class TableTests(TestCase):
 
     def test_to_dataframe(self):
         mat = csr_array(np.array([[0.0, 1.0, 2.0],
-                                   [3.0, 4.0, 5.0]]))
+                                  [3.0, 4.0, 5.0]]))
         exp = pd.DataFrame.sparse.from_spmatrix(mat,
                                                 index=['O1', 'O2'],
                                                 columns=['S1', 'S2', 'S3'])
@@ -3089,7 +3089,7 @@ class SparseTableTests(TestCase):
             return id_ == 'a'
 
         values = csr_array(np.array([[5.],
-                                      [7.]]))
+                                     [7.]]))
         exp_table = Table(values, ['1', '2'], ['a'],
                           [{'taxonomy': ['k__a', 'p__b']},
                            {'taxonomy': ['k__a', 'p__c']}],
@@ -3127,7 +3127,7 @@ class SparseTableTests(TestCase):
             return id_ == 'a'
 
         values = csr_array(np.array([[5.],
-                                      [7.]]))
+                                     [7.]]))
         exp_table = Table(values, ['1', '2'], ['a'],
                           [{'taxonomy': ['k__a', 'p__b']},
                            {'taxonomy': ['k__a', 'p__c']}],
@@ -3141,7 +3141,7 @@ class SparseTableTests(TestCase):
         def f(vals, id_, md):
             return md['barcode'] == 'ttgg'
         values = csr_array(np.array([[6.],
-                                      [8.]]))
+                                     [8.]]))
         exp_table = Table(values, ['1', '2'], ['b'],
                           [{'taxonomy': ['k__a', 'p__b']},
                            {'taxonomy': ['k__a', 'p__c']}],
@@ -3154,7 +3154,7 @@ class SparseTableTests(TestCase):
         def f(vals, id_, md):
             return md['barcode'] == 'aatt'
         values = csr_array(np.array([[6.],
-                                      [8.]]))
+                                     [8.]]))
         exp_table = Table(values, ['1', '2'], ['b'],
                           [{'taxonomy': ['k__a', 'p__b']},
                            {'taxonomy': ['k__a', 'p__c']}],

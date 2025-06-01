@@ -2737,11 +2737,10 @@ class Table:
 
             if axis == 'observation':
                 new_data = dok_array((len(self.ids(axis='sample')),
-                                       len(new_md)),
-                                      dtype=dtype)
+                                      len(new_md)), dtype=dtype)
             else:
                 new_data = dok_array((len(self.ids(axis='observation')),
-                                       len(new_md)), dtype=dtype)
+                                      len(new_md)), dtype=dtype)
 
             # for each vector
             # for each bin in the metadata
@@ -3733,7 +3732,7 @@ class Table:
             offset += t_nnz
 
         coo = coo_array((data, (rows, cols)),
-                         shape=(len(feature_order), len(sample_order)))
+                        shape=(len(feature_order), len(sample_order)))
 
         return self.__class__(coo.tocsr(), feature_order, sample_order)
 
@@ -4234,7 +4233,7 @@ html
                 else:
                     desired_ids = np.asarray(desired_ids)
                     # Get the index of the source ids to include
-                    idx = np.in1d(source_ids, desired_ids)
+                    idx = np.isin(source_ids, desired_ids)
                     # Retrieve only the ids that we are interested on
                     ids = source_ids[idx]
                     # Check that all desired ids have been found on source ids
@@ -5066,7 +5065,8 @@ html
         samp_index = {s: i for i, s in enumerate(samp_order)}
 
         # fill the matrix
-        row = np.array([obs_index[obs] for obs in observations], dtype=np.int32)
+        row = np.array([obs_index[obs] for obs in observations],
+                       dtype=np.int32)
         col = np.array([samp_index[samp] for samp in samples], dtype=np.int32)
         data = np.asarray(values)
         mat = coo_array((data, (row, col)))
@@ -5394,7 +5394,7 @@ def list_list_to_sparse(data, dtype=float, shape=None):
         n_rows, n_cols = shape
 
     matrix = coo_array((values, (rows, cols)), shape=(n_rows, n_cols),
-                        dtype=dtype)
+                       dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
@@ -5553,7 +5553,7 @@ def list_dict_to_sparse(data, dtype=float):
     rows = np.asarray(rows, dtype=np.int32)
     cols = np.asarray(cols, dtype=np.int32)
     matrix = coo_array((vals, (rows, cols)), shape=(n_rows, n_cols),
-                        dtype=dtype)
+                       dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
