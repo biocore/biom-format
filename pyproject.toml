@@ -1,2 +1,99 @@
 [build-system]
-requires = ["setuptools","wheel", "numpy", "cython"]
+requires = ["setuptools>=61.0","wheel", "numpy", "cython"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "biom_format"
+version = "2.1.16-dev"
+description = "Biological Observation Matrix (BIOM) format"
+requires-python = ">= 3.6"
+readme = "README.md"
+authors = [
+    {name = "Daniel McDonald", email = "mcdonadt@colorado.edu"},
+    {name = "Greg Caporaso", email = ""},
+    {name = "Jai Ram Rideout", email = ""},
+    {name = "Jose Clemente", email = ""},
+    {name = "Jorge Cañardo Alastuey", email = ""},
+    {name = "Michael Hall", email = ""},
+]
+license = { text = "BSD" }
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: BSD License",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Operating System :: OS Independent",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+]
+dependencies = [
+    "click",
+    "numpy >= 1.9.2",
+    "scipy >= 1.3.1",
+    "pandas >= 0.20.0",
+    "h5py",
+]
+
+[project.optional-dependencies]
+# Corresponds to the old `extras_require`
+test = [
+    "pytest>=6.2.4",
+    "pytest-cov",
+    "flake8",
+]
+hdf5 = ["h5py >= 2.2.0"]
+anndata = ["anndata"]
+
+[project.urls]
+Homepage = "http://www.biom-format.org"
+
+[project.scripts]
+biom = "biom.cli:cli"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+
+[tool.cibuildwheel]
+test-command = "pytest {project}/tests"
+test-requires = ["pytest"]
+
+[tool.pytest.ini_options]
+addopts = ["--ignore=biom/assets/exercise_api.py "]
+doctest_optionflags = [ "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL" ]
+testpaths = ["biom"]
+
+[tool.flake8]
+exclude = ["biom/tests/long_lines.py"]
+
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "License :: OSI Approved :: BSD License",
+    "Topic :: Scientific/Engineering :: Bio-Informatics",
+    "Topic :: Software Development :: Libraries :: Application Frameworks",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Operating System :: OS Independent",
+    "Operating System :: POSIX :: Linux",
+    "Operating System :: MacOS :: MacOS X",
+    "Operating System :: Microsoft :: Windows",
+]
