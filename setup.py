@@ -29,14 +29,14 @@ def get_extensions():
 
     extensions = [
         Extension("biom._filter",
-                    ["biom/_filter.pyx"],
-                    include_dirs=[np.get_include()]),
+                  ["biom/_filter.pyx"],
+                  include_dirs=[np.get_include()]),
         Extension("biom._transform",
-                    ["biom/_transform.pyx"],
-                    include_dirs=[np.get_include()]),
+                  ["biom/_transform.pyx"],
+                  include_dirs=[np.get_include()]),
         Extension("biom._subsample",
-                    ["biom/_subsample.pyx"],
-                    include_dirs=[np.get_include()]),
+                  ["biom/_subsample.pyx"],
+                  include_dirs=[np.get_include()]),
     ]
     return cythonize(extensions, force=True)
 
