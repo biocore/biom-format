@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "biom_format"
 version = "2.1.16-dev"
 description = "Biological Observation Matrix (BIOM) format"
-requires-python = ">= 3.6"
+requires-python = ">= 3.9"
 readme = "README.md"
 authors = [
     {name = "Daniel McDonald", email = "damcdonald@ucsd.edu"}
@@ -62,7 +62,7 @@ where = ["."]
 
 [tool.cibuildwheel]
 test-command = "pytest {project}/biom/tests"
-test-requires = ["pytest"]
+test-requires = ["pytest", "numpy"]
 
 [tool.pytest.ini_options]
 addopts = ["--ignore=biom/assets/exercise_api.py "]
