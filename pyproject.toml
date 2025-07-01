@@ -65,9 +65,11 @@ test-command = "pytest {project}/biom/tests"
 test-requires = ["pytest", "numpy"]
 
 [tool.pytest.ini_options]
-addopts = ["--ignore=biom/assets/exercise_api.py "]
+addopts = [
+    "--ignore=biom/assets/exercise_api.py ",
+    "*.pyx",
+]
 doctest_optionflags = [ "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL" ]
-testpaths = ["biom"]
 
 [tool.flake8]
 exclude = ["biom/tests/long_lines.py"]
