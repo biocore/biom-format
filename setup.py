@@ -22,6 +22,7 @@ Folker Meyer, Rob Knight, J Gregory Caporaso
 GigaScience 2012, 1:7.
 """
 
+
 def get_extensions():
     import numpy as np
     from Cython.Build import cythonize
