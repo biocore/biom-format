@@ -63,6 +63,8 @@ where = ["."]
 [tool.cibuildwheel]
 test-command = "pytest --pyargs biom.tests"
 test-requires = ["pytest", "numpy"]
+# Skip 32-bit builds, PyPy, and musllinux
+skip = ["*-win32", "*-manylinux_i686", "pp*", "*-musllinux*"]
 
 [tool.pytest.ini_options]
 addopts = [
