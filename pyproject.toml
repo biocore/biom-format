@@ -67,14 +67,9 @@ test-requires = ["pytest", "numpy"]
 skip = ["*-win32", "*-manylinux_i686", "pp*", "*-musllinux*"]
 
 [tool.pytest.ini_options]
-addopts = [
-    "--ignore=biom/assets/exercise_api.py "
-]
+addopts = ["--ignore=biom/assets/exercise_api.py "]
 doctest_optionflags = [ "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL" ]
 testpaths = ["biom"]
-
-[tool.flake8]
-exclude = ["biom/tests/long_lines.py"]
 
 classifiers = [
     "Development Status :: 4 - Beta",
