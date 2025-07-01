@@ -37,7 +37,7 @@ def get_extensions():
                     ["biom/_subsample.pyx"],
                     include_dirs=[np.get_include()]),
     ]
-    return cythonize(extensions)
+    return cythonize(extensions, force=True)
 
 
 setup(ext_modules=get_extensions())
