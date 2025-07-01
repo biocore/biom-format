@@ -9,12 +9,7 @@ description = "Biological Observation Matrix (BIOM) format"
 requires-python = ">= 3.6"
 readme = "README.md"
 authors = [
-    {name = "Daniel McDonald", email = "damcdonald@ucsd.edu"},
-    {name = "Greg Caporaso", email = ""},
-    {name = "Jai Ram Rideout", email = ""},
-    {name = "Jose Clemente", email = ""},
-    {name = "Jorge Cañardo Alastuey", email = ""},
-    {name = "Michael Hall", email = ""},
+    {name = "Daniel McDonald", email = "damcdonald@ucsd.edu"}
 ]
 license = { text = "BSD" }
 classifiers = [
