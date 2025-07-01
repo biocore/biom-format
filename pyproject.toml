@@ -66,8 +66,7 @@ test-requires = ["pytest", "numpy"]
 
 [tool.pytest.ini_options]
 addopts = [
-    "--ignore=biom/assets/exercise_api.py ",
-    "*.pyx",
+    "--ignore=biom/assets/exercise_api.py "
 ]
 doctest_optionflags = [ "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL" ]
 testpaths = ["biom"]
