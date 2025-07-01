@@ -61,7 +61,7 @@ where = ["."]
 
 
 [tool.cibuildwheel]
-test-command = "pytest {project}/tests"
+test-command = "pytest {project}/biom/tests"
 test-requires = ["pytest"]
 
 [tool.pytest.ini_options]
