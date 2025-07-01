@@ -8,6 +8,5 @@ dependencies:
   - hdf5
   - pip
   - cython
-  - gcc
   - pip:
       - "-r requirements.test.txt"
