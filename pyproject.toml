@@ -70,6 +70,7 @@ addopts = [
     "*.pyx",
 ]
 doctest_optionflags = [ "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL" ]
+testpaths = ["biom"]
 
 [tool.flake8]
 exclude = ["biom/tests/long_lines.py"]
