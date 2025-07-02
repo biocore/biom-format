@@ -15,6 +15,14 @@ authors = [
     {name = "Jose Clemente"},
     {name = "Jorge Cañardo Alastuey"},
     {name = "Michael Hall"},
+    {name = "Justin Kuczynski"},
+    {name = "Jesse Stombaugh"},
+    {name = "Doug Wendel"},
+    {name = "Andreas Wilke"},
+    {name = "Susan Huse"}
+    {name = "John Hufnagle"}
+    {name = "Folker Meyer"},
+    {name = "Rob Knight"}
 ]
 license = { text = "BSD" }
 classifiers = [
