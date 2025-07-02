@@ -19,8 +19,8 @@ authors = [
     {name = "Jesse Stombaugh"},
     {name = "Doug Wendel"},
     {name = "Andreas Wilke"},
-    {name = "Susan Huse"}
-    {name = "John Hufnagle"}
+    {name = "Susan Huse"},
+    {name = "John Hufnagle"},
     {name = "Folker Meyer"},
     {name = "Rob Knight"}
 ]
