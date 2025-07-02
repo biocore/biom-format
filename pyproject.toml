@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "biom_format"
-version = "2.1.16-dev"
+dynamic = ["version"]
 description = "Biological Observation Matrix (BIOM) format"
 requires-python = ">= 3.9"
 readme = "README.md"
@@ -64,6 +64,8 @@ biom = "biom.cli:cli"
 [tool.setuptools.packages.find]
 where = ["."]
 
+[tool.setuptools.dynamic]
+version = {attr = "biom.__version__"}
 
 [tool.cibuildwheel]
 test-command = "pytest --pyargs biom.tests"
@@ -75,24 +77,3 @@ skip = ["*-win32", "*-manylinux_i686", "pp*", "*-musllinux*"]
 addopts = ["--ignore=biom/assets/exercise_api.py "]
 doctest_optionflags = [ "NORMALIZE_WHITESPACE", "IGNORE_EXCEPTION_DETAIL" ]
 testpaths = ["biom"]
-
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "License :: OSI Approved :: BSD License",
-    "Topic :: Scientific/Engineering :: Bio-Informatics",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
-    "Topic :: Software Development :: Libraries :: Python Modules",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Programming Language :: Python :: 3.13",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Operating System :: OS Independent",
-    "Operating System :: POSIX :: Linux",
-    "Operating System :: MacOS :: MacOS X",
-    "Operating System :: Microsoft :: Windows",
-]
