@@ -65,7 +65,7 @@ biom = "biom.cli:cli"
 where = ["."]
 
 [tool.setuptools.dynamic]
-version = {attr = "biom.__version__"}
+version = {attr = "biom.util.__version__"}
 
 [tool.cibuildwheel]
 test-command = "pytest --pyargs biom.tests"
