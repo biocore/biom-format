@@ -78,8 +78,12 @@ version = {attr = "biom.util.__version__"}
 [tool.cibuildwheel]
 test-command = "pytest --pyargs biom.tests"
 test-requires = ["pytest", "numpy"]
+
 # Skip 32-bit builds, PyPy, and musllinux
 skip = ["*-win32", "*-manylinux_i686", "pp*", "*-musllinux*"]
+
+# Python versions to build
+build = "cp39-* cp310-* cp311-* cp312-* cp313-*"
 
 [tool.pytest.ini_options]
 addopts = ["--ignore=biom/assets/exercise_api.py "]
