@@ -12,7 +12,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-latest]
+        os: [ubuntu-latest, ubuntu-24.04-arm, windows-latest, macos-13, macos-14]
         # The 5 runners correspond to 5 architectures. Details:
         # https://cibuildwheel.pypa.io/en/stable/options/#archs
         # The runners and architectures should be automatically associated. However, in
