@@ -16,7 +16,7 @@ import warnings
 
 import numpy.testing as npt
 import numpy as np
-from scipy.sparse import lil_matrix, csr_matrix, csc_matrix
+from scipy.sparse import lil_array, csr_array, csc_array
 import scipy.sparse
 import pandas.testing as pdt
 import pandas as pd
@@ -115,7 +115,7 @@ class SupportTests(TestCase):
             example_table.head(5, 0)
 
     def test_remove_empty_sample(self):
-        wrn = "Changing the sparsity structure of a csr_matrix is expensive. lil_matrix is more efficient."  # noqa
+        wrn = "Changing the sparsity structure of a csr_array is expensive. lil_array is more efficient."  # noqa
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=wrn)
             t = example_table.copy()
@@ -125,7 +125,7 @@ class SupportTests(TestCase):
             self.assertEqual(t, exp)
 
     def test_remove_empty_obs(self):
-        wrn = "Changing the sparsity structure of a csr_matrix is expensive. lil_matrix is more efficient."  # noqa
+        wrn = "Changing the sparsity structure of a csr_array is expensive. lil_array is more efficient."  # noqa
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=wrn)
             t = example_table.copy()
@@ -136,7 +136,7 @@ class SupportTests(TestCase):
             self.assertEqual(t, exp)
 
     def test_remove_empty_both(self):
-        wrn = "Changing the sparsity structure of a csr_matrix is expensive. lil_matrix is more efficient."  # noqa
+        wrn = "Changing the sparsity structure of a csr_array is expensive. lil_array is more efficient."  # noqa
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=wrn)
             t = example_table.copy()
@@ -446,7 +446,7 @@ class SupportTests(TestCase):
         # list list test
         samp_ids = range(3)
         obs_ids = range(2)
-        exp_data = lil_matrix((2, 3))
+        exp_data = lil_array((2, 3))
         exp_data[0, 1] = 5
         exp_data[1, 2] = 10
         exp = Table(exp_data, obs_ids, samp_ids)
@@ -1594,8 +1594,8 @@ class TableTests(TestCase):
              'tree': ('newick', '((4:0.1,5:0.1):0.2,(6:0.1,7:0.1):0.2):0.3;')})
 
     def test_to_dataframe(self):
-        mat = csr_matrix(np.array([[0.0, 1.0, 2.0],
-                                   [3.0, 4.0, 5.0]]))
+        mat = csr_array(np.array([[0.0, 1.0, 2.0],
+                                  [3.0, 4.0, 5.0]]))
         exp = pd.DataFrame.sparse.from_spmatrix(mat,
                                                 index=['O1', 'O2'],
                                                 columns=['S1', 'S2', 'S3'])
@@ -1609,7 +1609,7 @@ class TableTests(TestCase):
 
     def test_to_dataframe_is_sparse(self):
         df = example_table.to_dataframe()
-        density = (float(example_table.matrix_data.getnnz()) /
+        density = (float(example_table.matrix_data.nnz) /
                    np.prod(example_table.shape))
         df_density = (df.values > 0).sum().sum() / np.prod(df.shape)
         assert np.allclose(df_density, density)
@@ -2128,21 +2128,21 @@ class TableTests(TestCase):
 
     def test_convert_vector_to_dense(self):
         """Properly converts ScipySparseMat vectors to dense numpy repr."""
-        input_row = lil_matrix((1, 3))
+        input_row = lil_array((1, 3))
         input_row[(0, 0)] = 1
         input_row[(0, 2)] = 3
         exp = np.array([1, 0, 3])
         obs = self.row_vec._to_dense(input_row)
         npt.assert_array_equal(obs, exp)
 
-        input_row = lil_matrix((3, 1))
+        input_row = lil_array((3, 1))
         input_row[(0, 0)] = 1
         input_row[(2, 0)] = 3
         exp = np.array([1, 0, 3])
         obs = self.row_vec._to_dense(input_row)
         npt.assert_array_equal(obs, exp)
 
-        input_row = lil_matrix((1, 1))
+        input_row = lil_array((1, 1))
         input_row[(0, 0)] = 42
         exp = np.array([42])
         obs = self.single_ele._to_dense(input_row)
@@ -2190,7 +2190,7 @@ class TableTests(TestCase):
         self.assertEqual(self.explicit_zeros.nnz, 4)
 
     def test_nnz_issue_727(self):
-        wrn = "Changing the sparsity structure of a csr_matrix is expensive. lil_matrix is more efficient."  # noqa
+        wrn = "Changing the sparsity structure of a csr_array is expensive. lil_array is more efficient."  # noqa
         with warnings.catch_warnings():
             warnings.filterwarnings("ignore", message=wrn)
             tab = Table(np.array([[0, 1], [0, 0]]), ['a', 'b'], ['1', '2'])
@@ -2206,7 +2206,7 @@ class TableTests(TestCase):
             with self.assertRaises(IndexError):
                 self.nulls[i]._get_row(0)
 
-        exp = lil_matrix((1, 3))
+        exp = lil_array((1, 3))
         exp[(0, 0)] = 1
         exp[(0, 2)] = 2
 
@@ -2222,7 +2222,7 @@ class TableTests(TestCase):
             with self.assertRaises(IndexError):
                 self.nulls[i]._get_col(0)
 
-        exp = lil_matrix((2, 1))
+        exp = lil_array((2, 1))
         exp[(0, 0)] = 1
         exp[(1, 0)] = 3
 
@@ -2303,7 +2303,7 @@ class TableTests(TestCase):
         with self.assertRaises(IndexError):
             self.empty[0, 0:1]
 
-        exp = lil_matrix((2, 1))
+        exp = lil_array((2, 1))
         obs = self.empty[:, 0]
         self.assertEqual((obs != exp).sum(), 0)
 
@@ -2509,14 +2509,14 @@ class SparseTableTests(TestCase):
         exp_index = {'x': 0, 'y': 1}
         self.assertEqual(obs._sample_index, exp_index)
 
-    def test_other_spmatrix_type(self):
+    def test_other_sparray_type(self):
         ss = scipy.sparse
-        for c in [ss.lil_matrix, ss.bsr_matrix, ss.coo_matrix, ss.dia_matrix,
-                  ss.dok_matrix, ss.csc_matrix, ss.csr_matrix]:
+        for c in [ss.lil_array, ss.bsr_array, ss.coo_array, ss.dia_array,
+                  ss.dok_array, ss.csc_array, ss.csr_array]:
             mat = c((2, 2))
             t = Table(mat, ['a', 'b'], [1, 2])
             self.assertTrue(isinstance(t.matrix_data,
-                                       (csr_matrix, csc_matrix)))
+                                       (csr_array, csc_array)))
 
     def test_sort_order(self):
         """sorts tables by arbitrary order"""
@@ -2754,14 +2754,14 @@ class SparseTableTests(TestCase):
 
     def test_data_sparse(self):
         # Returns observations for a given sample
-        exp = csc_matrix(np.array([[5], [7]]))
+        exp = csc_array(np.array([[5], [7]]))
         obs = self.st1.data('a', 'sample', dense=False)
         self.assertEqual((obs != exp).nnz, 0)
         with self.assertRaises(UnknownIDError):
             self.st1.data('asdasd', 'sample')
 
         # Returns samples for a given observation
-        exp = csr_matrix(np.array([5, 6]))
+        exp = csr_array(np.array([[5, 6]]))
         obs = self.st1.data('1', 'observation', dense=False)
         self.assertEqual((obs != exp).nnz, 0)
         with self.assertRaises(UnknownIDError):
@@ -2788,7 +2788,7 @@ class SparseTableTests(TestCase):
 
     def test_conv_to_self_type(self):
         """Should convert other to sparse type"""
-        exp = lil_matrix((2, 2))
+        exp = lil_array((2, 2))
         exp[(0, 0)] = 5
         exp[(0, 1)] = 6
         exp[(1, 0)] = 7
@@ -2796,7 +2796,7 @@ class SparseTableTests(TestCase):
         obs = self.st1._conv_to_self_type(self.vals)
         self.assertEqual((obs != exp).sum(), 0)
 
-        exp = lil_matrix((2, 2))
+        exp = lil_array((2, 2))
         exp[(0, 0)] = 5
         exp[(0, 1)] = 7
         exp[(1, 0)] = 6
@@ -2805,7 +2805,7 @@ class SparseTableTests(TestCase):
         self.assertEqual((obs != exp).sum(), 0)
 
         # passing a single vector
-        exp = lil_matrix((1, 3))
+        exp = lil_array((1, 3))
         exp[(0, 0)] = 2
         exp[(0, 1)] = 0
         exp[(0, 2)] = 3
@@ -2813,7 +2813,7 @@ class SparseTableTests(TestCase):
         self.assertEqual((obs != exp).sum(), 0)
 
         # passing a list of dicts
-        exp = lil_matrix((2, 3))
+        exp = lil_array((2, 3))
         exp[(0, 0)] = 5
         exp[(0, 1)] = 6
         exp[(0, 2)] = 7
@@ -2826,20 +2826,20 @@ class SparseTableTests(TestCase):
 
     def test_to_dense(self):
         """Should convert a self styled vector to numpy type"""
-        input_row = lil_matrix((1, 3))
+        input_row = lil_array((1, 3))
         input_row[(0, 0)] = 10
         exp = np.array([10.0, 0, 0])
         obs = self.st1._to_dense(input_row)
         npt.assert_equal(obs, exp)
 
-        input_col = lil_matrix((3, 1))
+        input_col = lil_array((3, 1))
         input_col[(0, 0)] = 12
         exp = np.array([12.0, 0, 0])
         obs = self.st1._to_dense(input_col)
         npt.assert_equal(obs, exp)
 
         # 1x1
-        input_vec = lil_matrix((1, 1))
+        input_vec = lil_array((1, 1))
         input_vec[(0, 0)] = 42
         exp = np.array([42.0])
         obs = self.st1._to_dense(input_vec)
@@ -2851,8 +2851,8 @@ class SparseTableTests(TestCase):
         npt.assert_equal(obs, exp)
 
     def test_iter_data_sparse(self):
-        exp = [csr_matrix(np.array([5, 7])),
-               csr_matrix(np.array([6, 8]))]
+        exp = [csr_array(np.array([[5, 7]])),
+               csr_array(np.array([[6, 8]]))]
         obs = list(self.st1.iter_data(dense=False))
         for o, e in zip(obs, exp):
             self.assertTrue((o != e).nnz == 0)
@@ -2895,8 +2895,8 @@ class SparseTableTests(TestCase):
 
     def test_iter_obs(self):
         """Iterate over observations of sparse matrix"""
-        r1 = lil_matrix((1, 2))
-        r2 = lil_matrix((1, 2))
+        r1 = lil_array((1, 2))
+        r2 = lil_array((1, 2))
         r1[(0, 0)] = 5
         r1[(0, 1)] = 6
         r2[(0, 0)] = 7
@@ -2910,8 +2910,8 @@ class SparseTableTests(TestCase):
 
     def test_iter_samp(self):
         """Iterate over samples of sparse matrix"""
-        c1 = lil_matrix((1, 2))
-        c2 = lil_matrix((1, 2))
+        c1 = lil_array((1, 2))
+        c2 = lil_array((1, 2))
         c1[(0, 0)] = 5
         c1[(0, 1)] = 7
         c2[(0, 0)] = 6
@@ -3088,8 +3088,8 @@ class SparseTableTests(TestCase):
         def f(vals, id_, md):
             return id_ == 'a'
 
-        values = csr_matrix(np.array([[5.],
-                                      [7.]]))
+        values = csr_array(np.array([[5.],
+                                     [7.]]))
         exp_table = Table(values, ['1', '2'], ['a'],
                           [{'taxonomy': ['k__a', 'p__b']},
                            {'taxonomy': ['k__a', 'p__c']}],
@@ -3109,7 +3109,7 @@ class SparseTableTests(TestCase):
         def f(vals, id_, md):
             return md['taxonomy'][1] == 'p__c'
 
-        values = csr_matrix(np.array([[7., 8.]]))
+        values = csr_array(np.array([[7., 8.]]))
         exp_table = Table(values, ['2'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__c']}],
                           [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
@@ -3126,8 +3126,8 @@ class SparseTableTests(TestCase):
         def f(vals, id_, md):
             return id_ == 'a'
 
-        values = csr_matrix(np.array([[5.],
-                                      [7.]]))
+        values = csr_array(np.array([[5.],
+                                     [7.]]))
         exp_table = Table(values, ['1', '2'], ['a'],
                           [{'taxonomy': ['k__a', 'p__b']},
                            {'taxonomy': ['k__a', 'p__c']}],
@@ -3140,8 +3140,8 @@ class SparseTableTests(TestCase):
     def test_filter_sample_metadata(self):
         def f(vals, id_, md):
             return md['barcode'] == 'ttgg'
-        values = csr_matrix(np.array([[6.],
-                                      [8.]]))
+        values = csr_array(np.array([[6.],
+                                     [8.]]))
         exp_table = Table(values, ['1', '2'], ['b'],
                           [{'taxonomy': ['k__a', 'p__b']},
                            {'taxonomy': ['k__a', 'p__c']}],
@@ -3153,8 +3153,8 @@ class SparseTableTests(TestCase):
     def test_filter_sample_invert(self):
         def f(vals, id_, md):
             return md['barcode'] == 'aatt'
-        values = csr_matrix(np.array([[6.],
-                                      [8.]]))
+        values = csr_array(np.array([[6.],
+                                     [8.]]))
         exp_table = Table(values, ['1', '2'], ['b'],
                           [{'taxonomy': ['k__a', 'p__b']},
                            {'taxonomy': ['k__a', 'p__c']}],
@@ -3174,7 +3174,7 @@ class SparseTableTests(TestCase):
         def f(vals, id_, md):
             return id_ == '1'
 
-        values = csr_matrix(np.array([[5., 6.]]))
+        values = csr_array(np.array([[5., 6.]]))
         exp_table = Table(values, ['1'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__b']}],
                           [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
@@ -3186,7 +3186,7 @@ class SparseTableTests(TestCase):
         def f(vals, id_, md):
             return md['taxonomy'][1] == 'p__c'
 
-        values = csr_matrix(np.array([[7., 8.]]))
+        values = csr_array(np.array([[7., 8.]]))
         exp_table = Table(values, ['2'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__c']}],
                           [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
@@ -3198,7 +3198,7 @@ class SparseTableTests(TestCase):
         def f(vals, id_, md):
             return md['taxonomy'][1] == 'p__c'
 
-        values = csr_matrix(np.array([[5., 6.]]))
+        values = csr_array(np.array([[5., 6.]]))
         exp_table = Table(values, ['1'], ['a', 'b'],
                           [{'taxonomy': ['k__a', 'p__b']}],
                           [{'barcode': 'aatt'}, {'barcode': 'ttgg'}])
@@ -4525,12 +4525,12 @@ class SupportTests2(TestCase):
     def test_coo_arrays_to_sparse(self):
         """convert (values, (row, col)) to scipy"""
         n_rows, n_cols = 3, 4
-        exp_d = lil_matrix((n_rows, n_cols))
+        exp_d = lil_array((n_rows, n_cols))
         exp_d[(0, 0)] = 10
         exp_d[(1, 3)] = 5
         exp_d[(2, 1)] = 2
         exp_d = exp_d.tocoo()
-        exp = lil_matrix((n_rows, n_cols))
+        exp = lil_array((n_rows, n_cols))
         exp[(0, 0)] = 10
         exp[(1, 3)] = 5
         exp[(2, 1)] = 2
@@ -4543,7 +4543,7 @@ class SupportTests2(TestCase):
     def test_list_list_to_sparse(self):
         """convert [[row,col,value], ...] to scipy"""
         input = [[0, 0, 1], [1, 1, 5.0], [0, 2, 6]]
-        exp = lil_matrix((2, 3))
+        exp = lil_array((2, 3))
         exp[(0, 0)] = 1.0
         exp[(1, 1)] = 5.0
         exp[(0, 2)] = 6
@@ -4553,7 +4553,7 @@ class SupportTests2(TestCase):
     def test_nparray_to_sparse(self):
         """Convert nparray to sparse"""
         input = np.array([[1, 2, 3, 4], [-1, 6, 7, 8], [9, 10, 11, 12]])
-        exp = lil_matrix((3, 4))
+        exp = lil_array((3, 4))
         exp[(0, 0)] = 1
         exp[(0, 1)] = 2
         exp[(0, 2)] = 3
@@ -4572,7 +4572,7 @@ class SupportTests2(TestCase):
     def test_list_dict_to_sparse(self):
         """Take a list of dicts and condense down to a single dict"""
         input = [{(0, 0): 10, (0, 1): 2}, {(1, 2): 15}, {(0, 3): 7}]
-        exp = lil_matrix((3, 4))
+        exp = lil_array((3, 4))
         exp[(0, 0)] = 10
         exp[(0, 1)] = 2
         exp[(1, 2)] = 15
@@ -4583,7 +4583,7 @@ class SupportTests2(TestCase):
     def test_dict_to_sparse(self):
         """Take a dict and convert to sparse"""
         input = {(0, 1): 5, (1, 0): 2, (2, 1): 6}
-        exp = lil_matrix((3, 2))
+        exp = lil_array((3, 2))
         exp[(0, 1)] = 5
         exp[(1, 0)] = 2
         exp[(2, 1)] = 6
@@ -4594,7 +4594,7 @@ class SupportTests2(TestCase):
         """Convert to expected sparse types"""
         vals = {(0, 0): 5, (0, 1): 6, (1, 0): 7, (1, 1): 8}
         obs = Table._to_sparse(vals)
-        exp = lil_matrix((2, 2))
+        exp = lil_array((2, 2))
         exp[(0, 0)] = 5
         exp[(0, 1)] = 6
         exp[(1, 0)] = 7
@@ -4604,21 +4604,21 @@ class SupportTests2(TestCase):
         input = {(0, 1): 5, (10, 8): -1.23}
         input_transpose = {(1, 0): 5, (8, 10): -1.23}
 
-        exp = lil_matrix((11, 9))
+        exp = lil_array((11, 9))
         exp[(0, 1)] = 5
         exp[(10, 8)] = -1.23
         obs = Table._to_sparse(input)
         self.assertEqual((obs != exp).sum(), 0)
 
         # test transpose
-        exp = lil_matrix((9, 11))
+        exp = lil_array((9, 11))
         exp[(1, 0)] = 5
         exp[(8, 10)] = -1.23
         obs = Table._to_sparse(input_transpose)
         self.assertEqual((obs != exp).sum(), 0)
 
         # passing a list of dicts, transpose
-        exp = lil_matrix((3, 2))
+        exp = lil_array((3, 2))
         exp[(0, 0)] = 5.0
         exp[(1, 0)] = 6.0
         exp[(2, 0)] = 7.0
@@ -4629,19 +4629,19 @@ class SupportTests2(TestCase):
                                 {(0, 1): 8, (1, 1): 9, (2, 1): 10}])
         self.assertEqual((obs != exp).sum(), 0)
 
-        # passing a list of lil_matrix
-        exp = lil_matrix((2, 3))
+        # passing a list of lil_array
+        exp = lil_array((2, 3))
         exp[(0, 0)] = 5
         exp[(0, 1)] = 6
         exp[(0, 2)] = 7
         exp[(1, 0)] = 8
         exp[(1, 1)] = 9
         exp[(1, 2)] = 10
-        row1 = lil_matrix((1, 3))
+        row1 = lil_array((1, 3))
         row1[(0, 0)] = 5
         row1[(0, 1)] = 6
         row1[(0, 2)] = 7
-        row2 = lil_matrix((1, 3))
+        row2 = lil_array((1, 3))
         row2[(0, 0)] = 8
         row2[(0, 1)] = 9
         row2[(0, 2)] = 10
@@ -4649,14 +4649,14 @@ class SupportTests2(TestCase):
         self.assertEqual((obs != exp).sum(), 0)
 
         # test empty set
-        exp = lil_matrix((0, 0))
+        exp = lil_array((0, 0))
         obs = Table._to_sparse([])
         self.assertEqual((obs != exp).sum(), 0)
 
     def test_list_nparray_to_sparse(self):
         """lists of nparrays to sparse"""
         ins = [np.array([0, 2, 1, 0]), np.array([1, 0, 0, 1])]
-        exp = lil_matrix((2, 4))
+        exp = lil_array((2, 4))
         exp[(0, 1)] = 2
         exp[(0, 2)] = 1
         exp[(1, 0)] = 1
@@ -4665,13 +4665,13 @@ class SupportTests2(TestCase):
         self.assertEqual((obs != exp).sum(), 0)
 
     def test_list_sparse_to_sparse(self):
-        """list of lil_matrix to sparse"""
-        ins = [lil_matrix((1, 4)), lil_matrix((1, 4))]
+        """list of lil_array to sparse"""
+        ins = [lil_array((1, 4)), lil_array((1, 4))]
         ins[0][0, 0] = 5
         ins[0][0, 1] = 10
         ins[1][0, 2] = 1
         ins[1][0, 3] = 2
-        exp = lil_matrix((2, 4))
+        exp = lil_array((2, 4))
         exp[0, 0] = 5
         exp[0, 1] = 10
         exp[1, 2] = 1

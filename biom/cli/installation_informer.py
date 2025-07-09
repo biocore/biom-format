@@ -8,6 +8,7 @@
 
 
 import sys
+from importlib.metadata import version, PackageNotFoundError
 
 import click
 
@@ -63,25 +64,25 @@ def _get_dependency_version_info():
     not_installed_msg = "Not installed"
 
     try:
-        from click import __version__ as click_lib_version
-    except ImportError:
+        click_lib_version = version("click")
+    except PackageNotFoundError:
         click_lib_version = not_installed_msg
 
     try:
-        from numpy import __version__ as numpy_lib_version
-    except ImportError:
+        numpy_lib_version = version("numpy")
+    except PackageNotFoundError:
         numpy_lib_version = ("ERROR: Not installed - this is required! "
                              "(This will also cause the BIOM library to "
                              "not be importable.)")
 
     try:
-        from scipy import __version__ as scipy_lib_version
-    except ImportError:
+        scipy_lib_version = version("scipy")
+    except PackageNotFoundError:
         scipy_lib_version = not_installed_msg
 
     try:
-        from h5py import __version__ as h5py_lib_version
-    except ImportError:
+        h5py_lib_version = version("h5py")
+    except PackageNotFoundError:
         h5py_lib_version = ("WARNING: Not installed - this is an optional "
                             "dependency. It is strongly recommended for "
                             "large datasets.")
@@ -97,8 +98,8 @@ def _get_package_info():
                         "numpy) - is it installed and in your "
                         "$PYTHONPATH?")
     try:
-        from biom import __version__ as biom_lib_version
-    except ImportError:
+        biom_lib_version = version("biom-format")
+    except PackageNotFoundError:
         biom_lib_version = import_error_msg
 
     return (("biom-format version", biom_lib_version),)

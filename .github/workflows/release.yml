@@ -6,7 +6,7 @@ on:
       - '*'
 
 env:
-  earliest_python: "3.9"
+  earliest_python: "3.10"
   latest_python: "3.13"
   miniforge_version: "23.11.0-0"
   miniforge_variant: "Mambaforge"
@@ -16,10 +16,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.9
+      - name: Set up Python 3.10
         uses: actions/setup-python@v2
         with:
-          python-version: 3.9
+          python-version: 3.10
       - name: Build distribution
         run: |
           # set version from '${{ github.ref_name }}'

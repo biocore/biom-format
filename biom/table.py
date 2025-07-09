@@ -180,8 +180,8 @@ from operator import itemgetter
 from collections import defaultdict
 from collections.abc import Hashable, Iterable
 from numpy import ndarray, asarray, zeros, newaxis
-from scipy.sparse import (coo_matrix, csc_matrix, csr_matrix, isspmatrix,
-                          vstack, hstack, dok_matrix)
+from scipy.sparse import (coo_array, csc_array, csr_array, issparse,
+                          vstack, hstack, dok_array)
 import re
 from biom.exception import (TableException, UnknownAxisError, UnknownIDError,
                             DisjointIDError)
@@ -479,7 +479,7 @@ class Table:
         self.generated_by = generated_by
         self.format_version = __format_version__
 
-        if not isspmatrix(data):
+        if not issparse(data):
             shape = (len(observation_ids), len(sample_ids))
             input_is_dense = kwargs.get('input_is_dense', False)
             self._data = Table._to_sparse(data, input_is_dense=input_is_dense,
@@ -570,7 +570,7 @@ class Table:
         if dtype is None:
             dtype = self.dtype
 
-        if isspmatrix(vals):
+        if issparse(vals):
             return vals
         else:
             return Table._to_sparse(vals, transpose, dtype)
@@ -615,7 +615,7 @@ class Table:
             return mat
         # the empty list
         elif isinstance(values, list) and len(values) == 0:
-            return coo_matrix((0, 0))
+            return coo_array((0, 0))
         # list of np vectors
         elif isinstance(values, list) and isinstance(values[0], ndarray):
             mat = list_nparray_to_sparse(values, dtype)
@@ -629,7 +629,7 @@ class Table:
                 mat = mat.T
             return mat
         # list of scipy.sparse matrices, each representing a row in row order
-        elif isinstance(values, list) and isspmatrix(values[0]):
+        elif isinstance(values, list) and issparse(values[0]):
             mat = list_sparse_to_sparse(values, dtype)
             if transpose:
                 mat = mat.T
@@ -641,13 +641,13 @@ class Table:
             return mat
         elif isinstance(values, list) and isinstance(values[0], list):
             if input_is_dense:
-                d = coo_matrix(values)
+                d = coo_array(values)
                 mat = coo_arrays_to_sparse((d.data, (d.row, d.col)),
                                            dtype=dtype, shape=shape)
             else:
                 mat = list_list_to_sparse(values, dtype, shape=shape)
             return mat
-        elif isspmatrix(values):
+        elif issparse(values):
             mat = values
             if transpose:
                 mat = mat.transpose()
@@ -879,9 +879,9 @@ class Table:
 
         Returns
         -------
-        float or spmatrix
+        float or sparray
             A float is return if a specific element is specified, otherwise a
-            spmatrix object representing a vector of sparse data is returned.
+            sparray object representing a vector of sparse data is returned.
 
         Raises
         ------
@@ -924,7 +924,7 @@ class Table:
             else:
                 raise IndexError("Can only handle full : slices per axis.")
         else:
-            if self._data.getformat() == 'coo':
+            if self._data.format == 'coo':
                 self._data = self._data.tocsr()
 
             return self._data[row, col]
@@ -944,7 +944,7 @@ class Table:
 
         """
         self._data = self._data.tocsr()
-        return self._data.getrow(row_idx)
+        return self._data[row_idx, None, :]  # this makes a 2D row
 
     def _get_col(self, col_idx):
         """Return the column at ``col_idx``.
@@ -962,7 +962,7 @@ class Table:
 
         """
         self._data = self._data.tocsc()
-        return self._data.getcol(col_idx)
+        return self._data[:, None, col_idx]  # this makes a 2D column
 
     def align_to_dataframe(self, metadata, axis='sample'):
         """ Aligns dataframe against biom table, only keeping common ids.
@@ -1202,7 +1202,7 @@ class Table:
         sample_md_copy = deepcopy(self.metadata())
         obs_md_copy = deepcopy(self.metadata(axis='observation'))
 
-        if self._data.getformat() == 'lil':
+        if self._data.format == 'lil':
             # lil's transpose method doesn't have the copy kwarg, but all of
             # the others do.
             self._data = self._data.tocsr()
@@ -1910,8 +1910,8 @@ class Table:
 
         Returns
         -------
-        np.ndarray or scipy.sparse.spmatrix
-            np.ndarray if ``dense``, otherwise scipy.sparse.spmatrix
+        np.ndarray or scipy.sparse.sparray
+            np.ndarray if ``dense``, otherwise scipy.sparse.sparray
 
         Raises
         ------
@@ -2736,12 +2736,11 @@ class Table:
             dtype = np.float64 if one_to_many_mode == 'divide' else self.dtype
 
             if axis == 'observation':
-                new_data = dok_matrix((len(self.ids(axis='sample')),
-                                       len(new_md)),
-                                      dtype=dtype)
+                new_data = dok_array((len(self.ids(axis='sample')),
+                                      len(new_md)), dtype=dtype)
             else:
-                new_data = dok_matrix((len(self.ids(axis='observation')),
-                                       len(new_md)), dtype=dtype)
+                new_data = dok_array((len(self.ids(axis='observation')),
+                                      len(new_md)), dtype=dtype)
 
             # for each vector
             # for each bin in the metadata
@@ -2794,9 +2793,9 @@ class Table:
 
             # convert back to self type
             if axis == 'observation':
-                new_data = csr_matrix(new_data.T)
+                new_data = csr_array(new_data.T)
             else:
-                new_data = csc_matrix(new_data)
+                new_data = csc_array(new_data)
 
             data = self._conv_to_self_type(new_data)
         else:
@@ -3617,7 +3616,7 @@ class Table:
                     shape = (n_axis, n_invaxis)
 
                 # create the padded matrix
-                zerod = csr_matrix(shape)
+                zerod = csr_array(shape)
                 tmp_mat = invstack([table.matrix_data, zerod])
 
                 # resolve invert axis ids and metadata
@@ -3732,8 +3731,8 @@ class Table:
             data[offset:offset + t_nnz] = coo.data
             offset += t_nnz
 
-        coo = coo_matrix((data, (rows, cols)),
-                         shape=(len(feature_order), len(sample_order)))
+        coo = coo_array((data, (rows, cols)),
+                        shape=(len(feature_order), len(sample_order)))
 
         return self.__class__(coo.tocsr(), feature_order, sample_order)
 
@@ -4139,12 +4138,12 @@ html
                 obs_ids = h5grp['observation/ids'][:]
                 samp_ids = axis_ids[to_keep]
                 shape = (len(obs_ids), len(to_keep))
-                mat = csc_matrix((data, indices, indptr), shape=shape)
+                mat = csc_array((data, indices, indptr), shape=shape)
             else:
                 samp_ids = h5grp['sample/ids'][:]
                 obs_ids = axis_ids[to_keep]
                 shape = (len(to_keep), len(samp_ids))
-                mat = csr_matrix((data, indices, indptr), shape=shape)
+                mat = csr_array((data, indices, indptr), shape=shape)
 
             # use a fixed width dtype
             obs_ids_dtype = 'U%d' % max([len(v) for v in obs_ids])
@@ -4234,7 +4233,7 @@ html
                 else:
                     desired_ids = np.asarray(desired_ids)
                     # Get the index of the source ids to include
-                    idx = np.in1d(source_ids, desired_ids)
+                    idx = np.isin(source_ids, desired_ids)
                     # Retrieve only the ids that we are interested on
                     ids = source_ids[idx]
                     # Check that all desired ids have been found on source ids
@@ -4290,9 +4289,9 @@ html
         cs = (data, indices, indptr)
 
         if axis == 'sample':
-            matrix = csc_matrix(cs, shape=shape)
+            matrix = csc_array(cs, shape=shape)
         else:
-            matrix = csr_matrix(cs, shape=shape)
+            matrix = csr_array(cs, shape=shape)
 
         t = Table(matrix, obs_ids, samp_ids, obs_md or None,
                   samp_md or None, type=type_, create_date=create_date,
@@ -4587,9 +4586,9 @@ dataset of int32
         References
         ----------
         .. [1] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-py.sparse.csr_matrix.html
+py.sparse.csr_array.html
         .. [2] http://docs.scipy.org/doc/scipy-0.13.0/reference/generated/sci\
-py.sparse.csc_matrix.html
+py.sparse.csc_array.html
         .. [3] http://biom-format.org/documentation/format_versions/biom-2.1.\
 html
 
@@ -5066,10 +5065,11 @@ html
         samp_index = {s: i for i, s in enumerate(samp_order)}
 
         # fill the matrix
-        row = np.array([obs_index[obs] for obs in observations], dtype=int)
-        col = np.array([samp_index[samp] for samp in samples], dtype=int)
+        row = np.array([obs_index[obs] for obs in observations],
+                       dtype=np.int32)
+        col = np.array([samp_index[samp] for samp in samples], dtype=np.int32)
         data = np.asarray(values)
-        mat = coo_matrix((data, (row, col)))
+        mat = coo_array((data, (row, col)))
 
         return Table(mat, obs_order, samp_order)
 
@@ -5333,7 +5333,7 @@ html
 
 
 def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
-    """Map directly on to the coo_matrix constructor
+    """Map directly on to the coo_array constructor
 
     Parameters
     ----------
@@ -5352,14 +5352,14 @@ def coo_arrays_to_sparse(data, dtype=np.float64, shape=None):
     else:
         n_rows, n_cols = shape
 
-    # coo_matrix allows zeros to be added as data, and this affects
+    # coo_array allows zeros to be added as data, and this affects
     # nnz, items, and iteritems. Clean them out here, as this is
     # the only time these zeros can creep in.
-    # Note: coo_matrix allows duplicate entries; the entries will
+    # Note: coo_array allows duplicate entries; the entries will
     # be summed when converted. Not really sure how we want to
     # handle this generally within BIOM- I'm okay with leaving it
     # as undefined behavior for now.
-    matrix = coo_matrix(data, shape=(n_rows, n_cols), dtype=dtype)
+    matrix = coo_array(data, shape=(n_rows, n_cols), dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
@@ -5380,10 +5380,12 @@ def list_list_to_sparse(data, dtype=float, shape=None):
 
     Returns
     -------
-    scipy.csr_matrix
+    scipy.csr_array
         The newly generated matrix
     """
     rows, cols, values = zip(*data)
+    rows = np.asarray(rows, dtype=np.int32)
+    cols = np.asarray(cols, dtype=np.int32)
 
     if shape is None:
         n_rows = max(rows) + 1
@@ -5391,8 +5393,8 @@ def list_list_to_sparse(data, dtype=float, shape=None):
     else:
         n_rows, n_cols = shape
 
-    matrix = coo_matrix((values, (rows, cols)), shape=(n_rows, n_cols),
-                        dtype=dtype)
+    matrix = coo_array((values, (rows, cols)), shape=(n_rows, n_cols),
+                       dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
@@ -5410,27 +5412,30 @@ def nparray_to_sparse(data, dtype=float):
 
     Returns
     -------
-    scipy.csr_matrix
+    scipy.csr_array
         The newly generated matrix
     """
     if data.shape == (0,):
         # an empty vector. Note, this short circuit is necessary as calling
-        # csr_matrix([], shape=(0, 0), dtype=dtype) will result in a matrix
+        # csr_array([], shape=(0, 0), dtype=dtype) will result in a matrix
         # has a shape of (1, 0).
-        return csr_matrix((0, 0), dtype=dtype)
+        return csr_array((0, 0), dtype=dtype)
     elif data.shape in ((1, 0), (0, 1)) and data.size == 0:
         # an empty matrix. This short circuit is necessary for the same reason
         # as the empty vector. While a (1, 0) matrix is _empty_, this does
         # confound code that assumes that (1, 0) means there might be metadata
         # or IDs associated with that singular row
-        return csr_matrix((0, 0), dtype=dtype)
+        return csr_array((0, 0), dtype=dtype)
     elif len(data.shape) == 1:
         # a vector
-        shape = (1, data.shape[0])
+        n = data.size
+        row = np.zeros(n, dtype=np.int32)
+        col = np.arange(n, dtype=np.int32)
+        matrix = coo_array((data, (row, col)), shape=(1, n), dtype=dtype)
     else:
-        shape = data.shape
+        # a 2D array
+        matrix = coo_array(data, dtype=dtype)
 
-    matrix = coo_matrix(data, shape=shape, dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
@@ -5448,10 +5453,10 @@ def list_nparray_to_sparse(data, dtype=float):
 
     Returns
     -------
-    scipy.csr_matrix
+    scipy.csr_array
         The newly generated matrix
     """
-    matrix = coo_matrix(data, shape=(len(data), len(data[0])), dtype=dtype)
+    matrix = coo_array(data, shape=(len(data), len(data[0])), dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
@@ -5469,10 +5474,10 @@ def list_sparse_to_sparse(data, dtype=float):
 
     Returns
     -------
-    scipy.csr_matrix
+    scipy.csr_array
         The newly generated matrix
     """
-    if isspmatrix(data[0]):
+    if issparse(data[0]):
         if data[0].shape[0] > data[0].shape[1]:
             n_cols = len(data)
             n_rows = data[0].shape[0]
@@ -5489,8 +5494,7 @@ def list_sparse_to_sparse(data, dtype=float):
             n_rows = len(data)
 
     data = vstack(data)
-    matrix = coo_matrix(data, shape=(n_rows, n_cols),
-                        dtype=dtype)
+    matrix = coo_array(data, shape=(n_rows, n_cols), dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
@@ -5508,10 +5512,10 @@ def list_dict_to_sparse(data, dtype=float):
 
     Returns
     -------
-    scipy.csr_matrix
+    scipy.csr_array
         The newly generated matrix
     """
-    if isspmatrix(data[0]):
+    if issparse(data[0]):
         if data[0].shape[0] > data[0].shape[1]:
             is_col = True
             n_cols = len(data)
@@ -5546,8 +5550,10 @@ def list_dict_to_sparse(data, dtype=float):
                 cols.append(col_idx)
                 vals.append(val)
 
-    matrix = coo_matrix((vals, (rows, cols)), shape=(n_rows, n_cols),
-                        dtype=dtype)
+    rows = np.asarray(rows, dtype=np.int32)
+    cols = np.asarray(cols, dtype=np.int32)
+    matrix = coo_array((vals, (rows, cols)), shape=(n_rows, n_cols),
+                       dtype=dtype)
     matrix = matrix.tocsr()
     matrix.eliminate_zeros()
     return matrix
@@ -5565,7 +5571,7 @@ def dict_to_sparse(data, dtype=float, shape=None):
 
     Returns
     -------
-    scipy.csr_matrix
+    scipy.csr_array
         The newly generated matrix
     """
     if shape is None:
@@ -5582,5 +5588,7 @@ def dict_to_sparse(data, dtype=float, shape=None):
         cols.append(c)
         vals.append(v)
 
+    rows = np.asarray(rows, dtype=np.int32)
+    cols = np.asarray(cols, dtype=np.int32)
     return coo_arrays_to_sparse((vals, (rows, cols)),
                                 shape=(n_rows, n_cols), dtype=dtype)

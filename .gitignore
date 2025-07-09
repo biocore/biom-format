@@ -3,6 +3,10 @@
 *.pyc
 biom_format.egg-info/
 
+# Cython converted files
+########################
+*.c
+
 # Cython compiled files
 #######################
 *.so
