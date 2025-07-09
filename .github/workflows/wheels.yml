@@ -3,6 +3,12 @@ name: Build Wheels
 on:
   pull_request:
     branches: [ master ]
+    paths:
+      - 'setup.py'
+      - 'pyproject.toml'
+      - 'biom/*.pyx'
+      - '.github/workflows/wheels.yml'
+      - '.github/workflows/release.yml'
   workflow_call:
   workflow_dispatch:
 
