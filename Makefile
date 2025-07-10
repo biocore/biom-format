@@ -19,7 +19,7 @@ test:
 	sh usage_tests.sh
 
 lint:
-	flake8 biom setup.py
+	flake8 biom setup.py --exclude=biom/tests/long_lines.py
 
 doc:
 	$(MAKE) -C doc clean html
