@@ -4238,7 +4238,7 @@ html
                 else:
                     desired_ids = np.asarray(desired_ids)
                     # Get the index of the source ids to include
-                    idx = np.in1d(source_ids, desired_ids)
+                    idx = np.isin(source_ids, desired_ids)
                     # Retrieve only the ids that we are interested on
                     ids = source_ids[idx]
                     # Check that all desired ids have been found on source ids
