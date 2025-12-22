@@ -17,6 +17,7 @@ from tempfile import NamedTemporaryFile
 import numpy as np
 import numpy.testing as npt
 
+from biom import example_table
 from biom.parse import (generatedby, MetadataMap, parse_biom_table, parse_uc,
                         load_table, save_table)
 from biom.table import Table
@@ -282,6 +283,15 @@ class ParseTests(TestCase):
                     ['S1', 'S2', 'S3'])
         obs = Table.from_adjacency(''.join(lines))
         self.assertEqual(obs, exp)
+
+    def test_parse_biom_table_hdf5_accent_utf8_regression(self):
+        tab = example_table.copy()
+        tab.update_ids({i: f'{i}fóó' for i in tab.ids()}, inplace=True)
+        with NamedTemporaryFile(delete=False) as tmpfile:
+            with h5py.File(tmpfile.name, 'w') as fp:
+                tab.to_hdf5(fp, 'asf')
+            obs = load_table(tmpfile.name)
+            self.assertEqual(obs, tab)
 
     def test_parse_biom_table_hdf5(self):
         """Make sure we can parse a HDF5 table through the same loader"""
