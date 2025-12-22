@@ -4182,7 +4182,7 @@ html
         def axis_load(grp):
             """Loads all the data of the given group"""
             # fetch all of the IDs
-            ids = grp['ids'][:]
+            ids = grp['ids'].asstr()[:]
 
             if ids.size > 0:
                 ids_dtype = 'U%d' % max([len(v) for v in ids])
