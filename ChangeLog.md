@@ -1,6 +1,13 @@
 BIOM-Format ChangeLog
 =====================
 
+biom-2.1.18-dev
+---------------
+
+Bug fixes:
+
+* A regression with parse of UTF-8 characters was introduced, reported [here](https://forum.qiime2.org/t/feature-table-gives-ascii-codec-cant-decode-byte-0xc3-in-position-4-error/33858/7)
+
 biom-2.1.17
 -----------
 
