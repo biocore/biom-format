@@ -4182,11 +4182,15 @@ html
         def axis_load(grp):
             """Loads all the data of the given group"""
             # fetch all of the IDs
-            ids = grp['ids'].asstr()[:]
+            ids = grp['ids']
 
             if ids.size > 0:
+                ids = ids.asstr()[:]
                 ids_dtype = 'U%d' % max([len(v) for v in ids])
                 ids = np.asarray(ids, dtype=ids_dtype)
+            else:
+                # .asstr does not handle an empty dataset
+                ids = ids[:]
 
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
