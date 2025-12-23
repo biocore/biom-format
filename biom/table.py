@@ -4182,11 +4182,15 @@ html
         def axis_load(grp):
             """Loads all the data of the given group"""
             # fetch all of the IDs
-            ids = grp['ids'][:]
+            ids = grp['ids']
 
             if ids.size > 0:
+                ids = ids.asstr()[:]
                 ids_dtype = 'U%d' % max([len(v) for v in ids])
                 ids = np.asarray(ids, dtype=ids_dtype)
+            else:
+                # .asstr does not handle an empty dataset
+                ids = ids[:]
 
             parser = defaultdict(lambda: general_parser)
             parser['taxonomy'] = vlen_list_of_str_parser
@@ -4234,7 +4238,7 @@ html
                 else:
                     desired_ids = np.asarray(desired_ids)
                     # Get the index of the source ids to include
-                    idx = np.in1d(source_ids, desired_ids)
+                    idx = np.isin(source_ids, desired_ids)
                     # Retrieve only the ids that we are interested on
                     ids = source_ids[idx]
                     # Check that all desired ids have been found on source ids
