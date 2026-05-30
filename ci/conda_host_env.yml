@@ -3,10 +3,8 @@
 name: testing
 channels:
   - conda-forge
-  - defaults
 dependencies:
   - hdf5
   - pip
   - cython
-  - pip:
-      - "-r requirements.test.txt"
+  - pytest
