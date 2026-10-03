@@ -4397,10 +4397,13 @@ html
         if dense:
             mat = mat.toarray()
 
+        # anndata 0.13 removed the AnnData(dtype=...) argument
+        mat = mat.astype(dtype)
+
         var = self.metadata_to_dataframe("sample")
         obs = self.metadata_to_dataframe("observation")
 
-        adata = anndata.AnnData(mat, obs=obs, var=var, dtype=dtype)
+        adata = anndata.AnnData(mat, obs=obs, var=var)
         # Convention for scRNA-seq analysis in Python
         adata = adata.transpose()
 

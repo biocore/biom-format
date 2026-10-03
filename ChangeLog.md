@@ -8,6 +8,7 @@ Bug fixes:
 
 * A regression with parse of UTF-8 characters was introduced, reported [here](https://forum.qiime2.org/t/feature-table-gives-ascii-codec-cant-decode-byte-0xc3-in-position-4-error/33858/7)
 * `np.in1d` was removed in NumPy 2.4, replaced with `np.isin`. See issue [#1003](https://github.com/biocore/biom-format/issues/1003)
+* `Table.to_anndata` failed with anndata >= 0.13, which removed the `dtype` argument to `AnnData`. The matrix is now cast prior to construction. See PR [#1005](https://github.com/biocore/biom-format/pull/1005)
 
 General Maintenance:
 
