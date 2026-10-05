@@ -1,8 +1,10 @@
 BIOM-Format ChangeLog
 =====================
 
-biom-2.1.18-dev
----------------
+biom-2.1.18
+-----------
+
+Bug fix and maintenance release, October 5th 2026.
 
 Bug fixes:
 
