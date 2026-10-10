@@ -1,6 +1,14 @@
 BIOM-Format ChangeLog
 =====================
 
+biom-2.1.19-dev
+---------------
+
+General Maintenance:
+
+* Python 3.15 added to CI and wheels are now built for Python 3.15. See PR [#1008](https://github.com/biocore/biom-format/pull/1008)
+
+
 biom-2.1.18
 -----------
 

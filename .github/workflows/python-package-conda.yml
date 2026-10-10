@@ -9,8 +9,8 @@ on:
     branches: [ master ]
 
 env:
-  latest_python: "3.14"
-  supported_pythons: '["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]'
+  latest_python: "3.15"
+  supported_pythons: '["3.9", "3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]'
   miniforge_version: "23.11.0-0"
   miniforge_variant: "Mambaforge"
 
@@ -34,7 +34,7 @@ jobs:
     needs: conf
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
@@ -56,7 +56,7 @@ jobs:
     needs: ["conf", "lint"]
     runs-on: "ubuntu-latest"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
@@ -81,11 +81,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-24.04-arm, macos-15-intel]
+        os: [ubuntu-latest, macos-latest, windows-latest, ubuntu-24.04-arm, macos-26-intel]
         python_version: ${{ fromJSON(needs.conf.outputs.supported_pythons) }}
         use_conda: [true, false]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: conda-incubator/setup-miniconda@v3
         with:
           auto-update-conda: true
