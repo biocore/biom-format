@@ -3309,8 +3309,10 @@ class SparseTableTests(TestCase):
                       ['S1', 'S2', 'S3'])
         actual_o1 = set()
         actual_o2 = set()
+        # (3, 0, 0) occurs with p=1/16 per draw, so unseeded, 100 draws miss
+        # it ~0.16% of the time. Seed per-iteration to keep it deterministic.
         for i in range(100):
-            obs = table.subsample(3)
+            obs = table.subsample(3, seed=i)
             actual_o1.add(tuple(obs.data('O1', 'observation')))
             actual_o2.add(tuple(obs.data('O2', 'observation')))
         self.assertEqual(actual_o1, {(3, 0, 0), (3, 1, 0), (3, 0, 1),
